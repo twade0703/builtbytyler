@@ -1,0 +1,569 @@
+html, body {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.maincontent ul{
+    flex:1;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+    gap: clamp(10px, 5vw, 50px); /* Ensure consistent spacing */
+    padding: 0; /* Remove any additional padding */
+    padding-top:50px;
+    list-style: none;
+    width: 100%;
+    margin: 0;
+    flex-shrink: 0;
+
+}
+.maincontent ul li a {
+    text-align: center;
+    text-decoration: none;
+    color: #fff;
+    font-size: 1.25rem;
+    white-space: nowrap;
+    padding: 10px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    background-color: #000;
+}
+
+.maincontent ul li a:hover {
+    color: #fff;
+    background-color: blue;
+}
+
+.header {
+    position: absolute;
+    color: #000;
+    left: 10%;
+    bottom: 10%;
+    font-size: 28px;
+}
+
+.line {
+    position: relative;
+    height:5px;
+    width: 500px;
+    background-color:#000;
+}
+
+/*Main container*/
+.main-container {
+    height: 130vh;
+    width: 100%;
+    margin: 0;
+    box-sizing: border-box;
+    padding:0;
+    background-color: green;
+    background-image: url('images/whitebackground.jpg');
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+.footer {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+    position: absolute;
+    bottom:-40%;
+    width: 100%;
+    background: #000;
+    padding-bottom: 25px;
+    padding-top: 25px;
+}
+
+.footer p {
+    color: #fff;
+}
+
+@media screen and (max-width: 768px) {
+    
+}
+
+
+/*Projects Page -------------------------------------------------*/
+.projects-container {
+    height: 170vh;
+    width: 100%;
+    margin: 0;
+    box-sizing: border-box;
+    padding:0;
+    background-color: green;
+    background-image: url('images/whitebackground.jpg');
+    background-position: bottom center;
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+.project-content ul{
+    flex:1;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+    gap: clamp(10px, 5vw, 50px); /* Ensure consistent spacing */
+    padding: 0; /* Remove any additional padding */
+    padding-top:50px;
+    list-style: none;
+    width: 100%;
+    margin: 0;
+    flex-shrink: 0;
+
+}
+
+.project-content ul li a {
+    text-align: center;
+    text-decoration: none;
+    color: #fff;
+    font-size: 1.25rem;
+    white-space: nowrap;
+    padding: 10px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    background-color: #000;
+
+}
+
+.project-content ul li a:hover {
+    color: #fff;
+    background-color: blue;
+}
+
+.projects-container {
+    background-color: #fff;
+
+}
+
+.titlesection {
+    display: flex;
+    position: relative; /* Allows precise positioning of child elements */
+    flex-direction: row; /* Arranges content in a row */
+    justify-content: center; /* Centers content horizontally */
+    align-items: center; /* Centers content vertically */
+    margin: 100px 500px; /* Controls space outside the title section */
+    padding: 1px 3px; /* Adds space inside the section */
+    background-color: black; /* Background color */
+    color: white; /* Text color */
+    font-size: 1.5rem !important; /* Text size */
+    border-radius: 30px; /* Rounded corners */
+    white-space: nowrap; /* Prevents text wrapping */
+    text-align: center; /* Centers text alignment */
+    overflow: hidden;
+    line-height: 1px;
+}
+
+.projects {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    margin: -90px 300px; 
+    position:relative;
+    height: 550px;
+    border: 10px solid black;
+    border-radius: 25px;
+    flex-shrink: 0;
+    flex:1;
+}
+
+.aerofoot {
+    background-color: black;
+    height: 50px;
+    width: 100%;
+    display: flex;
+    margin: 540px auto;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.5rem;
+    color: #fff;
+    border-radius: 25px;
+}
+
+
+@media (max-width: 1250px) {
+    .projects {
+        margin: -90px 20%;
+        height: 450px;
+    }
+    .titlesection {
+        margin: 100px 350px; /* Reduce margins */
+        font-size: 1rem;
+    }
+    .aerofoot {
+        margin: 430px auto;
+    }
+    .projects-container {
+        height: 130vh;
+    }
+    .pfooter {
+        margin: 200px auto;
+    }
+
+    .skillsbottom {
+        margin: 430px auto;
+    }
+    
+}
+@media (max-width: 1050px) {
+    .projects {
+        margin: -90px 100px;
+        height: 500px;
+    }
+    .titlesection {
+        margin: 100px 300px; 
+        font-size: 1rem;
+    }
+    .aerofoot {
+        margin: 480px auto;
+    }
+    .projects-container {
+        height: 150vh;
+    }
+    .pfooter {
+        margin: 150px auto;
+    }
+    .skillsbottom {
+        margin: 480px auto;
+    }
+}
+
+@media (max-width: 850px) {
+    .projects {
+        margin: -90px 50px; 
+        height: 450px;
+    }
+    .titlesection {
+        margin: 100px 250px;
+        font-size: 1rem;
+        padding: 0px 10px;
+    }
+    .aero-container {
+        height: 300px;
+    }
+    .aerofoot {
+        margin: 440px auto;
+    }
+    .projects-container {
+        height: 130vh;
+    }
+    .pfooter {
+        margin: 300px auto;
+    }
+}
+
+/*Aero Section */
+.aero-container {
+    width: 100%;
+    height: 100%;
+    background-image: url('images/Aero.png'); /* Default background */
+    background-color: gray; /* Fallback */
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    border-radius: 16px;
+}
+
+.aerofoot ul {
+    display: flex;
+    justify-content: center;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    position: relative;
+}
+
+.aerofoot li {
+    margin: 0 28px; /* Add spacing between bullet points */
+    position: relative;
+    top:8px;
+}
+
+.aerofoot .Links {
+    width: 13px;
+    height: 13px;
+    background-color: #fff;
+    border-radius: 50%;
+    text-indent: -9999px; /* Hide text inside */
+    display: inline-block;
+    cursor: pointer;
+    transition: transform 0.3s ease, background-color 0.3s ease;
+}
+
+.aerofoot .Links.active {
+    transform: scale(1.75); /* Larger size for active button */
+}
+
+.aerofoot .Links:hover {
+    transform: scale(1.2); /* Slight enlargement on hover */
+    background-color: blue;
+}
+
+
+/*footer*/
+.pfooter {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+    position: absolute;
+    bottom: -70%;
+    width: 100%;
+    background: #000;
+    padding-bottom: 25px;
+    padding-top: 25px;
+}
+
+.pfooter p {
+    color: #fff;
+}
+
+/* -------------------------Skills Page------------------------- */
+
+.skills-container {
+    display: flex;
+    width: 100%;
+    background-image: url('images/CAD.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    border-radius: 16px;
+}
+
+.skillsbottom {
+    display: flex; /* Enable Flexbox */
+    justify-content: center; /* Center content horizontally */
+    align-items: center; /* Center content vertically */
+    background-color: black;
+    height: 50px; /* Fixed height */
+    width: 100%; /* Full width */
+    border-radius: 24px;
+    margin: 530px auto; /* Center container within the page layout */
+    position: relative;
+}
+
+.skillsbottom ul {
+    display: flex; /* Arrange the dots horizontally */
+    justify-content: center; /* Ensure dots are centered horizontally */
+    align-items: center; /* Ensure dots are centered vertically */
+    padding: 0; /* Remove default padding */
+    margin: 0; /* Remove default margin */
+    list-style: none; /* Remove default bullet styling */
+}
+
+.skillsbottom li {
+    margin: 0 28px; /* Add spacing between bullet points */
+    position: relative;
+    top:3px;
+}
+
+.skillsbottom .skill {
+    width: 13px; /* Size of bullet points */
+    height: 13px;
+    background-color: #fff;
+    border-radius: 50%; /* Make bullet points circular */
+    text-indent: -9999px; /* Hide text inside the link */
+    display: inline-block; /* Ensure they behave as inline elements */
+    cursor: pointer;
+    transition: transform 0.2s ease, background-color 0.3s ease; /* Add hover effect */
+}
+
+.skillsbottom .skill.active {
+    transform: scale(1.5); /* Larger size for active button */
+}
+
+.skillsbottom .skill:hover {
+    transform: scale(1.4); /* Enlarge slightly on hover */
+    background-color: blue;
+}
+
+@media (max-width: 1250px) {
+    .skillsbottom {
+        margin: 430px auto;
+    }
+}
+
+@media (max-width: 1050px) {
+    .skillsbottom {
+        margin: 480px auto;
+    }
+}
+
+@media (max-width: 850px) {
+    .skillsbottom {
+        margin: 430px auto;
+    }
+}
+
+
+/*About Page---------------------------------------------------- */
+.ab-container {
+    height: 100vh;
+    width: 100%;
+    margin: 0;
+    box-sizing: border-box;
+    padding:0;
+    background-color: green;
+    background-image: url('images/about.jpeg');
+    background-position: center bottom;
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+.ab-content ul{
+    flex:1;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+    gap: clamp(10px, 5vw, 50px); /* Ensure consistent spacing */
+    padding: 0; /* Remove any additional padding */
+    padding-top:50px;
+    list-style: none;
+    width: 100%;
+    margin: 0;
+    flex-shrink: 0;
+
+}
+.ab-content ul li a {
+    text-align: center;
+    text-decoration: none;
+    color: #fff;
+    font-size: 1.25rem;
+    white-space: nowrap;
+    padding: 10px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    background-color: #000;
+}
+
+.ab-content ul li a:hover {
+    color: #fff;
+    background-color: blue;
+}
+
+.abfooter {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+    position: absolute;
+    bottom:-10%;
+    width: 100%;
+    background: #000;
+    padding-bottom: 25px;
+    padding-top: 25px;
+}
+
+.abfooter p {
+    color: #fff;
+}
+
+.body {
+    display: flex;
+    justify-content: space-between;
+    gap: 50px;
+    margin: 50px;
+}
+
+.career {
+    background-color: #fff;
+    overflow: none;
+    margin: 0 auto;
+    text-align: center;
+    border-radius: 24px;
+    width: 120%;
+    padding: 10px;
+    text-align: center;
+}
+
+.student {
+    background-color: #fff;
+    margin: 0 auto;
+    overflow: none;
+    text-align: center;
+    border-radius: 24px;
+    width: 120%;
+    padding: 10px;
+}
+
+.personal {
+    background-color: #fff;
+    margin: 0 auto;
+    overflow: none;
+    text-align: center;
+    border-radius: 24px;
+    width: 120%;
+    padding: 10px;
+}
+
+/*Contact Page -------------------------------------------------*/
+.contact-container {
+    height: 100vh;
+    width: 100%;
+    margin: 0;
+    box-sizing: border-box;
+    padding:0;
+    background-color: green;
+    background-image: url('images/cm.jpeg');
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+.contactcontent ul{
+    flex:1;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+    gap: clamp(10px, 5vw, 50px); /* Ensure consistent spacing */
+    padding: 0; /* Remove any additional padding */
+    padding-top:50px;
+    list-style: none;
+    width: 100%;
+    margin: 0;
+    flex-shrink: 0;
+
+}
+.contactcontent ul li a {
+    text-decoration: none;
+    color: #fff;
+    font-size: 1.25rem;
+    white-space: nowrap;
+    padding: 10px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    background-color: #000;
+}
+
+.contactcontent ul li a:hover {
+    color: #fff;
+    background-color: blue;
+}
+
+.cfooter {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+    position: absolute;
+    width: 100%;
+    bottom:-5%;
+    background: #000;
+    padding-bottom: 20px;
+    padding-top: 20px;
+}
+
+.cfooter p {
+    color: #fff;
+}
+
+.bodycontainer {
+    display:flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin: 200px auto 0px auto;
+    font-size: 2rem;
+    gap: 30px;
+}
+
+ 

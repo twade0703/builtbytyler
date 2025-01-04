@@ -275,6 +275,14 @@ html, body {
     position: relative;
 }
 
+.aerofoot ul li {
+    animation-name: Bounce;
+    animation-duration: 1s;
+    animation-fill-mode: forwards; /* Ensures the final state is held */
+    animation-iteration-count: 2; /* Runs animation only once */
+    animation-timing-function: ease-in-out; /* Smooth bounce */
+}
+
 .aerofoot li {
     margin: 0 28px; /* Add spacing between bullet points */
     position: relative;
@@ -282,8 +290,8 @@ html, body {
 }
 
 .aerofoot .Links {
-    width: 13px;
-    height: 13px;
+    width: 15px;
+    height: 15px;
     background-color: #fff;
     border-radius: 50%;
     text-indent: -9999px; /* Hide text inside */
@@ -293,7 +301,7 @@ html, body {
 }
 
 .aerofoot .Links.active {
-    transform: scale(1.75); /* Larger size for active button */
+    transform: scale(1.35); /* Larger size for active button */
 }
 
 .aerofoot .Links:hover {
@@ -358,9 +366,17 @@ html, body {
     top:3px;
 }
 
+.skillsbottom ul li {
+    animation-name: Bounce;
+    animation-duration: 1s;
+    animation-fill-mode: forwards; /* Ensures the final state is held */
+    animation-iteration-count: 2; /* Runs animation only once */
+    animation-timing-function: ease-in-out; /* Smooth bounce */
+}
+
 .skillsbottom .skill {
-    width: 13px; /* Size of bullet points */
-    height: 13px;
+    width: 15px;
+    height: 15px;
     background-color: #fff;
     border-radius: 50%; /* Make bullet points circular */
     text-indent: -9999px; /* Hide text inside the link */
@@ -474,6 +490,10 @@ html, body {
     width: 120%;
     padding: 10px;
     text-align: center;
+    animation-name: slideIn;
+    animation-duration: 3s;
+    animation-delay: 0s;
+    animation-fill-mode: forwards; /* Ensures the element stays in its final position */
 }
 
 .student {
@@ -484,6 +504,11 @@ html, body {
     border-radius: 24px;
     width: 120%;
     padding: 10px;
+    animation-name: slideIn;
+    opacity: 0;
+    animation-duration: 3s;
+    animation-delay: 0.5s;
+    animation-fill-mode: forwards; /* Ensures the element stays in its final position */
 }
 
 .personal {
@@ -494,6 +519,11 @@ html, body {
     border-radius: 24px;
     width: 120%;
     padding: 10px;
+    animation-name: slideIn;
+    opacity: 0;
+    animation-duration: 3s;
+    animation-delay: 1s;
+    animation-fill-mode: forwards; /* Ensures the element stays in its final position */
 }
 
 /*Contact Page -------------------------------------------------*/
@@ -557,13 +587,78 @@ html, body {
 }
 
 .bodycontainer {
-    display:flex;
+    display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    margin: 200px auto 0px auto;
+    margin: 200px auto 0 auto;
     font-size: 2rem;
     gap: 30px;
+    animation-name: slideInC;
+    animation-duration: 3s;
+    animation-fill-mode: forwards; /* Ensures the element stays in its final position */
 }
 
- 
+
+
+
+
+/* --------------------------- ANIMATIONS -------------------------- */
+
+/* About me slides */
+@keyframes slideInC {
+    0% {
+        transform: translateX(100px); /* Start position (off-screen or further down) */
+        opacity: 0; /* Fully transparent */
+        
+    }
+    100% {
+        transform: translateY(0); /* End position (original position) */
+        opacity: 1; /* Fully visible */
+    }
+}
+/* Contact me page */
+@keyframes slideIn {
+    0% {
+        transform: translateY(100px); /* Start position (off-screen or further down) */
+        opacity: 0; /* Fully transparent */
+        
+    }
+    100% {
+        transform: translateY(0); /* End position (original position) */
+        opacity: 1; /* Fully visible */
+    }
+}
+
+/*Aerofoot ul (line 270) and Skillsbottom ul (line 353) */
+.aerofoot ul li:nth-child(1) {
+    animation-delay: 0s;
+}
+.aerofoot ul li:nth-child(2) {
+    animation-delay: 2.0s;
+}
+.aerofoot ul li:nth-child(3) {
+    animation-delay: 4s;
+}
+
+.skillsbottom ul li:nth-child(1) {
+    animation-delay: 0s;
+}
+.skillsbottom ul li:nth-child(2) {
+    animation-delay: 2s;
+}
+.skillsbottom ul li:nth-child(3) {
+    animation-delay: 4s;
+}
+
+@keyframes Bounce {
+    0% {
+        transform: translateY(0); /* Start position */
+    }
+    50% {
+        transform: translateY(-10px); /* Bounce upward */
+    }
+    100% {
+        transform: translateY(0); /* Return to start position */
+    }
+}

@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aria Moreau — Independent Product Designer</title>
+  <meta name="description" content="Aria Moreau is an independent product & interaction designer crafting calm, considered interfaces for ambitious teams.">
+  <meta name="theme-color" content="#E7E3D9">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+
+  <!-- faint column grid -->
+  <div class="grid-overlay" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
+
+  <!-- contextual cursor -->
+  <div class="cursor-ring" aria-hidden="true"><span class="cursor-ring__label">View</span></div>
+  <div class="cursor-dot" aria-hidden="true"></div>
+
+  <!-- preloader -->
+  <div class="preloader" id="preloader" aria-hidden="true">
+    <div class="preloader__top">
+      <div class="preloader__word"><span class="mono" id="pre-word">Aria Moreau — ’26</span></div>
+      <div class="preloader__num" id="pre-num">00</div>
+    </div>
+    <div class="preloader__line" id="pre-line"></div>
+  </div>
+
+  <!-- nav -->
+  <header class="nav" id="nav">
+    <a href="#top" class="nav__brand" data-cursor="link">Aria Moreau<span class="acc">.</span></a>
+    <div class="nav__right">
+      <nav class="nav__links">
+        <a href="#work" data-cursor="link"><span class="lnk">Work</span></a>
+        <a href="#about" data-cursor="link"><span class="lnk">About</span></a>
+        <a href="#contact" data-cursor="link"><span class="lnk">Contact</span></a>
+      </nav>
+      <span class="nav__clock mono" id="clock">--:--:-- LIS</span>
+    </div>
+  </header>
+
+  <main id="top">
+
+    <!-- HERO -->
+    <section class="hero" id="hero">
+      <canvas class="hero__canvas" id="field" aria-hidden="true"></canvas>
+      <div class="wrap hero__inner">
+        <p class="mono label hero__label fade" data-fade>Independent Product Designer — Lisbon</p>
+        <h1>
+          <span class="line"><span data-line>Interfaces</span></span>
+          <span class="line"><span data-line><span class="pad"></span>that feel</span></span>
+          <span class="line"><span data-line><em>inevitable.</em></span></span>
+        </h1>
+        <div class="hero__foot">
+          <p data-fade class="fade">I help founders and product teams turn ambiguous ideas into
+            calm, considered software — from first principle to final pixel.</p>
+          <a href="#work" class="mono hero__scroll fade" data-fade data-cursor="link">Selected work <span class="ar">↓</span></a>
+        </div>
+      </div>
+    </section>
+
+    <!-- INTRO STATEMENT -->
+    <section class="section wrap" id="intro">
+      <div class="intro__grid">
+        <p class="statement">
+          <span class="word"><span data-word>Design,</span></span>
+          <span class="word"><span data-word>to</span></span>
+          <span class="word"><span data-word>me,</span></span>
+          <span class="word"><span data-word>is</span></span>
+          <span class="word"><span data-word>the</span></span>
+          <span class="word"><span data-word class="accent">art</span></span>
+          <span class="word"><span data-word class="accent">of</span></span>
+          <span class="word"><span data-word class="accent">removal</span></span>
+          <span class="word"><span data-word class="muted">—</span></span>
+          <span class="word"><span data-word class="muted">until</span></span>
+          <span class="word"><span data-word class="muted">only</span></span>
+          <span class="word"><span data-word class="muted">the</span></span>
+          <span class="word"><span data-word class="muted">obvious</span></span>
+          <span class="word"><span data-word class="muted">remains.</span></span>
+        </p>
+        <div class="intro__list">
+          <div class="row fade" data-fade><span class="n">01</span><p>Product &amp; systems design for fintech, health and creative tools.</p></div>
+          <div class="row fade" data-fade><span class="n">02</span><p>Research-led, prototype-driven, shipped alongside engineering.</p></div>
+          <div class="row fade" data-fade><span class="n">03</span><p>Eight years in. Currently independent, collaborating worldwide.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SELECTED WORK — interactive index, no images -->
+    <section class="section wrap" id="work">
+      <div class="work__head">
+        <h2><span class="line"><span data-line>Selected Work</span></span></h2>
+        <span class="mono fade" data-fade>Six of twenty-four</span>
+      </div>
+
+      <div class="index">
+        <a class="proj" href="#" data-cursor="view">
+          <span class="proj__fill"></span>
+          <div class="proj__grid">
+            <span class="proj__idx">01</span>
+            <span class="proj__title">Lumen</span>
+            <span class="proj__right">
+              <span class="proj__cat">Fintech · 2024</span>
+              <span class="proj__arrow" aria-hidden="true">→</span>
+            </span>
+          </div>
+          <div class="proj__more"><div class="tags"><span>Product Design</span><span>Design System</span><span>Data Viz</span></div></div>
+        </a>
+
+        <a class="proj" href="#" data-cursor="view">
+          <span class="proj__fill"></span>
+          <div class="proj__grid">
+            <span class="proj__idx">02</span>
+            <span class="proj__title">Cadence</span>
+            <span class="proj__right">
+              <span class="proj__cat">Consumer · 2024</span>
+              <span class="proj__arrow" aria-hidden="true">→</span>
+            </span>
+          </div>
+          <div class="proj__more"><div class="tags"><span>Mobile</span><span>Motion Language</span><span>Brand</span></div></div>
+        </a>
+
+        <a class="proj" href="#" data-cursor="view">
+          <span class="proj__fill"></span>
+          <div class="proj__grid">
+            <span class="proj__idx">03</span>
+            <span class="proj__title">Atlas</span>
+            <span class="proj__right">
+              <span class="proj__cat">Travel · 2023</span>
+              <span class="proj__arrow" aria-hidden="true">→</span>
+            </span>
+          </div>
+          <div class="proj__more"><div class="tags"><span>UX Research</span><span>Web App</span><span>Prototyping</span></div></div>
+        </a>
+
+        <a class="proj" href="#" data-cursor="view">
+          <span class="proj__fill"></span>
+          <div class="proj__grid">
+            <span class="proj__idx">04</span>
+            <span class="proj__title">Field <em>Notes</em></span>
+            <span class="proj__right">
+              <span class="proj__cat">Health · 2023</span>
+              <span class="proj__arrow" aria-hidden="true">→</span>
+            </span>
+          </div>
+          <div class="proj__more"><div class="tags"><span>0→1 Product</span><span>iOS</span><span>Design System</span></div></div>
+        </a>
+
+        <a class="proj" href="#" data-cursor="view">
+          <span class="proj__fill"></span>
+          <div class="proj__grid">
+            <span class="proj__idx">05</span>
+            <span class="proj__title">Mono</span>
+            <span class="proj__right">
+              <span class="proj__cat">Dev Tools · 2022</span>
+              <span class="proj__arrow" aria-hidden="true">→</span>
+            </span>
+          </div>
+          <div class="proj__more"><div class="tags"><span>Product</span><span>Identity</span><span>Docs</span></div></div>
+        </a>
+
+        <a class="proj" href="#" data-cursor="view">
+          <span class="proj__fill"></span>
+          <div class="proj__grid">
+            <span class="proj__idx">06</span>
+            <span class="proj__title">Solace</span>
+            <span class="proj__right">
+              <span class="proj__cat">Creative · 2022</span>
+              <span class="proj__arrow" aria-hidden="true">→</span>
+            </span>
+          </div>
+          <div class="proj__more"><div class="tags"><span>Web</span><span>Art Direction</span><span>WebGL</span></div></div>
+        </a>
+      </div>
+    </section>
+
+    <!-- MARQUEE -->
+    <section class="marquee" aria-hidden="true">
+      <div class="marquee__track">
+        <span>Product Design</span><span>Design Systems</span><span>Prototyping</span><span>Interaction</span><span>Research</span><span>Motion</span>
+        <span>Product Design</span><span>Design Systems</span><span>Prototyping</span><span>Interaction</span><span>Research</span><span>Motion</span>
+      </div>
+    </section>
+
+    <!-- ABOUT -->
+    <section class="section wrap" id="about">
+      <div class="about__grid">
+        <div>
+          <p class="mono label fade" data-fade style="margin-bottom:2.5rem;">About</p>
+          <h2 class="about__lead">
+            <span class="line"><span data-line>I care as much about the</span></span>
+            <span class="line"><span data-line><em>motion of a transition</em></span></span>
+            <span class="line"><span data-line>as the logic beneath it.</span></span>
+          </h2>
+        </div>
+        <div class="about__body">
+          <p class="fade" data-fade>For eight years I've partnered with founders and teams to take ideas from a fuzzy brief to a shipped, considered experience. I work where research, systems thinking and craft overlap.</p>
+          <p class="fade" data-fade>Previously design lead at two venture-backed startups. Today, happily independent — and selective about the work I take on.</p>
+          <div class="stats">
+            <div class="stat fade" data-fade><div class="stat__num"><span data-count="8">0</span><span class="acc">+</span></div><div class="stat__label">Years</div></div>
+            <div class="stat fade" data-fade><div class="stat__num"><span data-count="40">0</span><span class="acc">+</span></div><div class="stat__label">Shipped</div></div>
+            <div class="stat fade" data-fade><div class="stat__num"><span data-count="11">0</span></div><div class="stat__label">Awards</div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CONTACT -->
+    <section class="section wrap contact" id="contact">
+      <p class="mono label contact__label fade" data-fade>Available — Spring 2026</p>
+      <a href="mailto:hello@ariamoreau.design" data-cursor="view" data-label="Say hi">
+        <h2 class="contact__cta">
+          <span class="line"><span data-line>Let's make</span></span>
+          <span class="line"><span data-line>something <span class="em">good</span>.</span></span>
+        </h2>
+      </a>
+      <div class="footer">
+        <div class="footer__col">
+          <h4>Email</h4>
+          <a href="mailto:hello@ariamoreau.design" data-cursor="link">hello@ariamoreau.design</a>
+        </div>
+        <div class="footer__col">
+          <h4>Elsewhere</h4>
+          <a href="#" data-cursor="link">Dribbble</a>
+          <a href="#" data-cursor="link">LinkedIn</a>
+          <a href="#" data-cursor="link">Read.cv</a>
+        </div>
+        <div class="footer__col">
+          <h4>Studio</h4>
+          <span class="footer__meta">Lisbon, Portugal<br>© 2026 — Built by hand</span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="https://unpkg.com/lenis@1.1.14/dist/lenis.min.js"></script>
+
+  <!-- App -->
+  <script src="assets/js/hero-canvas.js"></script>
+  <script src="assets/js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,36 @@
+*** Progress Tracking For Professional Website ***
+
+12/27/24
+Projects page could have one big box that had an arrow at
+the bottom for navigating between the three project pages. I 
+think that would look sick.
+
+12/28/24
+Added javaScript Event Listener for button functions
+cleaned up screen view on projects
+set proper margins on projects
+
+12/29/24
+For skills page:
+10 evenly spaced parts with skill, proficiency, and years of experience
++ Example of how software was used
+**add logos next to the skills title**
+
+12/30/24
+
+
+12/31/24
+f1x skills vs projects navigation
+Add AI Image of me in a suit on title
+Finish about page
+fill in two project placeholders
+check mobile responsiveness
+Set up domain provider link
+***** GOAL LAUNCH V.1 ON NEW YEARS DAY *****
+Final touches
+Be finished by 8:00pm
+Launch at midnight
+Drunk Lit innis bih
+
+DATE OF V.1 LAUNCH:
+TOTAL LINES OF CODE AT V.1 LAUNCH:

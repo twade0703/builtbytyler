@@ -1,51 +1,78 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portfolio Website</title>
-    <link rel="stylesheet" href="/styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About · BuiltByTyler</title>
+  <meta name="description" content="The story behind BuiltByTyler — products designed and built by Tyler Wade.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/styles.css">
+
+  <!-- Three.js — the immersive 3D depth layer (immersive.js) -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
 </head>
 <body>
-    <div class="ab-container">
-        <div class="ab-content">
-            <ul>
-                <li><a href="/index.html" class="navbar__links">Home</a></li>
-                <li><a href="/projects.html" class="navbar__links">Projects</a></li>
-                <li><a href="/skills.html" class="navbar__links">Skills</a></li>
-                <li><a href="/aboutme.html" class="navbar__links">About Me</a></li>
-                <li><a href="/contact.html" class="navbar__links">Contact</a></li>
-            </ul>
-            <div class="body">
-                <div class="career">
-                    <h1>Career</h1>
-                    <p>My career goals include mastering advanced design tools, developing expertise
-                         in aerodynamics, materials science, and propulsion systems, and collaborating
-                         on projects that enhance aircraft efficiency safety, and sustainability.</p>
-                </div>
-                <div class="student">
-                    <h1>Student</h1>
-                    <p>As a mechanical engineer, I enjoy exporing diverse interests that complement my core
-                         expertise including web development and CAD projects. My primary role involves designing
-                          and analyzing mechanical systems, but I also take on GUI development projects to create 
-                          tools and platforms that enhance engineering workflows.</p>
-                </div>
-                <div class="personal">
-                    <h1>Personal</h1>
-                    <p>I am a very active person. I enjoy things such as hiking, skateboarding, biking, and sports.
-                        I am also in love with the design process; the iterations, the fallbacks, the learning, all of it compels me
-                        to push my limits every day. Therefore in my free time, another thing I find myself occupied with is building
-                        whatever my mind can produce.
-                    </p>
-                </div>
-            </div>
-            <div class="abfooter">
-                <p>Website Fully Self-Developed</p>
-                <p>Copyright 2024 BuiltByTyler</p>
-                <p>Linkedin: tyler-wade-1</p>
-            </div>
+  <header id="site-nav"></header>
+
+  <main>
+    <section class="section">
+      <div class="container">
+        <div class="about-hero reveal">
+          <p class="eyebrow">About</p>
+          <h1>Built by hand, from the first sketch to the finished product.</h1>
+          <p class="lead">BuiltByTyler is the studio of Tyler Wade — a place to design,
+            prototype and sell original mechanical and software products. Everything here
+            is conceived, engineered and built end to end.</p>
         </div>
-    </div>
-    </div>
+
+        <div class="about-grid">
+          <div class="about-card reveal">
+            <h3>The craft</h3>
+            <p>From aerodynamics and materials to propulsion and structure, every product
+              is grounded in real mechanical design — refined through iteration until it's
+              right.</p>
+          </div>
+          <div class="about-card reveal">
+            <h3>Mechanical &amp; software</h3>
+            <p>Beyond the hardware, I build the tools around it — custom GUIs, utilities
+              and CAD packages that make engineering workflows faster and cleaner.</p>
+          </div>
+          <div class="about-card reveal">
+            <h3>The process is the point</h3>
+            <p>The iterations, the fallbacks, the learning — that's what drives every build.
+              In my free time I'm hiking, skating, biking, or making whatever my mind
+              produces next.</p>
+          </div>
+        </div>
+
+        <div class="about-figure reveal" style="margin-top: clamp(2.5rem,5vw,4rem); aspect-ratio: 21/9;">
+          <img src="assets/img/about.jpeg" alt="Tyler Wade — in the workshop">
+        </div>
+      </div>
+    </section>
+
+    <section class="section--tight section--alt" style="text-align:center; padding-block: clamp(3rem,7vw,5rem);">
+      <div class="container reveal">
+        <h2 style="font-size: var(--fs-h2); margin-bottom: 1.25rem;">See what's available</h2>
+        <a class="btn" href="shop.html">Shop the collection</a>
+      </div>
+    </section>
+  </main>
+
+  <footer id="site-footer" data-year="2026"></footer>
+
+  <script src="assets/js/products.js"></script>
+  <script src="assets/js/components.js"></script>
+  <script src="assets/js/main.js"></script>
+  <script type="module" src="assets/js/immersive.js"></script>
 </body>
 </html>

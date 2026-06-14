@@ -1,33 +1,77 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portfolio Website</title>
-    <link rel="stylesheet" href="/styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BuiltByTyler · Designed &amp; built by Tyler Wade</title>
+  <meta name="description" content="Original products designed and built by Tyler Wade — rovers, controllers, CAD packages and custom engineering builds.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/styles.css">
+
+  <!-- Three.js — the immersive 3D depth layer (immersive.js) -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
 </head>
 <body>
-    <div class="main-container">
-        <div class="maincontent">
-            <ul>
-                <li><a href="/index.html" class="navbar__links">Home</a></li>
-                <li><a href="/projects.html" class="navbar__links">Projects</a></li>
-                <li><a href="/skills.html" class="navbar__links">Skills</a></li>
-                <li><a href="/aboutme.html" class="navbar__links">About Me</a></li>
-                <li><a href="/contact.html" class="navbar__links">Contact</a></li>
-            </ul>
-            <div class="header">
-                <h1>TYLER WADE</h1>
-                <div class="line"></div>
-                <p>Senior Mechanical Engineering Student</p>
-            </div>
-            <div class="footer">
-                <p>Website Fully Self-Developed</p>
-                <p>Copyright 2024 BuiltByTyler</p>
-                <p>Linkedin: tyler-wade-1</p>
-            </div>
+  <header id="site-nav"></header>
+
+  <main>
+    <!-- Hero -->
+    <section class="hero">
+      <div class="container hero__inner">
+        <p class="eyebrow reveal">Designed &amp; built by Tyler Wade</p>
+        <h1 class="reveal">Things worth <em>building</em>,<br>made to last.</h1>
+        <p class="reveal">Original products engineered from the ground up — from rovers and
+          controllers to CAD packages and custom rigs.</p>
+        <div class="hero__cta reveal">
+          <a class="btn" href="shop.html">Shop the collection</a>
+          <a class="btn btn--ghost" href="about.html">The story</a>
         </div>
-    </div>
-    </div>
+      </div>
+      <span class="scroll-cue" aria-hidden="true">Scroll to dive in</span>
+    </section>
+
+    <!-- Featured products -->
+    <section class="section section--alt">
+      <div class="container">
+        <div class="section-head reveal">
+          <p class="eyebrow">Featured</p>
+          <h2>Selected work, available to order</h2>
+          <p>A rotating selection of builds. Each one designed, prototyped and made by hand.</p>
+        </div>
+        <div class="product-grid" id="featured-grid"></div>
+        <div style="text-align:center; margin-top: clamp(2rem,4vw,3rem);" class="reveal">
+          <a class="btn btn--ghost" href="shop.html">View all products</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Brand statement -->
+    <section class="section">
+      <div class="container section-head reveal" style="max-width:720px;">
+        <p class="eyebrow">The approach</p>
+        <h2>Every product starts as a sketch and ends as something real.</h2>
+        <p>I'm Tyler — I design and build mechanical and software products end to end.
+          The process, the iterations, the fallbacks and the learning are the whole point.
+          What you see here is the result.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer id="site-footer" data-year="2026"></footer>
+
+  <script src="assets/js/products.js"></script>
+  <script src="assets/js/components.js"></script>
+  <script src="assets/js/hologram.js"></script>
+  <script src="assets/js/main.js"></script>
+  <script type="module" src="assets/js/immersive.js"></script>
 </body>
 </html>

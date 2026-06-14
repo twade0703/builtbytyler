@@ -109,11 +109,29 @@ function renderToast() {
   document.body.appendChild(t);
 }
 
+/* Minimal instrument HUD — populated live by immersive.js. */
+function renderHUD() {
+  if (document.getElementById("hud")) return;
+  const hud = document.createElement("div");
+  hud.className = "hud";
+  hud.id = "hud";
+  hud.setAttribute("aria-hidden", "true");
+  hud.innerHTML = `
+    <div class="hud__progress"><span id="hud-bar"></span></div>
+    <div class="hud__craft">
+      <span class="hud__craft-name" id="hud-craft-name">F-22 Raptor</span>
+      <span class="hud__craft-tag" id="hud-craft-tag">Air dominance fighter</span>
+    </div>
+    <div class="hud__readout"><span id="hud-pct">000</span>%</div>`;
+  document.body.appendChild(hud);
+}
+
 function mountChrome() {
   renderNav();
   renderFooter();
   renderCartDrawer();
   renderToast();
+  renderHUD();
 }
 
 if (document.readyState === "loading") {

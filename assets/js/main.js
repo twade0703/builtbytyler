@@ -101,7 +101,7 @@
         if (!p) return "";
         return `
           <div class="cart-line">
-            <img src="${p.image}" alt="${p.name}">
+            <span class="cart-line__thumb" aria-hidden="true"></span>
             <div class="cart-line__info">
               <div class="cart-line__name">${p.name}</div>
               <div class="cart-line__meta">Qty ${line.qty} · ${
@@ -117,6 +117,15 @@
   /* ---------------- Product card markup ----------------
      On the home page, featured cards render a spinning wireframe
      hologram (canvas) instead of a flat image — see hologram.js. */
+  /* A clean cyan reticle used wherever there's no 3D model — replaces
+     the old product photos. */
+  const RETICLE = `
+    <svg class="reticle" viewBox="0 0 100 100" aria-hidden="true">
+      <circle cx="50" cy="50" r="30" fill="none" stroke="currentColor" stroke-width="0.6"/>
+      <circle cx="50" cy="50" r="14" fill="none" stroke="currentColor" stroke-width="0.6"/>
+      <path d="M50 4 V28 M50 72 V96 M4 50 H28 M72 50 H96" stroke="currentColor" stroke-width="0.6"/>
+    </svg>`;
+
   function mediaHTML(p, holo) {
     if (holo && p.holo) {
       return `
@@ -126,22 +135,26 @@
         </a>`;
     }
     return `
-      <a class="card__media" href="product.html?id=${p.id}" aria-label="${p.name}">
-        <img src="${p.image}" alt="${p.name}" loading="lazy">
+      <a class="card__media is-placeholder" href="product.html?id=${p.id}" aria-label="${p.name}">
+        ${RETICLE}
       </a>`;
   }
 
-  function cardHTML(p, holo) {
-    const btnLabel = p.available ? "Add to cart" : "Notify me";
+  function cardHTML(p, holo, index) {
+    const idx = String((index || 0) + 1).padStart(2, "0");
+    const cta = p.available
+      ? `<button class="card__add" data-add="${p.id}">Add to cart</button>`
+      : `<a class="card__add" href="shop.html#packages">View packages</a>`;
     return `
       <article class="card reveal">
+        <span class="card__index">${idx}</span>
         ${mediaHTML(p, holo)}
         <div class="card__body">
           <h3 class="card__name"><a href="product.html?id=${p.id}">${p.name}</a></h3>
           <p class="card__tag">${p.tagline}</p>
           <div class="card__row">
             <span class="price">${window.formatPrice(p)}</span>
-            <button class="card__add" data-add="${p.id}">${btnLabel}</button>
+            ${cta}
           </div>
         </div>
       </article>`;
@@ -155,7 +168,31 @@
       return;
     }
     const holo = !!(opts && opts.holo);
-    grid.innerHTML = list.map((p) => cardHTML(p, holo)).join("");
+    grid.innerHTML = list.map((p, i) => cardHTML(p, holo, i)).join("");
+  }
+
+  /* ---------------- Build packages (shop.html#packages) ---------------- */
+  function packageHTML(pkg) {
+    const includes = (pkg.includes || []).map((li) => `<li>${li}</li>`).join("");
+    return `
+      <article class="package reveal">
+        <div class="package__head">
+          ${pkg.badge ? `<span class="package__badge">${pkg.badge}</span>` : ""}
+          <h3 class="package__name">${pkg.name}</h3>
+          <div class="package__price">${window.formatPackagePrice(pkg)}</div>
+        </div>
+        <p class="package__blurb">${pkg.blurb}</p>
+        <ul class="package__list">${includes}</ul>
+        <a class="btn btn--block" href="mailto:twade0703@gmail.com?subject=${encodeURIComponent(
+          "Build inquiry — " + pkg.name
+        )}">Request this build</a>
+      </article>`;
+  }
+
+  function renderPackages() {
+    const grid = document.getElementById("packages-grid");
+    if (!grid || !window.PACKAGES) return;
+    grid.innerHTML = window.PACKAGES.map(packageHTML).join("");
   }
 
   /* ---------------- Product detail (product.html) ---------------- */
@@ -184,13 +221,18 @@
     const buyBtn = p.available
       ? `<button class="btn" data-add="${p.id}">Add to cart</button>
          <button class="btn btn--ghost" data-buy="${p.id}">Buy now</button>`
-      : `<button class="btn" data-add="${p.id}">Notify me</button>`;
+      : `<a class="btn" href="shop.html#packages">View build packages</a>`;
+
+    const media = p.holo
+      ? `<canvas class="card__holo" data-holo="${p.holo}"></canvas>
+         <span class="holo-hud">3D · Wireframe</span>`
+      : RETICLE;
 
     host.innerHTML = `
       <a class="back-link" href="shop.html">&larr; All products</a>
       <div class="detail reveal">
-        <div class="detail__media">
-          <img src="${p.image}" alt="${p.name}">
+        <div class="detail__media ${p.holo ? "is-holo" : "is-placeholder"}">
+          ${media}
         </div>
         <div class="detail__info">
           <p class="badge">${p.available ? "Available" : "Coming soon"}</p>
@@ -199,7 +241,11 @@
           <div class="detail__price">${window.formatPrice(p)}</div>
           <div class="detail__desc"><p>${p.description}</p></div>
           <div class="detail__actions">${buyBtn}</div>
-          <span class="notice">Checkout is a placeholder — get in touch to order.</span>
+          <span class="notice">${
+            p.available
+              ? "Checkout is a placeholder — get in touch to order."
+              : "Sold as a configured build — see pricing on the shop page."
+          }</span>
           ${
             specs
               ? `<div class="specs"><dl>${specs}</dl></div>`
@@ -280,9 +326,10 @@
     // Home featured grid + shop grid (whichever exists on the page)
     if (window.PRODUCTS) {
       renderGrid("featured-grid", window.PRODUCTS.filter((p) => p.featured), { holo: true });
-      renderGrid("shop-grid", window.PRODUCTS);
+      renderGrid("shop-grid", window.PRODUCTS, { holo: true });
+      renderPackages();
       renderDetail();
-      // Bring the freshly-rendered home holograms to life.
+      // Bring the freshly-rendered holograms (home, shop, detail) to life.
       if (window.BBTHolograms) window.BBTHolograms.mount();
     }
     initMobileNav();

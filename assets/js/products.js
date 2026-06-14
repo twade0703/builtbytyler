@@ -1,61 +1,60 @@
 /* =================================================================
-   PRODUCTS — single source of truth for the store.
+   PRODUCTS + PACKAGES — single source of truth for the store.
    -----------------------------------------------------------------
-   To manage the catalog, edit this array only. Every page reads from
-   it. Drop in real prices, copy, and images, then set `available`.
+   To manage the catalog, edit these arrays only. Every page reads
+   from them.
 
-   TODO (Tyler): replace placeholder prices/descriptions/specs with
-   real product details, and add/remove items as needed.
+   Products are the showcase pieces (rendered as 3D holograms or
+   placeholders — no photos). Selling happens through PACKAGES, shown
+   on the shop page (shop.html#packages), where the prices live.
 
-   Each product:
+   TODO (Tyler): replace placeholder prices/copy with the real ones.
+
+   Product:
      id          unique slug used in product.html?id=<id>
      name        display name
      tagline     short one-liner
-     price        number (USD) or null for "coming soon"
-     image       path under assets/img/
+     holo        home/shop hologram model: "arm" | "drone" | "evtol"
+                 (omit for a clean placeholder panel)
      featured    show on the home page
-     available   true = buyable, false = "coming soon"
-     description  paragraph(s) for the detail page
-     specs        [{ label, value }] rows shown on the detail page
+     available   true = buyable now, false = sold via a build package
+     description paragraph for the detail page
+     specs       [{ label, value }] rows on the detail page
    ================================================================= */
 
 const PRODUCTS = [
   {
-    id: "rc-rover",
-    name: "RC Rover",
-    tagline: "All-terrain remote-controlled rover",
-    price: 0,            // TODO: real price
-    image: "assets/img/AeroB.png",
-    holo: "arm",         // home-page hologram model: robotic arm
+    id: "nemo-arm",
+    name: "NEMO Robotic Arm",
+    tagline: "3D camera arm for streaming setups",
+    holo: "arm",
     featured: true,
-    available: false,    // TODO: set true when ready to sell
+    available: false,
     description:
-      "A rugged, fully custom remote-controlled rover designed and built from the ground up. " +
-      "Engineered for stability over rough terrain with a focus on clean mechanical design and " +
-      "responsive controls. TODO: replace with the real product story.",
+      "A six-axis robotic camera arm built for streamers and creators — programmable " +
+      "motion paths, smooth tracking, and a mount tuned for 3D capture rigs. Designed, " +
+      "machined and assembled end to end.",
     specs: [
-      { label: "Drive", value: "4-wheel independent" },
-      { label: "Chassis", value: "Custom CAD-designed" },
-      { label: "Range", value: "TODO" },
+      { label: "Motion", value: "6-axis articulated" },
+      { label: "Payload", value: "3D camera + gimbal" },
+      { label: "Control", value: "Wireless · motion presets" },
       { label: "Lead time", value: "Made to order" },
     ],
   },
   {
-    id: "remote-controller",
-    name: "Remote Controller",
-    tagline: "Ergonomic handheld RC transmitter",
-    price: 0,            // TODO: real price
-    image: "assets/img/AeroB.png",
-    holo: "drone",       // home-page hologram model: quad-drone
+    id: "fpv-drones",
+    name: "Quad FPV Drones",
+    tagline: "High-speed drone designs",
+    holo: "drone",
     featured: true,
     available: false,
     description:
-      "A precision handheld controller built to pair with the RC Rover and other builds. " +
-      "Comfortable, durable, and tuned for fine control. TODO: replace with the real product story.",
+      "Custom high-speed FPV quadcopters designed for racing and freestyle — lightweight " +
+      "carbon frames, high-output power systems and digital FPV, built and bench-tuned by hand.",
     specs: [
-      { label: "Inputs", value: "Dual analog + triggers" },
-      { label: "Build", value: "3D-printed shell" },
-      { label: "Battery", value: "TODO" },
+      { label: "Class", value: "5\" race / freestyle" },
+      { label: "Power", value: "High-KV brushless" },
+      { label: "Video", value: "Digital FPV" },
       { label: "Lead time", value: "Made to order" },
     ],
   },
@@ -63,70 +62,113 @@ const PRODUCTS = [
     id: "aerospace-study",
     name: "Aerospace Study",
     tagline: "Aerodynamic design & analysis model",
-    price: 0,            // TODO: real price
-    image: "assets/img/Aero.png",
-    holo: "evtol",       // home-page hologram model: eVTOL aircraft
+    holo: "evtol",
     featured: true,
     available: false,
     description:
-      "A design-and-analysis study exploring aerodynamic efficiency and structural form. " +
-      "Available as a physical model or design package. TODO: replace with the real product story.",
+      "A design-and-analysis study exploring aerodynamic efficiency and structural form, " +
+      "available as a physical model or a complete design package.",
     specs: [
       { label: "Format", value: "Physical model / CAD package" },
-      { label: "Material", value: "TODO" },
-      { label: "Scale", value: "TODO" },
+      { label: "Focus", value: "Aero + structure" },
       { label: "Lead time", value: "Made to order" },
     ],
   },
   {
-    id: "cad-model",
-    name: "CAD Model Package",
-    tagline: "Production-ready 3D model files",
-    price: 0,            // TODO: real price
-    image: "assets/img/CAD.png",
+    id: "morse-device",
+    name: "Morse Code Device",
+    tagline: "Transmitter and receiver ESP project",
+    holo: "transmitter",
     featured: false,
     available: false,
     description:
-      "A clean, parametric CAD package ready for manufacturing or 3D printing. " +
-      "Delivered as source and neutral exchange formats. TODO: replace with the real product story.",
+      "A two-part Morse code kit built on the ESP platform — a transmitter and a matching " +
+      "receiver that key, send and decode Morse over the air, with custom firmware and a " +
+      "clean hand-built enclosure.",
     specs: [
-      { label: "Formats", value: "STEP, STL, native" },
-      { label: "Delivery", value: "Digital download" },
-      { label: "License", value: "TODO" },
+      { label: "Platform", value: "ESP32" },
+      { label: "Modules", value: "Transmitter + receiver" },
+      { label: "Output", value: "Audio + light keying" },
+      { label: "Lead time", value: "Made to order" },
     ],
   },
   {
     id: "code-tool",
     name: "Engineering Tool",
     tagline: "Custom software / GUI utility",
-    price: 0,            // TODO: real price
-    image: "assets/img/Code.png",
     featured: false,
     available: false,
     description:
-      "A bespoke software tool or GUI built to streamline an engineering workflow. " +
-      "Tailored to your process. TODO: replace with the real product story.",
+      "A bespoke software tool or GUI built to streamline an engineering workflow, " +
+      "tailored to your process.",
     specs: [
       { label: "Platform", value: "Cross-platform" },
       { label: "Delivery", value: "Digital download" },
-      { label: "Support", value: "TODO" },
     ],
   },
   {
     id: "env-rig",
     name: "Workshop Rig",
     tagline: "Custom-built environment / setup",
-    price: 0,            // TODO: real price
-    image: "assets/img/ENV.png",
     featured: false,
     available: false,
     description:
-      "A purpose-built rig or environment designed and assembled for a specific task. " +
-      "Built to spec. TODO: replace with the real product story.",
+      "A purpose-built rig or environment designed and assembled for a specific task. Built to spec.",
     specs: [
       { label: "Build", value: "Bespoke" },
       { label: "Lead time", value: "Made to order" },
-      { label: "Footprint", value: "TODO" },
+    ],
+  },
+];
+
+/* -----------------------------------------------------------------
+   BUILD PACKAGES — the things people actually order, with prices.
+   Shown on shop.html#packages. TODO (Tyler): set real prices + copy.
+   ----------------------------------------------------------------- */
+const PACKAGES = [
+  {
+    id: "nemo-stream",
+    name: "NEMO — Streaming Build",
+    badge: "Flagship",
+    price: 1450, // TODO: real price
+    blurb:
+      "The six-axis NEMO arm configured for live streaming and 3D capture — motion, mount and controller, tuned and ready.",
+    includes: [
+      "6-axis NEMO robotic arm",
+      "3D camera mount + gimbal",
+      "Wireless controller",
+      "Custom motion presets",
+      "Assembly + calibration",
+    ],
+  },
+  {
+    id: "fpv-performance",
+    name: "Quad FPV — Performance Build",
+    badge: "Popular",
+    price: 890, // TODO: real price
+    blurb:
+      "A high-speed FPV quad built from the frame up for racing and freestyle, bench-tested and ready to fly.",
+    includes: [
+      "Carbon race frame",
+      "High-KV motor set",
+      "Digital FPV system",
+      "Tuned flight controller",
+      "Bench-tested + flight-ready",
+    ],
+  },
+  {
+    id: "custom-build",
+    name: "Custom Engineering Build",
+    badge: "By quote",
+    price: null, // quote-based
+    blurb:
+      "Bring your own idea — full design, CAD, prototyping and fabrication, handled end to end.",
+    includes: [
+      "Discovery + concept",
+      "Parametric CAD package",
+      "Prototype iteration",
+      "Final fabrication",
+      "Documentation + handoff",
     ],
   },
 ];
@@ -137,13 +179,20 @@ function getProductById(id) {
 }
 
 function formatPrice(product) {
-  if (product.price === null || product.price === 0 || !product.available) {
+  if (!product.available || product.price === null || product.price === 0 || product.price == null) {
     return '<span class="soon">Coming soon</span>';
   }
   return "$" + Number(product.price).toLocaleString("en-US");
 }
 
+function formatPackagePrice(pkg) {
+  if (pkg.price === null || pkg.price === undefined) return "By quote";
+  return "$" + Number(pkg.price).toLocaleString("en-US");
+}
+
 // Expose globally for the non-module scripts on each page.
 window.PRODUCTS = PRODUCTS;
+window.PACKAGES = PACKAGES;
 window.getProductById = getProductById;
 window.formatPrice = formatPrice;
+window.formatPackagePrice = formatPackagePrice;

@@ -7,7 +7,7 @@
   <meta name="description" content="The story behind BuiltByTyler — products designed and built by Tyler Wade.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Space+Grotesk:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/styles.css">
 
   <!-- Three.js — the immersive 3D depth layer (immersive.js) -->
@@ -26,12 +26,24 @@
   <main>
     <section class="section">
       <div class="container">
-        <div class="about-hero reveal">
-          <p class="eyebrow">About</p>
-          <h1>Built by hand, from the first sketch to the finished product.</h1>
-          <p class="lead">BuiltByTyler is the studio of Tyler Wade — a place to design,
-            prototype and sell original mechanical and software products. Everything here
-            is conceived, engineered and built end to end.</p>
+        <div class="about-hero about-hero--split reveal">
+          <figure class="portrait">
+            <div class="portrait__frame">
+              <img src="assets/img/headshot.jpg" alt="Tyler Wade" onerror="this.style.display='none'">
+              <span class="portrait__scan" aria-hidden="true"></span>
+            </div>
+            <figcaption class="portrait__cap">
+              <span class="portrait__name">Tyler Wade</span>
+              <span class="portrait__role">Designer · Builder</span>
+            </figcaption>
+          </figure>
+          <div class="about-hero__text">
+            <p class="eyebrow">About me</p>
+            <h1>Built by hand, from the first sketch to the finished product.</h1>
+            <p class="lead">BuiltByTyler is the studio of Tyler Wade — a place to design,
+              prototype and sell original mechanical and software products. Everything here
+              is conceived, engineered and built end to end.</p>
+          </div>
         </div>
 
         <div class="about-grid">
@@ -54,9 +66,6 @@
           </div>
         </div>
 
-        <div class="about-figure reveal" style="margin-top: clamp(2.5rem,5vw,4rem); aspect-ratio: 21/9;">
-          <img src="assets/img/about.jpeg" alt="Tyler Wade — in the workshop">
-        </div>
       </div>
     </section>
 

@@ -4,21 +4,22 @@
    A single full-viewport WebGL world that lives behind every page
    and gives the site real, physical depth:
 
-     · a deep, fog-shrouded corridor of parallax particle layers
-     · a slowly rotating wireframe eVTOL — the same geometry as the
-       2D card holograms, rebuilt as true 3D LineSegments
-     · tilted orbit rings + a glowing core for the centerpiece
-     · UnrealBloom for the soft, premium glow
-     · the camera DOLLIES FORWARD as you scroll — you fly through
-       the craft and on into the particle field
+     · a deep, near-black field of distant stars + drifting dust,
+       lightly fogged so the corridor recedes forever
+     · a FLEET of icon aircraft rebuilt as true 3D wireframes —
+       the F-22 Raptor, the B-2 Spirit, and SpaceX Starship —
+       each drifting in space with glowing engines
+     · UnrealBloom for the soft glow on edges + exhaust
+     · the camera DOLLIES FORWARD as you scroll, flying PAST each
+       craft in turn and on into the deep field
      · mouse parallax + idle drift so the scene is always alive
+
+   Same wireframe rendering as before (additive blue LineSegments
+   + bloom); only the models and the field tuning changed.
 
    Mounts itself into a fixed <canvas id="bg-canvas">. Degrades
    gracefully: no WebGL or CDN failure → the static site is untouched;
    prefers-reduced-motion → one still frame, no animation loop.
-
-   Tunables live in CONFIG. Geometry builders are ported from
-   assets/js/hologram.js so the two layers stay visually consistent.
    ================================================================= */
 
 import * as THREE from "three";
@@ -31,39 +32,35 @@ import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
    CONFIG — every magic number worth touching, in one place.
    ---------------------------------------------------------------- */
 const CONFIG = {
-  bg: 0x04050a, // deep space / clear colour (matches --bg family)
+  bg: 0x04070c, // deep blue-black space (clear colour + fog colour)
 
   // Camera flythrough
   fov: 58,
-  startZ: 300, // where the camera begins (top of page)
-  travel: 720, // world units the camera dollies over a full scroll
+  startZ: 360, // where the camera begins (top of page)
+  travel: 1180, // world units the camera dollies over a full scroll
   near: 1,
-  far: 4200,
+  far: 5200,
 
-  // The eVTOL centrepiece
-  craftScale: 80,
-  craftPos: [0, -10, -40], // world position (x, y, z)
-  craftColor: 0x86b8ff, // holographic blue (mirrors hologram.js tints)
-  craftOpacity: 0.92,
-  rotorSpin: 6.0, // rotor angular speed (rad/s)
-  autoSpin: 0.06, // idle yaw of the whole craft (rad/s)
+  // Wireframe look — quieter, more minimal
+  craftColor: 0x57d0ff,
+  craftOpacity: 0.78,
 
-  // Atmosphere
-  fogDensity: 0.00042,
+  // Atmosphere — light, so distant stars still read as points
+  fogDensity: 0.00028,
 
-  // Parallax particle layers: [count, spreadXY, depth, size, opacity, colorA, colorB]
+  // Parallax field layers: count, spread (±xy), depth (z run), size, opacity, colour A→B
   layers: [
-    { count: 2600, spread: 1100, depth: 3000, size: 2.4, opacity: 0.9, a: 0x9cc4ff, b: 0xeaf2ff },
-    { count: 1400, spread: 700, depth: 2200, size: 3.4, opacity: 0.7, a: 0x5d86ff, b: 0xbcd4ff },
-    { count: 900, spread: 360, depth: 1200, size: 5.2, opacity: 0.45, a: 0x3a6bd6, b: 0x8fb6ff },
+    { count: 4200, spread: 1700, depth: 3800, size: 1.3, opacity: 0.9, a: 0xbfe9ff, b: 0xffffff },
+    { count: 1300, spread: 850, depth: 2600, size: 2.2, opacity: 0.42, a: 0x2aa8d8, b: 0x9fe6ff },
+    { count: 420, spread: 340, depth: 1100, size: 3.4, opacity: 0.26, a: 0x4fcfe6, b: 0xcffaff },
   ],
 
-  bloom: { strength: 0.72, radius: 0.6, threshold: 0.2 },
+  bloom: { strength: 0.5, radius: 0.55, threshold: 0.22 },
 
   // Pointer parallax
   parallaxX: 46,
   parallaxY: 28,
-  ease: 0.055, // lerp factor for camera easing
+  ease: 0.055,
 };
 
 const REDUCE = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -71,9 +68,10 @@ const lerp = (a, b, t) => a + (b - a) * t;
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 
 /* ================================================================
-   GEOMETRY BUILDERS — ported from hologram.js
-   Each returns { v: [[x,y,z]...], e: [[i,j]...] } authored around
-   the origin within roughly a unit sphere.
+   GEOMETRY VOCABULARY
+   Every builder returns { v: [[x,y,z]...], e: [[i,j]...] } authored
+   around the origin within roughly a unit sphere. Convention:
+   +z = nose / forward, +x = right wing, +y = up.
    ================================================================ */
 function makeBox(cx, cy, cz, w, h, d) {
   const x0 = cx - w / 2, x1 = cx + w / 2;
@@ -90,6 +88,7 @@ function makeBox(cx, cy, cz, w, h, d) {
   return { v, e };
 }
 
+// Circle of `seg` points; axis = the axis it is perpendicular to.
 function makeRing(cx, cy, cz, r, seg, axis) {
   const v = [], e = [];
   for (let i = 0; i < seg; i++) {
@@ -103,17 +102,6 @@ function makeRing(cx, cy, cz, r, seg, axis) {
   return { v, e };
 }
 
-function segBox(p0, p1, thick) {
-  const mx = (p0[0] + p1[0]) / 2, my = (p0[1] + p1[1]) / 2, mz = (p0[2] + p1[2]) / 2;
-  const dx = p1[0] - p0[0], dy = p1[1] - p0[1];
-  const len = Math.hypot(dx, dy, p1[2] - p0[2]) || 0.001;
-  const ang = Math.atan2(dx, dy);
-  const b = makeBox(0, 0, 0, thick, len, thick);
-  const ca = Math.cos(ang), sa = Math.sin(ang);
-  b.v = b.v.map(([x, y, z]) => [x * ca + y * sa + mx, -x * sa + y * ca + my, z + mz]);
-  return b;
-}
-
 function merge(parts) {
   const v = [], e = [];
   for (const p of parts) {
@@ -124,74 +112,33 @@ function merge(parts) {
   return { v, e };
 }
 
-function makeBase(y, r) {
-  const ring = makeRing(0, y, 0, r, 28, "y");
-  const inner = makeRing(0, y, 0, r * 0.55, 20, "y");
-  const spokes = { v: [], e: [] };
-  for (let i = 0; i < 4; i++) {
-    const a = (i / 4) * Math.PI * 2 + Math.PI / 4;
-    spokes.v.push([Math.cos(a) * r * 0.55, y, Math.sin(a) * r * 0.55]);
-    spokes.v.push([Math.cos(a) * r, y, Math.sin(a) * r]);
-    spokes.e.push([i * 2, i * 2 + 1]);
-  }
-  return merge([ring, inner, spokes]);
+// Closed outline from an ordered list of 3D points (a flat panel edge).
+function makeLoop(pts) {
+  const v = pts.map((p) => p.slice());
+  const e = [];
+  for (let i = 0; i < v.length; i++) e.push([i, (i + 1) % v.length]);
+  return { v, e };
 }
 
-function makeLoft(stations, seg) {
-  const rings = stations.map((s) => makeRing(s.cx || 0, s.cy || 0, s.z, s.r, seg, "z"));
-  const m = merge(rings);
-  for (let s = 0; s < stations.length - 1; s++) {
-    for (let i = 0; i < seg; i++) m.e.push([s * seg + i, (s + 1) * seg + i]);
+// Lofted hull from cross-sections. Each section = { z, pts:[[x,y]...] }
+// with an equal point count; rings are joined nose→tail by longerons.
+function makeHull(sections) {
+  const parts = sections.map((s) => makeLoop(s.pts.map(([x, y]) => [x, y, s.z])));
+  const m = merge(parts);
+  const n = sections[0].pts.length;
+  for (let s = 0; s < sections.length - 1; s++) {
+    for (let i = 0; i < n; i++) m.e.push([s * n + i, (s + 1) * n + i]);
   }
   return m;
 }
 
-/* eVTOL aircraft — tilt-rotor lift config. Returns merged static
-   wireframe plus a `spinners` list (rotor hubs, animated live). */
-function buildEvtol() {
-  const parts = [];
-  parts.push(makeLoft([
-    { z: 0.92, cy: -0.02, r: 0.015 },
-    { z: 0.74, cy: -0.04, r: 0.10 },
-    { z: 0.45, cy: -0.02, r: 0.16 },
-    { z: 0.05, cy: 0.00, r: 0.18 },
-    { z: -0.35, cy: 0.02, r: 0.14 },
-    { z: -0.70, cy: 0.05, r: 0.06 },
-    { z: -0.86, cy: 0.06, r: 0.02 },
-  ], 8));
-  parts.push({ v: [[0, 0.13, 0.52], [0, 0.14, 0.2], [0, 0.1, 0.0]], e: [[0, 1], [1, 2]] });
-  parts.push(makeBox(0, 0.03, 0.12, 2.0, 0.05, 0.34));
-  const ribs = { v: [], e: [] };
-  for (let i = -3; i <= 3; i++) {
-    if (i === 0) continue;
-    const x = i * 0.3, k = ribs.v.length;
-    ribs.v.push([x, 0.055, -0.05], [x, 0.005, -0.05], [x, 0.055, 0.29], [x, 0.005, 0.29]);
-    ribs.e.push([k, k + 1], [k + 2, k + 3], [k, k + 2], [k + 1, k + 3]);
+// Stacked rings along Y (a vertical body), joined by stringers.
+function makeStackY(stations, seg) {
+  const rings = stations.map((s) => makeRing(s.cx || 0, s.y, s.cz || 0, s.r, seg, "y"));
+  const m = merge(rings);
+  for (let s = 0; s < stations.length - 1; s++) {
+    for (let i = 0; i < seg; i++) m.e.push([s * seg + i, (s + 1) * seg + i]);
   }
-  parts.push(ribs);
-  parts.push({ v: [[-1.0, 0.03, 0.12], [1.0, 0.03, 0.12]], e: [[0, 1]] });
-  parts.push(segBox([0, 0.06, -0.62], [0.42, 0.42, -0.7], 0.04));
-  parts.push(segBox([0, 0.06, -0.62], [-0.42, 0.42, -0.7], 0.04));
-  const rotors = [
-    [0.96, 0.42], [0.5, 0.44], [-0.5, 0.44], [-0.96, 0.42],
-    [0.74, -0.5], [-0.74, -0.5],
-  ];
-  const spinners = [];
-  for (const [x, z] of rotors) {
-    parts.push(segBox([x, 0.02, 0.12], [x, 0.05, z], 0.05));
-    parts.push(makeBox(x, 0.0, z, 0.08, 0.1, 0.18));
-    parts.push(makeRing(x, 0.06, z, 0.24, 22, "y"));
-    parts.push(makeRing(x, 0.06, z, 0.05, 8, "y"));
-    spinners.push({ cx: x, cy: 0.07, cz: z, r: 0.21, blades: 5 });
-  }
-  [-0.18, 0.18].forEach((sx) => {
-    [0.25, -0.25].forEach((sz) => parts.push(segBox([sx, -0.02, sz], [sx * 1.15, -0.32, sz], 0.02)));
-  });
-  parts.push({ v: [[-0.21, -0.32, 0.3], [-0.21, -0.32, -0.3]], e: [[0, 1]] });
-  parts.push({ v: [[0.21, -0.32, 0.3], [0.21, -0.32, -0.3]], e: [[0, 1]] });
-  parts.push(makeBase(-0.92, 1.1));
-  const m = merge(parts);
-  m.spinners = spinners;
   return m;
 }
 
@@ -205,6 +152,143 @@ function edgesToPositions(model) {
     pos[o++] = b[0]; pos[o++] = b[1]; pos[o++] = b[2];
   }
   return pos;
+}
+
+/* ================================================================
+   THE FLEET
+   ================================================================ */
+
+// Lockheed Martin F-22 Raptor — angular stealth fuselage, clipped
+// delta wings, canted twin tails, twin afterburner nozzles.
+function buildF22() {
+  const parts = [];
+  // 6-sided stealth cross-section (top, shoulders, chines, belly).
+  const cs = (hw, ht, hb) => [
+    [0, ht], [-hw, ht * 0.2], [-hw * 0.85, -hb * 0.55],
+    [0, -hb], [hw * 0.85, -hb * 0.55], [hw, ht * 0.2],
+  ];
+  parts.push(makeHull([
+    { z: 1.15, pts: cs(0.02, 0.012, 0.012) }, // nose
+    { z: 0.78, pts: cs(0.10, 0.05, 0.05) },
+    { z: 0.45, pts: cs(0.17, 0.12, 0.09) },   // cockpit
+    { z: 0.10, pts: cs(0.24, 0.13, 0.12) },   // widest / intakes
+    { z: -0.30, pts: cs(0.23, 0.11, 0.12) },
+    { z: -0.72, pts: cs(0.20, 0.09, 0.10) },  // engine bay
+    { z: -1.0, pts: cs(0.17, 0.08, 0.09) },   // exhaust plane
+  ]));
+  // Canopy ridge
+  parts.push({ v: [[0, 0.16, 0.55], [0, 0.20, 0.36], [0, 0.17, 0.12], [0, 0.13, -0.02]], e: [[0, 1], [1, 2], [2, 3]] });
+  // Clipped-delta wings + a rib, mirrored
+  const wing = [[0.24, 0.30], [0.95, -0.16], [0.95, -0.40], [0.24, -0.55]];
+  [1, -1].forEach((s) => {
+    parts.push(makeLoop(wing.map(([x, z]) => [x * s, 0.0, z])));
+    parts.push({ v: [[0.45 * s, 0, 0.12], [0.78 * s, 0, -0.28]], e: [[0, 1]] });
+  });
+  // Horizontal stabilators
+  const stab = [[0.20, -0.62], [0.62, -0.82], [0.62, -0.98], [0.20, -1.0]];
+  [1, -1].forEach((s) => parts.push(makeLoop(stab.map(([x, z]) => [x * s, 0.0, z]))));
+  // Canted twin vertical tails (top edge kicked outboard)
+  [1, -1].forEach((s) => parts.push(makeLoop([
+    [0.13 * s, 0.13, -0.45], [0.27 * s, 0.50, -0.55],
+    [0.27 * s, 0.46, -0.74], [0.13 * s, 0.12, -0.80],
+  ])));
+  // Caret intakes + twin nozzles (afterburner glow points)
+  const glows = [];
+  [1, -1].forEach((s) => {
+    parts.push(makeBox(0.20 * s, -0.10, 0.18, 0.10, 0.10, 0.30));
+    parts.push(makeRing(0.09 * s, -0.02, -1.0, 0.07, 12, "z"));
+    glows.push([0.09 * s, -0.02, -1.03]);
+  });
+  const m = merge(parts);
+  m.glows = glows;
+  m.glowColor = 0xbdefff; // icy afterburner
+  m.glowSize = 0.16;
+  return m;
+}
+
+// Northrop B-2 Spirit — pure flying wing: pointed centre nose, long
+// swept leading edges, the signature double-W sawtooth trailing edge.
+function buildB2() {
+  const parts = [];
+  // Right-half outline: nose → leading edge → tip → sawtooth → centre rear.
+  const half = [
+    [0.0, 0.60], [0.5, 0.14], [1.0, -0.42], [0.78, -0.50],
+    [0.62, -0.32], [0.46, -0.54], [0.30, -0.34], [0.16, -0.58], [0.0, -0.42],
+  ];
+  const loop = half.map(([x, z]) => [x, 0, z]);
+  for (let i = half.length - 2; i >= 1; i--) loop.push([-half[i][0], 0, half[i][1]]);
+  parts.push(makeLoop(loop));
+  // Spanwise ribs (leading edge → trailing edge) to read the surface
+  [0.28, 0.52, 0.76].forEach((fx) => {
+    const leZ = 0.60 - 1.02 * fx; // approximate leading-edge sweep
+    [1, -1].forEach((s) => parts.push({ v: [[fx * s, 0, leZ], [fx * s, 0, -0.46]], e: [[0, 1]] }));
+  });
+  // Centre cockpit bulge
+  parts.push({
+    v: [[0, 0.0, 0.5], [0, 0.12, 0.34], [-0.13, 0.06, 0.26], [0.13, 0.06, 0.26], [0, 0.10, 0.10]],
+    e: [[0, 1], [1, 2], [1, 3], [1, 4]],
+  });
+  // Engine humps + exhaust slots on the upper surface (two pairs)
+  const glows = [];
+  [1, -1].forEach((s) => {
+    parts.push(makeBox(0.22 * s, 0.06, -0.04, 0.16, 0.08, 0.28));
+    parts.push(makeBox(0.42 * s, 0.05, -0.10, 0.13, 0.06, 0.22));
+    glows.push([0.22 * s, 0.03, -0.22], [0.42 * s, 0.03, -0.25]);
+  });
+  const m = merge(parts);
+  m.glows = glows;
+  m.glowColor = 0x9fe6ff; // cool, low exhaust
+  m.glowSize = 0.11;
+  return m;
+}
+
+// SpaceX Starship (full stack) — Super Heavy booster + ship, nosecone,
+// fore/aft flaps, grid fins, and the Raptor engine cluster. Built tall
+// along +Y so it stands in the void.
+function buildStarship() {
+  const parts = [];
+  const seg = 12;
+  parts.push(makeStackY([
+    { y: -1.05, r: 0.0 },   // engine plane centre
+    { y: -1.0, r: 0.22 },   // booster base
+    { y: -0.25, r: 0.22 },  // booster top
+    { y: -0.16, r: 0.235 }, // interstage flare
+    { y: -0.10, r: 0.22 },  // ship base
+    { y: 0.52, r: 0.22 },   // ship body top
+    { y: 0.74, r: 0.205 },  // nosecone start
+    { y: 0.98, r: 0.12 },
+    { y: 1.18, r: 0.0 },    // nose tip
+  ], seg));
+  parts.push(makeRing(0, -0.16, 0, 0.235, seg, "y")); // interstage highlight
+
+  // Flaps — aft pair near the ship base, forward pair near the nose.
+  [1, -1].forEach((s) => {
+    parts.push(makeLoop([
+      [0.21 * s, -0.02, 0], [0.50 * s, 0.04, 0], [0.48 * s, -0.20, 0], [0.21 * s, -0.26, 0],
+    ]));
+    parts.push(makeLoop([
+      [0.20 * s, 0.62, 0], [0.42 * s, 0.66, 0], [0.41 * s, 0.50, 0], [0.20 * s, 0.46, 0],
+    ]));
+  });
+
+  // Grid fins on the booster (4, deployed near the top of Super Heavy)
+  [[0.24, 0], [-0.24, 0], [0, 0.24], [0, -0.24]].forEach(([dx, dz]) =>
+    parts.push(makeBox(dx, -0.32, dz, 0.10, 0.14, 0.05)));
+
+  // Raptor engine cluster + exhaust glow
+  const glows = [[0, -1.06, 0]];
+  parts.push(makeRing(0, -1.0, 0, 0.05, 8, "y"));
+  for (let i = 0; i < 6; i++) {
+    const a = (i / 6) * Math.PI * 2;
+    const cx = Math.cos(a) * 0.13, cz = Math.sin(a) * 0.13;
+    parts.push(makeRing(cx, -1.0, cz, 0.04, 6, "y"));
+    glows.push([cx, -1.05, cz]);
+  }
+  const m = merge(parts);
+  m.glows = glows;
+  m.glowColor = 0xd6f6ff; // icy plume
+  m.glowSize = 0.14;
+  return m;
 }
 
 /* ================================================================
@@ -238,7 +322,6 @@ function makeLayer(spec, sprite, zReach) {
     const i3 = i * 3;
     positions[i3] = (Math.random() - 0.5) * spread * 2;
     positions[i3 + 1] = (Math.random() - 0.5) * spread * 2;
-    // bias the corridor from in front of the camera to deep behind
     positions[i3 + 2] = zReach - Math.random() * depth;
     tmp.copy(cA).lerp(cB, Math.random());
     colors[i3] = tmp.r; colors[i3 + 1] = tmp.g; colors[i3 + 2] = tmp.b;
@@ -247,91 +330,52 @@ function makeLayer(spec, sprite, zReach) {
   geo.setAttribute("position", new THREE.BufferAttribute(positions, 3));
   geo.setAttribute("color", new THREE.BufferAttribute(colors, 3));
   const mat = new THREE.PointsMaterial({
-    size,
-    map: sprite,
-    vertexColors: true,
-    transparent: true,
-    opacity,
-    depthWrite: false,
-    blending: THREE.AdditiveBlending,
-    sizeAttenuation: true,
+    size, map: sprite, vertexColors: true, transparent: true, opacity,
+    depthWrite: false, blending: THREE.AdditiveBlending, sizeAttenuation: true,
   });
   return new THREE.Points(geo, mat);
 }
 
-/* The eVTOL group: static wireframe + live rotor groups + orbit
-   rings + a glowing core. */
-function makeCraft(sprite) {
+/* Build one craft group from a model + placement options. */
+function makeCraft(model, sprite, opts) {
   const group = new THREE.Group();
   const material = new THREE.LineBasicMaterial({
-    color: CONFIG.craftColor,
-    transparent: true,
-    opacity: CONFIG.craftOpacity,
-    blending: THREE.AdditiveBlending,
-    depthWrite: false,
+    color: CONFIG.craftColor, transparent: true, opacity: CONFIG.craftOpacity,
+    blending: THREE.AdditiveBlending, depthWrite: false,
   });
-
-  const model = buildEvtol();
   const geo = new THREE.BufferGeometry();
   geo.setAttribute("position", new THREE.BufferAttribute(edgesToPositions(model), 3));
   group.add(new THREE.LineSegments(geo, material));
 
-  // Live rotor blades — a spinning group per hub.
-  const rotors = [];
-  for (const sp of model.spinners) {
-    const bp = new Float32Array(sp.blades * 6);
-    let o = 0;
-    for (let b = 0; b < sp.blades; b++) {
-      const a = (b / sp.blades) * Math.PI * 2;
-      bp[o++] = 0; bp[o++] = 0; bp[o++] = 0;
-      bp[o++] = Math.cos(a) * sp.r; bp[o++] = 0; bp[o++] = Math.sin(a) * sp.r;
-    }
-    const bg = new THREE.BufferGeometry();
-    bg.setAttribute("position", new THREE.BufferAttribute(bp, 3));
-    const rg = new THREE.Group();
-    rg.position.set(sp.cx, sp.cy, sp.cz);
-    rg.add(new THREE.LineSegments(bg, material));
-    group.add(rg);
-    rotors.push(rg);
+  // Engine / afterburner glow sprites — they anchor the bloom.
+  if (model.glows && model.glows.length) {
+    const gp = new Float32Array(model.glows.length * 3);
+    model.glows.forEach((p, i) => { gp[i * 3] = p[0]; gp[i * 3 + 1] = p[1]; gp[i * 3 + 2] = p[2]; });
+    const gg = new THREE.BufferGeometry();
+    gg.setAttribute("position", new THREE.BufferAttribute(gp, 3));
+    group.add(new THREE.Points(gg, new THREE.PointsMaterial({
+      size: model.glowSize || 0.15, map: sprite, color: model.glowColor || 0xbdefff,
+      transparent: true, opacity: 0.95, depthWrite: false,
+      blending: THREE.AdditiveBlending, sizeAttenuation: true,
+    })));
   }
 
-  // Two tilted orbit rings — a quiet "scan field" around the craft.
-  const ringMat = new THREE.LineBasicMaterial({
-    color: 0x4f86ff, transparent: true, opacity: 0.32,
-    blending: THREE.AdditiveBlending, depthWrite: false,
-  });
-  const orbits = [];
-  [[1.7, 0.5], [2.15, -0.85]].forEach(([r, tilt], idx) => {
-    const seg = 96, p = new Float32Array(seg * 6);
-    let o = 0;
-    for (let i = 0; i < seg; i++) {
-      const a0 = (i / seg) * Math.PI * 2, a1 = ((i + 1) / seg) * Math.PI * 2;
-      p[o++] = Math.cos(a0) * r; p[o++] = 0; p[o++] = Math.sin(a0) * r;
-      p[o++] = Math.cos(a1) * r; p[o++] = 0; p[o++] = Math.sin(a1) * r;
-    }
-    const g = new THREE.BufferGeometry();
-    g.setAttribute("position", new THREE.BufferAttribute(p, 3));
-    const loop = new THREE.LineSegments(g, ringMat);
-    loop.rotation.x = tilt;
-    loop.rotation.z = idx ? 0.4 : -0.3;
-    group.add(loop);
-    orbits.push(loop);
-  });
-
-  // Glowing core — a single bright sprite to anchor the bloom.
-  const coreGeo = new THREE.BufferGeometry();
-  coreGeo.setAttribute("position", new THREE.BufferAttribute(new Float32Array([0, 0, 0]), 3));
-  const core = new THREE.Points(coreGeo, new THREE.PointsMaterial({
-    size: 0.55, map: sprite, color: 0xdbeaff, transparent: true,
-    opacity: 0.9, depthWrite: false, blending: THREE.AdditiveBlending,
-    sizeAttenuation: true,
-  }));
-  group.add(core);
-
-  group.scale.setScalar(CONFIG.craftScale);
-  group.position.set(...CONFIG.craftPos);
-  return { group, rotors, orbits };
+  group.scale.setScalar(opts.scale);
+  group.position.set(opts.pos[0], opts.pos[1], opts.pos[2]);
+  group.rotation.set(opts.rot[0], opts.rot[1], opts.rot[2]);
+  return {
+    group, base: opts.pos.slice(), baseYaw: opts.rot[1],
+    spinY: opts.spinY || 0, bob: opts.bob || 0, phase: opts.phase || 0,
+  };
 }
+
+// Placement of the three craft along the flythrough corridor. Offset
+// left/right so the camera flies PAST each (not straight through).
+const FLEET = [
+  { build: buildF22, pos: [-78, 26, 60], scale: 70, rot: [0.06, 0.6, 0.20], spinY: 0.05, bob: 5, phase: 0.0, label: "F-22 Raptor", tag: "Air dominance fighter" },
+  { build: buildB2, pos: [92, -34, -300], scale: 86, rot: [0.22, -0.5, 0.0], spinY: -0.04, bob: 6, phase: 1.7, label: "B-2 Spirit", tag: "Stealth bomber" },
+  { build: buildStarship, pos: [-50, -4, -640], scale: 60, rot: [0.0, 0.4, 0.16], spinY: 0.05, bob: 7, phase: 3.2, label: "Starship", tag: "Orbital launch vehicle" },
+];
 
 /* ================================================================
    BOOT
@@ -370,8 +414,11 @@ function init() {
     return layer;
   });
 
-  const craft = makeCraft(sprite);
-  scene.add(craft.group);
+  const crafts = FLEET.map((spec) => {
+    const craft = makeCraft(spec.build(), sprite, spec);
+    scene.add(craft.group);
+    return craft;
+  });
 
   // Post-processing — bloom for the glow.
   const composer = new EffectComposer(renderer);
@@ -391,10 +438,37 @@ function init() {
   let scrollT = 0;                      // 0..1 page scroll progress
   let camZ = CONFIG.startZ;
 
+  // HUD elements (injected by components.js) — driven from scroll.
+  const hud = {
+    bar: document.getElementById("hud-bar"),
+    pct: document.getElementById("hud-pct"),
+    name: document.getElementById("hud-craft-name"),
+    tag: document.getElementById("hud-craft-tag"),
+  };
+  let hudIdx = -1;
+
   function readScroll() {
     const doc = document.documentElement;
     const max = doc.scrollHeight - window.innerHeight;
     scrollT = max > 0 ? clamp(window.scrollY / max, 0, 1) : 0;
+
+    // Drive the HUD: progress bar, scroll readout, and the callout for
+    // whichever craft the camera is currently nearest.
+    if (hud.bar) hud.bar.style.transform = `scaleX(${scrollT.toFixed(4)})`;
+    if (hud.pct) hud.pct.textContent = String(Math.round(scrollT * 100)).padStart(3, "0");
+    if (hud.name) {
+      const cz = CONFIG.startZ - scrollT * CONFIG.travel;
+      let best = 0, bestD = Infinity;
+      for (let i = 0; i < FLEET.length; i++) {
+        const d = Math.abs(cz - FLEET[i].pos[2]);
+        if (d < bestD) { bestD = d; best = i; }
+      }
+      if (best !== hudIdx) {
+        hudIdx = best;
+        hud.name.textContent = FLEET[best].label;
+        if (hud.tag) hud.tag.textContent = FLEET[best].tag;
+      }
+    }
   }
 
   window.addEventListener("scroll", readScroll, { passive: true });
@@ -427,16 +501,14 @@ function init() {
     camera.position.z = camZ;
     camera.lookAt(eased.x * 12, -eased.y * 8, camZ - 600);
 
-    // Centerpiece life
-    craft.group.rotation.y += CONFIG.autoSpin * dt;
-    craft.group.position.y = CONFIG.craftPos[1] + Math.sin(t * 0.5) * 4;
-    for (const r of craft.rotors) r.rotation.y += CONFIG.rotorSpin * dt;
-    craft.orbits.forEach((o, i) => { o.rotation.y += (i ? -0.25 : 0.18) * dt; });
-    // Fade the craft out once the camera has flown past it.
-    const past = camZ < CONFIG.craftPos[2] - 30;
-    craft.group.visible = !past;
+    // Each craft drifts: slow yaw + vertical bob, hidden once flown past.
+    for (const c of crafts) {
+      c.group.rotation.y = c.baseYaw + c.spinY * t;
+      c.group.position.y = c.base[1] + Math.sin(t * 0.4 + c.phase) * c.bob;
+      c.group.visible = camZ > c.base[2] - 40;
+    }
 
-    // Gentle counter-drift on the far layers for added parallax.
+    // Gentle counter-drift on the field for added parallax.
     layers.forEach((l, i) => { l.rotation.z += (0.002 + i * 0.0015) * dt; });
 
     composer.render();

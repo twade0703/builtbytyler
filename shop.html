@@ -7,7 +7,7 @@
   <meta name="description" content="Browse products designed and built by Tyler Wade.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Space+Grotesk:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/styles.css">
 
   <!-- Three.js — the immersive 3D depth layer (immersive.js) -->
@@ -28,14 +28,27 @@
       <div class="container section-head reveal">
         <p class="eyebrow">The collection</p>
         <h2>Shop</h2>
-        <p>Each product is designed and built by hand. Most are made to order —
-          add to cart to start, or get in touch to discuss a custom build.</p>
+        <p>Each piece is designed and built by hand. Browse the work below, then choose a
+          configured <a href="#packages">build package</a> to order.</p>
       </div>
     </section>
 
-    <section class="section--tight" style="padding-bottom: clamp(3.5rem,8vw,7rem);">
+    <section class="section--tight">
       <div class="container">
         <div class="product-grid" id="shop-grid"></div>
+      </div>
+    </section>
+
+    <!-- Build packages — the orderable configurations, with prices -->
+    <section class="section section--alt" id="packages">
+      <div class="container">
+        <div class="section-head reveal">
+          <p class="eyebrow">Build packages</p>
+          <h2>Configured builds, ready to order</h2>
+          <p>Every build is made to order and tuned by hand. Pick a package below, or
+            request a fully custom build.</p>
+        </div>
+        <div class="package-grid" id="packages-grid"></div>
       </div>
     </section>
   </main>
@@ -44,6 +57,7 @@
 
   <script src="assets/js/products.js"></script>
   <script src="assets/js/components.js"></script>
+  <script src="assets/js/hologram.js"></script>
   <script src="assets/js/main.js"></script>
   <script type="module" src="assets/js/immersive.js"></script>
 </body>

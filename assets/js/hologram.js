@@ -248,12 +248,46 @@
     return m;
   }
 
-  const MODELS = { evtol: buildEvtol, arm: buildArm, drone: buildDrone };
-  // Per-model holographic tint (rgb triplets).
+  // Handheld ESP32 transmitter — a hand-radio body with an OLED, a
+  // round Morse key, function buttons, a tuning knob and an antenna.
+  function buildTransmitter() {
+    const parts = [];
+    // main handheld body + raised front bezel
+    parts.push(makeBox(0, 0, 0, 0.52, 1.0, 0.24));
+    parts.push(makeBox(0, 0.04, 0.13, 0.42, 0.86, 0.02));
+    // OLED screen (upper front) + inner frame
+    parts.push(makeBox(0, 0.26, 0.14, 0.32, 0.22, 0.015));
+    parts.push(makeBox(0, 0.26, 0.145, 0.26, 0.16, 0.006));
+    // speaker grille above the screen
+    for (let i = -1; i <= 1; i++) parts.push(makeRing(i * 0.08, 0.43, 0.14, 0.02, 6, "z"));
+    // round Morse key (raised), centre-lower
+    parts.push(makeRing(0, -0.10, 0.14, 0.12, 16, "z"));
+    parts.push(makeRing(0, -0.10, 0.17, 0.06, 12, "z"));
+    parts.push({ v: [[0, -0.10, 0.17], [0, -0.10, 0.14]], e: [[0, 1]] }); // key stem
+    // 2×2 function buttons below the key
+    for (const x of [-0.12, 0.12]) for (const y of [-0.34, -0.46]) parts.push(makeBox(x, y, 0.135, 0.08, 0.06, 0.02));
+    // side push-to-talk key
+    parts.push(makeBox(0.27, 0.16, 0, 0.02, 0.18, 0.08));
+    // tuning knob on top
+    parts.push(makeCylinderY(0.16, 0.56, 0, 0.06, 0.08, 12));
+    // antenna (collar → mast → tip) on the top-left
+    parts.push(makeRing(-0.16, 0.52, 0, 0.05, 10, "y"));
+    parts.push(segBox([-0.16, 0.52, 0], [-0.20, 0.98, 0], 0.022));
+    parts.push(makeRing(-0.20, 0.99, 0, 0.03, 8, "y"));
+    // projector base (matches the other holograms)
+    parts.push(makeBase(-0.62, 0.85));
+    const m = merge(parts);
+    m.spinners = [];
+    return m;
+  }
+
+  const MODELS = { evtol: buildEvtol, arm: buildArm, drone: buildDrone, transmitter: buildTransmitter };
+  // Per-model holographic tint (rgb triplets) — cyan family to match the UI.
   const TINTS = {
-    evtol: [96, 178, 255],
-    arm: [86, 140, 255],
-    drone: [120, 162, 255],
+    evtol: [86, 200, 255],
+    arm: [80, 196, 255],
+    drone: [110, 214, 255],
+    transmitter: [95, 226, 255],
   };
 
   /* ---------------- a single hologram instance ---------------- */

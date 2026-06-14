@@ -59,18 +59,20 @@ const PRODUCTS = [
     ],
   },
   {
-    id: "aerospace-study",
-    name: "Aerospace Study",
-    tagline: "Aerodynamic design & analysis model",
+    id: "tilt-rotor",
+    name: "Tilt Rotor Drone",
+    tagline: "eVTOL tilt-rotor aircraft",
     holo: "evtol",
     featured: true,
     available: false,
     description:
-      "A design-and-analysis study exploring aerodynamic efficiency and structural form, " +
-      "available as a physical model or a complete design package.",
+      "A custom tilt-rotor VTOL aircraft — lifts off vertically on its rotors, then tilts " +
+      "them forward for efficient cruise. Airframe, propulsion and controls designed, built " +
+      "and tuned end to end.",
     specs: [
-      { label: "Format", value: "Physical model / CAD package" },
-      { label: "Focus", value: "Aero + structure" },
+      { label: "Config", value: "Tilt-rotor VTOL" },
+      { label: "Flight", value: "Vertical lift + forward cruise" },
+      { label: "Airframe", value: "Custom-built" },
       { label: "Lead time", value: "Made to order" },
     ],
   },
@@ -93,29 +95,38 @@ const PRODUCTS = [
     ],
   },
   {
-    id: "code-tool",
-    name: "Engineering Tool",
-    tagline: "Custom software / GUI utility",
+    id: "laser-tracker",
+    name: "Laser Tracking System",
+    tagline: "Raspberry Pi turret that tracks & aims at targets",
+    holo: "turret",
     featured: false,
     available: false,
     description:
-      "A bespoke software tool or GUI built to streamline an engineering workflow, " +
-      "tailored to your process.",
+      "A Raspberry Pi–powered pan/tilt laser turret. A camera spots and follows a target " +
+      "while two servos slew the laser to keep it locked on — vision-based auto-aim, built " +
+      "and tuned end to end.",
     specs: [
-      { label: "Platform", value: "Cross-platform" },
-      { label: "Delivery", value: "Digital download" },
+      { label: "Brain", value: "Raspberry Pi" },
+      { label: "Motion", value: "2-axis pan/tilt servos" },
+      { label: "Payload", value: "Laser emitter" },
+      { label: "Tracking", value: "Vision-based auto-aim" },
+      { label: "Lead time", value: "Made to order" },
     ],
   },
   {
-    id: "env-rig",
-    name: "Workshop Rig",
-    tagline: "Custom-built environment / setup",
+    id: "rockets",
+    name: "Rockets",
+    tagline: "Custom model rockets, built to fly",
+    holo: "rocket",
     featured: false,
     available: false,
     description:
-      "A purpose-built rig or environment designed and assembled for a specific task. Built to spec.",
+      "Custom-designed model rockets — airframe, fins, recovery and propulsion mounts " +
+      "engineered to fly and built by hand.",
     specs: [
-      { label: "Build", value: "Bespoke" },
+      { label: "Type", value: "High-power model rocket" },
+      { label: "Airframe", value: "Custom-built" },
+      { label: "Recovery", value: "Parachute deploy" },
       { label: "Lead time", value: "Made to order" },
     ],
   },
@@ -130,7 +141,7 @@ const PACKAGES = [
     id: "nemo-stream",
     name: "NEMO — Streaming Build",
     badge: "Flagship",
-    price: 1450, // TODO: real price
+    price: 500,
     blurb:
       "The six-axis NEMO arm configured for live streaming and 3D capture — motion, mount and controller, tuned and ready.",
     includes: [
@@ -145,7 +156,7 @@ const PACKAGES = [
     id: "fpv-performance",
     name: "Quad FPV — Performance Build",
     badge: "Popular",
-    price: 890, // TODO: real price
+    price: 300,
     blurb:
       "A high-speed FPV quad built from the frame up for racing and freestyle, bench-tested and ready to fly.",
     includes: [

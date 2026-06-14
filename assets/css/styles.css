@@ -969,6 +969,144 @@ body::before {
 .package .btn { margin-top: 0.5rem; }
 
 /* ===================================================================
+   INCLUDED WITH EVERY BUILD  (shop.html)
+   =================================================================== */
+.included {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: clamp(0.9rem, 2.2vw, 1.5rem);
+}
+.included li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.9rem;
+  padding: 1.1rem 1.2rem;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius);
+  background: rgba(11, 18, 28, 0.5);
+  backdrop-filter: blur(12px) saturate(135%);
+  -webkit-backdrop-filter: blur(12px) saturate(135%);
+  transition: border-color .3s var(--ease), transform .3s var(--ease);
+}
+.included li:hover { border-color: rgba(95, 230, 255, 0.4); transform: translateY(-3px); }
+.included svg {
+  width: 26px; height: 26px;
+  flex-shrink: 0;
+  color: var(--accent);
+  filter: drop-shadow(0 0 5px rgba(95, 230, 255, 0.4));
+}
+.included__title {
+  display: block;
+  font-size: var(--fs-small);
+  letter-spacing: 0.03em;
+  color: var(--ink);
+}
+.included__desc {
+  display: block;
+  font-size: var(--fs-micro);
+  color: var(--muted);
+  margin-top: 0.15rem;
+}
+
+/* One-line reassurance on each product detail page */
+.detail__included {
+  margin: 1.5rem 0 0;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--hairline);
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.detail__included b { color: var(--accent); font-weight: 400; }
+
+/* ===================================================================
+   ORDER MODAL  (build packages → main.js)
+   =================================================================== */
+.modal-backdrop {
+  position: fixed; inset: 0;
+  background: var(--overlay);
+  opacity: 0; visibility: hidden;
+  transition: opacity .3s var(--ease), visibility .3s var(--ease);
+  z-index: 210;
+}
+.modal-backdrop.is-open { opacity: 1; visibility: visible; }
+
+.order-modal {
+  position: fixed;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -46%);
+  width: min(440px, 92vw);
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: clamp(1.6rem, 4vw, 2.25rem);
+  background: rgba(11, 18, 28, 0.94);
+  backdrop-filter: blur(22px) saturate(140%);
+  -webkit-backdrop-filter: blur(22px) saturate(140%);
+  border: 1px solid rgba(95, 230, 255, 0.25);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.65), 0 0 60px rgba(40, 160, 210, 0.15);
+  z-index: 211;
+  opacity: 0; visibility: hidden;
+  transition: opacity .3s var(--ease), transform .35s var(--ease), visibility .3s var(--ease);
+}
+.order-modal.is-open { opacity: 1; visibility: visible; transform: translate(-50%, -50%); }
+.order-modal__close {
+  position: absolute; top: 0.8rem; right: 1rem;
+  background: none; border: none; color: var(--muted);
+  font-size: 1.6rem; line-height: 1;
+}
+.order-modal__close:hover { color: var(--ink); }
+.order-modal__title { font-size: var(--fs-h3); margin: 0.2rem 0 0.3rem; }
+.order-modal__price {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+  margin: 0 0 1.25rem;
+}
+
+.order-form { display: grid; gap: 0.85rem; }
+.order-field { display: grid; gap: 0.35rem; }
+.order-field > span {
+  font-family: var(--font-mono);
+  font-size: var(--fs-micro);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.order-field input,
+.order-field textarea {
+  width: 100%;
+  font-family: var(--font-body);
+  font-size: var(--fs-small);
+  color: var(--ink);
+  background: rgba(4, 7, 12, 0.6);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-sm);
+  padding: 0.65rem 0.8rem;
+  resize: vertical;
+  transition: border-color .25s var(--ease), box-shadow .25s var(--ease);
+}
+.order-field input:focus,
+.order-field textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(95, 230, 255, 0.15);
+}
+.order-form__note {
+  font-size: var(--fs-micro);
+  color: var(--muted);
+  line-height: 1.5;
+  margin: 0.3rem 0 0;
+}
+.order-form .btn { margin-top: 0.3rem; }
+
+/* ===================================================================
    ABOUT — portrait treatment
    A headshot framed as part of the system: layered cyan rings, a soft
    glow, faint scanlines, and a mono ID caption. Not "just pasted".

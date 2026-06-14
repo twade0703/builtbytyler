@@ -126,12 +126,40 @@ function renderHUD() {
   document.body.appendChild(hud);
 }
 
+/* Order modal — opened from the build packages (main.js handles logic). */
+function renderOrderModal() {
+  if (document.getElementById("order-modal")) return;
+  const wrap = document.createElement("div");
+  wrap.innerHTML = `
+    <div class="modal-backdrop" id="order-backdrop"></div>
+    <div class="order-modal" id="order-modal" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Place an order">
+      <button class="order-modal__close" id="order-close" aria-label="Close">&times;</button>
+      <p class="eyebrow">Place an order</p>
+      <h2 class="order-modal__title" id="order-title">Build</h2>
+      <p class="order-modal__price" id="order-price"></p>
+      <form class="order-form" id="order-form" novalidate>
+        <label class="order-field"><span>Name</span>
+          <input type="text" id="order-name" name="name" autocomplete="name" required></label>
+        <label class="order-field"><span>Email</span>
+          <input type="email" id="order-email" name="email" autocomplete="email" required></label>
+        <label class="order-field"><span>Quantity</span>
+          <input type="number" id="order-qty" name="qty" min="1" value="1"></label>
+        <label class="order-field"><span>Notes / options</span>
+          <textarea id="order-notes" name="notes" rows="3" placeholder="Finish, colour, timeline, anything specific…"></textarea></label>
+        <button type="submit" class="btn btn--block">Place order</button>
+        <p class="order-form__note">No payment now — I'll confirm the details and send a secure payment link, usually within a day.</p>
+      </form>
+    </div>`;
+  document.body.appendChild(wrap);
+}
+
 function mountChrome() {
   renderNav();
   renderFooter();
   renderCartDrawer();
   renderToast();
   renderHUD();
+  renderOrderModal();
 }
 
 if (document.readyState === "loading") {

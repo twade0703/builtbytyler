@@ -183,9 +183,9 @@
         </div>
         <p class="package__blurb">${pkg.blurb}</p>
         <ul class="package__list">${includes}</ul>
-        <a class="btn btn--block" href="mailto:twade0703@gmail.com?subject=${encodeURIComponent(
-          "Build inquiry — " + pkg.name
-        )}">Request this build</a>
+        <button class="btn btn--block" data-order="${pkg.id}">${
+          pkg.price == null ? "Request a quote" : "Order"
+        }</button>
       </article>`;
   }
 
@@ -251,8 +251,66 @@
               ? `<div class="specs"><dl>${specs}</dl></div>`
               : ""
           }
+          <p class="detail__included">Every build ships with <b>STL · STEP · program files</b> + an ESP kit.</p>
         </div>
       </div>`;
+  }
+
+  /* ---------------- Order modal (build packages) ---------------- */
+  let currentOrder = null;
+
+  function openOrderModal(id) {
+    const pkg = (window.PACKAGES || []).find((p) => p.id === id);
+    if (!pkg) return;
+    currentOrder = pkg;
+    const title = document.getElementById("order-title");
+    const price = document.getElementById("order-price");
+    if (title) title.textContent = pkg.name;
+    if (price) price.textContent = window.formatPackagePrice(pkg);
+    document.getElementById("order-backdrop")?.classList.add("is-open");
+    const m = document.getElementById("order-modal");
+    m?.classList.add("is-open");
+    m?.setAttribute("aria-hidden", "false");
+    setTimeout(() => document.getElementById("order-name")?.focus(), 60);
+  }
+
+  function closeOrderModal() {
+    document.getElementById("order-backdrop")?.classList.remove("is-open");
+    const m = document.getElementById("order-modal");
+    m?.classList.remove("is-open");
+    m?.setAttribute("aria-hidden", "true");
+  }
+
+  // No backend yet — compose a complete order email so the buyer just
+  // hits send. (Swap this for a checkout/payment link later.)
+  function submitOrder(e) {
+    e.preventDefault();
+    if (!currentOrder) return;
+    const val = (id) => (document.getElementById(id)?.value || "").trim();
+    const name = val("order-name");
+    const email = val("order-email");
+    const qty = val("order-qty") || "1";
+    const notes = val("order-notes");
+    if (!name || !email) {
+      showToast("Add your name and email to place the order.");
+      return;
+    }
+    const subject = `Order — ${currentOrder.name}`;
+    const body = [
+      `Order — ${currentOrder.name}`,
+      `Price: ${window.formatPackagePrice(currentOrder)}`,
+      "",
+      `Name: ${name}`,
+      `Email: ${email}`,
+      `Quantity: ${qty}`,
+      `Notes: ${notes || "—"}`,
+      "",
+      `Includes: ${(currentOrder.includes || []).join(", ")}`,
+    ].join("\n");
+    window.location.href =
+      `mailto:twade0703@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    closeOrderModal();
+    showToast("Order ready in your email — just hit send.");
   }
 
   /* ---------------- Mobile nav ---------------- */
@@ -311,14 +369,20 @@
       const rm = e.target.closest("[data-remove]");
       if (rm) { removeFromCart(rm.getAttribute("data-remove")); return; }
 
+      const order = e.target.closest("[data-order]");
+      if (order) { openOrderModal(order.getAttribute("data-order")); return; }
+      if (e.target.closest("#order-close") || e.target.id === "order-backdrop") { closeOrderModal(); return; }
+
       if (e.target.closest("#cart-open")) { renderCartBody(); openDrawer(); return; }
       if (e.target.closest("#cart-close") || e.target.id === "cart-backdrop") { closeDrawer(); return; }
       if (e.target.closest("#checkout-btn")) { checkout(); return; }
     });
 
     document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape") closeDrawer();
+      if (e.key === "Escape") { closeDrawer(); closeOrderModal(); }
     });
+
+    document.getElementById("order-form")?.addEventListener("submit", submitOrder);
   }
 
   /* ---------------- Boot ---------------- */

@@ -66,6 +66,9 @@ const CONFIG = {
 const REDUCE = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 const lerp = (a, b, t) => a + (b - a) * t;
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+const fract = (x) => x - Math.floor(x);
+// 0 at the loop's start/end, 1 in the middle — for pop-free looping fades.
+const edgeFade = (p, w) => clamp(Math.min(p, 1 - p) / w, 0, 1);
 
 /* ================================================================
    GEOMETRY VOCABULARY
@@ -339,42 +342,48 @@ function makeLayer(spec, sprite, zReach) {
 /* Build one craft group from a model + placement options. */
 function makeCraft(model, sprite, opts) {
   const group = new THREE.Group();
-  const material = new THREE.LineBasicMaterial({
+  const lineMat = new THREE.LineBasicMaterial({
     color: CONFIG.craftColor, transparent: true, opacity: CONFIG.craftOpacity,
     blending: THREE.AdditiveBlending, depthWrite: false,
   });
   const geo = new THREE.BufferGeometry();
   geo.setAttribute("position", new THREE.BufferAttribute(edgesToPositions(model), 3));
-  group.add(new THREE.LineSegments(geo, material));
+  group.add(new THREE.LineSegments(geo, lineMat));
 
   // Engine / afterburner glow sprites — they anchor the bloom.
+  let glowMat = null;
   if (model.glows && model.glows.length) {
     const gp = new Float32Array(model.glows.length * 3);
     model.glows.forEach((p, i) => { gp[i * 3] = p[0]; gp[i * 3 + 1] = p[1]; gp[i * 3 + 2] = p[2]; });
     const gg = new THREE.BufferGeometry();
     gg.setAttribute("position", new THREE.BufferAttribute(gp, 3));
-    group.add(new THREE.Points(gg, new THREE.PointsMaterial({
+    glowMat = new THREE.PointsMaterial({
       size: model.glowSize || 0.15, map: sprite, color: model.glowColor || 0xbdefff,
       transparent: true, opacity: 0.95, depthWrite: false,
       blending: THREE.AdditiveBlending, sizeAttenuation: true,
-    })));
+    });
+    group.add(new THREE.Points(gg, glowMat));
   }
 
   group.scale.setScalar(opts.scale);
   group.position.set(opts.pos[0], opts.pos[1], opts.pos[2]);
-  group.rotation.set(opts.rot[0], opts.rot[1], opts.rot[2]);
   return {
-    group, base: opts.pos.slice(), baseYaw: opts.rot[1],
-    spinY: opts.spinY || 0, bob: opts.bob || 0, phase: opts.phase || 0,
+    group, base: opts.pos.slice(),
+    motion: opts.motion, speed: opts.speed || 0.06, phase: opts.phase || 0,
+    amp: opts.amp || 80, curve: opts.curve || 0, pitch: opts.pitch || 0, baseYaw: opts.baseYaw || 0,
+    lineMat, glowMat, baseLineO: CONFIG.craftOpacity, baseGlowO: 0.95,
   };
 }
 
-// Placement of the three craft along the flythrough corridor. Offset
-// left/right so the camera flies PAST each (not straight through).
+// Each craft flies the way it really would, looping with a fade. They sit
+// at fixed z along the corridor so the scroll flythrough still passes each.
 const FLEET = [
-  { build: buildF22, pos: [-78, 26, 60], scale: 70, rot: [0.06, 0.6, 0.20], spinY: 0.05, bob: 5, phase: 0.0, label: "F-22 Raptor", tag: "Air dominance fighter" },
-  { build: buildB2, pos: [92, -34, -300], scale: 86, rot: [0.22, -0.5, 0.0], spinY: -0.04, bob: 6, phase: 1.7, label: "B-2 Spirit", tag: "Stealth bomber" },
-  { build: buildStarship, pos: [-50, -4, -640], scale: 60, rot: [0.0, 0.4, 0.16], spinY: 0.05, bob: 7, phase: 3.2, label: "Starship", tag: "Orbital launch vehicle" },
+  { build: buildF22, scale: 72, pos: [-150, 14, 60], label: "F-22 Raptor", tag: "Air dominance fighter",
+    motion: "climb", speed: 0.08, phase: 0.5, amp: 78, curve: 24, baseYaw: 0.5 },
+  { build: buildB2, scale: 88, pos: [0, -26, -300], label: "B-2 Spirit", tag: "Stealth bomber",
+    motion: "cross", speed: 0.045, phase: 0.35, amp: 165, pitch: 0.22 },
+  { build: buildStarship, scale: 60, pos: [140, -10, -640], label: "Starship", tag: "Orbital launch vehicle",
+    motion: "launch", speed: 0.07, phase: 0.45, amp: 115 },
 ];
 
 /* ================================================================
@@ -438,16 +447,20 @@ function init() {
   let scrollT = 0;                      // 0..1 page scroll progress
   let camZ = CONFIG.startZ;
 
-  // HUD elements (injected by components.js) — driven from scroll.
-  const hud = {
-    bar: document.getElementById("hud-bar"),
-    pct: document.getElementById("hud-pct"),
-    name: document.getElementById("hud-craft-name"),
-    tag: document.getElementById("hud-craft-tag"),
-  };
+  // HUD elements are injected by components.js, which may run AFTER this
+  // module — so resolve them lazily rather than once up front.
+  const hud = { bar: null, pct: null, name: null, tag: null };
   let hudIdx = -1;
+  function resolveHud() {
+    if (hud.name) return;
+    hud.bar = document.getElementById("hud-bar");
+    hud.pct = document.getElementById("hud-pct");
+    hud.name = document.getElementById("hud-craft-name");
+    hud.tag = document.getElementById("hud-craft-tag");
+  }
 
   function readScroll() {
+    resolveHud();
     const doc = document.documentElement;
     const max = doc.scrollHeight - window.innerHeight;
     scrollT = max > 0 ? clamp(window.scrollY / max, 0, 1) : 0;
@@ -472,6 +485,7 @@ function init() {
   }
 
   window.addEventListener("scroll", readScroll, { passive: true });
+  window.addEventListener("load", readScroll); // HUD exists for sure by load
   window.addEventListener("pointermove", (e) => {
     pointer.x = (e.clientX / window.innerWidth) * 2 - 1;
     pointer.y = (e.clientY / window.innerHeight) * 2 - 1;
@@ -501,11 +515,32 @@ function init() {
     camera.position.z = camZ;
     camera.lookAt(eased.x * 12, -eased.y * 8, camZ - 600);
 
-    // Each craft drifts: slow yaw + vertical bob, hidden once flown past.
+    // Characteristic flight: the F-22 pulls G's into a vertical climb, the
+    // B-2 crosses level and slow, Starship climbs straight up under power.
+    // Each loops with a fade at the extremes so there's no pop.
     for (const c of crafts) {
-      c.group.rotation.y = c.baseYaw + c.spinY * t;
-      c.group.position.y = c.base[1] + Math.sin(t * 0.4 + c.phase) * c.bob;
-      c.group.visible = camZ > c.base[2] - 40;
+      const p = fract(t * c.speed + c.phase);
+      const fade = edgeFade(p, 0.12);
+      const g = c.group;
+      if (c.motion === "climb") {
+        const climb = p * p; // accelerate upward (afterburner pull-up)
+        g.position.set(
+          c.base[0] + c.curve * Math.sin(p * Math.PI),
+          c.base[1] - c.amp + climb * 2 * c.amp,
+          c.base[2]
+        );
+        g.rotation.set(lerp(-0.7, -Math.PI / 2, clamp(p * 1.6, 0, 1)), c.baseYaw, t * 0.5);
+      } else if (c.motion === "cross") {
+        g.position.set(lerp(-c.amp, c.amp, p), c.base[1] + Math.sin(t * 0.3) * 4, c.base[2]);
+        g.rotation.set(c.pitch, Math.PI / 2, Math.sin(t * 0.4) * 0.05);
+      } else { // launch — straight up under power
+        const climb = p * p;
+        g.position.set(c.base[0] + Math.sin(t * 0.6) * 2, c.base[1] - c.amp + climb * 2 * c.amp, c.base[2]);
+        g.rotation.set(0, t * 0.12, Math.sin(t * 0.5) * 0.03);
+      }
+      g.visible = camZ > c.base[2] - 60;
+      if (c.lineMat) c.lineMat.opacity = c.baseLineO * fade;
+      if (c.glowMat) c.glowMat.opacity = c.baseGlowO * fade;
     }
 
     // Gentle counter-drift on the field for added parallax.

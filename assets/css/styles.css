@@ -95,6 +95,10 @@ p:last-child { margin-bottom: 0; }
 .section--tight { padding-block: clamp(2.5rem, 5vw, 4rem); }
 .section--alt { background: var(--surface-alt); }
 
+/* Open viewing room for the 3D scene between the hero and the first content
+   band — lets the flythrough breathe before the frosted panels rise over it. */
+.scene-gap { height: clamp(240px, 55vh, 540px); }
+
 .eyebrow {
   font-family: var(--font-mono);
   font-size: var(--fs-micro);
@@ -154,10 +158,22 @@ p:last-child { margin-bottom: 0; }
   top: 0;
   z-index: 100;
   height: var(--nav-h);
-  background: transparent;   /* float over the scene — no dark bar */
-  border-bottom: none;
+  /* Desktop keeps the original floating look at the very top of the page,
+     then firms into a frosted bar once scrolled (.is-scrolled). On mobile
+     it's always a frosted bar — see the responsive block below. */
+  background: transparent;
+  border-bottom: 1px solid transparent;
+  transition: background .3s var(--ease), border-color .3s var(--ease), height .3s var(--ease);
 }
-/* Keep the floating nav legible over the moving field. */
+/* Once the page leaves the top, firm the bar up for contrast AND slim it down. */
+.site-nav.is-scrolled {
+  height: 46px;
+  background: rgba(4, 7, 12, 0.72);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  border-bottom-color: rgba(150, 200, 230, 0.18);
+}
+/* Keep the nav legible even where backdrop-filter is unsupported. */
 .site-nav .brand,
 .nav-links a,
 .cart-btn { text-shadow: 0 1px 14px rgba(2, 5, 10, 0.6); }
@@ -211,6 +227,9 @@ p:last-child { margin-bottom: 0; }
 
 .nav-actions { display: flex; align-items: center; gap: 1rem; }
 
+/* Lock the page behind the open mobile menu (toggled by main.js). */
+html.nav-open, html.nav-open body { overflow: hidden; }
+
 .cart-btn {
   position: relative;
   background: none;
@@ -262,6 +281,9 @@ p:last-child { margin-bottom: 0; }
    =================================================================== */
 .hero {
   min-height: calc(100vh - var(--nav-h));
+  /* Dynamic viewport unit: avoids the layout "jump" on mobile when the
+     browser address bar slides in/out. Falls back to vh where unsupported. */
+  min-height: calc(100svh - var(--nav-h));
   display: flex;
   align-items: center;
   position: relative;
@@ -272,8 +294,28 @@ p:last-child { margin-bottom: 0; }
   font-size: var(--fs-hero);
   font-weight: 300;
   letter-spacing: -0.015em;
+  /* Dramatic entrance — a holographic "focus pull" + cyan glow flash (~0.9s) */
+  animation: hero-focus 0.85s var(--ease) both, hero-flash 0.95s ease-out both;
 }
-.hero h1 em { font-style: normal; font-weight: 500; }
+.hero h1 em {
+  font-style: normal;
+  font-weight: 500;
+  /* "fun" lights up cyan as the payoff at the end of the entrance */
+  animation: hero-emph 0.4s var(--ease) 0.55s both;
+}
+@keyframes hero-focus {
+  0%   { opacity: 0; filter: blur(18px); transform: scale(1.07); letter-spacing: 0.14em; }
+  55%  { opacity: 1; }
+  100% { opacity: 1; filter: blur(0); transform: scale(1); letter-spacing: -0.015em; }
+}
+@keyframes hero-flash {
+  0%, 100% { text-shadow: 0 2px 30px rgba(0, 0, 0, 0.45); }
+  45%      { text-shadow: 0 0 30px rgba(95, 230, 255, 0.6), 0 2px 30px rgba(0, 0, 0, 0.45); }
+}
+@keyframes hero-emph {
+  from { color: var(--ink); }
+  to   { color: var(--accent); text-shadow: 0 0 22px rgba(95, 230, 255, 0.5); }
+}
 .hero p {
   max-width: 36ch;
   margin: 1.5rem auto 2.5rem;
@@ -301,7 +343,7 @@ p:last-child { margin-bottom: 0; }
   flex-direction: column;
   transition: transform .4s var(--ease), box-shadow .4s var(--ease), border-color .4s var(--ease);
 }
-.card:hover { transform: translateY(-6px); box-shadow: var(--shadow-lg); border-color: rgba(255,255,255,0.34); }
+.card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); border-color: rgba(95, 230, 255, 0.28); }
 
 .card__media {
   aspect-ratio: 4 / 3;
@@ -459,10 +501,27 @@ p:last-child { margin-bottom: 0; }
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: clamp(1.5rem, 4vw, 3rem);
-  margin-top: clamp(2.5rem, 5vw, 4rem);
+  max-width: 720px;
+  margin: clamp(2.5rem, 5vw, 4rem) auto 0;
 }
 .about-card h3 { font-size: var(--fs-h3); margin-bottom: 0.75rem; }
 .about-card p { color: var(--muted); }
+
+/* ---- The combination highlight (about page) ---- */
+.about-combine {
+  max-width: 720px;
+  margin: clamp(1.5rem, 4vw, 2.5rem) auto 0;
+  text-align: center;
+  padding: clamp(1.6rem, 4vw, 2.5rem);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius);
+  background: rgba(11, 18, 28, 0.42);
+  backdrop-filter: blur(12px) saturate(135%);
+  -webkit-backdrop-filter: blur(12px) saturate(135%);
+}
+.about-combine .eyebrow { margin-bottom: 0.6rem; }
+.about-combine h3 { font-size: var(--fs-h2); margin-bottom: 1rem; }
+.about-combine p { color: var(--muted); max-width: 58ch; margin-inline: auto; }
 .about-figure { border-radius: var(--radius); overflow: hidden; border: 1px solid var(--hairline); }
 .about-figure img { width: 100%; height: 100%; object-fit: cover; }
 
@@ -502,8 +561,8 @@ p:last-child { margin-bottom: 0; }
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 1.25rem;
-  padding-block: 2.25rem;
+  gap: 1rem;
+  padding-block: 1.1rem;
 }
 .site-footer .brand { font-size: 1rem; }
 .footer-meta { display: flex; flex-wrap: wrap; gap: 0.4rem 1.75rem; font-size: var(--fs-small); color: var(--muted); }
@@ -589,25 +648,86 @@ p:last-child { margin-bottom: 0; }
   .detail__info { position: static; }
 }
 
+/* ---- Tablet / mobile: collapsed nav ---- */
 @media (max-width: 720px) {
   .nav-toggle { display: block; }
+
+  /* Always a visible frosted bar on mobile — content sits right beneath
+     it, so it can never be allowed to disappear into the scene. */
+  .site-nav {
+    background: rgba(4, 7, 12, 0.6);
+    backdrop-filter: blur(14px) saturate(140%);
+    -webkit-backdrop-filter: blur(14px) saturate(140%);
+    border-bottom-color: rgba(150, 200, 230, 0.12);
+  }
+  .site-nav.is-scrolled { background: rgba(4, 7, 12, 0.82); }
+
+  /* Larger, finger-friendly tap targets for the cart + menu buttons. */
+  .nav-actions { gap: 0.5rem; }
+  .cart-btn { padding: 0.55rem; }
+
   .nav-links {
     position: fixed;
     inset: var(--nav-h) 0 auto 0;
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
     gap: 0;
-    background: var(--bg);
+    /* Frosted dropdown that matches the bar, with a solid floor so the
+       links never wash out over the moving scene behind them. */
+    background: rgba(6, 10, 18, 0.92);
+    backdrop-filter: blur(18px) saturate(140%);
+    -webkit-backdrop-filter: blur(18px) saturate(140%);
     border-bottom: 1px solid var(--hairline);
-    padding: 0.5rem var(--gutter) 1.5rem;
-    transform: translateY(-110%);
+    padding: 0.25rem var(--gutter) 1rem;
+    transform: translateY(-115%);
     transition: transform .4s var(--ease);
     box-shadow: var(--shadow-md);
   }
   .nav-links.is-open { transform: translateY(0); }
-  .nav-links li { width: 100%; }
-  .nav-links a { display: block; width: 100%; padding-block: 0.85rem; font-size: 1rem; }
+  .nav-links li { width: 100%; border-bottom: 1px solid rgba(150, 200, 230, 0.07); }
+  .nav-links li:last-child { border-bottom: none; }
+  .nav-links a {
+    display: block;
+    width: 100%;
+    padding-block: 0.95rem;
+    font-size: 1rem;
+    color: var(--ink);
+  }
   .nav-links a::after { display: none; }
+
+  /* Hide the scroll-readout on small screens — keep only the thin
+     scroll-progress line up top. */
+  .hud__readout { display: none; }
+}
+
+/* ---- Phones: tighten rhythm + keep everything inside the viewport ---- */
+@media (max-width: 540px) {
+  /* Hero CTAs stack to full-width pills so they never crowd or clip. */
+  .hero__cta { flex-direction: column; align-items: stretch; gap: 0.75rem; }
+  .hero__cta .btn { width: 100%; }
+
+  /* Let the toast wrap instead of running off-screen on narrow phones. */
+  .toast {
+    white-space: normal;
+    text-align: center;
+    max-width: calc(100vw - 2rem);
+    left: 1rem;
+    right: 1rem;
+    transform: translateY(150%);
+  }
+  .toast.is-visible { transform: translateY(0); }
+
+  /* Roomier card padding reads better at phone width. */
+  .card__body { padding: 1.2rem 1.25rem 1.4rem; }
+
+  /* Product detail actions go full-width so buttons don't squeeze. */
+  .detail__actions { flex-direction: column; align-items: stretch; }
+  .detail__actions .btn { width: 100%; }
+
+  /* Specs: stack label over value instead of a cramped two-column grid. */
+  .specs dl { grid-template-columns: 1fr; gap: 0.15rem 0; }
+  .specs dt { margin-top: 0.85rem; }
+  .specs dd { margin-bottom: 0.25rem; }
 }
 
 /* ===================================================================
@@ -654,8 +774,8 @@ body::before {
   z-index: -1;
   pointer-events: none;
   background:
-    radial-gradient(125% 120% at 50% 32%, transparent 38%, rgba(3, 6, 12, 0.55) 100%),
-    linear-gradient(180deg, rgba(3, 6, 12, 0.20) 0%, transparent 16%, transparent 72%, rgba(3, 6, 12, 0.42) 100%);
+    radial-gradient(125% 120% at 50% 32%, transparent 46%, rgba(3, 6, 12, 0.26) 100%),
+    linear-gradient(180deg, rgba(3, 6, 12, 0.1) 0%, transparent 18%, transparent 74%, rgba(3, 6, 12, 0.2) 100%);
 }
 
 /* Hero stays transparent so the world reads at full depth, with a
@@ -666,11 +786,12 @@ body::before {
 .hero p { text-shadow: 0 2px 30px rgba(0, 0, 0, 0.45); }
 .section-head h2 { text-shadow: 0 2px 24px rgba(0, 0, 0, 0.35); }
 
-/* Content bands become frosted glass instead of solid fills. */
+/* Content bands stay light so the wireframe world reads through them — just a
+   faint tint + soft blur for a subtle difference, not a dark fill. */
 .section--alt {
-  background: rgba(7, 12, 20, 0.42);
-  backdrop-filter: blur(10px) saturate(135%);
-  -webkit-backdrop-filter: blur(10px) saturate(135%);
+  background: rgba(7, 12, 20, 0.22);
+  backdrop-filter: blur(5px) saturate(125%);
+  -webkit-backdrop-filter: blur(5px) saturate(125%);
   border-block: 1px solid rgba(150, 200, 230, 0.06);
 }
 
@@ -765,40 +886,6 @@ body::before {
   transition: transform .12s linear;
 }
 
-.hud__craft {
-  position: absolute;
-  left: var(--gutter);
-  bottom: 1.4rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
-  opacity: 0.62;
-}
-.hud__craft-name {
-  font-size: 0.62rem;
-  letter-spacing: 0.26em;
-  text-transform: uppercase;
-  color: #8fe3ff;
-}
-.hud__craft-name::before {
-  content: "";
-  display: inline-block;
-  width: 5px; height: 5px;
-  margin-right: 0.55rem;
-  border-radius: 50%;
-  background: #5fe6ff;
-  box-shadow: 0 0 6px 1px rgba(95, 230, 255, 0.9);
-  vertical-align: middle;
-  animation: holo-blink 2.4s steps(1) infinite;
-}
-.hud__craft-tag {
-  font-size: 0.54rem;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--muted);
-  padding-left: 0.95rem;
-}
-
 .hud__readout {
   position: absolute;
   right: var(--gutter);
@@ -810,7 +897,6 @@ body::before {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .hud__craft-name::before { animation: none; }
   #hud-bar { transition: none; }
 }
 
@@ -917,9 +1003,9 @@ body::before {
   transition: transform .4s var(--ease), border-color .4s var(--ease), box-shadow .4s var(--ease);
 }
 .package:hover {
-  transform: translateY(-6px);
-  border-color: rgba(95, 230, 255, 0.4);
-  box-shadow: var(--shadow-lg);
+  transform: translateY(-4px);
+  border-color: rgba(95, 230, 255, 0.3);
+  box-shadow: var(--shadow-md);
 }
 .package__head {
   display: flex;
@@ -991,7 +1077,7 @@ body::before {
   -webkit-backdrop-filter: blur(12px) saturate(135%);
   transition: border-color .3s var(--ease), transform .3s var(--ease);
 }
-.included li:hover { border-color: rgba(95, 230, 255, 0.4); transform: translateY(-3px); }
+.included li:hover { border-color: rgba(95, 230, 255, 0.28); transform: translateY(-2px); }
 .included svg {
   width: 26px; height: 26px;
   flex-shrink: 0;
@@ -1009,6 +1095,25 @@ body::before {
   font-size: var(--fs-micro);
   color: var(--muted);
   margin-top: 0.15rem;
+}
+
+/* Highlighted build-walkthrough video (shop.html) */
+.build-video { margin: clamp(1.5rem, 4vw, 2.75rem) auto 0; max-width: 760px; }
+.build-video__frame {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--surface-alt);
+  box-shadow: var(--shadow-md);
+}
+.build-video__frame iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.build-video figcaption {
+  margin-top: 0.9rem;
+  text-align: center;
+  font-size: var(--fs-small);
+  color: var(--muted);
 }
 
 /* One-line reassurance on each product detail page */

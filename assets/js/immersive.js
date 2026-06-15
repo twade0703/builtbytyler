@@ -294,6 +294,48 @@ function buildStarship() {
   return m;
 }
 
+// A clean finned rocket (nose +Y) — tapered body, pointed nosecone, four
+// swept fins and a flared engine bell. Flies the gravity-turn ascent and
+// pays out a smoke trail (see the "ascent" motion in frame()).
+function buildRocket() {
+  const parts = [];
+  const seg = 10;
+  // Body + nosecone as stacked rings along +Y.
+  parts.push(makeStackY([
+    { y: -0.70, r: 0.0 },    // engine plane
+    { y: -0.66, r: 0.16 },   // base
+    { y: 0.46, r: 0.16 },    // body top
+    { y: 0.60, r: 0.145 },   // nose shoulder
+    { y: 0.86, r: 0.075 },
+    { y: 1.14, r: 0.0 },     // nose tip
+  ], seg));
+  parts.push(makeRing(0, 0.06, 0, 0.16, seg, "y")); // a body detail band
+
+  // Four swept fins around the base.
+  const finProf = [[0.16, -0.62], [0.46, -0.82], [0.46, -0.66], [0.18, -0.34]];
+  [0, Math.PI / 2, Math.PI, Math.PI * 1.5].forEach((a) => {
+    const c = Math.cos(a), s = Math.sin(a);
+    parts.push(makeLoop(finProf.map(([r, y]) => [r * c, y, r * s])));
+  });
+
+  // Flared engine bell + nozzle stringers.
+  parts.push(makeRing(0, -0.66, 0, 0.1, 8, "y"));
+  parts.push(makeRing(0, -0.88, 0, 0.2, 8, "y"));
+  for (let i = 0; i < 8; i++) {
+    const a = (i / 8) * Math.PI * 2;
+    parts.push({
+      v: [[Math.cos(a) * 0.1, -0.66, Math.sin(a) * 0.1], [Math.cos(a) * 0.2, -0.88, Math.sin(a) * 0.2]],
+      e: [[0, 1]],
+    });
+  }
+
+  const m = merge(parts);
+  m.glows = [[0, -0.95, 0], [0, -1.12, 0]]; // afterburner core for bloom
+  m.glowColor = 0xffcf9a;                    // warm flame
+  m.glowSize = 0.26;
+  return m;
+}
+
 /* ================================================================
    SCENE ASSEMBLY
    ================================================================ */
@@ -370,20 +412,122 @@ function makeCraft(model, sprite, opts) {
   return {
     group, base: opts.pos.slice(),
     motion: opts.motion, speed: opts.speed || 0.06, phase: opts.phase || 0,
-    amp: opts.amp || 80, curve: opts.curve || 0, pitch: opts.pitch || 0, baseYaw: opts.baseYaw || 0,
+    amp: opts.amp || 80, curve: opts.curve || 0,
+    pitch: opts.pitch || 0, baseYaw: opts.baseYaw || 0,
     lineMat, glowMat, baseLineO: CONFIG.craftOpacity, baseGlowO: 0.95,
   };
+}
+
+/* A trailing exhaust/smoke plume: a ring-buffer of additive puffs that are
+   emitted at the rocket's nozzle each frame and then drift + fade out, so a
+   glowing contrail is left hanging in space behind the climbing rocket. */
+function makeTrail(sprite, count, colorHex) {
+  const positions = new Float32Array(count * 3);
+  const colors = new Float32Array(count * 3);
+  const vel = new Float32Array(count * 3);
+  const ages = new Float32Array(count);
+  for (let i = 0; i < count; i++) ages[i] = 2; // start dead → invisible
+
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+  geo.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+  const mat = new THREE.PointsMaterial({
+    size: 17, map: sprite, vertexColors: true, transparent: true, opacity: 0.85,
+    depthWrite: false, blending: THREE.AdditiveBlending, sizeAttenuation: true,
+  });
+  const points = new THREE.Points(geo, mat);
+  points.frustumCulled = false;
+
+  const base = new THREE.Color(colorHex);
+  const LIFE = 2.6, SPREAD = 7;
+  let head = 0;
+
+  return {
+    points,
+    emit(x, y, z) {
+      head = (head + 1) % count;
+      const i3 = head * 3;
+      positions[i3] = x + (Math.random() - 0.5) * SPREAD;
+      positions[i3 + 1] = y + (Math.random() - 0.5) * SPREAD;
+      positions[i3 + 2] = z + (Math.random() - 0.5) * SPREAD;
+      vel[i3] = (Math.random() - 0.5) * 11;
+      vel[i3 + 1] = (Math.random() - 0.5) * 11;
+      vel[i3 + 2] = (Math.random() - 0.5) * 11;
+      ages[head] = 0;
+    },
+    update(dt) {
+      for (let i = 0; i < count; i++) {
+        const i3 = i * 3;
+        if (ages[i] >= 1) {
+          if (colors[i3] !== 0) colors[i3] = colors[i3 + 1] = colors[i3 + 2] = 0;
+          continue;
+        }
+        ages[i] += dt / LIFE;
+        positions[i3] += vel[i3] * dt;
+        positions[i3 + 1] += vel[i3 + 1] * dt;
+        positions[i3 + 2] += vel[i3 + 2] * dt;
+        const k = Math.max(0, 1 - ages[i]); // fade to black → invisible (additive)
+        colors[i3] = base.r * k;
+        colors[i3 + 1] = base.g * k;
+        colors[i3 + 2] = base.b * k;
+      }
+      geo.attributes.position.needsUpdate = true;
+      geo.attributes.color.needsUpdate = true;
+    },
+  };
+}
+
+// Pre-integrate the rocket's ascent ONCE into a path table sampled over the
+// launch cycle p∈[0,1]. Driving motion from this table (rather than stitched
+// arcs) makes the trajectory one continuous curve: a slow, visibly
+// accelerating lift-off, then a single gently-eased pitch-over from vertical
+// toward ~30° above horizontal — smooth speed AND smooth angle, no kinks,
+// never going fully flat. Returns world-space offsets from the pad + the nose
+// angle θ (from vertical) at each sample.
+function buildAscentPath() {
+  const N = 256;
+  const px = new Float32Array(N + 1);
+  const py = new Float32Array(N + 1);
+  const pth = new Float32Array(N + 1);
+  const SPEED = 1500;          // peak speed (world units per p) — overall size
+  const pAccel = 0.55;         // fraction of the cycle spent accelerating to SPEED
+  const p0 = 0.55, p1 = 0.99;  // climb vertically much longer, then pitch over late
+  const thetaMax = 1.0472;     // 60° off vertical → ~30° above horizontal (never flat)
+  const c01 = (x) => (x < 0 ? 0 : x > 1 ? 1 : x);
+  // smootherstep: zero 1st AND 2nd derivative at both ends → no visible
+  // onset/relaxation of either the acceleration or the pitch rate.
+  const smoother = (x) => { x = c01(x); return x * x * x * (x * (x * 6 - 15) + 10); };
+  let x = 0, y = 0;
+  const dp = 1 / N;
+  for (let i = 0; i <= N; i++) {
+    const p = i * dp;
+    const theta = thetaMax * smoother((p - p0) / (p1 - p0));
+    pth[i] = theta;
+    px[i] = x;
+    py[i] = y;
+    const speed = SPEED * smoother(p / pAccel); // 0 at lift-off → SPEED, then held
+    x += speed * Math.sin(theta) * dp;
+    y += speed * Math.cos(theta) * dp;
+  }
+  return { px, py, pth, N };
 }
 
 // Each craft flies the way it really would, looping with a fade. They sit
 // at fixed z along the corridor so the scroll flythrough still passes each.
 const FLEET = [
-  { build: buildF22, scale: 72, pos: [-150, 14, 60], label: "F-22 Raptor", tag: "Air dominance fighter",
+  { build: buildF22, scale: 72, pos: [230, 18, 60], label: "F-22 Raptor", tag: "Air dominance fighter",
     motion: "climb", speed: 0.08, phase: 0.5, amp: 78, curve: 24, baseYaw: 0.5 },
-  { build: buildB2, scale: 88, pos: [0, -26, -300], label: "B-2 Spirit", tag: "Stealth bomber",
+  { build: buildB2, scale: 88, pos: [0, 300, -300], label: "B-2 Spirit", tag: "Stealth bomber",
     motion: "cross", speed: 0.045, phase: 0.35, amp: 165, pitch: 0.22 },
   { build: buildStarship, scale: 60, pos: [140, -10, -640], label: "Starship", tag: "Orbital launch vehicle",
-    motion: "launch", speed: 0.07, phase: 0.45, amp: 115 },
+    motion: "launch", speed: 0.07, phase: 0.45, amp: 115, trail: true },
+  // Lifts off, rolls clockwise through a gravity turn into level flight, and
+  // leaves a glowing smoke trail the whole way up. Parked DEEP in the
+  // background — well beyond the camera's travel (it ends at z ≈ -820) — so
+  // it stays a small, distant launch that never crowds the foreground.
+  // `amp` = arc radius (climb + turn reach), `curve` = cruise distance.
+  { build: buildRocket, scale: 50, pos: [-700, -300, -1150], label: "Ascent Vehicle", tag: "Gravity-turn launch",
+    motion: "ascent", speed: 0.05, phase: 0.08, trail: true },
 ];
 
 /* ================================================================
@@ -397,13 +541,19 @@ function init() {
     document.body.prepend(canvas);
   }
 
+  // Phones get a lighter build of the scene so scrolling stays fluid:
+  // capped pixel ratio, fewer field particles, no canvas MSAA.
+  const IS_MOBILE =
+    window.matchMedia("(max-width: 720px)").matches ||
+    window.matchMedia("(pointer: coarse)").matches;
+
   let renderer;
   try {
-    renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false, powerPreference: "high-performance" });
+    renderer = new THREE.WebGLRenderer({ canvas, antialias: !IS_MOBILE, alpha: false, powerPreference: "high-performance" });
   } catch (e) {
     return; // no WebGL — leave the static site untouched
   }
-  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const dpr = Math.min(window.devicePixelRatio || 1, IS_MOBILE ? 1.5 : 2);
   renderer.setPixelRatio(dpr);
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setClearColor(CONFIG.bg, 1);
@@ -418,7 +568,9 @@ function init() {
 
   const sprite = makeSpriteTexture();
   const layers = CONFIG.layers.map((spec) => {
-    const layer = makeLayer(spec, sprite, CONFIG.startZ + 200);
+    // Thin the particle field on phones (~40% of the points) for fluidity.
+    const tuned = IS_MOBILE ? { ...spec, count: Math.round(spec.count * 0.4) } : spec;
+    const layer = makeLayer(tuned, sprite, CONFIG.startZ + 200);
     scene.add(layer);
     return layer;
   });
@@ -426,6 +578,13 @@ function init() {
   const crafts = FLEET.map((spec) => {
     const craft = makeCraft(spec.build(), sprite, spec);
     scene.add(craft.group);
+    // Give any craft that asks for it a world-space smoke trail.
+    if (spec.trail) {
+      craft.trail = makeTrail(sprite, IS_MOBILE ? 120 : 240, 0xe2efff);
+      scene.add(craft.trail.points);
+    }
+    // Pre-integrate the rocket's smooth ascent path once (sampled in frame()).
+    if (spec.motion === "ascent") craft.path = buildAscentPath();
     return craft;
   });
 
@@ -449,14 +608,11 @@ function init() {
 
   // HUD elements are injected by components.js, which may run AFTER this
   // module — so resolve them lazily rather than once up front.
-  const hud = { bar: null, pct: null, name: null, tag: null };
-  let hudIdx = -1;
+  const hud = { bar: null, pct: null };
   function resolveHud() {
-    if (hud.name) return;
+    if (hud.bar) return;
     hud.bar = document.getElementById("hud-bar");
     hud.pct = document.getElementById("hud-pct");
-    hud.name = document.getElementById("hud-craft-name");
-    hud.tag = document.getElementById("hud-craft-tag");
   }
 
   function readScroll() {
@@ -464,24 +620,9 @@ function init() {
     const doc = document.documentElement;
     const max = doc.scrollHeight - window.innerHeight;
     scrollT = max > 0 ? clamp(window.scrollY / max, 0, 1) : 0;
-
-    // Drive the HUD: progress bar, scroll readout, and the callout for
-    // whichever craft the camera is currently nearest.
+    // Drive the HUD: the scroll-progress bar + the percentage readout.
     if (hud.bar) hud.bar.style.transform = `scaleX(${scrollT.toFixed(4)})`;
     if (hud.pct) hud.pct.textContent = String(Math.round(scrollT * 100)).padStart(3, "0");
-    if (hud.name) {
-      const cz = CONFIG.startZ - scrollT * CONFIG.travel;
-      let best = 0, bestD = Infinity;
-      for (let i = 0; i < FLEET.length; i++) {
-        const d = Math.abs(cz - FLEET[i].pos[2]);
-        if (d < bestD) { bestD = d; best = i; }
-      }
-      if (best !== hudIdx) {
-        hudIdx = best;
-        hud.name.textContent = FLEET[best].label;
-        if (hud.tag) hud.tag.textContent = FLEET[best].tag;
-      }
-    }
   }
 
   window.addEventListener("scroll", readScroll, { passive: true });
@@ -491,8 +632,14 @@ function init() {
     pointer.y = (e.clientY / window.innerHeight) * 2 - 1;
   }, { passive: true });
 
+  let lastW = window.innerWidth;
   function onResize() {
     const w = window.innerWidth, h = window.innerHeight;
+    // On touch devices the address bar slides in/out constantly, firing
+    // resize with only a height change. Reallocating the render targets
+    // each time stutters the scroll — so only react to real width changes.
+    if (IS_MOBILE && w === lastW) return;
+    lastW = w;
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
     renderer.setSize(w, h);
@@ -533,14 +680,44 @@ function init() {
       } else if (c.motion === "cross") {
         g.position.set(lerp(-c.amp, c.amp, p), c.base[1] + Math.sin(t * 0.3) * 4, c.base[2]);
         g.rotation.set(c.pitch, Math.PI / 2, Math.sin(t * 0.4) * 0.05);
-      } else { // launch — straight up under power
+      } else if (c.motion === "ascent") {
+        // Sample the pre-integrated ascent path: a slow, visibly accelerating
+        // lift-off, then ONE continuous, gently-eased pitch from vertical
+        // toward ~30° above horizontal — smooth speed AND smooth angle, so
+        // there are no kinks or abrupt angle changes, and it never goes flat.
+        const path = c.path;
+        const f = p * path.N;
+        let i0 = f | 0; if (i0 >= path.N) i0 = path.N - 1;
+        const fr = f - i0;
+        const px = c.base[0] + path.px[i0] + (path.px[i0 + 1] - path.px[i0]) * fr;
+        const py = c.base[1] + path.py[i0] + (path.py[i0 + 1] - path.py[i0]) * fr;
+        const theta = path.pth[i0] + (path.pth[i0 + 1] - path.pth[i0]) * fr;
+        g.position.set(px, py, c.base[2]);
+        g.rotation.set(0, 0, -theta); // +Y nose rotates clockwise toward +X
+        // Pay out smoke from the nozzle (opposite the nose) while in flight.
+        if (c.trail && !REDUCE && fade > 0.4) {
+          const d = 0.95 * g.scale.x;
+          const tx = px - Math.sin(theta) * d;
+          const ty = py - Math.cos(theta) * d;
+          c.trail.emit(tx, ty, c.base[2]);
+          c.trail.emit(tx, ty, c.base[2]);
+        }
+      } else { // launch — straight up under power, exhaust trailing below
         const climb = p * p;
-        g.position.set(c.base[0] + Math.sin(t * 0.6) * 2, c.base[1] - c.amp + climb * 2 * c.amp, c.base[2]);
+        const px = c.base[0] + Math.sin(t * 0.6) * 2;
+        const py = c.base[1] - c.amp + climb * 2 * c.amp;
+        g.position.set(px, py, c.base[2]);
         g.rotation.set(0, t * 0.12, Math.sin(t * 0.5) * 0.03);
+        if (c.trail && !REDUCE && fade > 0.4) {
+          const d = 1.05 * g.scale.x; // engine cluster sits ~1.05 below centre
+          c.trail.emit(px, py - d, c.base[2]);
+          c.trail.emit(px, py - d, c.base[2]);
+        }
       }
       g.visible = camZ > c.base[2] - 60;
       if (c.lineMat) c.lineMat.opacity = c.baseLineO * fade;
       if (c.glowMat) c.glowMat.opacity = c.baseGlowO * fade;
+      if (c.trail) c.trail.update(dt);
     }
 
     // Gentle counter-drift on the field for added parallax.

@@ -251,7 +251,7 @@
               ? `<div class="specs"><dl>${specs}</dl></div>`
               : ""
           }
-          <p class="detail__included">Every build ships with <b>STL · STEP · program files</b> + an ESP kit.</p>
+          <p class="detail__included">Every build ships with <b>STL · STEP · program files</b> + a hardware package.</p>
         </div>
       </div>`;
   }
@@ -318,18 +318,47 @@
     const toggle = document.getElementById("nav-toggle");
     const links = document.getElementById("nav-links");
     if (!toggle || !links) return;
-    toggle.addEventListener("click", () => {
-      const open = links.classList.toggle("is-open");
+
+    const setOpen = (open) => {
+      links.classList.toggle("is-open", open);
       toggle.classList.toggle("is-open", open);
       toggle.setAttribute("aria-expanded", String(open));
-    });
+      // Lock the page behind the open menu so it can't scroll through.
+      document.documentElement.classList.toggle("nav-open", open);
+    };
+
+    toggle.addEventListener("click", () =>
+      setOpen(!links.classList.contains("is-open"))
+    );
+    // Close on link tap or when escaping back to a wide layout.
     links.addEventListener("click", (e) => {
-      if (e.target.closest("a")) {
-        links.classList.remove("is-open");
-        toggle.classList.remove("is-open");
-        toggle.setAttribute("aria-expanded", "false");
-      }
+      if (e.target.closest("a")) setOpen(false);
     });
+    window.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") setOpen(false);
+    });
+    window.matchMedia("(min-width: 721px)").addEventListener("change", (m) => {
+      if (m.matches) setOpen(false);
+    });
+  }
+
+  /* ---------------- Scroll-aware nav ----------------
+     Keep the bar clear over the hero/landing; only firm + slim it once the
+     first content section reaches the top. Pages without a hero firm near top. */
+  function initNavScroll() {
+    const nav = document.getElementById("site-nav");
+    if (!nav) return;
+    const after = document.querySelector("main section:not(.hero)");
+    let threshold = 8;
+    const recompute = () => {
+      threshold = after ? Math.max(8, after.offsetTop - (nav.offsetHeight || 50) - 24) : 8;
+    };
+    const onScroll = () => nav.classList.toggle("is-scrolled", window.scrollY > threshold);
+    recompute();
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", () => { recompute(); onScroll(); }, { passive: true });
+    window.addEventListener("load", () => { recompute(); onScroll(); });
   }
 
   /* ---------------- Scroll reveal ---------------- */
@@ -397,6 +426,7 @@
       if (window.BBTHolograms) window.BBTHolograms.mount();
     }
     initMobileNav();
+    initNavScroll();
     initDelegation();
     updateCartBadge();
     renderCartBody();

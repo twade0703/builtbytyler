@@ -12,7 +12,9 @@
   --surface-alt:   #070C14;   /* subtle bands */
   --ink:           #EAF3FF;   /* primary text — ice white */
   --muted:         #7C8A9E;   /* secondary text — cool grey */
-  --hairline:      rgba(150,200,230,0.16); /* cyan-tinted borders */
+  --hairline:      rgba(150,200,230,0.22); /* cyan-tinted borders — crisper */
+  --hairline-strong: rgba(150,205,235,0.42); /* precise structural lines */
+  --tick:          rgba(95,230,255,0.55);  /* engineered corner marks */
   --accent:        #5FE6FF;   /* cyan — primary CTAs / emphasis */
   --accent-warm:   #5FE6FF;   /* price / highlight (unified cyan) */
   --on-accent:     #04070C;   /* text on accent (dark on cyan) */
@@ -35,15 +37,18 @@
   /* Spacing / layout */
   --maxw:       1200px;
   --gutter:     clamp(1.25rem, 4vw, 3rem);
-  --radius:     10px;
-  --radius-sm:  6px;
-  --radius-lg:  16px;
+  /* Radii — near-square. The look is engineered, not rounded. */
+  --radius:     2px;
+  --radius-sm:  1px;
+  --radius-lg:  3px;
+  --bevel:      7px;          /* corner-cut depth for the "sharp point" motif */
 
   /* Effects */
   --shadow-sm: 0 1px 2px rgba(0,0,0,0.5), 0 2px 10px rgba(0,0,0,0.4);
-  --shadow-md: 0 8px 28px rgba(0,0,0,0.55);
+  --shadow-md: 0 10px 30px rgba(0,0,0,0.55);
   --shadow-lg: 0 22px 60px rgba(0,0,0,0.65);
   --ease:      cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-sharp: cubic-bezier(0.16, 0.9, 0.2, 1); /* snappier, more mechanical */
 
   --nav-h: 58px;
 }
@@ -75,9 +80,9 @@ button { font-family: inherit; cursor: pointer; }
 h1, h2, h3, h4 {
   font-family: var(--font-display);
   font-weight: 400;
-  line-height: 1.12;
+  line-height: 1.08;
   margin: 0;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.022em;
 }
 
 p { margin: 0 0 1rem; }
@@ -102,11 +107,22 @@ p:last-child { margin-bottom: 0; }
 .eyebrow {
   font-family: var(--font-mono);
   font-size: var(--fs-micro);
-  font-weight: 400;
-  letter-spacing: 0.18em;
+  font-weight: 500;
+  letter-spacing: 0.28em;
   text-transform: uppercase;
   color: var(--muted);
   margin: 0 0 1rem;
+}
+/* Leading tick — reads like an instrument label, not a subtitle.
+   inline-block keeps any <br> inside the eyebrow wrapping normally. */
+.eyebrow::before {
+  content: "";
+  display: inline-block;
+  width: 18px;
+  height: 1px;
+  margin-right: 0.7rem;
+  background: var(--accent);
+  vertical-align: middle;
 }
 
 .section-head { max-width: 640px; margin: 0 auto clamp(2rem,4vw,3.5rem); text-align: center; }
@@ -120,25 +136,32 @@ p:last-child { margin-bottom: 0; }
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  padding: 0.6rem 1.35rem;
+  gap: 0.55rem;
+  padding: 0.72rem 1.6rem;
   font-family: var(--font-mono);
   font-size: var(--fs-micro);
-  font-weight: 400;
-  letter-spacing: 0.14em;
+  font-weight: 500;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
   border: 1px solid var(--accent);
-  border-radius: 50px;
+  border-radius: 0;
+  /* Cut bottom-right corner — the sharp, deliberate "point". */
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--bevel)), calc(100% - var(--bevel)) 100%, 0 100%);
   background: var(--accent);
   color: var(--on-accent);
-  transition: background .3s var(--ease), color .3s var(--ease),
-              transform .3s var(--ease), box-shadow .3s var(--ease);
+  transition: background .25s var(--ease-sharp), color .25s var(--ease-sharp),
+              transform .25s var(--ease-sharp), filter .25s var(--ease-sharp);
 }
-.btn:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+/* drop-shadow (not box-shadow) so the glow follows the cut corner. */
+.btn:hover { transform: translateY(-2px); filter: drop-shadow(0 8px 18px rgba(95,230,255,0.22)); }
 .btn:active { transform: translateY(0); }
 
-.btn--ghost { background: transparent; color: var(--ink); }
-.btn--ghost:hover { background: var(--ink); color: var(--on-accent); }
+.btn--ghost {
+  background: transparent;
+  color: var(--ink);
+  border-color: var(--hairline-strong);
+}
+.btn--ghost:hover { background: var(--ink); color: var(--on-accent); border-color: var(--ink); filter: none; }
 
 .btn--block { width: 100%; }
 
@@ -244,7 +267,7 @@ html.nav-open, html.nav-open body { overflow: hidden; }
   top: -2px; right: -4px;
   min-width: 17px; height: 17px;
   padding: 0 4px;
-  border-radius: 50px;
+  border-radius: 1px;
   background: var(--accent-warm);
   color: var(--on-accent);
   font-size: 0.62rem;
@@ -293,9 +316,9 @@ html.nav-open, html.nav-open body { overflow: hidden; }
 .hero h1 {
   font-size: var(--fs-hero);
   font-weight: 300;
-  letter-spacing: -0.015em;
+  letter-spacing: -0.025em;
   /* Dramatic entrance — a holographic "focus pull" + cyan glow flash (~0.9s) */
-  animation: hero-focus 0.85s var(--ease) both, hero-flash 0.95s ease-out both;
+  animation: hero-focus 0.85s var(--ease-sharp) both, hero-flash 0.95s ease-out both;
 }
 .hero h1 em {
   font-style: normal;
@@ -304,9 +327,9 @@ html.nav-open, html.nav-open body { overflow: hidden; }
   animation: hero-emph 0.4s var(--ease) 0.55s both;
 }
 @keyframes hero-focus {
-  0%   { opacity: 0; filter: blur(18px); transform: scale(1.07); letter-spacing: 0.14em; }
+  0%   { opacity: 0; filter: blur(12px); transform: scale(1.05); letter-spacing: 0.12em; }
   55%  { opacity: 1; }
-  100% { opacity: 1; filter: blur(0); transform: scale(1); letter-spacing: -0.015em; }
+  100% { opacity: 1; filter: blur(0); transform: scale(1); letter-spacing: -0.025em; }
 }
 @keyframes hero-flash {
   0%, 100% { text-shadow: 0 2px 30px rgba(0, 0, 0, 0.45); }
@@ -343,7 +366,22 @@ html.nav-open, html.nav-open body { overflow: hidden; }
   flex-direction: column;
   transition: transform .4s var(--ease), box-shadow .4s var(--ease), border-color .4s var(--ease);
 }
-.card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); border-color: rgba(95, 230, 255, 0.28); }
+.card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); border-color: rgba(95, 230, 255, 0.42); }
+
+/* Engineered corner bracket — a precise L-mark that tightens on hover. */
+.card::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0;
+  z-index: 4;
+  width: 14px; height: 14px;
+  border-top: 1px solid var(--tick);
+  border-left: 1px solid var(--tick);
+  opacity: 0.55;
+  pointer-events: none;
+  transition: opacity .35s var(--ease-sharp), width .35s var(--ease-sharp), height .35s var(--ease-sharp);
+}
+.card:hover::before { opacity: 1; width: 22px; height: 22px; }
 
 .card__media {
   aspect-ratio: 4 / 3;
@@ -431,18 +469,19 @@ html.nav-open, html.nav-open body { overflow: hidden; }
 .price .soon { font-family: var(--font-body); font-size: var(--fs-small); color: var(--muted); letter-spacing: 0.08em; }
 
 .card__add {
-  border: 1px solid var(--ink);
+  border: 1px solid var(--hairline-strong);
   background: transparent;
   color: var(--ink);
-  border-radius: 50px;
-  padding: 0.55rem 1.1rem;
+  border-radius: 0;
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 5px), calc(100% - 5px) 100%, 0 100%);
+  padding: 0.55rem 1.15rem;
   font-size: var(--fs-micro);
-  letter-spacing: 0.14em;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
-  transition: background .3s var(--ease), color .3s var(--ease);
+  transition: background .25s var(--ease-sharp), color .25s var(--ease-sharp), border-color .25s var(--ease-sharp);
   white-space: nowrap;
 }
-.card__add:hover { background: var(--ink); color: var(--on-accent); }
+.card__add:hover { background: var(--ink); color: var(--on-accent); border-color: var(--ink); }
 
 .badge {
   display: inline-block;
@@ -619,7 +658,8 @@ html.nav-open, html.nav-open body { overflow: hidden; }
   background: var(--ink);
   color: var(--on-accent);
   padding: 0.85rem 1.4rem;
-  border-radius: 50px;
+  border-radius: 2px;
+  border-left: 2px solid var(--accent);
   font-size: var(--fs-small);
   letter-spacing: 0.04em;
   box-shadow: var(--shadow-md);
@@ -634,9 +674,9 @@ html.nav-open, html.nav-open body { overflow: hidden; }
    =================================================================== */
 .reveal {
   opacity: 0;
-  transform: translateY(16px);
-  filter: blur(6px);
-  transition: opacity .8s var(--ease), transform .8s var(--ease), filter .8s var(--ease);
+  transform: translateY(10px);
+  filter: blur(2px);
+  transition: opacity .5s var(--ease-sharp), transform .5s var(--ease-sharp), filter .5s var(--ease-sharp);
 }
 .reveal.is-visible { opacity: 1; transform: none; filter: blur(0); }
 
@@ -1022,8 +1062,8 @@ body::before {
   text-transform: uppercase;
   color: var(--accent);
   border: 1px solid rgba(95, 230, 255, 0.35);
-  border-radius: 50px;
-  padding: 0.2rem 0.7rem;
+  border-radius: 0;
+  padding: 0.22rem 0.72rem;
 }
 .package__name { font-size: var(--fs-h3); }
 .package__price {

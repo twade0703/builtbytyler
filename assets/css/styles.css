@@ -108,7 +108,7 @@ p:last-child { margin-bottom: 0; }
   font-family: var(--font-mono);
   font-size: var(--fs-micro);
   font-weight: 500;
-  letter-spacing: 0.28em;
+  letter-spacing: 0.24em;
   text-transform: uppercase;
   color: var(--muted);
   margin: 0 0 1rem;
@@ -160,6 +160,9 @@ p:last-child { margin-bottom: 0; }
   background: transparent;
   color: var(--ink);
   border-color: var(--hairline-strong);
+  /* Reserve the cut corner for the filled primary CTA; outline buttons
+     stay crisp squares so no diagonal reads as an unfinished notch. */
+  clip-path: none;
 }
 .btn--ghost:hover { background: var(--ink); color: var(--on-accent); border-color: var(--ink); filter: none; }
 
@@ -473,7 +476,6 @@ html.nav-open, html.nav-open body { overflow: hidden; }
   background: transparent;
   color: var(--ink);
   border-radius: 0;
-  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 5px), calc(100% - 5px) 100%, 0 100%);
   padding: 0.55rem 1.15rem;
   font-size: var(--fs-micro);
   letter-spacing: 0.18em;
@@ -950,8 +952,8 @@ body::before {
 /* Index tag (01, 02 …) */
 .card__index {
   position: absolute;
-  top: 0.75rem;
-  left: 0.9rem;
+  top: 1rem;
+  left: 1.15rem;
   z-index: 3;
   font-family: var(--font-mono);
   font-size: var(--fs-micro);

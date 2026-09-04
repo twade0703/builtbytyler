@@ -142,6 +142,12 @@ const PACKAGES = [
     name: "NEMO — Streaming Build",
     badge: "Flagship",
     price: 500,
+    // Stripe Payment Link. Empty string = checkout disabled, falls back to
+    // the enquiry flow so the button never dead-ends. Paste the live link
+    // from Stripe > Payment links.
+    paymentLink: "",
+    leadTime: "3–4 weeks from order",
+    shipping: "Free shipping, continental US",
     blurb:
       "The six-axis NEMO arm configured for live streaming and 3D capture — motion, mount and controller, tuned and ready.",
     includes: [
@@ -157,6 +163,9 @@ const PACKAGES = [
     name: "Quad FPV — Performance Build",
     badge: "Popular",
     price: 300,
+    paymentLink: "",
+    leadTime: "2–3 weeks from order",
+    shipping: "Free shipping, continental US",
     blurb:
       "A high-speed FPV quad built from the frame up for racing and freestyle, bench-tested and ready to fly.",
     includes: [
@@ -171,7 +180,10 @@ const PACKAGES = [
     id: "custom-build",
     name: "Custom Engineering Build",
     badge: "By quote",
-    price: null, // quote-based
+    price: null, // quote-based — never gets a payment link
+    paymentLink: "",
+    leadTime: "Scoped per project",
+    shipping: "Quoted per project",
     blurb:
       "Bring your own idea — full design, CAD, prototyping and fabrication, handled end to end.",
     includes: [
@@ -183,6 +195,12 @@ const PACKAGES = [
     ],
   },
 ];
+
+/* True only when a package can actually be paid for right now. */
+function isBuyable(pkg) {
+  return !!(pkg && pkg.price != null && typeof pkg.paymentLink === "string" &&
+            pkg.paymentLink.startsWith("https://buy.stripe.com/"));
+}
 
 /* Helpers shared across pages */
 function getProductById(id) {
@@ -207,3 +225,4 @@ window.PACKAGES = PACKAGES;
 window.getProductById = getProductById;
 window.formatPrice = formatPrice;
 window.formatPackagePrice = formatPackagePrice;
+window.isBuyable = isBuyable;

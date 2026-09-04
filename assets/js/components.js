@@ -73,6 +73,7 @@ function renderFooter() {
       <div class="footer-meta">
         <span>Designed &amp; built by Tyler Wade</span>
         <span>&copy; ${year} BuiltByTyler</span>
+        <a href="policies.html">Lead times, shipping &amp; refunds</a>
         <a href="https://www.linkedin.com/in/tyler-wade1/" target="_blank" rel="noopener">LinkedIn</a>
         <a href="https://instagram.com/twade0703" target="_blank" rel="noopener">Instagram</a>
       </div>
@@ -133,17 +134,25 @@ function renderOrderModal() {
       <p class="eyebrow">Place an order</p>
       <h2 class="order-modal__title" id="order-title">Build</h2>
       <p class="order-modal__price" id="order-price"></p>
+      <ul class="order-terms" id="order-terms">
+        <li><span>Lead time</span><b id="order-lead"></b></li>
+        <li><span>Shipping</span><b id="order-ship"></b></li>
+      </ul>
       <form class="order-form" id="order-form" novalidate>
         <label class="order-field"><span>Name</span>
           <input type="text" id="order-name" name="name" autocomplete="name" required></label>
         <label class="order-field"><span>Email</span>
           <input type="email" id="order-email" name="email" autocomplete="email" required></label>
-        <label class="order-field"><span>Quantity</span>
+        <label class="order-field" id="order-qty-field"><span>Quantity</span>
           <input type="number" id="order-qty" name="qty" min="1" value="1"></label>
         <label class="order-field"><span>Notes / options</span>
           <textarea id="order-notes" name="notes" rows="3" placeholder="Finish, colour, timeline, anything specific…"></textarea></label>
-        <button type="submit" class="btn btn--block">Place order</button>
-        <p class="order-form__note">No payment now — I'll confirm the details and send a secure payment link, usually within a day.</p>
+        <label class="order-consent" id="order-consent-wrap">
+          <input type="checkbox" id="order-consent">
+          <span>I've read the <a href="policies.html" target="_blank" rel="noopener">lead times, shipping and refund policy</a>.</span>
+        </label>
+        <button type="submit" class="btn btn--block" id="order-submit">Place order</button>
+        <p class="order-form__note" id="order-note"></p>
       </form>
     </div>`;
   document.body.appendChild(wrap);

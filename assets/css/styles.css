@@ -1330,3 +1330,67 @@ body::before {
   }
   .portrait { width: min(280px, 78%); }
 }
+
+/* =================================================================
+   CHECKOUT — policy page, order terms, consent. Added 2026-09-03.
+   Uses the existing ice/cyan tokens; introduces no new colours.
+   ================================================================= */
+.policy { max-width: 68ch; }
+.policy h1 { font-size: var(--fs-h1); margin: 0 0 .75rem; }
+.policy h2 {
+  font-size: var(--fs-h3); font-family: var(--font-display); font-weight: 400;
+  letter-spacing: -.015em; margin: 2.75rem 0 .75rem;
+  padding-top: 1.25rem; border-top: 1px solid var(--hairline);
+}
+.policy p, .policy li { color: var(--muted); }
+.policy b, .policy a { color: var(--ink); }
+.policy a { text-decoration: underline; text-underline-offset: .18em;
+            text-decoration-color: var(--hairline-strong); }
+.policy a:hover { color: var(--accent); text-decoration-color: var(--accent); }
+.policy ul, .policy ol { padding-left: 1.15rem; }
+.policy li { margin-bottom: .5rem; }
+.policy .lead { color: var(--ink); }
+
+.policy-table { list-style: none; padding: 0; margin: 1rem 0 1.5rem;
+                border-top: 1px solid var(--hairline); }
+.policy-table li {
+  display: flex; justify-content: space-between; gap: 1.5rem; margin: 0;
+  padding: .7rem 0; border-bottom: 1px solid var(--hairline);
+  font-size: var(--fs-small);
+}
+.policy-table .k { font-family: var(--font-mono); font-size: var(--fs-micro);
+                   letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.policy-table .v { color: var(--ink); text-align: right; }
+
+.policy-steps { counter-reset: step; list-style: none; padding-left: 0; }
+.policy-steps li { position: relative; padding-left: 2.25rem; margin-bottom: .9rem; }
+.policy-steps li::before {
+  counter-increment: step; content: counter(step);
+  position: absolute; left: 0; top: .05rem;
+  width: 1.5rem; height: 1.5rem; display: grid; place-items: center;
+  border: 1px solid var(--hairline-strong); color: var(--accent);
+  font-family: var(--font-mono); font-size: var(--fs-micro);
+  font-variant-numeric: tabular-nums;
+}
+.policy-updated { font-family: var(--font-mono); font-size: var(--fs-micro);
+                  letter-spacing: .08em; color: var(--muted); margin-top: 3rem; }
+
+/* Order modal — lead time / shipping summary */
+.order-terms { list-style: none; padding: 0; margin: 0 0 1.25rem;
+               border-top: 1px solid var(--hairline); }
+.order-terms li {
+  display: flex; justify-content: space-between; gap: 1rem;
+  padding: .55rem 0; border-bottom: 1px solid var(--hairline);
+  font-size: var(--fs-small);
+}
+.order-terms span { font-family: var(--font-mono); font-size: var(--fs-micro);
+                    letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.order-terms b { color: var(--ink); font-weight: 400; text-align: right; }
+
+.order-consent { display: flex; gap: .6rem; align-items: flex-start;
+                 margin: .25rem 0 1rem; font-size: var(--fs-small); color: var(--muted); }
+.order-consent input { margin-top: .28rem; accent-color: var(--accent); flex: 0 0 auto; }
+.order-consent a { color: var(--ink); text-decoration: underline;
+                   text-underline-offset: .18em; }
+.order-consent a:hover { color: var(--accent); }
+.order-consent[hidden] { display: none; }

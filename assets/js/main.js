@@ -184,7 +184,8 @@
         <p class="package__blurb">${pkg.blurb}</p>
         <ul class="package__list">${includes}</ul>
         <button class="btn btn--block" data-order="${pkg.id}">${
-          pkg.price == null ? "Request a quote" : "Order"
+          pkg.price == null ? "Request a quote"
+            : (window.isBuyable && window.isBuyable(pkg)) ? "Order now" : "Order"
         }</button>
       </article>`;
   }
@@ -267,6 +268,29 @@
     const price = document.getElementById("order-price");
     if (title) title.textContent = pkg.name;
     if (price) price.textContent = window.formatPackagePrice(pkg);
+
+    const buyable = window.isBuyable && window.isBuyable(pkg);
+    const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+    set("order-lead", pkg.leadTime || "Made to order");
+    set("order-ship", pkg.shipping || "Quoted per order");
+
+    const submit = document.getElementById("order-submit");
+    const note = document.getElementById("order-note");
+    const consentWrap = document.getElementById("order-consent-wrap");
+    const consent = document.getElementById("order-consent");
+    const qtyField = document.getElementById("order-qty-field");
+
+    if (submit) submit.textContent = buyable ? "Continue to secure checkout" : "Send order request";
+    if (note) {
+      note.innerHTML = buyable
+        ? 'Payment is handled by <b>Stripe</b> on their own secure page \u2014 card details never touch this site.'
+        : "No payment now \u2014 I'll confirm the details and follow up, usually within a day.";
+    }
+    // The consent tick only gates a real payment.
+    if (consentWrap) consentWrap.hidden = !buyable;
+    if (consent) consent.checked = false;
+    // Stripe controls quantity on its own page.
+    if (qtyField) qtyField.hidden = buyable;
     document.getElementById("order-backdrop")?.classList.add("is-open");
     const m = document.getElementById("order-modal");
     m?.classList.add("is-open");
@@ -281,8 +305,9 @@
     m?.setAttribute("aria-hidden", "true");
   }
 
-  // No backend yet — compose a complete order email so the buyer just
-  // hits send. (Swap this for a checkout/payment link later.)
+  // Buyable packages hand off to a Stripe-hosted Payment Link. Everything
+  // else (quote work, or a package with no link yet) falls back to an email
+  // enquiry so a button can never dead-end.
   function submitOrder(e) {
     e.preventDefault();
     if (!currentOrder) return;
@@ -295,6 +320,24 @@
       showToast("Add your name and email to place the order.");
       return;
     }
+
+    const buyable = window.isBuyable && window.isBuyable(currentOrder);
+
+    if (buyable) {
+      if (!document.getElementById("order-consent")?.checked) {
+        showToast("Please confirm you've read the lead times and refund policy.");
+        return;
+      }
+      // Stripe collects payment, address and quantity on its own page.
+      // client_reference_id ties the Stripe payment back to a package id.
+      const url = new URL(currentOrder.paymentLink);
+      url.searchParams.set("prefilled_email", email);
+      url.searchParams.set("client_reference_id", currentOrder.id);
+      closeOrderModal();
+      window.location.assign(url.toString());
+      return;
+    }
+
     const subject = `Order — ${currentOrder.name}`;
     const body = [
       `Order — ${currentOrder.name}`,
@@ -308,9 +351,20 @@
       `Includes: ${(currentOrder.includes || []).join(", ")}`,
     ].join("\n");
     window.location.href =
-      `mailto:twade0703@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      `mailto:twade@builtbytyler.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     closeOrderModal();
     showToast("Order ready in your email — just hit send.");
+  }
+
+  /* ---------------- Policy page lead times ---------------- */
+  // Lead times live in PACKAGES so the policy page can never drift
+  // out of sync with what the shop actually promises.
+  function renderPolicyLeadTimes() {
+    const host = document.getElementById("policy-leadtimes");
+    if (!host || !window.PACKAGES) return;
+    host.innerHTML = window.PACKAGES.map(
+      (p) => `<li><span class="k">${p.name}</span><span class="v">${p.leadTime || "Made to order"}</span></li>`
+    ).join("");
   }
 
   /* ---------------- Mobile nav ---------------- */
@@ -421,6 +475,7 @@
       renderGrid("featured-grid", window.PRODUCTS.filter((p) => p.featured), { holo: true });
       renderGrid("shop-grid", window.PRODUCTS, { holo: true });
       renderPackages();
+    renderPolicyLeadTimes();
       renderDetail();
       // Bring the freshly-rendered holograms (home, shop, detail) to life.
       if (window.BBTHolograms) window.BBTHolograms.mount();

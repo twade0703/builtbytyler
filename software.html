@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Software &amp; Web · BuiltByTyler</title>
+  <meta name="description" content="Websites, web apps and custom software for businesses — designed, built and maintained end to end by Tyler Wade.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Space+Grotesk:wght@300;400;500;600&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/styles.css">
+  <link rel="stylesheet" href="assets/css/motion.css">
+
+  <!-- Three.js — the drifting star field behind the page (starfield.js) -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
+    }
+  }
+  </script>
+
+</head>
+<body>
+  <header id="site-nav"></header>
+
+  <main>
+
+    <!-- ===============================================================
+         OPENER
+         =============================================================== -->
+    <section class="section svc-hero">
+      <div class="container">
+        <div class="svc-hero__inner" data-enter>
+          <span class="avail"><i class="bt-dot"></i> Taking two new builds this quarter</span>
+          <h1 class="display" data-split>Software that earns its place on the <em>invoice</em>.</h1>
+          <p class="svc-hero__lead">I design and build the software side of a business — the website
+            people judge you by, the web app that replaces the spreadsheet, and the automation that
+            stops someone re-typing the same thing twice. One engineer, start to finish, no handoffs
+            and no account manager in between.</p>
+          <div class="svc-hero__cta">
+            <a class="btn" href="#pricing">See what it costs</a>
+            <a class="btn btn--ghost" href="#work">How it works</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ===============================================================
+         THE FOUR NUMBERS
+         Every one of these is a fact about the offer, not an invented
+         client result. A claim on this page has to survive being asked
+         about on the call.
+         =============================================================== -->
+    <section class="section--tight">
+      <div class="container">
+        <div class="proof-grid" data-reveal="scale">
+          <div class="proof"><b>$500</b><span>To get started</span></div>
+          <div class="proof"><b>$50</b><span>A month after that</span></div>
+          <div class="proof"><b>0</b><span>Templates used</span></div>
+          <div class="proof"><b>100%</b><span>Yours to keep</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===============================================================
+         SERVICES — an asymmetric bento, flagship first
+         =============================================================== -->
+    <section class="section" id="services">
+      <div class="container">
+        <div class="section-head section-head--left" data-reveal>
+          <p class="eyebrow">What I build</p>
+          <h2>Four things, done properly, instead of <em>everything</em>, done thinly.</h2>
+        </div>
+
+        <div class="svc-grid">
+
+          <article class="svc-card svc-card--wide" data-reveal data-reveal-i="1">
+            <span class="svc-card__no">01</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="3" y="4" width="18" height="16" rx="1.5"/><path d="M3 9h18"/><path d="M7 6.5h.01M9.5 6.5h.01"/>
+            </svg>
+            <h3>Websites that are built to be judged</h3>
+            <p>Most small-business sites lose the customer before the phone rings — slow, dated,
+              unreadable on a phone, or missing the one thing a visitor came for. I build the site
+              around that one thing: hand-written, fast on a bad connection, and structured so search
+              engines and customers both find what they need on the first screen.</p>
+            <ul class="chips">
+              <li>Hand-coded</li><li>Mobile first</li><li>SEO structure</li>
+              <li>Analytics</li><li>Accessible</li><li>Copywriting</li>
+            </ul>
+          </article>
+
+          <article class="svc-card" data-reveal data-reveal-i="2">
+            <span class="svc-card__no">02</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M9 8 5 12l4 4M15 8l4 4-4 4M13 6l-2 12"/>
+            </svg>
+            <h3>Web apps &amp; SaaS</h3>
+            <p>When a website is not enough — a booking system, a customer portal, a quoting tool, a
+              product you intend to charge other people for. Accounts, payments, permissions and a
+              database that will still make sense in two years.</p>
+            <ul class="chips">
+              <li>Auth</li><li>Stripe</li><li>Dashboards</li><li>Multi-tenant</li>
+            </ul>
+          </article>
+
+          <article class="svc-card" data-reveal data-reveal-i="3">
+            <span class="svc-card__no">03</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/>
+            </svg>
+            <h3>Automation &amp; integration</h3>
+            <p>The unglamorous work that pays for itself fastest: wiring the booking form to the
+              calendar, the invoice to the accounts, the enquiry to the CRM — so nobody is copying
+              a name between two tabs at nine at night.</p>
+            <ul class="chips">
+              <li>APIs</li><li>Webhooks</li><li>Scheduled jobs</li><li>Data sync</li>
+            </ul>
+          </article>
+
+          <article class="svc-card svc-card--third" data-reveal data-reveal-i="4">
+            <span class="svc-card__no">04</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M12 3l7 4v5c0 4.2-2.9 7.6-7 9-4.1-1.4-7-4.8-7-9V7z"/><path d="m9 12 2 2 4-4"/>
+            </svg>
+            <h3>Care &amp; hosting</h3>
+            <p>Hosting, backups, security headers, dependency updates and a human who answers when
+              something breaks.</p>
+          </article>
+
+          <article class="svc-card svc-card--third" data-reveal data-reveal-i="5">
+            <span class="svc-card__no">05</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M4 19V5M4 19h16"/><path d="m7 15 3.5-4 3 2.5L20 7"/>
+            </svg>
+            <h3>Ongoing changes</h3>
+            <p>New pages, new sections, new prices. Small changes land the same week, not the same
+              quarter.</p>
+          </article>
+
+          <article class="svc-card svc-card--third" data-reveal data-reveal-i="6">
+            <span class="svc-card__no">06</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="4" y="4" width="7" height="7" rx="1"/><rect x="13" y="4" width="7" height="7" rx="1"/>
+              <rect x="4" y="13" width="7" height="7" rx="1"/><path d="M13.5 16.5h6M16.5 13.5v6"/>
+            </svg>
+            <h3>Hardware in the loop</h3>
+            <p>Software that has to talk to a real machine — sensors, controllers, embedded firmware.
+              That is the day job.</p>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ===============================================================
+         FEATURE ROWS
+         =============================================================== -->
+    <section class="section" id="work">
+      <div class="container">
+
+        <div class="split">
+          <div class="split__text" data-reveal="left">
+            <p class="eyebrow">Websites</p>
+            <h3>A site is a sales tool, not a <em>brochure</em>.</h3>
+            <p>Every page gets one job and one obvious next step. No stock photography of people
+              in headsets, no carousel nobody clicks, no cookie banner arguing with the visitor
+              before they have read a sentence.</p>
+            <ul class="split__list">
+              <li>Written and built from scratch — no page builder, no theme licence to renew</li>
+              <li>Loads fast on a phone with two bars, which is where most of your traffic is</li>
+              <li>Structured markup so Google can actually read what you do and where you are</li>
+              <li>You own the code and the domain outright, on day one</li>
+            </ul>
+          </div>
+          <figure class="window" data-reveal="right" data-parallax>
+            <div class="window__bar">
+              <div class="window__dots"><i></i><i></i><i></i></div>
+              <div class="window__url">https://your-business.com</div>
+            </div>
+            <div class="window__body">
+              <div class="skel skel--title"></div>
+              <div class="skel skel--wide"></div>
+              <div class="skel skel--mid"></div>
+              <div class="skel skel--short"></div>
+              <div class="skel-row">
+                <div class="skel-box"></div><div class="skel-box"></div><div class="skel-box"></div>
+              </div>
+            </div>
+          </figure>
+        </div>
+
+        <div class="split split--flip">
+          <div class="split__text" data-reveal="right">
+            <p class="eyebrow">Software</p>
+            <h3>When the spreadsheet finally <em>breaks</em>.</h3>
+            <p>Most businesses run on a spreadsheet that three people edit and nobody trusts.
+              Replacing it is not a big-bang rewrite — it is one workflow at a time, starting with
+              whichever one is costing you the most hours this month.</p>
+            <ul class="split__list">
+              <li>Scoped as a fixed-price first release, so the budget is knowable before we start</li>
+              <li>Accounts, roles and permissions built in rather than bolted on afterwards</li>
+              <li>Payments through Stripe — card details never touch your servers or mine</li>
+              <li>Handover includes the repository, the deployment and the documentation</li>
+            </ul>
+          </div>
+          <figure class="window" data-reveal="left" data-parallax="fast">
+            <div class="window__bar">
+              <div class="window__dots"><i></i><i></i><i></i></div>
+              <div class="window__url">app.your-business.com / dashboard</div>
+            </div>
+            <div class="window__body">
+              <div class="skel-row">
+                <div class="skel-box"></div><div class="skel-box"></div><div class="skel-box"></div>
+              </div>
+              <div class="skel skel--wide"></div>
+              <div class="skel skel--mid"></div>
+              <div class="skel skel--wide"></div>
+              <div class="skel skel--short"></div>
+            </div>
+          </figure>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ===============================================================
+         PROCESS
+         =============================================================== -->
+    <section class="section section--alt" id="process">
+      <div class="container">
+        <div class="section-head" data-reveal>
+          <p class="eyebrow">How it runs</p>
+          <h2>Four stages, and you see the thing working at every one.</h2>
+          <p>No four-week silence followed by a reveal. You get a live link from the first week
+            and you watch it fill in.</p>
+        </div>
+        <ol class="steps">
+          <li class="step" data-reveal data-reveal-i="1">
+            <h4>Call</h4>
+            <p>Twenty minutes on what the business actually needs — not a feature list. I tell you
+              straight if software is not the answer.</p>
+            <span class="step__when">Day 0</span>
+          </li>
+          <li class="step" data-reveal data-reveal-i="2">
+            <h4>Scope &amp; quote</h4>
+            <p>A written scope with a fixed price and a date. Nothing starts until you have both
+              in front of you.</p>
+            <span class="step__when">Week 1</span>
+          </li>
+          <li class="step" data-reveal data-reveal-i="3">
+            <h4>Build in the open</h4>
+            <p>A live staging link from the first build. You review as it goes, so nothing lands
+              as a surprise at the end.</p>
+            <span class="step__when">Weeks 1&ndash;3</span>
+          </li>
+          <li class="step" data-reveal data-reveal-i="4">
+            <h4>Launch &amp; hand over</h4>
+            <p>Go live, plus the domain, the code, the analytics and a walkthrough of how to run
+              it without me.</p>
+            <span class="step__when">Week 3&ndash;4</span>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- ===============================================================
+         PRICING
+         -----------------------------------------------------------------
+         These numbers come from BuiltByTyler's own benchmark research
+         (00 Framework/BENCHMARK.md): the $5k–$10k project band is the
+         most consistently profitable in the Admin Bar 2026 survey
+         (N=622), and no operator in that research sustains a sub-$200/mo
+         plan with human labour attached. Confirm before quoting.
+         =============================================================== -->
+    <section class="section" id="pricing">
+      <div class="container">
+        <div class="section-head section-head--wide" data-reveal>
+          <p class="eyebrow">Pricing</p>
+          <h2>Published, so you know before the call.</h2>
+          <p>Fixed price per build, and a monthly plan that keeps it fast, patched and current.
+            No hourly rates, no surprise invoices, no twelve-month lock-in.</p>
+        </div>
+
+        <div class="tier-grid">
+
+          <article class="tier" data-reveal data-reveal-i="1">
+            <div>
+              <h3 class="tier__name">Launch</h3>
+              <p class="tier__for">A business that needs to look credible online.</p>
+            </div>
+            <p class="tier__price">$500<small>+ $50/mo care plan</small></p>
+            <ul class="tier__list">
+              <li>Up to 5 hand-built pages</li>
+              <li>Copywriting from your existing material</li>
+              <li>Contact, quote or booking form</li>
+              <li>Google Business &amp; local SEO setup</li>
+              <li>Hosting, SSL, backups, analytics</li>
+              <li>Small changes every month</li>
+            </ul>
+            <a class="btn btn--ghost btn--block" href="contact.html?plan=launch">Start with Launch</a>
+          </article>
+
+          <article class="tier tier--feature" data-reveal data-reveal-i="2">
+            <div>
+              <h3 class="tier__name">Growth</h3>
+              <p class="tier__for">A business that wants the site to do work.</p>
+            </div>
+            <p class="tier__price">$3,000<small>+ $200/mo care plan</small></p>
+            <ul class="tier__list">
+              <li>Everything in Launch</li>
+              <li>Unlimited pages plus a blog or case-study system</li>
+              <li>Booking, scheduling or payments built in</li>
+              <li>CRM, calendar and email integrations</li>
+              <li>Custom photography direction &amp; brand pass</li>
+              <li>Quarterly performance and SEO review</li>
+            </ul>
+            <a class="btn btn--block" href="contact.html?plan=growth">Start with Growth</a>
+          </article>
+
+          <article class="tier" data-reveal data-reveal-i="3">
+            <div>
+              <h3 class="tier__name">Product</h3>
+              <p class="tier__for">Custom software or a SaaS you intend to sell.</p>
+            </div>
+            <p class="tier__price">$6,000<small>Scoped per project</small></p>
+            <ul class="tier__list">
+              <li>Discovery and a written technical scope</li>
+              <li>Accounts, roles, billing and admin</li>
+              <li>Fixed-price first release</li>
+              <li>Staging environment and test coverage</li>
+              <li>Repository, deployment and docs handed over</li>
+              <li>Retainer or hand-off — your call</li>
+            </ul>
+            <a class="btn btn--ghost btn--block" href="contact.html?plan=product">Scope a product</a>
+          </article>
+
+        </div>
+
+        <p class="pricing-note">Every build includes the source code and the domain in your name.
+          If you leave, you take the whole thing with you — see the
+          <a href="policies.html">terms</a>.</p>
+      </div>
+    </section>
+
+    <!-- ===============================================================
+         STACK
+         =============================================================== -->
+    <section class="section--tight">
+      <div class="container">
+        <p class="eyebrow" style="text-align:center; margin-bottom:1.25rem;">Built with</p>
+        <ul class="stack" data-reveal>
+          <li>TypeScript</li><li>React</li><li>Next.js</li><li>Node</li>
+          <li>Python</li><li>Postgres</li><li>Stripe</li><li>Cloudflare</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ===============================================================
+         FAQ
+         =============================================================== -->
+    <section class="section" id="faq">
+      <div class="container">
+        <div class="section-head" data-reveal>
+          <p class="eyebrow">Straight answers</p>
+          <h2>The questions that come up on every call.</h2>
+        </div>
+        <div class="faq" data-reveal>
+          <details>
+            <summary>Do I own the site, or am I renting it?</summary>
+            <p>You own it. The domain is registered in your name, the code is yours, and the care
+              plan is a service you can cancel. Nothing is held hostage — that is the single
+              biggest difference between this and the template subscriptions that dominate the
+              small-business market.</p>
+          </details>
+          <details>
+            <summary>Why is there a monthly fee at all?</summary>
+            <p>Because a site that is never touched again quietly rots: dependencies go out of
+              date, security headers drift, forms break when a provider changes an API, and
+              content goes stale. The plan covers hosting, backups, monitoring, updates and
+              small changes. If you would rather host it yourself and take that on, you can —
+              the build price is the same.</p>
+          </details>
+          <details>
+            <summary>Can you work with the site I already have?</summary>
+            <p>Sometimes. If it is on a platform that lets me at the code, yes. If it is locked
+              inside a builder that will not export, rebuilding is usually cheaper than fighting
+              it, and I will tell you which of the two you are looking at on the first call.</p>
+          </details>
+          <details>
+            <summary>How do you handle payments and customer data?</summary>
+            <p>Payments run through Stripe on their own hosted checkout — card details are never
+              entered on, stored on, or transmitted through a site I build. Customer data stays
+              in your accounts, under your ownership, with access I can be removed from.</p>
+          </details>
+          <details>
+            <summary>You are one person. What happens if you disappear?</summary>
+            <p>A fair question and the reason everything is handed over: the repository, the
+              deployment configuration and written documentation are yours from launch. Any
+              competent developer can pick it up, because it is standard code rather than a
+              proprietary system only I can operate.</p>
+          </details>
+          <details>
+            <summary>What do you need from me to start?</summary>
+            <p>Twenty minutes on a call, whatever you already have in the way of logos, photos and copy,
+              and one person who can make decisions. That is genuinely it — the writing and the
+              structure are my job, not homework I hand back to you.</p>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===============================================================
+         CLOSE
+         =============================================================== -->
+    <section class="section--tight" style="padding-bottom: clamp(3.5rem,8vw,7rem);">
+      <div class="container">
+        <div class="cta-band ticked" data-reveal="scale">
+          <p class="eyebrow">Next step</p>
+          <h2>Tell me what is <em>slowing you down</em>.</h2>
+          <p>Twenty minutes, no pitch deck, and a straight answer on whether this is worth
+            building. If it is not, I will say so and you have lost twenty minutes.</p>
+          <div class="cta-band__actions">
+            <a class="btn" href="mailto:twade@builtbytyler.com?subject=Software%20enquiry%20%E2%80%94%20BuiltByTyler">Book a call</a>
+            <a class="btn btn--ghost" href="contact.html">Other ways to reach me</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer id="site-footer" data-year="2026"></footer>
+
+  <script src="assets/js/products.js"></script>
+  <script src="assets/js/components.js"></script>
+  <script src="assets/js/main.js"></script>
+  <script type="module" src="assets/js/starfield.js"></script>
+</body>
+</html>

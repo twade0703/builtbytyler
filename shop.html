@@ -7,27 +7,28 @@
   <meta name="description" content="Browse products designed and built by Tyler Wade.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Space+Grotesk:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Space+Grotesk:wght@300;400;500;600&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/styles.css">
+  <link rel="stylesheet" href="assets/css/motion.css">
 
-  <!-- Three.js — the immersive 3D depth layer (immersive.js) -->
+  <!-- Three.js — the drifting star field behind the page (starfield.js) -->
   <script type="importmap">
   {
     "imports": {
-      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
     }
   }
   </script>
+
 </head>
 <body>
   <header id="site-nav"></header>
 
   <main>
     <section class="section section--tight">
-      <div class="container section-head reveal">
+      <div class="container section-head" data-enter>
         <p class="eyebrow">The collection</p>
-        <h2>Shop</h2>
+        <h2 data-split>Shop the <em>collection</em></h2>
         <p>Each piece is designed and built by hand. Browse the work below, then choose a
           configured <a href="#packages">build package</a> to order.</p>
       </div>
@@ -43,7 +44,7 @@
     <section class="section--tight">
       <div class="container">
         <p class="eyebrow" style="text-align:center; margin-bottom: clamp(1.25rem,3vw,2rem);">Included with every build</p>
-        <ul class="included reveal" aria-label="Included with every build">
+        <ul class="included" data-reveal="scale" aria-label="Included with every build">
           <li>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <path d="M12 3 L20 7.5 L20 16.5 L12 21 L4 16.5 L4 7.5 Z"/><path d="M12 12 L12 21 M12 12 L20 7.5 M12 12 L4 7.5"/>
@@ -72,7 +73,7 @@
 
         <!-- Highlight: the build walkthrough video.
              Replace VIDEO_ID below with your YouTube video id (the part after watch?v=). -->
-        <figure class="build-video reveal">
+        <figure class="build-video" data-reveal>
           <div class="build-video__frame">
             <iframe
               src="https://www.youtube-nocookie.com/embed/VIDEO_ID"
@@ -89,9 +90,9 @@
     <!-- Build packages — the orderable configurations, with prices -->
     <section class="section section--alt" id="packages">
       <div class="container">
-        <div class="section-head reveal">
+        <div class="section-head" data-reveal>
           <p class="eyebrow">Build packages</p>
-          <h2>Configured builds, ready to order</h2>
+          <h2>Configured builds, ready to <em>order</em></h2>
           <p>Every build is made to order and tuned by hand. Pick a package below, or
             request a fully custom build.</p>
         </div>
@@ -106,6 +107,6 @@
   <script src="assets/js/components.js"></script>
   <script src="assets/js/hologram.js"></script>
   <script src="assets/js/main.js"></script>
-  <script type="module" src="assets/js/immersive.js"></script>
+  <script type="module" src="assets/js/starfield.js"></script>
 </body>
 </html>

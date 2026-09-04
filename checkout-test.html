@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Checkout Test · BuiltByTyler</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Space+Grotesk:wght@300;400;500;600&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#04070C; --surface:#0B121C; --ink:#EAF3FF; --muted:#7C8A9E;
+  --hairline:rgba(150,200,230,0.22); --hairline-strong:rgba(150,205,235,0.42);
+  --tick:rgba(95,230,255,0.55); --accent:#5FE6FF; --on-accent:#04070C;
+  --font-display:"Space Grotesk","Inter",sans-serif;
+  --font-body:"Inter",-apple-system,"Segoe UI",Roboto,sans-serif;
+  --font-mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+  --bevel:7px;
+}
+*,*::before,*::after{box-sizing:border-box}
+body{
+  margin:0;min-height:100vh;font-family:var(--font-body);font-weight:300;
+  font-size:.94rem;line-height:1.65;color:var(--ink);background:var(--bg);
+  -webkit-font-smoothing:antialiased;display:flex;flex-direction:column;
+}
+a{color:inherit;text-decoration:none}
+.wrap{width:100%;max-width:960px;margin:0 auto;padding:clamp(1.25rem,4vw,3rem)}
+.eyebrow{
+  font-family:var(--font-mono);font-size:.66rem;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--accent);margin:0 0 .6rem;
+}
+h1{font-family:var(--font-display);font-weight:400;font-size:clamp(1.6rem,3.4vw,2.6rem);letter-spacing:-.022em;margin:0 0 .5rem;line-height:1.08}
+h2{font-family:var(--font-display);font-weight:400;font-size:1.15rem;letter-spacing:-.02em;margin:0 0 .9rem}
+.lede{color:var(--muted);max-width:56ch;margin:0}
+
+/* Test-mode banner — this page must never read as a real storefront */
+.banner{
+  display:flex;gap:.75rem;align-items:flex-start;
+  border:1px solid var(--hairline-strong);border-left:2px solid var(--accent);
+  background:rgba(95,230,255,.05);padding:.85rem 1rem;margin:0 0 2.5rem;
+  font-size:.8rem;color:var(--muted);
+}
+.banner strong{color:var(--ink);font-weight:500}
+
+.card{
+  position:relative;background:var(--surface);border:1px solid var(--hairline);
+  padding:clamp(1.5rem,4vw,2.5rem);
+  clip-path:polygon(0 0,calc(100% - var(--bevel)) 0,100% var(--bevel),100% 100%,var(--bevel) 100%,0 calc(100% - var(--bevel)));
+}
+.card::before{
+  content:"";position:absolute;top:0;left:0;width:26px;height:1px;background:var(--tick);
+}
+.grid{display:grid;grid-template-columns:1fr;gap:2rem}
+@media(min-width:720px){.grid{grid-template-columns:1.1fr .9fr;gap:3rem;align-items:start}}
+
+.viz{
+  aspect-ratio:4/3;border:1px solid var(--hairline);display:grid;place-items:center;
+  background:linear-gradient(160deg,rgba(95,230,255,.07),transparent 60%);
+}
+.viz svg{width:58%;height:auto;color:var(--accent);opacity:.85}
+
+.price{font-family:var(--font-display);font-size:2.4rem;font-weight:400;letter-spacing:-.03em;margin:.25rem 0 .1rem}
+.price span{font-size:.8rem;font-family:var(--font-mono);color:var(--muted);letter-spacing:.08em;margin-left:.5rem;vertical-align:middle}
+
+.specs{list-style:none;margin:1.5rem 0;padding:0;border-top:1px solid var(--hairline)}
+.specs li{display:flex;justify-content:space-between;gap:1rem;padding:.6rem 0;border-bottom:1px solid var(--hairline);font-size:.82rem}
+.specs .k{color:var(--muted);font-family:var(--font-mono);font-size:.7rem;letter-spacing:.1em;text-transform:uppercase}
+.specs .v{text-align:right}
+
+.buy{
+  display:inline-flex;align-items:center;justify-content:center;gap:.6rem;width:100%;
+  background:var(--accent);color:var(--on-accent);border:none;
+  font-family:var(--font-mono);font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;
+  padding:1rem 1.5rem;cursor:pointer;transition:filter .2s,transform .2s;
+  clip-path:polygon(0 0,calc(100% - 6px) 0,100% 6px,100% 100%,6px 100%,0 calc(100% - 6px));
+}
+.buy:hover{filter:brightness(1.12);transform:translateY(-1px)}
+.secure{display:flex;align-items:center;gap:.45rem;justify-content:center;margin-top:.85rem;font-size:.7rem;color:var(--muted);font-family:var(--font-mono);letter-spacing:.06em}
+.secure svg{width:12px;height:12px}
+
+.checks{margin-top:3.5rem;border-top:1px solid var(--hairline);padding-top:2rem}
+.checks ol{margin:0;padding-left:1.1rem;color:var(--muted);font-size:.85rem}
+.checks li{margin-bottom:.55rem}
+.checks code{font-family:var(--font-mono);font-size:.78rem;color:var(--accent);background:rgba(95,230,255,.08);padding:.1rem .35rem}
+footer{margin-top:auto;border-top:1px solid var(--hairline);padding:1.5rem 0;font-size:.7rem;color:var(--muted);font-family:var(--font-mono);letter-spacing:.06em}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <p class="eyebrow">Payments · End-to-end test</p>
+  <h1>Checkout Test</h1>
+  <p class="lede">A live $1.00 transaction that exercises the full path: this page &rarr; Stripe Checkout &rarr; BuiltByTyler LLC balance &rarr; bank payout.</p>
+
+  <div class="banner" style="margin-top:2rem">
+    <div>
+      <strong>This is a test page, not a store.</strong> The item below is not a real product
+      and nothing ships. It exists to prove the payment path works before real money moves
+      through it. This page is set to <code style="font-family:var(--font-mono)">noindex</code>.
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="grid">
+
+      <div class="viz">
+        <svg viewBox="0 0 120 120" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="30" cy="30" r="15"/><circle cx="90" cy="30" r="15"/>
+          <circle cx="30" cy="90" r="15"/><circle cx="90" cy="90" r="15"/>
+          <path d="M40 40 L52 52 M80 40 L68 52 M40 80 L52 68 M80 80 L68 68"/>
+          <rect x="50" y="50" width="20" height="20" rx="1"/>
+          <path d="M60 50 L60 44 M56 44 L64 44"/>
+          <circle cx="30" cy="30" r="2.5" fill="currentColor" stroke="none"/>
+          <circle cx="90" cy="30" r="2.5" fill="currentColor" stroke="none"/>
+          <circle cx="30" cy="90" r="2.5" fill="currentColor" stroke="none"/>
+          <circle cx="90" cy="90" r="2.5" fill="currentColor" stroke="none"/>
+        </svg>
+      </div>
+
+      <div>
+        <p class="eyebrow">Test article</p>
+        <h2>FPV Drone — Test Product</h2>
+        <p class="price">$1.00<span>USD</span></p>
+
+        <ul class="specs">
+          <li><span class="k">Purpose</span><span class="v">Checkout verification</span></li>
+          <li><span class="k">Fulfilment</span><span class="v">None — nothing ships</span></li>
+          <li><span class="k">Processor</span><span class="v">Stripe</span></li>
+          <li><span class="k">Merchant</span><span class="v">BuiltByTyler LLC</span></li>
+        </ul>
+
+        <a class="buy" id="buy-btn"
+           href="https://buy.stripe.com/28E6oI2A61Cl6KCeVogIo00">
+          Buy — $1.00
+        </a>
+
+        <div class="secure">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/>
+          </svg>
+          Secure checkout hosted by Stripe
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <section class="checks">
+    <p class="eyebrow">Verify after paying</p>
+    <ol>
+      <li>Stripe &rarr; <strong>Transactions</strong> shows a <code>$1.00</code> succeeded payment.</li>
+      <li>Net is about <code>$0.67</code> after the <code>2.9% + 30&cent;</code> card fee.</li>
+      <li>Stripe &rarr; <strong>Customers</strong> shows your name, email and address captured at checkout.</li>
+      <li>A Stripe receipt lands in your inbox with the <strong>BUILTBYTYLER</strong> descriptor.</li>
+      <li>Your card statement reads <code>BUILTBYTYLER</code> — not a random processor name.</li>
+      <li>Stripe &rarr; <strong>Balances</strong> shows the $1 pending, then paid out to the linked bank account.</li>
+    </ol>
+  </section>
+
+  <footer>BuiltByTyler LLC · Monterey, CA · internal test page — do not link publicly</footer>
+</div>
+</body>
+</html>

@@ -1,0 +1,304 @@
+/* =================================================================
+   BuiltByTyler — MOTION ENGINE
+   -----------------------------------------------------------------
+   The whole policy in one line: one easing curve, four speeds,
+   everything transitions, and scroll reveals are native CSS —
+   no GSAP, no Lenis, no IntersectionObserver, no scroll hijack.
+
+   Reveals run off the main thread on a scroll timeline and are
+   wrapped in @supports, so a browser without scroll-timelines just
+   shows the content. That matters more than the animation: a
+   visitor landing on a blank section is worse than no motion.
+
+   Usage
+     data-reveal            rise into view
+     data-reveal="scale"    rise + settle from 98.5%
+     data-reveal="blur"     rise + focus pull
+     data-reveal="left"     slide in from the left
+     data-reveal="right"    slide in from the right
+     data-reveal-i="1..8"   stagger siblings (range offset, NOT delay)
+     data-draw              a rule that draws itself across
+     data-enter             above-the-fold: time-based entrance for children
+     data-parallax="slow|fast"  depth drift as the element crosses the view
+
+   Loaded AFTER styles.css so it owns the motion cascade.
+   ================================================================= */
+
+:root {
+  /* One curve. Everything on the site accelerates and settles the same way. */
+  --m-ease:      cubic-bezier(.22, .7, .3, 1);
+  --m-ease-out:  cubic-bezier(.16, 1, .3, 1);   /* long, luxurious settle */
+  --m-ease-in:   cubic-bezier(.6, 0, .8, .2);
+
+  /* Four speeds. If a duration is not one of these, it is a mistake. */
+  --m-fast: .16s;
+  --m-mid:  .28s;
+  --m-slow: .48s;
+  --m-lux:  .78s;
+
+  --m-lift:    0 12px 30px -16px rgba(0, 0, 0, .78), 0 0 0 1px rgba(120, 210, 245, .10);
+  --m-lift-lg: 0 26px 60px -24px rgba(0, 0, 0, .85), 0 0 0 1px rgba(120, 210, 245, .16);
+  --m-glow:    0 0 34px -6px rgba(95, 230, 255, .34);
+}
+
+html { scroll-behavior: smooth; }
+/* The header is fixed, so anchor jumps have to stop short of it. */
+[id] { scroll-margin-top: calc(var(--nav-h, 58px) + 24px); }
+
+:focus-visible {
+  outline: 2px solid var(--accent, #5FE6FF);
+  outline-offset: 3px;
+  border-radius: 1px;
+}
+
+/* =================================================================
+   1 · ENTRANCE — time-based, above-the-fold only
+   ================================================================= */
+@keyframes bt-rise   { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+@keyframes bt-fade   { from { opacity: 0; } to { opacity: 1; } }
+@keyframes bt-unblur { from { opacity: 0; transform: translateY(18px); filter: blur(7px); }
+                       to   { opacity: 1; transform: none;             filter: blur(0);   } }
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-enter] > * { animation: bt-unblur var(--m-lux) var(--m-ease-out) both; }
+  [data-enter] > *:nth-child(1) { animation-delay: .06s; }
+  [data-enter] > *:nth-child(2) { animation-delay: .16s; }
+  [data-enter] > *:nth-child(3) { animation-delay: .26s; }
+  [data-enter] > *:nth-child(4) { animation-delay: .36s; }
+  [data-enter] > *:nth-child(5) { animation-delay: .46s; }
+  [data-enter] > *:nth-child(6) { animation-delay: .56s; }
+}
+
+/* A split headline runs its own per-word entrance, so it opts out of the
+   container's blanket child animation — otherwise the two stack and the
+   headline arrives late and twice. */
+[data-enter] > [data-split] { animation: none !important; }
+
+/* Per-word headline entrance. main.js splits [data-split] headlines into
+   <span class="w"> so each word can rise on its own. */
+.w { display: inline-block; }
+@media (prefers-reduced-motion: no-preference) {
+  [data-split] .w {
+    animation: bt-rise .9s var(--m-ease-out) both;
+    animation-delay: calc(var(--wi, 0) * 55ms + 120ms);
+  }
+}
+
+/* =================================================================
+   2 · SCROLL REVEALS — native view() timeline, zero JS
+   ================================================================= */
+@keyframes bt-reveal       { from { opacity: 0; transform: translateY(22px); }             to { opacity: 1; transform: none; } }
+@keyframes bt-reveal-scale { from { opacity: 0; transform: translateY(26px) scale(.985); } to { opacity: 1; transform: none; } }
+@keyframes bt-reveal-blur  { from { opacity: 0; transform: translateY(20px); filter: blur(6px); }
+                             to   { opacity: 1; transform: none;             filter: blur(0); } }
+@keyframes bt-reveal-left  { from { opacity: 0; transform: translateX(-30px); }            to { opacity: 1; transform: none; } }
+@keyframes bt-reveal-right { from { opacity: 0; transform: translateX(30px); }             to { opacity: 1; transform: none; } }
+@keyframes bt-draw         { from { transform: scaleX(0); }                                to { transform: scaleX(1); } }
+@keyframes bt-draw-y       { from { transform: scaleY(0); }                                to { transform: scaleY(1); } }
+@keyframes bt-par-slow     { from { transform: translateY(34px); }                         to { transform: translateY(-34px); } }
+@keyframes bt-par-fast     { from { transform: translateY(76px); }                         to { transform: translateY(-76px); } }
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    [data-reveal] {
+      animation: bt-reveal linear both;
+      animation-timeline: view();
+      animation-range: entry 4% cover 26%;
+      /* No `will-change` here on purpose. Hinting it permanently promotes
+         every revealed block to its own GPU layer, which drops subpixel
+         antialiasing on the text inside and makes headlines shimmer as
+         they scroll. The browser promotes them for the duration of the
+         animation anyway, which is when it actually helps. */
+    }
+    [data-reveal="scale"] { animation-name: bt-reveal-scale; }
+    [data-reveal="blur"]  { animation-name: bt-reveal-blur;  }
+    [data-reveal="left"]  { animation-name: bt-reveal-left;  }
+    [data-reveal="right"] { animation-name: bt-reveal-right; }
+
+    /* Stagger by pushing each item's RANGE further down the viewport.
+       animation-delay does NOT work on a scroll timeline — the timeline is
+       scroll position, not wall-clock, so a delay simply never fires. */
+    [data-reveal-i="2"] { animation-range: entry  7% cover 29%; }
+    [data-reveal-i="3"] { animation-range: entry 10% cover 32%; }
+    [data-reveal-i="4"] { animation-range: entry 13% cover 35%; }
+    [data-reveal-i="5"] { animation-range: entry 16% cover 38%; }
+    [data-reveal-i="6"] { animation-range: entry 19% cover 41%; }
+    [data-reveal-i="7"] { animation-range: entry 22% cover 44%; }
+    [data-reveal-i="8"] { animation-range: entry 25% cover 47%; }
+
+    /* A rule or underline that draws itself across a strip. */
+    [data-draw] {
+      animation: bt-draw linear both;
+      animation-timeline: view();
+      animation-range: entry 25% cover 55%;
+      transform-origin: left;
+    }
+    [data-draw="y"] { animation-name: bt-draw-y; transform-origin: top; }
+
+    /* Depth drift. The element floats against the scroll it rides on —
+       the cheapest way to make a flat page feel like it has layers. */
+    [data-parallax] {
+      animation: bt-par-slow linear both;
+      animation-timeline: view();
+      animation-range: cover 0% cover 100%;
+    }
+    [data-parallax="fast"] { animation-name: bt-par-fast; }
+  }
+}
+
+/* Content first, motion second: where the browser cannot do scroll timelines
+   (Safari and Firefox at the time of writing), main.js falls back to an
+   IntersectionObserver and adds .is-in.
+
+   Note the .js-reveal gate. main.js puts that class on <html> the moment it
+   runs, so the starting opacity:0 only ever applies in a browser that has
+   already proved it is going to reveal the element again. If the script is
+   blocked, fails, or never arrives, the class is absent and the page renders
+   fully visible with no motion — which is the correct failure. */
+@supports not (animation-timeline: view()) {
+  .js-reveal [data-reveal] {
+    opacity: 0;
+    transform: translateY(18px);
+    transition: opacity var(--m-slow) var(--m-ease-out),
+                transform var(--m-slow) var(--m-ease-out),
+                filter var(--m-slow) var(--m-ease-out);
+  }
+  .js-reveal [data-reveal="blur"]  { filter: blur(6px); }
+  .js-reveal [data-reveal="left"]  { transform: translateX(-26px); }
+  .js-reveal [data-reveal="right"] { transform: translateX(26px); }
+  .js-reveal [data-reveal].is-in   { opacity: 1; transform: none; filter: none; }
+  .js-reveal [data-draw]           { transform: scaleX(0); transform-origin: left;
+                                     transition: transform var(--m-lux) var(--m-ease-out); }
+  .js-reveal [data-draw].is-in     { transform: scaleX(1); }
+}
+
+/* Sticky section header that holds while its content scrolls past. */
+.is-sticky { position: sticky; top: calc(var(--nav-h, 58px) + 2rem); }
+
+/* -------------------------------------------------------------------
+   Horizontal reveals are a desktop-only device.
+
+   translateX(±30px) on a full-width block pushes past the viewport edge
+   and gives the whole page a horizontal scrollbar — on a 390px phone
+   that measured 10px of unwanted scroll on three pages. Narrow screens
+   get the plain vertical rise instead, which is the better gesture on a
+   phone anyway. The overflow-x: clip below is the belt-and-braces guard;
+   `clip` rather than `hidden` because hidden would make main a scroll
+   container and break sticky positioning inside it.
+   ------------------------------------------------------------------- */
+main { overflow-x: clip; }
+
+@media (max-width: 860px) {
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      [data-reveal="left"],
+      [data-reveal="right"] { animation-name: bt-reveal; }
+    }
+  }
+  @supports not (animation-timeline: view()) {
+    .js-reveal [data-reveal="left"],
+    .js-reveal [data-reveal="right"] { transform: translateY(18px); }
+  }
+  /* Depth drift is also a desktop luxury; on a phone it just fights the
+     scroll the finger is already driving. */
+  [data-parallax] { animation-name: none; transform: none; }
+}
+
+/* =================================================================
+   3 · HOVER VOCABULARY — the same few gestures, everywhere
+   ================================================================= */
+
+/* Buttons: lift on hover, compress on press. */
+.btn,
+.card__add,
+.cart-btn {
+  transition: background var(--m-mid) var(--m-ease),
+              color var(--m-mid) var(--m-ease),
+              border-color var(--m-mid) var(--m-ease),
+              transform var(--m-fast) var(--m-ease),
+              box-shadow var(--m-mid) var(--m-ease),
+              filter var(--m-mid) var(--m-ease);
+}
+.btn:active,
+.card__add:active { transform: translateY(0) scale(.985); }
+
+/* A sheen that wipes across a button on hover. Pure decoration, but it is
+   the difference between "a rectangle" and "a control". */
+.btn { position: relative; overflow: hidden; isolation: isolate; }
+.btn::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(105deg, transparent 30%, rgba(255, 255, 255, .22) 48%, transparent 66%);
+  transform: translateX(-120%);
+  transition: transform var(--m-lux) var(--m-ease-out);
+}
+.btn:hover::after { transform: translateX(120%); }
+.btn--ghost::after { background: linear-gradient(105deg, transparent 30%, rgba(120, 220, 255, .16) 48%, transparent 66%); }
+
+/* Cards: lift, sharpen the border, let the media breathe. */
+.card,
+.package,
+.about-card,
+.contact-list a,
+.included li,
+.svc-card,
+.tier,
+.step,
+.proof {
+  transition: transform var(--m-mid) var(--m-ease),
+              box-shadow var(--m-mid) var(--m-ease),
+              border-color var(--m-mid) var(--m-ease),
+              background var(--m-mid) var(--m-ease);
+}
+
+/* Nav links: an underline that wipes in from the left. */
+.nav-links a::after { transition: transform var(--m-mid) var(--m-ease); }
+
+/* The brand mark tightens very slightly on hover — a small, precise tell. */
+.brand { transition: letter-spacing var(--m-slow) var(--m-ease), opacity var(--m-mid) var(--m-ease); }
+.brand:hover { letter-spacing: .01em; }
+
+/* Any icon inside a hoverable surface drifts up with it. */
+.svc-card svg,
+.included svg,
+.contact-list svg { transition: transform var(--m-slow) var(--m-ease), color var(--m-mid) var(--m-ease); }
+.svc-card:hover svg,
+.included li:hover svg,
+.contact-list a:hover svg { transform: translateY(-2px) scale(1.05); }
+
+/* =================================================================
+   4 · LIVE STATE — the only looping animations allowed on the page.
+   Each one carries information, so the motion is doing work.
+   ================================================================= */
+@keyframes bt-pulse { 0% { transform: scale(.7); opacity: .55; } 70% { transform: scale(2.3); opacity: 0; } 100% { opacity: 0; } }
+.bt-dot { position: relative; }
+.bt-dot::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: inherit;
+  animation: bt-pulse 2.8s var(--m-ease) infinite;
+}
+
+/* No marquee here, and none is coming back. A strip of text sliding
+   sideways is unreadable, it moves without carrying information, and it
+   has been explicitly rejected. Do not add one. */
+
+/* =================================================================
+   5 · THE OFF SWITCH — ship this or do not ship the motion.
+   ================================================================= */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation: none !important;
+    transition-duration: .01ms !important;
+  }
+  [data-enter] > *,
+  [data-reveal],
+  [data-split] .w { opacity: 1 !important; transform: none !important; filter: none !important; }
+  [data-draw]     { transform: none !important; }
+  [data-parallax] { transform: none !important; }
+}

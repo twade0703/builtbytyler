@@ -21,6 +21,14 @@
      Models are authored around the origin, roughly within a unit
      sphere; the renderer scales them to the canvas. */
 
+  /* Propeller blade planform, normalised to a unit radius: narrow root,
+     widest around 60% span, swept and rounded off at the tip. Shared by
+     every spinner in every model — see the rotor pass in render(). */
+  const BLADE = [
+    [0.15, 0.055], [0.34, 0.135], [0.60, 0.150], [0.84, 0.115],
+    [1.00, 0.045], [0.97, -0.030], [0.72, -0.075], [0.45, -0.080], [0.18, -0.045],
+  ];
+
   function makeBox(cx, cy, cz, w, h, d) {
     const x0 = cx - w / 2, x1 = cx + w / 2;
     const y0 = cy - h / 2, y1 = cy + h / 2;
@@ -500,22 +508,102 @@
     const parts = [];
     const TX = -0.5, RX = 0.5; // transmitter (left) and receiver (right) centres
 
-    // ---- transmitter: a small body with a single round key button ----
-    parts.push(makeBox(TX, -0.18, 0, 0.4, 0.34, 0.4));         // body
-    parts.push(makeBox(TX, -0.01, 0, 0.34, 0.02, 0.34));       // top deck
-    parts.push(makeRing(TX, 0.0, 0, 0.13, 16, "y"));           // key rim (cap presses live)
-    [[-0.15, -0.15], [0.15, -0.15], [-0.15, 0.15], [0.15, 0.15]].forEach(([dx, dz]) =>
-      parts.push({ v: [[TX + dx, -0.35, dz], [TX + dx, -0.31, dz]], e: [[0, 1]] })); // feet
+    /* ---------------- TRANSMITTER: a straight telegraph key ----------------
+       The old version was a box with a round button on it, which could have
+       been anything. A pivoting lever with a knob, a contact post and a
+       return spring is the one shape everybody reads as Morse. */
+    const KEY_Y = -0.02;                 // deck height
+    const PIV = [TX - 0.10, KEY_Y + 0.10, 0]; // lever pivot
 
-    // ---- receiver: body + LED + buzzer + antenna ----
-    parts.push(makeBox(RX, -0.18, 0, 0.4, 0.34, 0.4));         // body
-    parts.push(makeBox(RX, -0.01, 0, 0.34, 0.02, 0.34));       // top deck
-    parts.push(makeRing(RX, 0.01, 0.1, 0.05, 10, "y"));        // LED bezel (glows live)
-    parts.push(makeCylinderY(RX, 0.02, -0.1, 0.07, 0.06, 12)); // buzzer can
-    parts.push(makeRing(RX, 0.06, -0.1, 0.03, 8, "y"));        // buzzer port
-    parts.push(makeRing(RX + 0.15, 0.0, -0.15, 0.04, 8, "y")); // antenna collar
-    parts.push(segBox([RX + 0.15, 0.0, -0.15], [RX + 0.18, 0.42, -0.15], 0.018));
-    parts.push(makeRing(RX + 0.18, 0.43, -0.15, 0.025, 8, "y"));
+    // Base: a plate with a chamfered outline, a rim, and four feet.
+    const bw = 0.23, bd = 0.20, ch = 0.05;
+    const baseLoop = (y) => {
+      const pts = [
+        [TX - bw + ch, y, -bd], [TX + bw - ch, y, -bd], [TX + bw, y, -bd + ch],
+        [TX + bw, y, bd - ch], [TX + bw - ch, y, bd], [TX - bw + ch, y, bd],
+        [TX - bw, y, bd - ch], [TX - bw, y, -bd + ch],
+      ];
+      return { v: pts, e: pts.map((_, k) => [k, (k + 1) % pts.length]) };
+    };
+    parts.push(baseLoop(KEY_Y));
+    parts.push(baseLoop(KEY_Y - 0.09));
+    baseLoop(KEY_Y).v.forEach((p, k) => {
+      const q = baseLoop(KEY_Y - 0.09).v[k];
+      parts.push({ v: [p, q], e: [[0, 1]] });
+    });
+    [[-0.17, -0.14], [0.17, -0.14], [-0.17, 0.14], [0.17, 0.14]].forEach(([dx, dz]) =>
+      parts.push(makeCylinderY(TX + dx, KEY_Y - 0.11, dz, 0.025, 0.04, 6)));
+
+    // Pivot yoke: two uprights carrying the lever's axle.
+    [-0.05, 0.05].forEach((dz) => {
+      parts.push(segBox([TX - 0.10, KEY_Y, dz], [TX - 0.10, PIV[1], dz], 0.018));
+      parts.push(makeRing(TX - 0.10, PIV[1], dz, 0.032, 8, "z"));
+    });
+    parts.push(segBox([TX - 0.10, PIV[1], -0.05], [TX - 0.10, PIV[1], 0.05], 0.012)); // axle
+
+    // Contact post under the front of the lever, and the anvil it strikes.
+    parts.push(makeCylinderY(TX + 0.13, KEY_Y + 0.03, 0, 0.030, 0.06, 8));
+    parts.push(makeRing(TX + 0.13, KEY_Y + 0.06, 0, 0.038, 10, "y"));
+
+    // Two binding posts at the back — where the line wires land.
+    [-0.10, 0.10].forEach((dz) => {
+      parts.push(makeCylinderY(TX - 0.19, KEY_Y + 0.04, dz, 0.022, 0.08, 6));
+      parts.push(makeRing(TX - 0.19, KEY_Y + 0.085, dz, 0.034, 8, "y"));
+    });
+
+    // ESP32 module sat on the deck behind the key, with its pin headers.
+    parts.push(makeBox(TX, KEY_Y + 0.035, -0.145, 0.16, 0.02, 0.07));
+    parts.push(makeBox(TX, KEY_Y + 0.055, -0.145, 0.09, 0.02, 0.04)); // the can
+    for (let i = 0; i < 6; i++) {
+      const x = TX - 0.07 + (i / 5) * 0.14;
+      parts.push({ v: [[x, KEY_Y + 0.025, -0.115], [x, KEY_Y, -0.115]], e: [[0, 1]] });
+      parts.push({ v: [[x, KEY_Y + 0.025, -0.175], [x, KEY_Y, -0.175]], e: [[0, 1]] });
+    }
+
+    /* ---------------- RECEIVER: enclosure, speaker, antenna ---------------- */
+    parts.push(makeBox(RX, -0.16, 0, 0.42, 0.30, 0.36));      // body
+    parts.push(makeBox(RX, -0.02, 0, 0.42, 0.02, 0.36));      // lid seam
+    parts.push(makeBox(RX, -0.005, 0, 0.36, 0.01, 0.30));     // recessed top panel
+
+    // Speaker grille: concentric rings plus radial slots.
+    [0.13, 0.095, 0.06, 0.028].forEach((r, i) =>
+      parts.push(makeRing(RX - 0.02, 0.005, -0.06, r, i < 2 ? 16 : 10, "y")));
+    for (let i = 0; i < 8; i++) {
+      const a = (i / 8) * Math.PI * 2;
+      parts.push({
+        v: [[RX - 0.02 + Math.cos(a) * 0.03, 0.005, -0.06 + Math.sin(a) * 0.03],
+            [RX - 0.02 + Math.cos(a) * 0.13, 0.005, -0.06 + Math.sin(a) * 0.13]],
+        e: [[0, 1]],
+      });
+    }
+
+    // Indicator LED in a bezel, and a decode readout window beside it.
+    parts.push(makeRing(RX + 0.10, 0.01, 0.10, 0.05, 12, "y"));
+    parts.push(makeRing(RX + 0.10, 0.01, 0.10, 0.028, 10, "y"));
+    parts.push(makeBox(RX - 0.09, 0.005, 0.11, 0.16, 0.01, 0.07)); // display window
+    for (let i = 0; i < 5; i++) {                                   // character cells
+      const x = RX - 0.155 + (i / 4) * 0.13;
+      parts.push(makeBox(x, 0.012, 0.11, 0.018, 0.004, 0.04));
+    }
+
+    // Whip antenna with a collar and a loading coil.
+    const AB = [RX + 0.17, -0.01, -0.14], AT = [RX + 0.20, 0.44, -0.14];
+    parts.push(makeRing(AB[0], AB[1], AB[2], 0.042, 8, "y"));
+    parts.push(segBox(AB, AT, 0.016));
+    for (let i = 0; i < 5; i++) {
+      const f = 0.30 + i * 0.045;
+      const y = AB[1] + (AT[1] - AB[1]) * f;
+      const x = AB[0] + (AT[0] - AB[0]) * f;
+      parts.push(makeRing(x, y, AB[2], 0.036, 8, "y"));
+    }
+    parts.push(makeRing(AT[0], AT[1], AT[2], 0.028, 8, "y"));
+
+    // USB port on the near face, and vent slots on the side.
+    parts.push(makeBox(RX - 0.14, -0.10, 0.185, 0.09, 0.04, 0.02));
+    for (let i = 0; i < 4; i++) {
+      const z = -0.10 + i * 0.055;
+      parts.push(makeBox(RX + 0.212, -0.14, z, 0.01, 0.10, 0.02));
+    }
 
     parts.push(makeBase(-0.5, 1.05));
 
@@ -537,28 +625,63 @@
     const m = merge(parts);
     m.spinners = [];
     m.dynamic = function (time) {
-      // find where we are in the TYLER pattern → is the key/light ON now?
+      // Where are we in the TYLER pattern → is the key down right now?
       let pos = ((time / UNIT) % total + total) % total;
       let on = false;
       for (const s of seq) { if (pos < s[1]) { on = s[0]; break; } pos -= s[1]; }
 
       const segs = [];
-      const line = (a, b, lw) => segs.push([a[0], a[1], a[2], b[0], b[1], b[2], lw]);
+      const line = (a, b, lw) => segs.push([a[0], a[1], a[2], b[0], b[1], b[2], lw || 1.2]);
       const dots = [];
 
-      // transmitter key cap — pressed down while ON
-      const keyY = on ? 0.02 : 0.08, n = 12, cap = [];
-      for (let i = 0; i < n; i++) { const a = (i / n) * Math.PI * 2; cap.push([TX + Math.cos(a) * 0.1, keyY, Math.sin(a) * 0.1]); }
-      for (let i = 0; i < n; i++) line(cap[i], cap[(i + 1) % n], 1.2);
-      line([TX, keyY, 0], [TX, 0.0, 0], 1.2); // stem
-      dots.push([TX, keyY + 0.01, 0, on ? 2.4 : 1.3, on ? 1 : 0]);
+      /* The lever pivots about the yoke rather than sliding: front end down
+         onto the contact when the key is down, back up when it is released. */
+      const ang = on ? -0.13 : 0.10;             // radians, front end
+      const at = (d) => [PIV[0] + d * Math.cos(ang), PIV[1] + d * Math.sin(ang), 0];
+      const front = at(0.25), back = at(-0.11);
 
-      // receiver LED — bright when ON, with one soft buzzer ring
-      dots.push([RX, 0.08, 0.1, on ? 3.0 : 1.2, on ? 1 : 0]);
+      // Lever arm as a thin bar: two rails plus end caps.
+      [-0.022, 0.022].forEach((dz) => {
+        line([front[0], front[1], dz], [back[0], back[1], dz]);
+      });
+      line([front[0], front[1], -0.022], [front[0], front[1], 0.022]);
+      line([back[0], back[1], -0.022], [back[0], back[1], 0.022]);
+
+      // Knob on the front end.
+      const kn = 12, ky = front[1] - 0.03;
+      for (let i = 0; i < kn; i++) {
+        const a1 = (i / kn) * Math.PI * 2, a2 = ((i + 1) / kn) * Math.PI * 2;
+        line([front[0] + Math.cos(a1) * 0.055, ky, Math.sin(a1) * 0.055],
+             [front[0] + Math.cos(a2) * 0.055, ky, Math.sin(a2) * 0.055], 1.1);
+      }
+      line([front[0], front[1], 0], [front[0], ky, 0], 1.1); // knob stem
+
+      // Return spring at the back — compresses as the front goes down.
+      const coils = 5, sTop = back[1], sBot = KEY_Y + 0.02;
+      for (let i = 0; i <= coils * 4; i++) {
+        const f = i / (coils * 4);
+        const a = f * coils * Math.PI * 2;
+        const y = sTop + (sBot - sTop) * f;
+        const f2 = (i + 1) / (coils * 4);
+        if (i === coils * 4) break;
+        const a2 = f2 * coils * Math.PI * 2;
+        const y2 = sTop + (sBot - sTop) * f2;
+        line([back[0] + Math.cos(a) * 0.03, y, Math.sin(a) * 0.03],
+             [back[0] + Math.cos(a2) * 0.03, y2, Math.sin(a2) * 0.03], 1.0);
+      }
+
+      // The contact closing is the moment worth lighting.
+      dots.push([TX + 0.13, KEY_Y + 0.075, 0, on ? 3.0 : 1.2, on ? 1 : 0]);
+
+      // Receiver LED, and one soft ring off the speaker while the tone sounds.
+      dots.push([RX + 0.10, 0.03, 0.10, on ? 3.2 : 1.2, on ? 1 : 0]);
       if (on) {
-        const rr = 0.1, m2 = 12, pts = [];
-        for (let i = 0; i < m2; i++) { const a = (i / m2) * Math.PI * 2; pts.push([RX + Math.cos(a) * rr, 0.1, -0.1 + Math.sin(a) * rr]); }
-        for (let i = 0; i < m2; i++) line(pts[i], pts[(i + 1) % m2], 1.0);
+        const rr = 0.17, m2 = 14;
+        for (let i = 0; i < m2; i++) {
+          const a1 = (i / m2) * Math.PI * 2, a2 = ((i + 1) / m2) * Math.PI * 2;
+          line([RX - 0.02 + Math.cos(a1) * rr, 0.06, -0.06 + Math.sin(a1) * rr],
+               [RX - 0.02 + Math.cos(a2) * rr, 0.06, -0.06 + Math.sin(a2) * rr], 1.0);
+        }
       }
       return { segments: segs, dots: dots };
     };
@@ -811,7 +934,9 @@
       canvas.width = Math.round(w * dpr);
       canvas.height = Math.round(h * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      scale = Math.min(w, h) * 0.36;
+      // 0.36 left the models floating small in a large frame. 0.41 fills the
+      // card without the ground ellipse (radius 1.1) touching the edges.
+      scale = Math.min(w, h) * 0.41;
       cx = w / 2;
       cy = h / 2 + h * 0.04;
     }
@@ -908,6 +1033,10 @@
       ctx.fill();
 
       // Spinning rotor blades — batched into a single stroke.
+      // Each blade is a closed, tapered planform rather than a spoke: a
+      // three-spoke star reads as a wheel at any size, a bladed prop reads
+      // as a prop. Authored once, normalised to a unit radius, and swept
+      // into the rotor plane per blade.
       const spinners = model.spinners || [];
       if (spinners.length) {
         const spin = reduce ? 0 : t;
@@ -916,12 +1045,25 @@
         ctx.beginPath();
         for (let s = 0; s < spinners.length; s++) {
           const sp = spinners[s];
-          const hub = project(sp.cx, sp.cy, sp.cz, ca, sa);
+          const r = sp.r;
+          // Hub ring, so the blades visibly attach to something.
+          const hubR = 0.1 * r;
+          for (let k = 0; k <= 8; k++) {
+            const a = (k / 8) * Math.PI * 2;
+            const p = project(sp.cx + Math.cos(a) * hubR, sp.cy, sp.cz + Math.sin(a) * hubR, ca, sa);
+            if (k === 0) ctx.moveTo(p[0], p[1]); else ctx.lineTo(p[0], p[1]);
+          }
           for (let bl = 0; bl < sp.blades; bl++) {
             const ba = spin * sp.speed + (bl / sp.blades) * Math.PI * 2;
-            const pe = project(sp.cx + Math.cos(ba) * sp.r, sp.cy, sp.cz + Math.sin(ba) * sp.r, ca, sa);
-            ctx.moveTo(hub[0], hub[1]);
-            ctx.lineTo(pe[0], pe[1]);
+            const cb = Math.cos(ba), sb = Math.sin(ba);
+            for (let k = 0; k <= BLADE.length; k++) {
+              const [u, v] = BLADE[k % BLADE.length];
+              const x = sp.cx + (u * cb - v * sb) * r;
+              const z = sp.cz + (u * sb + v * cb) * r;
+              // A touch of pitch across the span, so the disc is not flat-on.
+              const p = project(x, sp.cy + v * 0.16 * r, z, ca, sa);
+              if (k === 0) ctx.moveTo(p[0], p[1]); else ctx.lineTo(p[0], p[1]);
+            }
           }
         }
         ctx.stroke();
@@ -986,7 +1128,11 @@
 
     resize();
     render();
-    window.addEventListener("resize", resize, { passive: true });
+    // Setting canvas.width inside resize() wipes the bitmap, so the frame has
+    // to be redrawn immediately after. Without this a single resize event —
+    // and on mobile the address bar sliding away counts — leaves every
+    // hologram permanently blank until the pointer happens to hover it.
+    window.addEventListener("resize", () => { resize(); render(); }, { passive: true });
 
     return { canvas, setHover, reduce };
   }

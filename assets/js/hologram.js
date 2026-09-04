@@ -90,17 +90,43 @@
   }
 
   // Holographic projector base: a ground ring + crosshair spokes.
+  /* The pad every model stands on. Three concentric rings, twelve
+     radials and a ring of graduation ticks — it reads as a calibrated
+     instrument stage rather than the four-spoke wagon wheel this used to
+     be, and the extra segments stop the circles going polygonal at the
+     size these render at. */
   function makeBase(y, r) {
-    const ring = makeRing(0, y, 0, r, 28, "y");
-    const inner = makeRing(0, y, 0, r * 0.55, 20, "y");
-    const spokes = { v: [], e: [] };
-    for (let i = 0; i < 4; i++) {
-      const a = (i / 4) * Math.PI * 2 + Math.PI / 4;
-      spokes.v.push([Math.cos(a) * r * 0.55, y, Math.sin(a) * r * 0.55]);
-      spokes.v.push([Math.cos(a) * r, y, Math.sin(a) * r]);
-      spokes.e.push([i * 2, i * 2 + 1]);
+    const parts = [
+      makeRing(0, y, 0, r, 64, "y"),
+      makeRing(0, y, 0, r * 0.74, 52, "y"),
+      makeRing(0, y, 0, r * 0.40, 40, "y"),
+    ];
+
+    const radials = { v: [], e: [] };
+    for (let i = 0; i < 12; i++) {
+      const a = (i / 12) * Math.PI * 2 + Math.PI / 12;
+      const c = Math.cos(a), sn = Math.sin(a);
+      // Long radials on the quarters, short ones between — an even fan of
+      // twelve full-length spokes crowds the middle of the pad.
+      const r0 = i % 3 === 0 ? r * 0.40 : r * 0.74;
+      const k = radials.v.length;
+      radials.v.push([c * r0, y, sn * r0], [c * r, y, sn * r]);
+      radials.e.push([k, k + 1]);
     }
-    return merge([ring, inner, spokes]);
+    parts.push(radials);
+
+    const ticks = { v: [], e: [] };
+    for (let i = 0; i < 48; i++) {
+      const a = (i / 48) * Math.PI * 2;
+      const c = Math.cos(a), sn = Math.sin(a);
+      const len = i % 4 === 0 ? 0.055 : 0.028;
+      const k = ticks.v.length;
+      ticks.v.push([c * r, y, sn * r], [c * (r + len), y, sn * (r + len)]);
+      ticks.e.push([k, k + 1]);
+    }
+    parts.push(ticks);
+
+    return merge(parts);
   }
 
   // Lofted tube: a chain of rings (in XY, perpendicular to Z) joined by
@@ -211,10 +237,27 @@
         const nb = [hub[0] - axis[0] * 0.12, hub[1] - axis[1] * 0.12, hub[2] - axis[2] * 0.12];
         const r1 = ringAt(nb, 0.07, 8), r2 = ringAt(hub, 0.07, 8);
         for (let i = 0; i < r1.length; i++) line(r1[i], r2[i], 1.1);
-        // 5 spinning blades, in the (tilting) disc plane
+        /* 5 spinning blades in the (tilting) disc plane. These are real
+           tapered planforms, not spokes: the disc basis is (e1, e2), so a
+           blade at angle `a` runs its span along that direction and its
+           chord across it. Spokes read as a wheel at any size. */
+        const R = 0.23;
         for (let b = 0; b < 5; b++) {
-          const a = spin + (b / 5) * Math.PI * 2, c = Math.cos(a) * 0.21, s = Math.sin(a) * 0.21;
-          line(hub, [hub[0] + e1[0] * c + e2[0] * s, hub[1] + e1[1] * c + e2[1] * s, hub[2] + e1[2] * c + e2[2] * s], 1.0);
+          const a = spin + (b / 5) * Math.PI * 2;
+          const cb = Math.cos(a), sb = Math.sin(a);
+          let prev = null, first = null;
+          for (let k = 0; k < BLADE.length; k++) {
+            const u = BLADE[k][0], v = BLADE[k][1];
+            const c = (u * cb - v * sb) * R, s2 = (u * sb + v * cb) * R;
+            const pt = [
+              hub[0] + e1[0] * c + e2[0] * s2,
+              hub[1] + e1[1] * c + e2[1] * s2,
+              hub[2] + e1[2] * c + e2[2] * s2,
+            ];
+            if (prev) line(prev, pt, 1.0); else first = pt;
+            prev = pt;
+          }
+          if (prev && first) line(prev, first, 1.0);
         }
       }
 
@@ -921,16 +964,35 @@
     const tilt = -0.42;              // look slightly down on the model
     const viewerDist = 3.4;
 
+    /* The depth ramp. Far edges are cold, thin and dim; near edges are hot,
+       wide and bright. This gradient is doing the job hidden-line removal
+       would do in a real 3D renderer — without it every model reads as a
+       flat tangle of identical strokes. */
+    const cFar = [
+      Math.round(tint[0] * 0.22),
+      Math.round(tint[1] * 0.42),
+      Math.round(tint[2] * 0.78),
+    ];
+    const cNear = [
+      Math.min(255, tint[0] + 135),
+      Math.min(255, tint[1] + 46),
+      255,
+    ];
+
     // Reused per-frame scratch so the draw loop allocates nothing.
     const projBuf = new Array(model.v.length);
-    const NB = 5;                                     // depth buckets
+    const NB = 16;                                    // depth bands (5 posterised)
     const edgeBuckets = Array.from({ length: NB }, () => []);
+    const scanEdges = [];                             // edges under the scan sweep
 
     function resize() {
       const rect = canvas.getBoundingClientRect();
       if (!rect.width || !rect.height) return;
       w = rect.width; h = rect.height;
-      dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+      // 1.5 left visible stair-stepping on the thin far edges, which is
+      // most of what made these look low-fidelity. The extra cost is a
+      // one-off: only a hovered hologram animates.
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
       canvas.width = Math.round(w * dpr);
       canvas.height = Math.round(h * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -954,29 +1016,79 @@
       return [cx + X * f * scale, cy - Y2 * f * scale, f];
     }
 
+    /* ---------------- the hologram renderer ----------------
+       What makes this read as a projected hologram rather than a line
+       drawing is entirely depth. Every edge is graded along four axes at
+       once — colour, opacity, line width and glow — from a cold, thin,
+       far blue to a hot, bright, near white-cyan. That single gradient is
+       what separates the near side of a shape from the far side without
+       any hidden-line removal, which a canvas cannot afford to do.
+
+       Draw order per frame:
+         0. floor pool     — a soft radial gradient the model sits in
+         1. haze           — one wide-blur pass, very low alpha
+         2. cores          — depth-graded crisp strokes, no shadow
+         3. scan band      — edges crossed by a rising sweep, re-lit
+         4. vertex glints  — nodes, sized and lit by depth
+
+       Everything is batched per depth band, so the whole model costs a
+       couple of dozen stroke calls no matter how many edges it has. */
     function render() {
       ctx.clearRect(0, 0, w, h);
       const ca = Math.cos(angY), sa = Math.sin(angY);
 
-      // subtle hologram flicker — gentle and slow, not noisy
-      const flicker = reduce ? 1 : 0.94 + 0.06 * Math.sin(t * 3.2) * Math.sin(t * 1.6);
+      // A slow, shallow flicker. Anything stronger reads as a broken
+      // screen rather than a projection.
+      const flicker = reduce ? 1 : 0.965 + 0.035 * Math.sin(t * 3.2) * Math.sin(t * 1.6);
 
-      // project every vertex once (into reused scratch)
+      // ---- project every vertex once, into reused scratch ----
       const pv = model.v;
       const proj = projBuf;
       let fmin = Infinity, fmax = -Infinity;
+      let ymin = Infinity, ymax = -Infinity;
       for (let i = 0; i < pv.length; i++) {
         const p = project(pv[i][0], pv[i][1], pv[i][2], ca, sa);
         proj[i] = p;
         if (p[2] < fmin) fmin = p[2];
         if (p[2] > fmax) fmax = p[2];
+        if (p[1] < ymin) ymin = p[1];
+        if (p[1] > ymax) ymax = p[1];
       }
       const fspan = fmax - fmin || 1;
 
-      // Bucket edges by depth → the whole wireframe draws in a few stroke
-      // calls instead of one (shadowed) stroke per edge. The expensive
-      // glow is then a SINGLE shadowed pass; cores are cheap & shadowless.
+      // ---- 0. floor pool ----
+      // The models are all built standing on a base ring at y≈-1. A soft
+      // pool of light under that ring stops the object floating in a void,
+      // and costs one gradient fill.
+      const floor = project(0, -0.98, 0, ca, sa);
+      const fr = scale * 1.15;
+      const pool = ctx.createRadialGradient(floor[0], floor[1], 0, floor[0], floor[1], fr);
+      pool.addColorStop(0, `rgba(${rgb},${(0.10 * flicker).toFixed(3)})`);
+      pool.addColorStop(0.45, `rgba(${rgb},${(0.04 * flicker).toFixed(3)})`);
+      pool.addColorStop(1, `rgba(${rgb},0)`);
+      ctx.save();
+      ctx.translate(floor[0], floor[1]);
+      ctx.scale(1, 0.30);              // flatten to an ellipse on the ground plane
+      ctx.translate(-floor[0], -floor[1]);
+      ctx.fillStyle = pool;
+      ctx.beginPath();
+      ctx.arc(floor[0], floor[1], fr, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+
+      // ---- bucket edges by depth ----
+      // NB bands rather than the handful the first version used: at five
+      // the grading stepped visibly and the model looked posterised.
       for (let b = 0; b < NB; b++) edgeBuckets[b].length = 0;
+      scanEdges.length = 0;
+
+      // The scan band rises through the model and re-lights what it
+      // crosses. It is the one looping animation here, and it is doing
+      // work: it reads the object top to bottom like a scanner would.
+      const scanSpan = (ymax - ymin) || 1;
+      const scanY = reduce ? -1e9 : ymax - ((t * 0.22) % 1.35) * scanSpan * 1.35;
+      const scanHalf = scanSpan * 0.055 + 4;
+
       const E = model.e;
       for (let i = 0; i < E.length; i++) {
         const a = proj[E[i][0]], c = proj[E[i][1]];
@@ -985,33 +1097,50 @@
         if (bi < 0) bi = 0; else if (bi >= NB) bi = NB - 1;
         const arr = edgeBuckets[bi];
         arr.push(a[0], a[1], c[0], c[1]);
+        if (Math.abs((a[1] + c[1]) * 0.5 - scanY) < scanHalf) {
+          scanEdges.push(a[0], a[1], c[0], c[1]);
+        }
       }
 
       ctx.lineCap = "round";
+      ctx.lineJoin = "round";
 
-      // Pass 1 — one soft glow for the entire frame (single shadowed stroke).
-      ctx.shadowColor = `rgba(${rgb},0.9)`;
-      ctx.shadowBlur = reduce ? 0 : 7;
-      ctx.strokeStyle = `rgba(${rgb},${(0.11 * flicker).toFixed(3)})`;
-      ctx.lineWidth = 1.2;
-      ctx.beginPath();
-      for (let b = 0; b < NB; b++) {
-        const arr = edgeBuckets[b];
-        for (let k = 0; k < arr.length; k += 4) {
-          ctx.moveTo(arr[k], arr[k + 1]);
-          ctx.lineTo(arr[k + 2], arr[k + 3]);
+      // ---- 1. haze ----
+      // One wide-blur pass under everything. Low alpha on purpose: this is
+      // the light the projection throws, not the model itself.
+      if (!reduce) {
+        ctx.shadowColor = `rgba(${rgb},0.85)`;
+        ctx.shadowBlur = 13;
+        ctx.strokeStyle = `rgba(${rgb},${(0.085 * flicker).toFixed(3)})`;
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        for (let b = 0; b < NB; b++) {
+          const arr = edgeBuckets[b];
+          for (let k = 0; k < arr.length; k += 4) {
+            ctx.moveTo(arr[k], arr[k + 1]);
+            ctx.lineTo(arr[k + 2], arr[k + 3]);
+          }
         }
+        ctx.stroke();
+        ctx.shadowBlur = 0;
       }
-      ctx.stroke();
 
-      // Pass 2 — crisp, depth-cued cores with NO shadow (cheap).
-      ctx.shadowBlur = 0;
+      // ---- 2. depth-graded cores ----
+      // Additive compositing so overlapping far/near edges build up light
+      // the way a real projection would, instead of painting over.
+      const prevOp = ctx.globalCompositeOperation;
+      ctx.globalCompositeOperation = "lighter";
       for (let b = 0; b < NB; b++) {
         const arr = edgeBuckets[b];
         if (!arr.length) continue;
-        const depth = (b + 0.5) / NB;
-        ctx.strokeStyle = `rgba(${rgb},${((0.2 + depth * 0.6) * flicker).toFixed(3)})`;
-        ctx.lineWidth = 0.6 + depth * 0.8;
+        const d = (b + 0.5) / NB;          // 0 = furthest, 1 = nearest
+        const e = d * d;                   // bias the grade toward the near edges
+        ctx.strokeStyle =
+          `rgba(${Math.round(cFar[0] + (cNear[0] - cFar[0]) * e)},` +
+          `${Math.round(cFar[1] + (cNear[1] - cFar[1]) * e)},` +
+          `${Math.round(cFar[2] + (cNear[2] - cFar[2]) * e)},` +
+          `${((0.13 + d * 0.62) * flicker).toFixed(3)})`;
+        ctx.lineWidth = 0.45 + e * 1.05;
         ctx.beginPath();
         for (let k = 0; k < arr.length; k += 4) {
           ctx.moveTo(arr[k], arr[k + 1]);
@@ -1020,17 +1149,41 @@
         ctx.stroke();
       }
 
-      // Vertex nodes — very subtle (just a faint glint on the nearer points),
-      // so the model reads as clean lines rather than a dot field.
-      ctx.fillStyle = `rgba(${rgb},${(0.16 * flicker).toFixed(3)})`;
-      ctx.beginPath();
-      for (let i = 0; i < proj.length; i++) {
-        const p = proj[i];
-        const r = 0.45 + ((p[2] - fmin) / fspan) * 0.45;
-        ctx.moveTo(p[0] + r, p[1]);
-        ctx.arc(p[0], p[1], r, 0, Math.PI * 2);
+      // ---- 3. scan band ----
+      if (scanEdges.length) {
+        ctx.shadowColor = `rgba(${cNear.join(",")},0.9)`;
+        ctx.shadowBlur = 8;
+        ctx.strokeStyle = `rgba(${cNear.join(",")},${(0.5 * flicker).toFixed(3)})`;
+        ctx.lineWidth = 1.15;
+        ctx.beginPath();
+        for (let k = 0; k < scanEdges.length; k += 4) {
+          ctx.moveTo(scanEdges[k], scanEdges[k + 1]);
+          ctx.lineTo(scanEdges[k + 2], scanEdges[k + 3]);
+        }
+        ctx.stroke();
+        ctx.shadowBlur = 0;
       }
-      ctx.fill();
+
+      // ---- 4. vertex glints ----
+      // Drawn in two passes so the near nodes actually read as points of
+      // light rather than the uniform dot field the first version had.
+      for (let pass = 0; pass < 2; pass++) {
+        const lo = pass === 0 ? 0 : 0.62;   // pass 1: everything faint; pass 2: near only, hot
+        ctx.fillStyle = pass === 0
+          ? `rgba(${rgb},${(0.13 * flicker).toFixed(3)})`
+          : `rgba(${cNear.join(",")},${(0.42 * flicker).toFixed(3)})`;
+        ctx.beginPath();
+        for (let i = 0; i < proj.length; i++) {
+          const p = proj[i];
+          const d = (p[2] - fmin) / fspan;
+          if (d < lo) continue;
+          const r = pass === 0 ? 0.4 + d * 0.5 : 0.5 + (d - lo) * 1.9;
+          ctx.moveTo(p[0] + r, p[1]);
+          ctx.arc(p[0], p[1], r, 0, Math.PI * 2);
+        }
+        ctx.fill();
+      }
+      ctx.globalCompositeOperation = prevOp;
 
       // Spinning rotor blades — batched into a single stroke.
       // Each blade is a closed, tapered planform rather than a spoke: a
@@ -1148,8 +1301,11 @@
       if (!inst) return;
       instances.set(c, inst);
       if (inst.reduce) return; // static frame only — no motion
-      // Spin only while the pointer is hovering the card media.
-      const hot = c.closest(".card__media") || c;
+      // Spin only while the pointer is hovering the media panel. The
+      // product detail page wraps its canvas in .detail__media, not
+      // .card__media — miss that and the model on every product page sits
+      // frozen, never spinning and never running its dynamic geometry.
+      const hot = c.closest(".card__media, .detail__media") || c;
       hot.addEventListener("pointerenter", () => inst.setHover(true));
       hot.addEventListener("pointerleave", () => inst.setHover(false));
     });

@@ -35,7 +35,7 @@ builtbytyler/
 │   │   ├── products.js     Catalog + packages — the single source of truth
 │   │   ├── components.js   Shared chrome (nav, footer, cart drawer, modals)
 │   │   ├── main.js         Behaviour: grids, cart, nav, HUD, plan handoff, reveals
-│   │   ├── hologram.js     2D-canvas wireframe holograms on product cards
+│   │   ├── hologram.js     2D-canvas wireframe holograms (cards + detail)
 │   │   └── starfield.js    The drifting star field behind every page (Three.js, ESM)
 │   └── img/                Photography and raster assets
 │
@@ -123,6 +123,29 @@ untouched, `prefers-reduced-motion` renders one still frame with no loop, and
 phones get ~40% of the particles at a capped pixel ratio with no MSAA.
 
 ---
+
+## The holograms
+
+`hologram.js` draws each product as a wireframe on a 2D canvas — procedural
+geometry and a hand-rolled projection, no library. What makes it read as a
+projection rather than a line drawing is depth: every edge is graded along
+colour, opacity, width and glow from a cold thin far blue to a hot bright near
+white-cyan, across 16 bands. That grade is doing the job hidden-line removal
+would do in a real 3D renderer, which a canvas cannot afford.
+
+Per frame: a floor pool, one wide-blur haze pass, the depth-graded cores in
+`lighter` composite, a rising scan band that re-lights what it crosses, and
+vertex glints in two passes. Everything batches per depth band, so a model
+costs a couple of dozen stroke calls regardless of edge count. Only a hovered
+hologram animates, and the loop winds itself down when the pointer leaves.
+
+Two things that look like details but are not:
+
+- Rotor blades are tapered planforms (`BLADE`), never spokes. A three-spoke
+  star reads as a wheel at any size.
+- `resize()` sets `canvas.width`, which wipes the bitmap, so it must be
+  followed by a `render()`. Without that a single resize leaves every
+  hologram permanently blank.
 
 ## Editing the catalog
 

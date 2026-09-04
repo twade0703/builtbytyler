@@ -157,7 +157,12 @@ the enquiry flow instead of dead-ending.
 |---|---|---|---|
 | Launch | $550 | $50/mo | Launch build (one-off) + Website Care Plan (monthly) |
 | Growth | $3,200 | $200/mo | Growth build (one-off) + Growth care plan (monthly) |
-| Product | $6,000 | — | Product custom software build (one-off) |
+
+Product is **consultation only** and deliberately has no link. Its $6,000 is a
+floor, not a price, and the tier reads "From $6,000 / By consultation". A
+`consultOnly: true` plan is skipped by the checkout wiring even if someone
+pastes a link into it. The link that briefly existed for it is deactivated in
+Stripe.
 
 Each link redirects to `order-confirmed.html?type=software`, which is what
 switches that page from build copy to software copy. If you create a new link,
@@ -166,11 +171,6 @@ set that redirect or the payer is told their hardware is in the queue.
 The tier prices are printed in `software.html` as plain HTML so they work
 without JavaScript. `SOFTWARE_PLANS` holds the same numbers for the enquiry
 handoff, and `main.js` warns in the console if the two ever drift apart.
-
-**Product is charged in full.** That tier is advertised as "scoped per
-project", so a client can pay $6,000 before any scope exists. Taking a deposit
-is the lower-risk arrangement; to switch, change the amount on the Stripe
-product and set `isDeposit: true` on the plan.
 
 ## Payments — general
 

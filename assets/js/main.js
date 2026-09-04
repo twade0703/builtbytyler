@@ -516,7 +516,8 @@
 
       verifyPlanPrice(plan);
 
-      if (!window.isPlanBuyable(plan)) return; // stays an enquiry link
+      // A consultation tier never becomes a checkout, link or no link.
+      if (plan.consultOnly || !window.isPlanBuyable(plan)) return;
       anyLive = true;
 
       const url = new URL(plan.paymentLink);
@@ -525,9 +526,9 @@
 
       cta.href = url.toString();
       cta.removeAttribute("target");
-      cta.textContent = plan.isDeposit
-        ? `Pay the ${plan.name} deposit`
-        : `Start ${plan.name} — pay now`;
+      // Swap the destination, leave the wording alone. The button already
+      // says what it does; bolting "pay now" onto it read like a hard sell.
+      // The padlock and the note under the tiers carry the payment signal.
       cta.setAttribute(
         "aria-label",
         `${plan.name} plan — continue to secure checkout with Stripe`

@@ -259,15 +259,16 @@ const SOFTWARE_PLANS = [
     name: "Product",
     setup: 6000,
     monthly: null,
-    // Charges the full $6,000 as one payment.
+    // Consultation only, deliberately. $6,000 is a FLOOR, not a price:
+    // the work is scoped on a call before anything is quoted, so there
+    // is nothing honest to charge for up front. Leaving paymentLink
+    // empty keeps this tier on the enquiry route no matter what.
     //
-    // Worth a second look: this tier is advertised as "scoped per
-    // project", so someone can pay $6,000 here before any scope exists.
-    // A deposit is the lower-risk arrangement for both sides. To switch,
-    // change the amount on the Stripe product and set isDeposit to true,
-    // which relabels the button.
-        paymentLink: "https://buy.stripe.com/5kQbJ2deKa8Red4eVogIo03",
-    isDeposit: false,
+    // The Stripe link that briefly existed for this tier has been
+    // deactivated. Do not put one back without changing the tier to
+    // advertise a fixed price or a deposit.
+    paymentLink: "",
+    consultOnly: true,
   },
 ];
 
@@ -286,15 +287,13 @@ function getPlanById(id) {
 
 /* "$500 build + $50/mo" — used in the contact.html handoff and in the
    enquiry email, so the figure a visitor was just looking at is the
-   figure that reaches the inbox. */
+   figure that reaches the inbox. A consultation tier says "from", because
+   its number is a starting point rather than a price. */
 function formatPlanPrice(plan) {
   if (!plan) return "";
   const money = (n) => "$" + Number(n).toLocaleString("en-US");
-  if (plan.monthly == null) {
-    return plan.isDeposit
-      ? `${money(plan.setup)}, scoped per project`
-      : money(plan.setup);
-  }
+  if (plan.consultOnly) return `from ${money(plan.setup)}, by consultation`;
+  if (plan.monthly == null) return money(plan.setup);
   return `${money(plan.setup)} build + ${money(plan.monthly)}/mo`;
 }
 

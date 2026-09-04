@@ -145,7 +145,34 @@ model here is volume — a large number of small retainers run largely
 hands-off — rather than the smaller number of higher-value builds that
 research describes. Launch is expected to rise to $1,000 + $50/mo.
 
-## Payments
+## Payments — software plans
+
+The three tiers are wired to live Stripe Payment Links. `SOFTWARE_PLANS` in
+`assets/js/products.js` is the only place a link lives; `main.js` turns a tier
+whose plan carries a real `buy.stripe.com` link into a direct checkout and
+leaves the rest as enquiry links, so a missing or mistyped link degrades to
+the enquiry flow instead of dead-ending.
+
+| Tier | Charged today | Then | Stripe line items |
+|---|---|---|---|
+| Launch | $550 | $50/mo | Launch build (one-off) + Website Care Plan (monthly) |
+| Growth | $3,200 | $200/mo | Growth build (one-off) + Growth care plan (monthly) |
+| Product | $6,000 | — | Product custom software build (one-off) |
+
+Each link redirects to `order-confirmed.html?type=software`, which is what
+switches that page from build copy to software copy. If you create a new link,
+set that redirect or the payer is told their hardware is in the queue.
+
+The tier prices are printed in `software.html` as plain HTML so they work
+without JavaScript. `SOFTWARE_PLANS` holds the same numbers for the enquiry
+handoff, and `main.js` warns in the console if the two ever drift apart.
+
+**Product is charged in full.** That tier is advertised as "scoped per
+project", so a client can pay $6,000 before any scope exists. Taking a deposit
+is the lower-risk arrangement; to switch, change the amount on the Stripe
+product and set `isDeposit: true` on the plan.
+
+## Payments — general
 
 Checkout hands off to Stripe's own hosted page. Card details are never entered
 on, stored on, or transmitted through this site. `_headers` restricts

@@ -27,24 +27,58 @@
     <section class="section">
       <div class="container policy" style="text-align:left">
         <p class="eyebrow">Payment received</p>
-        <h1>Your build is in the queue.</h1>
-        <p class="lead">Stripe has your payment and a receipt is on its way to your inbox.
-          Nothing else is needed from you right now.</p>
 
-        <h2>What happens next</h2>
-        <ol class="policy-steps">
-          <li><b>Today</b> — Stripe emails your receipt. Keep it; it's your proof of purchase.</li>
-          <li><b>Within one working day</b> — I email you personally to confirm the build details
-            and anything you noted at checkout.</li>
-          <li><b>During the build</b> — I send progress photos. You'll see the thing being made.</li>
-          <li><b>On dispatch</b> — insured tracking, emailed the day it ships.</li>
-        </ol>
+        <!-- Two outcomes share this page. Stripe Payment Links for the
+             software plans redirect here with ?type=software; hardware
+             links arrive with no parameter. Both blocks are in the HTML so
+             the page is correct without JavaScript — main.js only hides
+             the one that does not apply. Getting this wrong tells a
+             software client their drone is being built. -->
+        <div data-confirm="hardware">
+          <h1>Your build is in the queue.</h1>
+          <p class="lead">Stripe has your payment and a receipt is on its way to your inbox.
+            Nothing else is needed from you right now.</p>
 
-        <p>Lead times and the refund policy are on the
-          <a href="policies.html">lead times, shipping &amp; refunds</a> page.
-          Anything at all: <a href="mailto:twade@builtbytyler.com">twade@builtbytyler.com</a>.</p>
+          <h2>What happens next</h2>
+          <ol class="policy-steps">
+            <li><b>Today</b> — Stripe emails your receipt. Keep it; it's your proof of purchase.</li>
+            <li><b>Within one working day</b> — I email you personally to confirm the build details
+              and anything you noted at checkout.</li>
+            <li><b>During the build</b> — I send progress photos. You'll see the thing being made.</li>
+            <li><b>On dispatch</b> — insured tracking, emailed the day it ships.</li>
+          </ol>
 
-        <p style="margin-top:2.5rem"><a class="btn" href="shop.html">Back to the shop</a></p>
+          <p>Lead times and the refund policy are on the
+            <a href="policies.html">lead times, shipping &amp; refunds</a> page.
+            Anything at all: <a href="mailto:twade@builtbytyler.com">twade@builtbytyler.com</a>.</p>
+
+          <p style="margin-top:2.5rem"><a class="btn" href="shop.html">Back to the shop</a></p>
+        </div>
+
+        <div data-confirm="software" hidden>
+          <h1>You're booked in.</h1>
+          <p class="lead">Stripe has your payment and a receipt is on its way to your inbox.
+            Nothing else is needed from you right now — the next move is mine.</p>
+
+          <h2>What happens next</h2>
+          <ol class="policy-steps">
+            <li><b>Today</b> — Stripe emails your receipt. If you started a monthly care plan,
+              that receipt is also your subscription confirmation.</li>
+            <li><b>Within one working day</b> — I email you personally to book the kick-off call
+              and ask for whatever you already have: logos, photos, copy, access.</li>
+            <li><b>Week one</b> — a written scope with a fixed price and a date, plus a live
+              staging link. You watch it fill in rather than waiting for a reveal.</li>
+            <li><b>At launch</b> — the domain, the code, the analytics and a walkthrough of how
+              to run it without me.</li>
+          </ol>
+
+          <p>If you want to change anything about what you just bought, reply to the Stripe
+            receipt or email <a href="mailto:twade@builtbytyler.com">twade@builtbytyler.com</a> —
+            it is far easier to adjust now than after the build starts. The
+            <a href="policies.html">terms</a> cover cancellations and refunds.</p>
+
+          <p style="margin-top:2.5rem"><a class="btn" href="software.html">Back to software &amp; web</a></p>
+        </div>
       </div>
     </section>
   </main>

@@ -447,22 +447,17 @@
      The pricing tiers on software.html link here with the tier they came
      from. Carrying it across means the visitor does not have to re-explain
      what they just clicked, and the enquiry arrives already labelled. */
-  const PLANS = {
-    launch:  { name: "Launch", price: "$500 build + $50/mo" },
-    growth:  { name: "Growth", price: "$3,000 build + $200/mo" },
-    product: { name: "Product", price: "$6,000, scoped per project" },
-  };
-
   function initPlanHandoff() {
     const notice = document.getElementById("plan-notice");
     if (!notice) return;
     const key = (new URLSearchParams(window.location.search).get("plan") || "").toLowerCase();
-    const plan = PLANS[key];
+    const plan = window.getPlanById && window.getPlanById(key);
     if (!plan) return;
+    const price = window.formatPlanPrice(plan);
 
     notice.hidden = false;
     notice.innerHTML =
-      `You came from the <b>${plan.name}</b> plan — ${plan.price}. ` +
+      `You came from the <b>${plan.name}</b> plan — ${price}. ` +
       `Mention anything you want changed and I'll quote against it.`;
 
     /* Point the software route at the tier they came from, so the email
@@ -474,9 +469,106 @@
       route.href = `mailto:twade@builtbytyler.com?subject=${encodeURIComponent(subject)}`;
       route.classList.add("is-picked");
       const meta = document.getElementById("route-software-meta");
-      if (meta) meta.textContent = `${plan.name} plan · ${plan.price}`;
+      if (meta) meta.textContent = `${plan.name} plan · ${price}`;
       const go = document.getElementById("route-software-go");
       if (go) go.textContent = `Enquire about ${plan.name} →`;
+    }
+  }
+
+  /* ---------------- Stripe return page (order-confirmed.html) ----------------
+     Stripe redirects here after payment. Software Payment Links carry
+     ?type=software; hardware links carry nothing. Both variants are in
+     the HTML, so with JavaScript off the page still says something true
+     (the hardware copy) rather than nothing at all. */
+  function initConfirmation() {
+    const blocks = document.querySelectorAll("[data-confirm]");
+    if (!blocks.length) return;
+    const params = new URLSearchParams(window.location.search);
+    // Fall back to the client_reference_id the Payment Link sends back, so
+    // the page is still right if the ?type= parameter is ever dropped.
+    const ref = (params.get("client_reference_id") || "").toLowerCase();
+    const isSoftware =
+      params.get("type") === "software" ||
+      ["launch", "growth", "product"].includes(ref);
+    const want = isSoftware ? "software" : "hardware";
+    blocks.forEach((b) => { b.hidden = b.getAttribute("data-confirm") !== want; });
+  }
+
+  /* ---------------- Software plans → Stripe (software.html#pricing) ----------
+     The tier prices are printed in the HTML so they survive without
+     JavaScript and search engines can read them. This only upgrades the
+     BUTTONS: a tier whose plan carries a real Stripe Payment Link becomes
+     a direct checkout, which is what lets a referred client pay up front
+     without a call. A tier without a link keeps its enquiry href, so a
+     missing link degrades to the old behaviour instead of dead-ending.
+
+     Payment goes to Stripe's own hosted page. No card details are ever
+     entered on, stored on, or transmitted through this site. */
+  function initSoftwarePlans() {
+    const ctas = document.querySelectorAll("[data-plan-cta]");
+    if (!ctas.length || !window.getPlanById) return;
+
+    let anyLive = false;
+
+    ctas.forEach((cta) => {
+      const plan = window.getPlanById(cta.getAttribute("data-plan-cta"));
+      if (!plan) return;
+
+      verifyPlanPrice(plan);
+
+      if (!window.isPlanBuyable(plan)) return; // stays an enquiry link
+      anyLive = true;
+
+      const url = new URL(plan.paymentLink);
+      // Ties the Stripe payment back to a tier without needing a webhook.
+      url.searchParams.set("client_reference_id", plan.id);
+
+      cta.href = url.toString();
+      cta.removeAttribute("target");
+      cta.textContent = plan.isDeposit
+        ? `Pay the ${plan.name} deposit`
+        : `Start ${plan.name} — pay now`;
+      cta.setAttribute(
+        "aria-label",
+        `${plan.name} plan — continue to secure checkout with Stripe`
+      );
+      cta.classList.add("is-checkout");
+    });
+
+    // Say plainly that paying here is real, but only once something can
+    // actually be paid for. Promising secure checkout on a page where
+    // every button is a mailto would be a lie.
+    if (anyLive) {
+      const note = document.getElementById("pricing-note");
+      if (note) {
+        const line = document.createElement("span");
+        line.className = "pricing-note__secure";
+        line.innerHTML =
+          " Card payments are handled by <b>Stripe</b> on their own secure " +
+          "checkout page — card details never touch this site.";
+        note.appendChild(line);
+      }
+    }
+  }
+
+  /* The price a visitor reads is the HTML; the price that reaches the
+     enquiry and the Stripe link is the data. They have to agree, and
+     nothing structural stops them drifting when one is edited alone —
+     so check on load and complain loudly in the console if they have. */
+  function verifyPlanPrice(plan) {
+    const tier = document.querySelector(`.tier[data-plan="${plan.id}"]`);
+    const el = tier && tier.querySelector(".tier__price");
+    if (!el) return;
+    const shown = el.textContent.replace(/[\s,]/g, "");
+    const setupOk = shown.includes("$" + plan.setup);
+    const monthlyOk = plan.monthly == null || shown.includes("$" + plan.monthly);
+    if (!setupOk || !monthlyOk) {
+      console.warn(
+        `[BuiltByTyler] Pricing drift on the "${plan.name}" tier. ` +
+          `software.html shows "${el.textContent.trim()}" but SOFTWARE_PLANS in ` +
+          `products.js says ${window.formatPlanPrice(plan)}. ` +
+          `Fix products.js and the tier markup together.`
+      );
     }
   }
 
@@ -625,6 +717,8 @@
     initNavScroll();
     initHud();
     initPlanHandoff();
+    initSoftwarePlans();
+    initConfirmation();
     initDelegation();
     updateCartBadge();
     renderCartBody();

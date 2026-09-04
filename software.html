@@ -285,7 +285,7 @@
 
         <div class="tier-grid">
 
-          <article class="tier" data-reveal data-reveal-i="1">
+          <article class="tier" data-plan="launch" data-reveal data-reveal-i="1">
             <div>
               <h3 class="tier__name">Launch</h3>
               <p class="tier__for">A business that needs to look credible online.</p>
@@ -299,10 +299,10 @@
               <li>Hosting, SSL, backups, analytics</li>
               <li>Small changes every month</li>
             </ul>
-            <a class="btn btn--ghost btn--block" href="contact.html?plan=launch">Start with Launch</a>
+            <a class="btn btn--ghost btn--block" data-plan-cta="launch" href="contact.html?plan=launch">Start with Launch</a>
           </article>
 
-          <article class="tier tier--feature" data-reveal data-reveal-i="2">
+          <article class="tier tier--feature" data-plan="growth" data-reveal data-reveal-i="2">
             <div>
               <h3 class="tier__name">Growth</h3>
               <p class="tier__for">A business that wants the site to do work.</p>
@@ -316,10 +316,10 @@
               <li>Custom photography direction &amp; brand pass</li>
               <li>Quarterly performance and SEO review</li>
             </ul>
-            <a class="btn btn--block" href="contact.html?plan=growth">Start with Growth</a>
+            <a class="btn btn--block" data-plan-cta="growth" href="contact.html?plan=growth">Start with Growth</a>
           </article>
 
-          <article class="tier" data-reveal data-reveal-i="3">
+          <article class="tier" data-plan="product" data-reveal data-reveal-i="3">
             <div>
               <h3 class="tier__name">Product</h3>
               <p class="tier__for">Custom software or a SaaS you intend to sell.</p>
@@ -333,13 +333,13 @@
               <li>Repository, deployment and docs handed over</li>
               <li>Retainer or hand-off — your call</li>
             </ul>
-            <a class="btn btn--ghost btn--block" href="contact.html?plan=product">Scope a product</a>
+            <a class="btn btn--ghost btn--block" data-plan-cta="product" href="contact.html?plan=product">Scope a product</a>
           </article>
 
         </div>
 
-        <p class="pricing-note">Every build includes the source code and the domain in your name.
-          If you leave, you take the whole thing with you — see the
+        <p class="pricing-note" id="pricing-note">Every build includes the source code and the
+          domain in your name. If you leave, you take the whole thing with you — see the
           <a href="policies.html">terms</a>.</p>
       </div>
     </section>

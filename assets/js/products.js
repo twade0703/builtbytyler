@@ -146,9 +146,12 @@ const PACKAGES = [
     name: "NEMO — Streaming Build",
     badge: "Flagship",
     price: 500,
-    // Stripe Payment Link. Empty string = checkout disabled, falls back to
-    // the enquiry flow so the button never dead-ends. Paste the live link
-    // from Stripe > Payment links.
+    // TEMPORARY — awaiting the real Stripe Payment Link for this build.
+    // Empty string = checkout disabled, so the button falls back to the
+    // enquiry flow and never dead-ends. Paste the live link from
+    // Stripe > Payment links to switch it on; nothing else to change.
+    // Set the link's success URL to:
+    //   https://builtbytyler.com/order-confirmed.html
     paymentLink: "",
     leadTime: "3–4 weeks from order",
     shipping: "Free shipping, continental US",
@@ -202,6 +205,99 @@ const PACKAGES = [
   },
 ];
 
+/* -----------------------------------------------------------------
+   SOFTWARE PLANS — the tiers on software.html#pricing.
+   -----------------------------------------------------------------
+   THIS IS THE ONLY PLACE TO PUT A STRIPE LINK FOR SOFTWARE.
+
+   Paste the Payment Link from Stripe into `paymentLink` and that tier's
+   button turns into a real checkout on the next page load. Leave it
+   empty and the button routes to contact.html?plan=<id> instead, so a
+   tier without a link can never dead-end — it just goes back to being
+   an enquiry. Nothing else needs editing to switch a tier on.
+
+   HOW TO CREATE EACH LINK (Stripe Dashboard → Payment links → New):
+     1. Add a product for the build fee — one-time, e.g. "Launch — build",
+        $500.
+     2. Add a SECOND line item for the care plan — recurring monthly,
+        e.g. "Launch — care plan", $50/month.
+        Stripe bills the one-time fee on the first invoice and the
+        monthly from then on, which is exactly the published offer.
+     3. Under "After payment", choose "Don't show confirmation page" and
+        redirect to:
+            https://builtbytyler.com/order-confirmed.html?type=software
+        The ?type=software is what switches that page's copy from build
+        talk to software talk. Without it the payer is told their
+        hardware is in the queue.
+     4. Copy the https://buy.stripe.com/... URL into `paymentLink` below.
+
+   The `setup` and `monthly` numbers here must match what software.html
+   prints. They are not what renders the price — the page does that in
+   plain HTML so it works without JavaScript and search engines can read
+   it — so main.js compares the two on load and warns in the console if
+   they ever drift apart.
+   ----------------------------------------------------------------- */
+const SOFTWARE_PLANS = [
+  {
+    id: "launch",
+    name: "Launch",
+    setup: 500,
+    monthly: 50,
+        // Charges $550 today (build + first month), then $50/month.
+    paymentLink: "https://buy.stripe.com/4gMdRa1w2dl3glc6oSgIo01",
+  },
+  {
+    id: "growth",
+    name: "Growth",
+    setup: 3000,
+    monthly: 200,
+        // Charges $3,200 today (build + first month), then $200/month.
+    paymentLink: "https://buy.stripe.com/fZu14o6Qm5SBed4aF8gIo02",
+  },
+  {
+    id: "product",
+    name: "Product",
+    setup: 6000,
+    monthly: null,
+    // Charges the full $6,000 as one payment.
+    //
+    // Worth a second look: this tier is advertised as "scoped per
+    // project", so someone can pay $6,000 here before any scope exists.
+    // A deposit is the lower-risk arrangement for both sides. To switch,
+    // change the amount on the Stripe product and set isDeposit to true,
+    // which relabels the button.
+        paymentLink: "https://buy.stripe.com/5kQbJ2deKa8Red4eVogIo03",
+    isDeposit: false,
+  },
+];
+
+/* True only when a plan can actually be paid for right now.
+   Mirrors isBuyable() for hardware: a link that is not a real Stripe
+   Payment Link is treated as no link at all, so a typo degrades to the
+   enquiry flow instead of sending someone to a broken page. */
+function isPlanBuyable(plan) {
+  return !!(plan && typeof plan.paymentLink === "string" &&
+            plan.paymentLink.startsWith("https://buy.stripe.com/"));
+}
+
+function getPlanById(id) {
+  return SOFTWARE_PLANS.find((p) => p.id === id) || null;
+}
+
+/* "$500 build + $50/mo" — used in the contact.html handoff and in the
+   enquiry email, so the figure a visitor was just looking at is the
+   figure that reaches the inbox. */
+function formatPlanPrice(plan) {
+  if (!plan) return "";
+  const money = (n) => "$" + Number(n).toLocaleString("en-US");
+  if (plan.monthly == null) {
+    return plan.isDeposit
+      ? `${money(plan.setup)}, scoped per project`
+      : money(plan.setup);
+  }
+  return `${money(plan.setup)} build + ${money(plan.monthly)}/mo`;
+}
+
 /* True only when a package can actually be paid for right now. */
 function isBuyable(pkg) {
   return !!(pkg && pkg.price != null && typeof pkg.paymentLink === "string" &&
@@ -228,7 +324,11 @@ function formatPackagePrice(pkg) {
 // Expose globally for the non-module scripts on each page.
 window.PRODUCTS = PRODUCTS;
 window.PACKAGES = PACKAGES;
+window.SOFTWARE_PLANS = SOFTWARE_PLANS;
 window.getProductById = getProductById;
 window.formatPrice = formatPrice;
 window.formatPackagePrice = formatPackagePrice;
 window.isBuyable = isBuyable;
+window.isPlanBuyable = isPlanBuyable;
+window.getPlanById = getPlanById;
+window.formatPlanPrice = formatPlanPrice;

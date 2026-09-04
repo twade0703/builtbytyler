@@ -44,15 +44,19 @@ const PRODUCTS = [
   {
     id: "fpv-drones",
     name: "Quad FPV Drones",
-    tagline: "High-speed drone designs",
+    tagline: "3\", 5\" and 7\" builds, made to order",
     holo: "drone",
     featured: true,
     available: false,
     description:
-      "Custom high-speed FPV quadcopters designed for racing and freestyle — lightweight " +
-      "carbon frames, high-output power systems and digital FPV, built and bench-tuned by hand.",
+      "Custom high-speed FPV quadcopters designed for racing, freestyle and long range — " +
+      "lightweight carbon frames, high-output power systems and digital FPV, built and " +
+      "bench-tuned by hand. Built to order in 3\", 5\" or 7\": 3\" for tight indoor and " +
+      "park flying, 5\" as the all-round racing and freestyle standard, 7\" for long-range " +
+      "cruising and endurance.",
     specs: [
-      { label: "Class", value: "5\" race / freestyle" },
+      { label: "Sizes", value: "3\" · 5\" · 7\"" },
+      { label: "Class", value: "Race / freestyle / long range" },
       { label: "Power", value: "High-KV brushless" },
       { label: "Video", value: "Digital FPV" },
       { label: "Lead time", value: "Made to order" },
@@ -167,8 +171,10 @@ const PACKAGES = [
     leadTime: "2–3 weeks from order",
     shipping: "Free shipping, continental US",
     blurb:
-      "A high-speed FPV quad built from the frame up for racing and freestyle, bench-tested and ready to fly.",
+      "A high-speed FPV quad built from the frame up, bench-tested and ready to fly. " +
+      "Choose 3\", 5\" or 7\" — tight and indoor, all-round freestyle, or long range.",
     includes: [
+      "Your choice of 3\", 5\" or 7\" airframe",
       "Carbon race frame",
       "High-KV motor set",
       "Digital FPV system",

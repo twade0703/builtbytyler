@@ -13,6 +13,7 @@
 const NAV_ITEMS = [
   { href: "index.html", label: "Home" },
   { href: "shop.html", label: "Shop" },
+  { href: "software.html", label: "Software" },
   { href: "about.html", label: "About" },
   { href: "contact.html", label: "Contact" },
 ];
@@ -73,6 +74,7 @@ function renderFooter() {
       <div class="footer-meta">
         <span>Designed &amp; built by Tyler Wade</span>
         <span>&copy; ${year} BuiltByTyler</span>
+        <a href="software.html">Software &amp; web</a>
         <a href="policies.html">Lead times, shipping &amp; refunds</a>
         <a href="https://www.linkedin.com/in/tyler-wade1/" target="_blank" rel="noopener">LinkedIn</a>
         <a href="https://instagram.com/twade0703" target="_blank" rel="noopener">Instagram</a>
@@ -110,7 +112,8 @@ function renderToast() {
   document.body.appendChild(t);
 }
 
-/* Minimal instrument HUD — populated live by immersive.js. */
+/* Minimal instrument HUD — the scroll-progress bar and percentage
+   readout. Driven by initHud() in main.js. */
 function renderHUD() {
   if (document.getElementById("hud")) return;
   const hud = document.createElement("div");

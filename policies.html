@@ -7,8 +7,18 @@
   <meta name="description" content="Lead times, shipping and refund policy for BuiltByTyler made-to-order builds.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Space+Grotesk:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Space+Grotesk:wght@300;400;500;600&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/styles.css">
+  <link rel="stylesheet" href="assets/css/motion.css">
+
+  <!-- Three.js — the drifting star field behind the page (starfield.js) -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
+    }
+  }
+  </script>
 </head>
 <body>
   <header id="site-nav"></header>
@@ -86,5 +96,6 @@
   <script src="assets/js/products.js"></script>
   <script src="assets/js/components.js"></script>
   <script src="assets/js/main.js"></script>
+  <script type="module" src="assets/js/starfield.js"></script>
 </body>
 </html>

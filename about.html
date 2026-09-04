@@ -7,75 +7,158 @@
   <meta name="description" content="The story behind BuiltByTyler — products designed and built by Tyler Wade.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Space+Grotesk:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Space+Grotesk:wght@300;400;500;600&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/styles.css">
+  <link rel="stylesheet" href="assets/css/motion.css">
 
-  <!-- Three.js — the immersive 3D depth layer (immersive.js) -->
+  <!-- Three.js — the drifting star field behind the page (starfield.js) -->
   <script type="importmap">
   {
     "imports": {
-      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
     }
   }
   </script>
+
 </head>
 <body>
   <header id="site-nav"></header>
 
   <main>
+    <!-- ===============================================================
+         OPENER — portrait, positioning, and what the studio actually is
+         =============================================================== -->
     <section class="section">
       <div class="container">
-        <div class="about-hero about-hero--split reveal">
-          <figure class="portrait">
+        <div class="about-hero about-hero--split">
+          <figure class="portrait" data-reveal="left">
             <div class="portrait__frame">
               <img src="assets/img/headshot.jpg" alt="Tyler Wade" onerror="this.style.display='none'">
               <span class="portrait__scan" aria-hidden="true"></span>
             </div>
             <figcaption class="portrait__cap">
               <span class="portrait__name">Tyler Wade</span>
-              <span class="portrait__role">Designer · Engineer</span>
+              <span class="portrait__role">Engineer · Monterey, California</span>
             </figcaption>
           </figure>
-          <div class="about-hero__text">
-            <p class="eyebrow">About me</p>
-            <h1>Built by hand, from the first sketch to the finished product.</h1>
-            <p class="lead">BuiltByTyler is a studio by Tyler Wade, a 23-year-old engineer
-              showcasing mechanical and software projects.</p>
+          <div class="about-hero__text" data-enter>
+            <p class="eyebrow">About</p>
+            <h1 data-split>I build the machine, and the software that <em>runs it</em>.</h1>
+            <p class="lead">BuiltByTyler is a one-person engineering studio. I design and
+              build hardware you can order &mdash; robotic arms, FPV drones, tilt-rotor
+              aircraft &mdash; and I build the websites and software that other businesses
+              run on. Same hands, same standard, both ends of the problem.</p>
+            <div class="hero__cta" style="margin-top:2rem; justify-content:flex-start;">
+              <a class="btn" href="software.html">Work with me</a>
+              <a class="btn btn--ghost" href="shop.html">See the builds</a>
+            </div>
           </div>
         </div>
-
-        <div class="about-grid">
-          <div class="about-card reveal">
-            <h3>Mechanical</h3>
-            <p>Mechanical design backed by real analysis — fatigue and flow simulation
-              and full assembly testing, iterated until every part holds up.</p>
-          </div>
-          <div class="about-card reveal">
-            <h3>Software</h3>
-            <p>I also build the software side — engineering GUIs, agent workflows and
-              full websites that make the work faster and sharper.</p>
-          </div>
-        </div>
-
-        <!-- The combination — where mechanical + software become one system -->
-        <div class="about-combine reveal">
-          <p class="eyebrow">Where it comes together</p>
-          <h3>The best part is the combination.</h3>
-          <p>A drone or a robot is never just mechanical or just software — it's both,
-            designed and integrated as one system. Engineering the structure, writing the
-            control that brings it to life, then watching the two click together into
-            something that actually flies or drives — that intersection is where the most
-            fun is, and it's what I chase with every build.</p>
-        </div>
-
       </div>
     </section>
 
-    <section class="section--tight section--alt" style="text-align:center; padding-block: clamp(3rem,7vw,5rem);">
-      <div class="container reveal">
-        <h2 style="font-size: var(--fs-h2); margin-bottom: 1.25rem;">See what's available</h2>
-        <a class="btn" href="shop.html">Shop the collection</a>
+    <!-- ===============================================================
+         THE TWO DISCIPLINES
+         =============================================================== -->
+    <section class="section section--alt">
+      <div class="container">
+        <div class="section-head section-head--left" data-reveal>
+          <p class="eyebrow">What I actually do</p>
+          <h2>Two disciplines, one bench.</h2>
+        </div>
+
+        <div class="svc-grid">
+          <article class="svc-card" data-reveal data-reveal-i="1">
+            <span class="svc-card__no">01</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M12 3 20 7.5v9L12 21 4 16.5v-9z"/><path d="M12 12v9M12 12l8-4.5M12 12 4 7.5"/>
+            </svg>
+            <h3>Mechanical</h3>
+            <p>Parametric CAD, fatigue and flow simulation, prototyping and fabrication.
+              Parts get analysed before they get cut and tested after they are assembled,
+              and they get iterated until they hold up under load rather than on a screen.</p>
+            <ul class="chips">
+              <li>CAD</li><li>FEA / CFD</li><li>Machining</li><li>3D print</li><li>Assembly</li>
+            </ul>
+          </article>
+
+          <article class="svc-card" data-reveal data-reveal-i="2">
+            <span class="svc-card__no">02</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M9 8 5 12l4 4M15 8l4 4-4 4M13 6l-2 12"/>
+            </svg>
+            <h3>Software</h3>
+            <p>Embedded firmware and flight control at one end, and full web applications
+              at the other &mdash; engineering GUIs, agent workflows, customer portals and
+              the sites that businesses are judged by.</p>
+            <ul class="chips">
+              <li>Firmware</li><li>Control</li><li>Web apps</li><li>Automation</li><li>SaaS</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===============================================================
+         THE INTERSECTION — the reason the two sit together
+         =============================================================== -->
+    <section class="section">
+      <div class="container">
+        <div class="split">
+          <div class="split__text" data-reveal="left">
+            <p class="eyebrow">Where it comes together</p>
+            <h2>The best part is the combination.</h2>
+            <p>A drone or a robot is never just mechanical or just software. It is both,
+              designed and integrated as one system. Engineering the structure, writing the
+              control that brings it to life, then watching the two click together into
+              something that actually flies or drives &mdash; that intersection is where
+              the interesting problems live, and it is what I chase with every build.</p>
+            <p>It is also why the software side of this studio exists. Most people building
+              websites have never had to make anything work under load. I have, and it
+              changes how you build software: you test it, you document it, and you hand it
+              over so somebody else can maintain it.</p>
+          </div>
+          <ul class="tenets" data-reveal="right">
+            <li>
+              <b>Everything ships with its source</b>
+              <span>CAD, firmware, code and documentation. If you paid for it, you own it
+                outright and you can take it anywhere.</span>
+            </li>
+            <li>
+              <b>Nothing is bought and rebadged</b>
+              <span>No white-labelled hardware, no page-builder templates. It is designed
+                here or it is not sold here.</span>
+            </li>
+            <li>
+              <b>You deal with me</b>
+              <span>No account manager, no handoff to a junior. The person who scopes the
+                work is the person who builds it.</span>
+            </li>
+            <li>
+              <b>I will talk you out of it</b>
+              <span>If a build or a piece of software is the wrong answer for what you are
+                trying to do, I would rather say so on the first call.</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===============================================================
+         CLOSE
+         =============================================================== -->
+    <section class="section--tight" style="padding-bottom: clamp(3.5rem,8vw,7rem);">
+      <div class="container">
+        <div class="cta-band ticked" data-reveal="scale">
+          <p class="eyebrow">Next step</p>
+          <h2>Two things I can do for you.</h2>
+          <p>Order something I have already built, or have me build the software your
+            business runs on. Either way it starts with a conversation.</p>
+          <div class="cta-band__actions">
+            <a class="btn" href="software.html">Software &amp; web</a>
+            <a class="btn btn--ghost" href="shop.html">Shop the collection</a>
+          </div>
+        </div>
       </div>
     </section>
   </main>
@@ -85,6 +168,6 @@
   <script src="assets/js/products.js"></script>
   <script src="assets/js/components.js"></script>
   <script src="assets/js/main.js"></script>
-  <script type="module" src="assets/js/immersive.js"></script>
+  <script type="module" src="assets/js/starfield.js"></script>
 </body>
 </html>

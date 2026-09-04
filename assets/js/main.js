@@ -10,6 +10,13 @@
 (function () {
   "use strict";
 
+  /* Tell motion.css that a script is present and will drive the fallback
+     reveals. Set here — at the top of the file, not inside init() — so it
+     lands before first paint and there is no flash of visible content. The
+     CSP forbids inline scripts, so this is the earliest hook available.
+     See the .js-reveal note in motion.css. */
+  document.documentElement.classList.add("js-reveal");
+
   const CART_KEY = "bbt_cart";
 
   /* ---------------- Cart store (placeholder) ----------------
@@ -146,7 +153,7 @@
       ? `<button class="card__add" data-add="${p.id}">Add to cart</button>`
       : `<a class="card__add" href="shop.html#packages">View packages</a>`;
     return `
-      <article class="card reveal">
+      <article class="card" data-reveal="scale" data-reveal-i="${((index || 0) % 6) + 1}">
         <span class="card__index">${idx}</span>
         ${mediaHTML(p, holo)}
         <div class="card__body">
@@ -172,10 +179,10 @@
   }
 
   /* ---------------- Build packages (shop.html#packages) ---------------- */
-  function packageHTML(pkg) {
+  function packageHTML(pkg, i) {
     const includes = (pkg.includes || []).map((li) => `<li>${li}</li>`).join("");
     return `
-      <article class="package reveal">
+      <article class="package" data-reveal data-reveal-i="${(i || 0) + 1}">
         <div class="package__head">
           ${pkg.badge ? `<span class="package__badge">${pkg.badge}</span>` : ""}
           <h3 class="package__name">${pkg.name}</h3>
@@ -231,7 +238,7 @@
 
     host.innerHTML = `
       <a class="back-link" href="shop.html">&larr; All products</a>
-      <div class="detail reveal">
+      <div class="detail" data-reveal>
         <div class="detail__media ${p.holo ? "is-holo" : "is-placeholder"}">
           ${media}
         </div>
@@ -396,6 +403,27 @@
     });
   }
 
+  /* ---------------- Scroll progress HUD ----------------
+     The hairline progress bar and the percentage readout in the corner.
+     They used to be driven from inside the WebGL loop; now that the 3D
+     layer is off, they run from a plain scroll listener. */
+  function initHud() {
+    const bar = document.getElementById("hud-bar");
+    const pct = document.getElementById("hud-pct");
+    if (!bar && !pct) return;
+    const update = () => {
+      const doc = document.documentElement;
+      const max = doc.scrollHeight - window.innerHeight;
+      const t = max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0;
+      if (bar) bar.style.transform = `scaleX(${t.toFixed(4)})`;
+      if (pct) pct.textContent = String(Math.round(t * 100)).padStart(3, "0");
+    };
+    update();
+    window.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update, { passive: true });
+    window.addEventListener("load", update);
+  }
+
   /* ---------------- Scroll-aware nav ----------------
      Keep the bar clear over the hero/landing; only firm + slim it once the
      first content section reaches the top. Pages without a hero firm near top. */
@@ -415,29 +443,142 @@
     window.addEventListener("load", () => { recompute(); onScroll(); });
   }
 
-  /* ---------------- Scroll reveal ---------------- */
+  /* ---------------- Software plan handoff (contact.html?plan=…) ----------------
+     The pricing tiers on software.html link here with the tier they came
+     from. Carrying it across means the visitor does not have to re-explain
+     what they just clicked, and the enquiry arrives already labelled. */
+  const PLANS = {
+    launch:  { name: "Launch", price: "$500 build + $50/mo" },
+    growth:  { name: "Growth", price: "$3,000 build + $200/mo" },
+    product: { name: "Product", price: "$6,000, scoped per project" },
+  };
+
+  function initPlanHandoff() {
+    const notice = document.getElementById("plan-notice");
+    if (!notice) return;
+    const key = (new URLSearchParams(window.location.search).get("plan") || "").toLowerCase();
+    const plan = PLANS[key];
+    if (!plan) return;
+
+    notice.hidden = false;
+    notice.innerHTML =
+      `You came from the <b>${plan.name}</b> plan — ${plan.price}. ` +
+      `Mention anything you want changed and I'll quote against it.`;
+
+    /* Point the software route at the tier they came from, so the email
+       arrives already labelled and they do not have to re-explain the
+       click. The build route is left alone — it is a different job. */
+    const route = document.getElementById("route-software");
+    if (route) {
+      const subject = `${plan.name} plan enquiry — BuiltByTyler`;
+      route.href = `mailto:twade@builtbytyler.com?subject=${encodeURIComponent(subject)}`;
+      route.classList.add("is-picked");
+      const meta = document.getElementById("route-software-meta");
+      if (meta) meta.textContent = `${plan.name} plan · ${plan.price}`;
+      const go = document.getElementById("route-software-go");
+      if (go) go.textContent = `Enquire about ${plan.name} →`;
+    }
+  }
+
+  /* ---------------- Motion engine (see assets/css/motion.css) ----------------
+     Reveals are native CSS scroll timelines and need no JavaScript at all.
+     This function exists only for the two things CSS cannot do on its own:
+
+       1. split a [data-split] headline into per-word spans, and
+       2. stand in with an IntersectionObserver on browsers that do not
+          support animation-timeline: view() (Safari and Firefox at the
+          time of writing).
+
+     If both fail, motion.css still leaves every element visible — the
+     content is never gated behind a script. */
+
+  const SUPPORTS_TIMELINE =
+    typeof CSS !== "undefined" &&
+    CSS.supports &&
+    CSS.supports("animation-timeline", "view()");
+
+  /* Split headlines into words so each one can rise on its own.
+     Text nodes only — any <em> or <br> inside the headline is preserved. */
+  const PUNCT_ONLY = /^[.,;:!?…)\]}"'’”—–]+$/;
+
+  function splitHeadlines() {
+    let i = 0;
+    document.querySelectorAll("[data-split]").forEach((host) => {
+      if (host.dataset.splitDone) return;
+      host.dataset.splitDone = "1";
+      // Each word becomes its own inline-block, which creates a line-break
+      // opportunity where there was none. Trailing punctuation therefore has
+      // to be folded back into the word it belongs to, or a full stop ends
+      // up alone on its own line.
+      let last = null;
+      const walk = (node) => {
+        [...node.childNodes].forEach((child) => {
+          if (child.nodeType === Node.TEXT_NODE) {
+            const parts = child.textContent.split(/(\s+)/);
+            if (!parts.some((p) => p.trim())) return;
+            const frag = document.createDocumentFragment();
+            parts.forEach((part) => {
+              if (!part.trim()) { frag.appendChild(document.createTextNode(part)); last = null; return; }
+              if (last && PUNCT_ONLY.test(part)) { last.append(part); return; }
+              const span = document.createElement("span");
+              span.className = "w";
+              span.style.setProperty("--wi", i++);
+              span.textContent = part;
+              frag.appendChild(span);
+              last = span;
+            });
+            child.replaceWith(frag);
+          } else if (child.nodeType === Node.ELEMENT_NODE && child.tagName === "BR") {
+            last = null;
+          } else if (child.nodeType === Node.ELEMENT_NODE) {
+            // Wrap an inline <em> as one unit so the serif never breaks apart.
+            if (child.textContent.trim() && !child.querySelector("*")) {
+              child.classList.add("w");
+              child.style.setProperty("--wi", i++);
+              last = child;
+            } else {
+              walk(child);
+            }
+          }
+        });
+      };
+      walk(host);
+    });
+  }
+
+  /* Fallback reveals for browsers without scroll timelines. */
   function initReveal() {
-    const els = document.querySelectorAll(".reveal");
+    splitHeadlines();
+
+    const els = document.querySelectorAll("[data-reveal], [data-draw], .reveal");
     if (!els.length) return;
+
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const show = (el) => { el.classList.add("is-in", "is-visible"); };
+
+    // Native timelines are driving the reveals; only the legacy .reveal
+    // class (older pages, injected cards) still needs the observer.
+    const needsJS = [...els].filter(
+      (el) => !SUPPORTS_TIMELINE || (el.classList.contains("reveal") && !el.hasAttribute("data-reveal"))
+    );
+    if (!needsJS.length) return;
+
     if (reduce || !("IntersectionObserver" in window)) {
-      els.forEach((el) => el.classList.add("is-visible"));
+      needsJS.forEach(show);
       return;
     }
     const io = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry, i) => {
-          if (entry.isIntersecting) {
-            // gentle stagger
-            entry.target.style.transitionDelay = `${Math.min(i * 60, 240)}ms`;
-            entry.target.classList.add("is-visible");
-            io.unobserve(entry.target);
-          }
+          if (!entry.isIntersecting) return;
+          entry.target.style.transitionDelay = `${Math.min(i * 60, 240)}ms`;
+          show(entry.target);
+          io.unobserve(entry.target);
         });
       },
       { threshold: 0.12, rootMargin: "0px 0px -40px 0px" }
     );
-    els.forEach((el) => io.observe(el));
+    needsJS.forEach((el) => io.observe(el));
   }
 
   /* ---------------- Global click delegation ---------------- */
@@ -482,6 +623,8 @@
     }
     initMobileNav();
     initNavScroll();
+    initHud();
+    initPlanHandoff();
     initDelegation();
     updateCartBadge();
     renderCartBody();

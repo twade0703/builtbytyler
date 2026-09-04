@@ -39,10 +39,8 @@ builtbytyler/
 │   │   └── starfield.js    The drifting star field behind every page (Three.js, ESM)
 │   └── img/                Photography and raster assets
 │
-├── tools/
-│   └── devserver.py        Local server that sends Cache-Control: no-store
-│
-└── designer-portfolio/     Earlier standalone portfolio build, kept for reference
+└── tools/
+    └── devserver.py        Local server that sends Cache-Control: no-store
 ```
 
 ## Running it locally

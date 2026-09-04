@@ -1518,28 +1518,6 @@ main, header, footer { position: relative; z-index: 1; }
 .svc-hero__lead { max-width: 56ch; font-size: clamp(1rem, 1.5vw, 1.18rem); color: var(--muted); }
 .svc-hero__cta { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 2.25rem; }
 
-/* Live availability chip — the dot pulses only while slots are open. */
-.avail {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.6rem;
-  padding: 0.4rem 0.85rem;
-  margin-bottom: 1.75rem;
-  border: 1px solid var(--hairline);
-  background: var(--glass);
-  backdrop-filter: var(--blur);
-  -webkit-backdrop-filter: var(--blur);
-  font-family: var(--font-mono);
-  font-size: var(--fs-micro);
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-.avail i {
-  width: 6px; height: 6px; border-radius: 50%;
-  background: #4ee39a; flex: 0 0 auto;
-}
-
 /* ---- Services: an asymmetric bento, not a row of equal boxes ---- */
 .svc-grid {
   display: grid;

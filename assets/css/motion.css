@@ -272,6 +272,10 @@ main { overflow-x: clip; }
    4 · LIVE STATE — the only looping animations allowed on the page.
    Each one carries information, so the motion is doing work.
    ================================================================= */
+/* Nothing on the site uses .bt-dot at the moment — the availability chip
+   it was built for has been removed. It is kept because a live-state dot
+   is the one looping animation this system permits, and the next thing
+   that needs one should reuse this rather than invent another. */
 @keyframes bt-pulse { 0% { transform: scale(.7); opacity: .55; } 70% { transform: scale(2.3); opacity: 0; } 100% { opacity: 0; } }
 .bt-dot { position: relative; }
 .bt-dot::after {

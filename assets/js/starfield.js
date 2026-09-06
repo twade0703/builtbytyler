@@ -21,12 +21,13 @@
    prefers-reduced-motion → one still frame, no animation loop.
    ================================================================= */
 
-// Imported by full URL, not by bare specifier. The bare "three" needed an
-// inline <script type="importmap">, and the CSP this site now actually
-// serves blocks inline scripts -- so the map never ran, the specifier
-// never resolved, and the star field died silently on Cloudflare. It
-// worked on GitHub Pages only because GitHub Pages sent no CSP at all.
-import * as THREE from "https://unpkg.com/three@0.160.0/build/three.module.js";
+// three.js is vendored at assets/vendor/. It began as a bare "three"
+// specifier resolved by an inline <script type="importmap">, which the CSP
+// this site now actually serves blocks -- so the map never ran and the star
+// field died the moment DNS moved to Cloudflare. Serving it from our own
+// origin removes the inline map, removes unpkg from the CSP entirely, and
+// takes the largest third-party fetch off the critical path.
+import * as THREE from "../vendor/three.module.js";
 
 const CONFIG = {
   bg: 0x04070c, // deep blue-black (clear colour + fog colour)

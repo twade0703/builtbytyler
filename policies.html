@@ -32,6 +32,7 @@
       "streetAddress": "770 Madison St",
       "addressLocality": "Monterey",
       "addressRegion": "CA",
+      "postalCode": "93940",
       "addressCountry": "US"
     },
     "areaServed": [
@@ -166,7 +167,7 @@
     <div class="container site-footer__inner">
       <address>
         <strong>BuiltByTyler LLC</strong><br>
-        770 Madison St, Monterey, California<br>
+        770 Madison St, Monterey, CA 93940<br>
         <a href="tel:+12817398942">(281) 739-8942</a> &middot;
         <a href="mailto:twade@builtbytyler.com">twade@builtbytyler.com</a>
       </address>
@@ -176,10 +177,11 @@
   <script src="assets/js/products.js"></script>
   <script src="assets/js/components.js"></script>
   <script src="assets/js/main.js"></script>
-  <!-- ?v=2 busts the module cache. Returning visitors held a cached
-       starfield.js that still used the bare "three" specifier, while the
-       new HTML no longer ships the importmap that resolved it -- the two
-       halves together threw "Failed to resolve module specifier". -->
-  <script type="module" src="assets/js/starfield.js?v=2"></script>
+  <!-- ?v=3 busts the module cache. three.js is vendored at assets/vendor/,
+       so the star field no longer needs an inline importmap (which the CSP
+       blocks) or a third-party fetch from unpkg. A returning visitor still
+       holding an older starfield.js would pair it with HTML that no longer
+       ships that map, so the version query has to move whenever this does. -->
+  <script type="module" src="assets/js/starfield.js?v=3"></script>
 </body>
 </html>

@@ -78,6 +78,7 @@ function renderFooter() {
         <span>&copy; ${year} BuiltByTyler</span>
         <a href="contact.html">Contact</a>
         <a href="software.html">Software &amp; web</a>
+        <a href="terms.html">Website terms</a>
         <a href="policies.html">Lead times, shipping &amp; refunds</a>
         <a href="policies.html#privacy">Privacy</a>
         <a href="https://www.linkedin.com/in/tyler-wade1/" target="_blank" rel="noopener">LinkedIn</a>

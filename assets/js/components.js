@@ -72,10 +72,14 @@ function renderFooter() {
     <div class="container site-footer__inner">
       <a href="index.html" class="brand">Built<b>ByTyler</b></a>
       <div class="footer-meta">
-        <span>Designed &amp; built by Tyler Wade</span>
+        <span>BuiltByTyler LLC &middot; 770 Madison St, Monterey, California</span>
+        <a href="tel:+12817398942">(281) 739-8942</a>
+        <a href="mailto:twade@builtbytyler.com">twade@builtbytyler.com</a>
         <span>&copy; ${year} BuiltByTyler</span>
+        <a href="contact.html">Contact</a>
         <a href="software.html">Software &amp; web</a>
         <a href="policies.html">Lead times, shipping &amp; refunds</a>
+        <a href="policies.html#privacy">Privacy</a>
         <a href="https://www.linkedin.com/in/tyler-wade1/" target="_blank" rel="noopener">LinkedIn</a>
         <a href="https://instagram.com/twade0703" target="_blank" rel="noopener">Instagram</a>
       </div>

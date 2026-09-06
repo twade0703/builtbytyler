@@ -20,6 +20,47 @@
   }
   </script>
 
+  <!-- Structured data. Every fact here is one this site already states in prose:
+       the entity, the city and the email come off contact.html. Nothing is
+       invented — a schema block with a made-up address is worse than none,
+       because Google cross-checks it against the Business Profile. -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "ProfessionalService",
+    "@id": "https://builtbytyler.com/#business",
+    "name": "BuiltByTyler LLC",
+    "alternateName": "BuiltByTyler",
+    "url": "https://builtbytyler.com/",
+    "email": "twade@builtbytyler.com",
+    "telephone": "+12817398942",
+    "description": "A one-person studio in Monterey, California building websites and software for small businesses and trades, plus mechanical products — robotics, drones and custom builds.",
+    "founder": { "@type": "Person", "name": "Tyler Wade" },
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "770 Madison St",
+      "addressLocality": "Monterey",
+      "addressRegion": "CA",
+      "addressCountry": "US"
+    },
+    "areaServed": [
+      { "@type": "AdministrativeArea", "name": "Monterey County, California" },
+      { "@type": "AdministrativeArea", "name": "Santa Cruz County, California" },
+      { "@type": "AdministrativeArea", "name": "San Benito County, California" },
+      { "@type": "AdministrativeArea", "name": "San Francisco Bay Area, California" }
+    ],
+    "knowsAbout": [
+      "website design for contractors",
+      "local SEO for trades businesses",
+      "small business websites",
+      "custom software"
+    ],
+    "sameAs": [
+      "https://www.linkedin.com/in/tyler-wade1/",
+      "https://instagram.com/twade0703"
+    ]
+  }
+  </script>
 </head>
 <body>
   <header id="site-nav"></header>
@@ -30,7 +71,16 @@
     </section>
   </main>
 
-  <footer id="site-footer" data-year="2026"></footer>
+  <footer id="site-footer" data-year="2026">
+    <div class="container site-footer__inner">
+      <address>
+        <strong>BuiltByTyler LLC</strong><br>
+        770 Madison St, Monterey, California<br>
+        <a href="tel:+12817398942">(281) 739-8942</a> &middot;
+        <a href="mailto:twade@builtbytyler.com">twade@builtbytyler.com</a>
+      </address>
+    </div>
+  </footer>
 
   <script src="assets/js/products.js"></script>
   <script src="assets/js/components.js"></script>

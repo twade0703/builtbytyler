@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lead times, shipping &amp; refunds · BuiltByTyler</title>
-  <meta name="description" content="Lead times, shipping and refund policy for BuiltByTyler made-to-order builds.">
+  <title>Lead times, shipping, refunds &amp; privacy · BuiltByTyler</title>
+  <meta name="description" content="Lead times, shipping, refunds and privacy policy for BuiltByTyler.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Space+Grotesk:wght@300;400;500;600&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -19,6 +19,47 @@
     }
   }
   </script>
+  <!-- Structured data. Every fact here is one this site already states in prose:
+       the entity, the city and the email come off contact.html. Nothing is
+       invented — a schema block with a made-up address is worse than none,
+       because Google cross-checks it against the Business Profile. -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "ProfessionalService",
+    "@id": "https://builtbytyler.com/#business",
+    "name": "BuiltByTyler LLC",
+    "alternateName": "BuiltByTyler",
+    "url": "https://builtbytyler.com/",
+    "email": "twade@builtbytyler.com",
+    "telephone": "+12817398942",
+    "description": "A one-person studio in Monterey, California building websites and software for small businesses and trades, plus mechanical products — robotics, drones and custom builds.",
+    "founder": { "@type": "Person", "name": "Tyler Wade" },
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "770 Madison St",
+      "addressLocality": "Monterey",
+      "addressRegion": "CA",
+      "addressCountry": "US"
+    },
+    "areaServed": [
+      { "@type": "AdministrativeArea", "name": "Monterey County, California" },
+      { "@type": "AdministrativeArea", "name": "Santa Cruz County, California" },
+      { "@type": "AdministrativeArea", "name": "San Benito County, California" },
+      { "@type": "AdministrativeArea", "name": "San Francisco Bay Area, California" }
+    ],
+    "knowsAbout": [
+      "website design for contractors",
+      "local SEO for trades businesses",
+      "small business websites",
+      "custom software"
+    ],
+    "sameAs": [
+      "https://www.linkedin.com/in/tyler-wade1/",
+      "https://instagram.com/twade0703"
+    ]
+  }
+  </script>
 </head>
 <body>
   <header id="site-nav"></header>
@@ -31,6 +72,10 @@
         <p class="lead">Everything here is built by hand, one at a time. That changes how
           ordering works compared with buying something off a shelf, so this page says
           exactly what to expect.</p>
+        <p class="lead"><b>Lead times, shipping and refunds on this page cover the hardware I
+          build and ship.</b> A website build and its monthly care plan run on their own terms
+          &mdash; ask me for them before you pay and you will have them the same day. The
+          privacy section at the bottom covers the whole site.</p>
 
         <h2>Everything is made to order</h2>
         <p>Nothing sits in a warehouse. When you order, the build starts. Current lead
@@ -83,6 +128,40 @@
         <p>Custom projects are quoted individually and run on a written scope agreed before any
           money changes hands. Those terms sit in the quote and override this page where they differ.</p>
 
+        <h2 id="privacy">Privacy &mdash; what this site collects</h2>
+        <p>This site is run by one person. Here is the whole of what it collects and what
+          happens to it.</p>
+        <ul>
+          <li><b>When you email me</b> &mdash; your name, your email address, and whatever you
+            write.</li>
+          <li><b>When you use the order form</b> &mdash; your name, your email address, the
+            quantity and any notes. There is no database behind that form. It either opens
+            your own email program or hands you to Stripe.</li>
+          <li><b>When you pay</b> &mdash; Stripe collects your name, email and billing address
+            on their own checkout page and shows them to me afterwards. Card details are never
+            entered on, stored on, or passed through builtbytyler.com.</li>
+        </ul>
+        <p>That is the list. No accounts, no logins, no analytics, no advertising pixels, and
+          no cookies set by this site.</p>
+        <p><b>Who else sees it.</b> Stripe, for payments. Cloudflare, which hosts the site and
+          sees the request that loads a page. Google Fonts, which serves the typefaces and
+          therefore sees your IP address and browser when a page loads. Nobody else. I do not
+          sell your details, I do not share them for advertising, and I do not add anyone to a
+          mailing list from this site.</p>
+        <p><b>How long I keep it.</b> Emails and orders stay in my inbox and in Stripe for as
+          long as I need them for the job, and for tax records afterwards &mdash; seven years
+          for anything with money attached. Everything else goes when you ask.</p>
+        <p><b>Seeing it, changing it, deleting it.</b> Email
+          <a href="mailto:twade@builtbytyler.com">twade@builtbytyler.com</a> and ask. I will
+          tell you what I hold within a week, correct anything wrong, and delete whatever I am
+          not required to keep. No form and no fee.</p>
+        <p><b>Do Not Track.</b> This site does not follow you to other websites, so there is
+          nothing for a Do Not Track signal to switch off and the site does not respond to
+          those signals. No third party collects information about what you do across other
+          websites through this one.</p>
+        <p><b>Changes to this section.</b> If it changes in a way that matters, the new version
+          goes up here with a new date below, and anyone with an open order gets an email.</p>
+
         <h2>Getting hold of me</h2>
         <p>BuiltByTyler LLC · Monterey, California<br>
           <a href="mailto:twade@builtbytyler.com">twade@builtbytyler.com</a></p>
@@ -91,7 +170,16 @@
     </section>
   </main>
 
-  <footer id="site-footer" data-year="2026"></footer>
+  <footer id="site-footer" data-year="2026">
+    <div class="container site-footer__inner">
+      <address>
+        <strong>BuiltByTyler LLC</strong><br>
+        770 Madison St, Monterey, California<br>
+        <a href="tel:+12817398942">(281) 739-8942</a> &middot;
+        <a href="mailto:twade@builtbytyler.com">twade@builtbytyler.com</a>
+      </address>
+    </div>
+  </footer>
 
   <script src="assets/js/products.js"></script>
   <script src="assets/js/components.js"></script>

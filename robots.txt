@@ -6,7 +6,9 @@ Allow: /
 
 # Internal or single-use pages. No value in the index, and a stray checkout
 # test page in search results is the kind of thing a prospect notices.
+Disallow: /checkout-test
 Disallow: /checkout-test.html
+Disallow: /order-confirmed
 Disallow: /order-confirmed.html
 Disallow: /tools/
 

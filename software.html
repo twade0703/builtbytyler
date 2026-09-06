@@ -11,16 +11,7 @@
   <link rel="stylesheet" href="assets/css/styles.css">
   <link rel="stylesheet" href="assets/css/motion.css">
 
-  <!-- Three.js — the drifting star field behind the page (starfield.js) -->
-  <script type="importmap">
-  {
-    "imports": {
-      "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
-    }
-  }
-  </script>
-
-  <!-- Structured data. Every fact here is one this site already states in prose:
+<!-- Structured data. Every fact here is one this site already states in prose:
        the entity, the city and the email come off contact.html. Nothing is
        invented — a schema block with a made-up address is worse than none,
        because Google cross-checks it against the Business Profile. -->
@@ -500,6 +491,10 @@
   <script src="assets/js/products.js"></script>
   <script src="assets/js/components.js"></script>
   <script src="assets/js/main.js"></script>
-  <script type="module" src="assets/js/starfield.js"></script>
+  <!-- ?v=2 busts the module cache. Returning visitors held a cached
+       starfield.js that still used the bare "three" specifier, while the
+       new HTML no longer ships the importmap that resolved it -- the two
+       halves together threw "Failed to resolve module specifier". -->
+  <script type="module" src="assets/js/starfield.js?v=2"></script>
 </body>
 </html>

@@ -21,7 +21,12 @@
    prefers-reduced-motion → one still frame, no animation loop.
    ================================================================= */
 
-import * as THREE from "three";
+// Imported by full URL, not by bare specifier. The bare "three" needed an
+// inline <script type="importmap">, and the CSP this site now actually
+// serves blocks inline scripts -- so the map never ran, the specifier
+// never resolved, and the star field died silently on Cloudflare. It
+// worked on GitHub Pages only because GitHub Pages sent no CSP at all.
+import * as THREE from "https://unpkg.com/three@0.160.0/build/three.module.js";
 
 const CONFIG = {
   bg: 0x04070c, // deep blue-black (clear colour + fog colour)

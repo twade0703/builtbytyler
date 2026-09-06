@@ -1,0 +1,13 @@
+# builtbytyler.com — this is the live business site and it SHOULD be indexed.
+# Not to be confused with see.builtbytyler.com, which serves unsold pre-sale
+# demos and disallows everything.
+User-agent: *
+Allow: /
+
+# Internal or single-use pages. No value in the index, and a stray checkout
+# test page in search results is the kind of thing a prospect notices.
+Disallow: /checkout-test.html
+Disallow: /order-confirmed.html
+Disallow: /tools/
+
+Sitemap: https://builtbytyler.com/sitemap.xml

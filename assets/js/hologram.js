@@ -1057,32 +1057,45 @@
   function buildRccar() {
     const parts = [];
     const GY = -0.44;
-    const WRF = 0.108, WWF = 0.092;
-    const WRR = 0.126, WWR = 0.120;
-    const AXF = 0.335, AXR = -0.335;
-    const TRKF = 0.212, TRKR = 0.218;
+    /* Published 992 GT3 RS figures at this model's scale (1.280 units =
+       4572mm). Front track really is wider than rear, and the rear tyre is
+       only 34mm larger in diameter — it is 60mm WIDER. Getting those two
+       backwards is what gave the car a hot-rod stance instead of a 911 one. */
+    const MM = 1.280 / 4572;
+    const WRF = 700.5 / 2 * MM, WWF = 275 * MM;    // 275/35 ZR20
+    const WRR = 734.4 / 2 * MM, WWR = 335 * MM;    // 335/30 ZR21
+    const AXF = 2457 / 2 * MM, AXR = -2457 / 2 * MM;
+    const TRKF = 1682 / 2 * MM, TRKR = 1614 / 2 * MM;
+    const HALFW = 1900 / 2 * MM;                   // 0.266
+    const ROOF = GY + 1322 * MM;                   // 1322mm tall on the road
 
     /* z, floor y, roof y, max half-width, shoulder height as a fraction of
        the body height at that station, upper exponent, lower exponent.
        Low upper exponents give the narrow rounded greenhouse; high ones give
        the wide flat decks fore and aft. */
+    /* z, floor, roof, max half-width, shoulder height as a fraction of the
+       body height, upper and lower superellipse exponents, and the bonnet
+       trough: how far the top centre drops below the fender tops, and over
+       what half-width. The trough is applied to the SURFACE — a 911's bonnet
+       is a hollow between two raised wings, and drawing it as a flat panel
+       laid on top was most of what looked wrong about the front. */
     const CTRL = [
-      { z: 0.640, yb: -0.318, yt: -0.286, rx: 0.146, wf: 0.55, nu: 2.6, nd: 2.5 },
-      { z: 0.578, yb: -0.340, yt: -0.262, rx: 0.198, wf: 0.56, nu: 2.8, nd: 2.7 },
-      { z: 0.500, yb: -0.352, yt: -0.238, rx: 0.234, wf: 0.58, nu: 3.0, nd: 2.9 },
-      { z: 0.415, yb: -0.356, yt: -0.222, rx: 0.252, wf: 0.60, nu: 3.1, nd: 3.0 },
-      { z: 0.300, yb: -0.358, yt: -0.212, rx: 0.260, wf: 0.61, nu: 3.1, nd: 3.0 },
-      { z: 0.175, yb: -0.358, yt: -0.202, rx: 0.264, wf: 0.62, nu: 3.0, nd: 3.0 },
-      { z: 0.065, yb: -0.358, yt: -0.140, rx: 0.266, wf: 0.60, nu: 2.4, nd: 3.0 },
-      { z: -0.050, yb: -0.358, yt: -0.056, rx: 0.268, wf: 0.58, nu: 2.05, nd: 3.0 },
-      { z: -0.170, yb: -0.357, yt: -0.052, rx: 0.270, wf: 0.58, nu: 2.05, nd: 3.0 },
-      { z: -0.295, yb: -0.355, yt: -0.082, rx: 0.276, wf: 0.60, nu: 2.2, nd: 3.0 },
-      { z: -0.410, yb: -0.352, yt: -0.126, rx: 0.278, wf: 0.62, nu: 2.6, nd: 3.0 },
-      { z: -0.520, yb: -0.348, yt: -0.168, rx: 0.268, wf: 0.62, nu: 2.9, nd: 3.0 },
-      { z: -0.596, yb: -0.344, yt: -0.204, rx: 0.248, wf: 0.60, nu: 2.9, nd: 2.9 },
-      { z: -0.642, yb: -0.334, yt: -0.246, rx: 0.192, wf: 0.56, nu: 2.7, nd: 2.6 },
+      { z: 0.640, yb: -0.318, yt: -0.286, rx: 0.146, wf: 0.55, nu: 2.6, nd: 2.5, dip: 0.000, dw: 0.10 },
+      { z: 0.578, yb: -0.340, yt: -0.258, rx: 0.196, wf: 0.56, nu: 2.8, nd: 2.7, dip: 0.008, dw: 0.13 },
+      { z: 0.500, yb: -0.352, yt: -0.232, rx: 0.232, wf: 0.58, nu: 3.0, nd: 2.9, dip: 0.019, dw: 0.15 },
+      { z: 0.415, yb: -0.356, yt: -0.216, rx: 0.250, wf: 0.60, nu: 3.1, nd: 3.0, dip: 0.024, dw: 0.16 },
+      { z: 0.300, yb: -0.358, yt: -0.206, rx: 0.259, wf: 0.61, nu: 3.1, nd: 3.0, dip: 0.026, dw: 0.16 },
+      { z: 0.175, yb: -0.358, yt: -0.198, rx: 0.264, wf: 0.62, nu: 3.0, nd: 3.0, dip: 0.018, dw: 0.15 },
+      { z: 0.065, yb: -0.358, yt: -0.142, rx: 0.266, wf: 0.60, nu: 2.4, nd: 3.0, dip: 0.000, dw: 0.12 },
+      { z: -0.050, yb: -0.358, yt: -0.070, rx: 0.266, wf: 0.58, nu: 2.05, nd: 3.0, dip: 0.000, dw: 0.10 },
+      { z: -0.170, yb: -0.357, yt: -0.070, rx: 0.266, wf: 0.58, nu: 2.05, nd: 3.0, dip: 0.000, dw: 0.10 },
+      { z: -0.295, yb: -0.355, yt: -0.096, rx: 0.266, wf: 0.60, nu: 2.2, nd: 3.0, dip: 0.000, dw: 0.10 },
+      { z: -0.410, yb: -0.352, yt: -0.138, rx: 0.266, wf: 0.62, nu: 2.6, nd: 3.0, dip: 0.010, dw: 0.15 },
+      { z: -0.520, yb: -0.348, yt: -0.178, rx: 0.258, wf: 0.62, nu: 2.9, nd: 3.0, dip: 0.012, dw: 0.15 },
+      { z: -0.596, yb: -0.344, yt: -0.210, rx: 0.238, wf: 0.60, nu: 2.9, nd: 2.9, dip: 0.006, dw: 0.13 },
+      { z: -0.642, yb: -0.334, yt: -0.250, rx: 0.186, wf: 0.56, nu: 2.7, nd: 2.6, dip: 0.000, dw: 0.10 },
     ];
-    const KEYS = ["yb", "yt", "rx", "wf", "nu", "nd"];
+    const KEYS = ["yb", "yt", "rx", "wf", "nu", "nd", "dip", "dw"];
 
     // Catmull-Rom through the control stations, so the flank is smooth along
     // its length instead of kinking at every station.
@@ -1105,8 +1118,16 @@
       const up = sn >= 0;
       const ry = up ? (s.yt - cy) : (cy - s.yb);
       const p = 2 / (up ? s.nu : s.nd);
-      return [(c < 0 ? -1 : 1) * s.rx * Math.pow(Math.abs(c), p),
-              cy + (up ? 1 : -1) * ry * Math.pow(Math.abs(sn), p), s.z];
+      const x = (c < 0 ? -1 : 1) * s.rx * Math.pow(Math.abs(c), p);
+      let y = cy + (up ? 1 : -1) * ry * Math.pow(Math.abs(sn), p);
+      // The bonnet / engine-lid trough: pull the upper surface down toward the
+      // centreline, fading to nothing by the fender tops, so the raised wings
+      // either side are part of the body rather than drawn on it.
+      if (up && s.dip > 0) {
+        const t = Math.min(1, Math.abs(x) / s.dw);
+        y -= s.dip * (1 - t * t);
+      }
+      return [x, y, s.z];
     }
     // The surface, addressed by z and theta — used by every panel line so
     // nothing is drawn floating near the body.
@@ -1173,11 +1194,33 @@
     [-1, 1].forEach((sd) => parts.push(line(
       [[-0.030, (90 - sd * 8) * RAD], [-0.120, (90 - sd * 8) * RAD], [-0.215, (90 - sd * 8) * RAD]])));
 
-    // ---- bonnet dip between the raised fender tops ----
-    const dip = [];
-    for (let i = 0; i <= 6; i++) dip.push(surf(0.460 - i * 0.055, 62 * RAD));
-    for (let i = 6; i >= 0; i--) dip.push(surf(0.460 - i * 0.055, 118 * RAD));
-    parts.push({ v: dip, e: dip.map((_, i) => [i, (i + 1) % dip.length]), f: [dip.map((_, i) => i)] });
+    // the crease along the top of each raised front wing, either side of
+    // the trough that is now part of the surface itself
+    [-1, 1].forEach((sd) => {
+      const T = (d) => (sd > 0 ? d : 180 - d) * RAD;
+      parts.push(line([[0.520, T(52)], [0.430, T(50)], [0.320, T(48)], [0.200, T(50)]]));
+    });
+
+    /* ---- THE DOOR. It was missing entirely, and a car with no shut line
+           reads as a solid lump however good the surface is. A 911's front
+           shut runs up behind the arch and slants back as it rises; the rear
+           shut drops at the B-pillar. Handle on the belt. ---- */
+    [-1, 1].forEach((sd) => {
+      const T = (d) => (sd > 0 ? d : 180 - d) * RAD;
+      parts.push(line([
+        [0.208, T(-44)], [0.198, T(-20)], [0.176, T(2)], [0.150, T(19)],
+        [0.060, T(20)], [-0.060, T(20)], [-0.168, T(19)],
+        [-0.150, T(2)], [-0.142, T(-20)], [-0.138, T(-44)],
+        [-0.020, T(-46)], [0.100, T(-46)],
+      ], true));
+      // handle, and the sill line under the door
+      parts.push(line([[-0.070, T(10)], [-0.020, T(10)]]));
+      parts.push(line([[0.200, T(-50)], [0.060, T(-52)], [-0.060, T(-52)], [-0.140, T(-50)]]));
+      // mirror on its stalk, at the base of the A-pillar
+      const mb = surf(0.150, T(26));
+      parts.push(segBox(mb, [mb[0] * 1.16, mb[1] + 0.026, mb[2] + 0.010], 0.010));
+      parts.push(makeBox(mb[0] * 1.20, mb[1] + 0.034, mb[2] + 0.012, 0.030, 0.024, 0.052));
+    });
 
     /* ---- FENDER LOUVRES — the RS signature, on the arch top ---- */
     [-1, 1].forEach((sd) => {
@@ -1252,26 +1295,34 @@
     });
 
     // ---- arch lips ----
-    [[AXF, 0.256, 0.150], [AXR, 0.266, 0.168]].forEach(function (a) {
-      [-1, 1].forEach((sd) => parts.push(makeRing(sd * a[1], -0.332, a[0], a[2], 16, "x")));
+    [[AXF, TRKF + 0.030, WRF + 0.048], [AXR, TRKR + 0.038, WRR + 0.050]].forEach(function (a) {
+      [-1, 1].forEach((sd) => parts.push(makeRing(sd * a[1], -0.334, a[0], a[2], 16, "x")));
     });
 
-    /* ---- THE WING. Two elements, endplates, and swan necks whose lower
-           end is a point taken off the rear deck — so it visibly stands on
-           the car instead of hovering behind it. ---- */
-    const WGY = -0.012, WGZ = -0.556;
-    parts.push(plate([[-0.282, WGZ + 0.070], [0.282, WGZ + 0.070], [0.282, WGZ - 0.040], [-0.282, WGZ - 0.040]], "xz", WGY, 0.015));
-    parts.push(plate([[-0.276, WGZ - 0.052], [0.276, WGZ - 0.052], [0.276, WGZ - 0.116], [-0.276, WGZ - 0.116]], "xz", WGY - 0.034, 0.012));
+    /* ---- THE WING, on real numbers. Span matches the body width rather
+           than exceeding it, main chord 250mm and the upper flap 120mm — the
+           old one was 0.110 chord against a real 0.070, which is why it
+           looked like a picnic table. Thin sections, slim swan necks, and
+           endplates that are plates rather than slabs. ---- */
+    const WGY = ROOF + 0.030, WGZ = -0.560;
+    const WCH = 250 * MM, WFL = 120 * MM;
+    parts.push(plate([[-HALFW * 0.985, WGZ + WCH / 2], [HALFW * 0.985, WGZ + WCH / 2],
+                      [HALFW * 0.985, WGZ - WCH / 2], [-HALFW * 0.985, WGZ - WCH / 2]],
+                     "xz", WGY, 0.009));
+    parts.push(plate([[-HALFW * 0.96, WGZ - WCH / 2 - 0.010], [HALFW * 0.96, WGZ - WCH / 2 - 0.010],
+                      [HALFW * 0.96, WGZ - WCH / 2 - 0.010 - WFL], [-HALFW * 0.96, WGZ - WCH / 2 - 0.010 - WFL]],
+                     "xz", WGY - 0.024, 0.007));
     [-1, 1].forEach((sd) => {
-      const foot = surf(-0.470, (sd > 0 ? 62 : 118) * RAD);       // on the deck
-      const knee = [sd * 0.140, WGY - 0.086, WGZ + 0.088];
-      const top = [sd * 0.140, WGY + 0.012, WGZ + 0.030];
-      parts.push(segBox(foot, knee, 0.019));
-      parts.push(segBox(knee, top, 0.017));
+      const foot = surf(-0.462, (sd > 0 ? 60 : 120) * RAD);
+      const knee = [sd * 0.132, WGY - 0.072, WGZ + 0.062];
+      const top = [sd * 0.132, WGY + 0.006, WGZ + 0.018];
+      parts.push(segBox(foot, knee, 0.012));
+      parts.push(segBox(knee, top, 0.010));
     });
     [-1, 1].forEach((sd) => parts.push(plate(
-      [[WGY + 0.062, WGZ + 0.098], [WGY + 0.062, WGZ - 0.130],
-       [WGY - 0.098, WGZ - 0.130], [WGY - 0.098, WGZ + 0.054]], "yz", sd * 0.290, 0.012)));
+      [[WGY + 0.040, WGZ + WCH / 2 + 0.022], [WGY + 0.040, WGZ - WCH / 2 - WFL - 0.026],
+       [WGY - 0.062, WGZ - WCH / 2 - WFL - 0.026], [WGY - 0.062, WGZ + WCH / 2 - 0.010]],
+      "yz", sd * HALFW * 0.99, 0.007)));
 
     parts.push(makeBase(GY - 0.005, 1.06));
 

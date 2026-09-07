@@ -1,0 +1,13 @@
+# Cloudflare Pages redirects.
+#
+# www -> apex. Both hostnames are custom domains on this same Pages project,
+# so before this file www.builtbytyler.com served a byte-identical copy of the
+# apex under its own 200 — two hostnames competing for the same rankings with
+# no canonical to break the tie. The canonical tags now in every <head> tell
+# Google which one wins; this makes it a real 301 so nothing has to guess.
+#
+# If Cloudflare ever stops honouring a hostname in the source column, this line
+# silently becomes a no-op rather than an error — verify with:
+#   curl -sI https://www.builtbytyler.com/ | head -1
+# and fall back to a Redirect Rule in the dashboard.
+https://www.builtbytyler.com/* https://builtbytyler.com/:splat 301

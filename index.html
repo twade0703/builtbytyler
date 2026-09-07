@@ -19,8 +19,8 @@
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
-  <link rel="stylesheet" href="assets/css/styles.css?v=10">
-  <link rel="stylesheet" href="assets/css/motion.css?v=10">
+  <link rel="stylesheet" href="assets/css/styles.css?v=11">
+  <link rel="stylesheet" href="assets/css/motion.css?v=11">
 
 <!-- Structured data. Every fact here is one this site already states in prose:
        the entity, the city and the email come off contact.html. Nothing is
@@ -88,7 +88,7 @@
         <nav class="hero__index" aria-label="On this page">
           <ul>
             <li><a href="#studio"><span>01</span><span>The studio</span></a></li>
-            <li><a href="#work"><span>02</span><span>Selected builds</span></a></li>
+            <li><a href="#work"><span>02</span><span>This week's build</span></a></li>
             <li><a href="#method"><span>03</span><span>How it works</span></a></li>
             <li><a href="#next"><span>04</span><span>Start something</span></a></li>
           </ul>
@@ -153,13 +153,16 @@
       <div class="container">
         <div class="idx idx--split" data-reveal>
           <span class="idx__n">02</span>
-          <p class="idx__lab">Selected builds</p>
+          <p class="idx__lab">This week's build</p>
           <h2 class="idx__h">Things that had to work, not just render.</h2>
-          <p class="idx__p">Each one designed, prototyped and made by hand — the airframe and
-            the flight code, the chassis and the control loop. Hover a panel to bring it to
-            life.</p>
+          <p class="idx__p">One at a time, rotating each week — designed, prototyped and made by
+            hand, the airframe and the flight code, the chassis and the control loop. Hover it
+            to bring it to life.</p>
         </div>
-        <div class="plates" id="featured-grid" data-spans="plate--lead,-,plate--half,plate--half"></div>
+        <!-- One build, not the whole catalogue. The Builds page exists for the
+             rest; repeating it here gave the homepage a second, weaker version
+             of that page and a lot of scrolling to get past it. -->
+        <div class="plates" id="featured-grid" data-rotate="weekly"></div>
         <div class="plates__more" data-reveal>
           <a class="link-arrow" href="shop.html">Every build</a>
         </div>
@@ -258,15 +261,15 @@
        HTML, but main.js CREATES those canvases for the build plates. Removing
        it blanks every hologram. If the 64 KB is ever worth reclaiming, the fix
        is to load it on demand when a plate scrolls into view. -->
-  <script defer src="assets/js/products.js?v=10"></script>
-  <script defer src="assets/js/components.js?v=10"></script>
-  <script defer src="assets/js/hologram.js?v=10"></script>
-  <script defer src="assets/js/main.js?v=10"></script>
+  <script defer src="assets/js/products.js?v=11"></script>
+  <script defer src="assets/js/components.js?v=11"></script>
+  <script defer src="assets/js/hologram.js?v=11"></script>
+  <script defer src="assets/js/main.js?v=11"></script>
   <!-- ?v=3 busts the module cache. three.js is vendored at assets/vendor/,
        so the star field no longer needs an inline importmap (which the CSP
        blocks) or a third-party fetch from unpkg. A returning visitor still
        holding an older starfield.js would pair it with HTML that no longer
        ships that map, so the version query has to move whenever this does. -->
-  <script type="module" src="assets/js/starfield.js?v=10"></script>
+  <script type="module" src="assets/js/starfield.js?v=11"></script>
 </body>
 </html>

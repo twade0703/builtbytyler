@@ -166,9 +166,27 @@
      difference between "a portfolio" and "a row of tiles". */
   const SPANS = ["plate--lead", "plate--half", "", "", "", "plate--half", "plate--half"];
 
+  /* Which build the homepage shows this week.
+
+     Anchored to a fixed Monday in UTC rather than to "now / one week", so
+     every visitor sees the same build no matter their timezone, and it turns
+     over on the same day for all of them. A rotation that depends on the
+     reader's clock is not a rotation, it is a coin toss. */
+  function weeklyPick(list) {
+    if (!list.length) return list;
+    const WEEK = 7 * 24 * 60 * 60 * 1000;
+    const EPOCH = Date.UTC(2026, 0, 5);          // Monday, 5 January 2026
+    const n = Math.floor((Date.now() - EPOCH) / WEEK);
+    return [list[((n % list.length) + list.length) % list.length]];
+  }
+
   function renderGrid(targetId, list) {
     const grid = document.getElementById(targetId);
     if (!grid) return;
+    if (grid.getAttribute("data-rotate") === "weekly") {
+      grid.innerHTML = weeklyPick(list).map((p) => plateHTML(p, 0, "plate--solo")).join("");
+      return;
+    }
     if (!list.length) {
       grid.innerHTML = `<p class="cart-empty">No builds listed yet — check back soon.</p>`;
       return;

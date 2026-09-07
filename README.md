@@ -267,7 +267,18 @@ on, stored on, or transmitted through this site. `_headers` restricts
 
 ## Deployment
 
-`main` is the branch that ships. Push to it and the host rebuilds.
+`main` is the branch that ships. Push to it and Cloudflare Pages rebuilds;
+the live site updated about 30 seconds after the last push.
+
+**Bump the `?v=` on every asset link when CSS or JS changes.** Cloudflare Pages
+serves assets with `Cache-Control: public, max-age=14400` no matter what the
+`/*` block in `_headers` asks for, so for four hours after a deploy a returning
+browser keeps its old `styles.css` and `main.js` and renders the new markup
+against them. That is not theoretical: the first deploy of the composition
+rebuild shipped new HTML against four-hour-old CSS, and the homepage hero index
+rendered as a bulleted list. `tools/version-assets.py` rewrites every link on
+every page in one go — edit `VERSION` at the top and run it. `checkout-test.html`
+is skipped, because it links nothing from `assets/` on purpose.
 
 The site is indexable: the `X-Robots-Tag: noindex, nofollow` line that sat in
 `_headers` through the rebuild was removed at launch. If you ever need to take

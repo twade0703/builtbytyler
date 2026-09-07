@@ -13,7 +13,7 @@ only thing standing between a returning visitor and a broken page.
 """
 import io, os, re, glob
 
-VERSION = "18"
+VERSION = "19"
 os.chdir(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 ASSETS = [

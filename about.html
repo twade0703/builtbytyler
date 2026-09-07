@@ -19,8 +19,8 @@
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
-  <link rel="stylesheet" href="assets/css/styles.css?v=9">
-  <link rel="stylesheet" href="assets/css/motion.css?v=9">
+  <link rel="stylesheet" href="assets/css/styles.css?v=10">
+  <link rel="stylesheet" href="assets/css/motion.css?v=10">
 
 <!-- Structured data. Every fact here is one this site already states in prose:
        the entity, the city and the email come off contact.html. Nothing is
@@ -47,9 +47,7 @@
       "addressCountry": "US"
     },
     "areaServed": [
-      { "@type": "AdministrativeArea", "name": "Monterey County, California" },
-      { "@type": "AdministrativeArea", "name": "Santa Cruz County, California" },
-      { "@type": "AdministrativeArea", "name": "San Benito County, California" },
+      { "@type": "AdministrativeArea", "name": "Monterey, California" },
       { "@type": "AdministrativeArea", "name": "San Francisco Bay Area, California" }
     ],
     "knowsAbout": [
@@ -114,24 +112,17 @@
         <div class="prose">
           <p>I have been taking things apart and putting them back together wrong, then right,
             for as long as I can remember. Everything here started that way.</p>
-          <p>The mechanical side came first. Parametric CAD, fatigue and flow simulation,
-            prototyping and fabrication &mdash; parts analysed before they get cut and tested
+          <p>The mechanical side came first: parts analysed before they get cut and tested
             after they are assembled, iterated until they hold up under load rather than on a
-            screen. A rover chassis that keeps six wheels on the ground over rough terrain, a
-            tilt-rotor that has to survive the transition from hovering to flying, a laser mount
-            that has to hold a beam on something moving. Every one of those is a problem that
-            does not care how good the render looked.</p>
-          <p>The software side grew out of it, because a drone or a robot is never just
-            mechanical. It is both, designed and integrated as one system: engineering the
-            structure, writing the control that brings it to life, then watching the two click
-            together into something that actually flies or drives. That intersection is where
-            the interesting problems live, and it is what I chase with every build.</p>
+            screen. The software side grew out of it, because a drone or a robot is never just
+            mechanical &mdash; it is a structure and the control that brings it to life,
+            designed as one system. That intersection is where the interesting problems live.</p>
           <p>It is also why I build software for other businesses. Most people making websites
-            have never had to make something work under load, where a failure is a part on the
-            floor rather than a bug report. That changes how you build: you test it, you
-            document it, and you hand it over so somebody else can maintain it. A business
-            website is a small problem by comparison &mdash; which is exactly why it should be
-            done properly, quickly, and for a price you can see before you call.</p>
+            have never had to make something work where a failure is a part on the floor rather
+            than a bug report. That changes how you build: you test it, you document it, and you
+            hand it over so somebody else can maintain it. A business website is a small problem
+            by comparison, which is exactly why it should be done properly, quickly, and for a
+            price you can see before you call.</p>
           <p>I work out of Monterey, California. If you email me, I am the one who answers.</p>
         </div>
         <aside class="prose-aside">
@@ -140,7 +131,7 @@
             <dt>Entity</dt><dd>BuiltByTyler LLC</dd>
             <dt>Team size</dt><dd class="mono">1</dd>
             <dt>Disciplines</dt><dd>Mechanical &amp; software</dd>
-            <dt>Serving</dt><dd>Monterey Bay &amp; the Bay Area</dd>
+            <dt>Serving</dt><dd>Monterey &amp; the Bay Area</dd>
           </dl>
         </aside>
       </div>
@@ -313,15 +304,15 @@
        HTML, but main.js CREATES those canvases for the build plates. Removing
        it blanks every hologram. If the 64 KB is ever worth reclaiming, the fix
        is to load it on demand when a plate scrolls into view. -->
-  <script defer src="assets/js/products.js?v=9"></script>
-  <script defer src="assets/js/components.js?v=9"></script>
-  <script defer src="assets/js/hologram.js?v=9"></script>
-  <script defer src="assets/js/main.js?v=9"></script>
+  <script defer src="assets/js/products.js?v=10"></script>
+  <script defer src="assets/js/components.js?v=10"></script>
+  <script defer src="assets/js/hologram.js?v=10"></script>
+  <script defer src="assets/js/main.js?v=10"></script>
   <!-- ?v=3 busts the module cache. three.js is vendored at assets/vendor/,
        so the star field no longer needs an inline importmap (which the CSP
        blocks) or a third-party fetch from unpkg. A returning visitor still
        holding an older starfield.js would pair it with HTML that no longer
        ships that map, so the version query has to move whenever this does. -->
-  <script type="module" src="assets/js/starfield.js?v=9"></script>
+  <script type="module" src="assets/js/starfield.js?v=10"></script>
 </body>
 </html>

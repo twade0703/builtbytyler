@@ -14,8 +14,8 @@
      id          unique slug used in product.html?id=<id>
      name        display name
      tagline     short one-liner
-     holo        hologram model: "arm" | "drone" | "evtol" | "rccar" |
-                 "transmitter" | "turret" | "rocket" (see hologram.js;
+     holo        hologram model: "arm" | "drone" | "evtol" | "rccar" | "rocket"
+                 (see hologram.js;
                  omit for a clean placeholder panel)
      featured    show on the home page
      available   true = buyable now, false = sold via a build package
@@ -97,43 +97,6 @@ const PRODUCTS = [
       { label: "Drive", value: "Brushed DC · rear wheel" },
       { label: "Chassis", value: "Plate chassis, double wishbone" },
       { label: "Control", value: "2.4GHz pistol-grip transmitter" },
-      { label: "Lead time", value: "Made to order" },
-    ],
-  },
-  {
-    id: "morse-device",
-    name: "Morse Code Device",
-    tagline: "A telegraph key that sends over the air, and a receiver that decodes it",
-    holo: "transmitter",
-    featured: false,
-    available: false,
-    description:
-      "A two-part Morse code kit built on the ESP platform — a transmitter and a matching " +
-      "receiver that key, send and decode Morse over the air, with custom firmware and a " +
-      "clean hand-built enclosure.",
-    specs: [
-      { label: "Platform", value: "ESP32" },
-      { label: "Modules", value: "Transmitter + receiver" },
-      { label: "Output", value: "Audio + light keying" },
-      { label: "Lead time", value: "Made to order" },
-    ],
-  },
-  {
-    id: "laser-tracker",
-    name: "Laser Tracking System",
-    tagline: "Two-axis mount that finds a target and holds a laser on it",
-    holo: "turret",
-    featured: false,
-    available: false,
-    description:
-      "A Raspberry Pi vision system driving a two-axis mount. The camera finds and follows " +
-      "a moving target; the mount slews the laser head onto it and holds the beam there as " +
-      "the target moves — vision-based auto-aim, built and tuned end to end.",
-    specs: [
-      { label: "Brain", value: "Raspberry Pi" },
-      { label: "Motion", value: "2-axis pan/tilt mount" },
-      { label: "Payload", value: "Laser head + camera" },
-      { label: "Tracking", value: "Vision-based auto-aim" },
       { label: "Lead time", value: "Made to order" },
     ],
   },

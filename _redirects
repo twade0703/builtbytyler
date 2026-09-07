@@ -1,13 +1,21 @@
 # Cloudflare Pages redirects.
 #
-# www -> apex. Both hostnames are custom domains on this same Pages project,
-# so before this file www.builtbytyler.com served a byte-identical copy of the
-# apex under its own 200 — two hostnames competing for the same rankings with
-# no canonical to break the tie. The canonical tags now in every <head> tell
-# Google which one wins; this makes it a real 301 so nothing has to guess.
+# www -> apex is NOT handled here. Tested against the live site on 2026-09-07:
+# Cloudflare Pages matches _redirects on the PATH only, so a source with a
+# hostname in it is silently ignored — www.builtbytyler.com still answered 200
+# with its own copy of the page rather than a 301.
 #
-# If Cloudflare ever stops honouring a hostname in the source column, this line
-# silently becomes a no-op rather than an error — verify with:
-#   curl -sI https://www.builtbytyler.com/ | head -1
-# and fall back to a Redirect Rule in the dashboard.
-https://www.builtbytyler.com/* https://builtbytyler.com/:splat 301
+#   curl -sI https://www.builtbytyler.com/ | head -1    # HTTP/1.1 200 OK
+#
+# What holds the line in the meantime is the <link rel="canonical"> now in
+# every page head, which www serves too, pointing at the apex. Google honours
+# that and consolidates the two hosts. A 301 is still the stronger signal, and
+# it has to be made in the dashboard:
+#
+#   Cloudflare > builtbytyler.com > Rules > Redirect Rules > Create
+#     If  hostname equals  www.builtbytyler.com
+#     Then  dynamic redirect  301  to  concat("https://builtbytyler.com", http.request.uri.path)
+#     Preserve query string: on
+#
+# This file is kept because path redirects (an old URL moving, say) do work
+# here and belong in it.

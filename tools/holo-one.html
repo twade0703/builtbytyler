@@ -1,0 +1,16 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><title>holo one</title>
+<style>body{margin:0;background:#04070C;color:#8fb;font:12px monospace;padding:8px}
+.c{position:relative;width:900px;aspect-ratio:4/3;background:radial-gradient(115% 95% at 50% 58%,#06223a,#010305);border:1px solid #234}
+canvas{position:absolute;inset:0;width:100%;height:100%}
+#t{margin-top:6px}</style></head><body>
+<div class="c plate__media"><canvas id="cv"></canvas></div>
+<div id="t"></div>
+<script src="../assets/js/hologram.js"></script>
+<script>
+const type = new URLSearchParams(location.search).get("m") || "arm";
+document.getElementById("cv").setAttribute("data-holo", type);
+const t0 = performance.now();
+window.BBTHolograms.mount();
+document.getElementById("t").textContent = type + " · first render " + (performance.now()-t0).toFixed(1) + " ms";
+document.querySelector(".plate__media").dispatchEvent(new Event("pointerenter"));
+</script></body></html>

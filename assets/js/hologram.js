@@ -558,145 +558,229 @@
 
   /* NEMO camera arm — a six-axis industrial robot on a linear slide.
 
-     The previous version drew the arm as three equal sticks with circles at
-     the joints, which is a diagram of a robot rather than a robot. This one
-     is built the way the real machine is: a cast base on a rail carriage, a
-     structured pedestal leg with a shoulder yoke, a boxed upper arm tapering
-     to the wrist, motor cans on the axes that actually drive, a cable
-     conduit running the length of it, and a camera head on a two-axis wrist.
+     What was wrong with the previous two attempts, and what actually fixes
+     it: the arm was a PLANAR LINKAGE. Three beams pivoting in one flat plane
+     with cylinders at the joints is the shape of a backhoe, not a robot, and
+     no amount of extra greebles on it changes that read.
 
-     Everything that moves is generated per frame with faces as well as
-     lines, so the near side of the arm hides the far side of it and the arm
-     hides the base it is standing on. That, not the extra detail, is what
-     stopped it looking cheap.
+     Three things make an industrial robot recognisable, and it is these
+     rather than detail:
 
-     Motion: parked and folded when idle. On hover it deploys, the carriage
-     slides on the rail, and the head hunts for the viewer, locks on, and
-     occasionally over-rotates and catches itself. */
+       1. It slews. Axis 1 turns the whole arm about a vertical axis on a
+          cast turret. A robot that can only move in one plane is a digger.
+       2. The links are OFFSET LATERALLY from each other. The upper arm hangs
+          off one side of the shoulder casting, the forearm returns toward
+          the centreline. That crank through the machine is the single most
+          identifiable feature of every arm ABB, KUKA and Fanuc have ever
+          built, and drawing everything on one centreline throws it away.
+       3. The links are THICK. A real upper arm is roughly a quarter of its
+          own length across. Thin links read as a mechanism; thick tapered
+          castings read as a machine that can hold something up.
+
+     So: rail carriage, slewing turret, shoulder casting, an offset upper-arm
+     casting with a spine rib, a drum elbow, a forearm carrying the wrist
+     drive, a compact roll-pitch-roll wrist, a tool flange, and a dress pack
+     looping down the outside the way a real one does.
+
+     Kinematics are solved in the arm's own plane — reach along u, height
+     along y, lateral offset along v — and the whole frame is then yawed by
+     axis 1. Everything is drawn with faces so the near side of the arm hides
+     the far side of it, and hides the base underneath. */
   function buildArm() {
     const parts = [];
 
     // ---- linear slide: two guide rails, end mounts, leadscrew, drive ----
     const rx = 0.34, ry = -0.90, rlen = 1.12;
     [-rx, rx].forEach((x) => {
-      parts.push(makeBox(x, ry, 0, 0.085, 0.085, rlen));                 // guide rail
-      parts.push(makeBox(x, ry + 0.052, 0, 0.10, 0.02, rlen));           // rail cap strip
+      parts.push(makeBox(x, ry, 0, 0.085, 0.085, rlen));
+      parts.push(makeBox(x, ry + 0.052, 0, 0.10, 0.02, rlen));
     });
-    parts.push(makeBox(0, ry, rlen / 2, 0.90, 0.15, 0.09));              // front end mount
-    parts.push(makeBox(0, ry, -rlen / 2, 0.90, 0.15, 0.09));             // rear end mount
-    parts.push(tubeAlong([0, ry, -rlen / 2 - 0.09], [0, ry, -rlen / 2 - 0.26], 0.10, 10)); // drive motor
-    parts.push(makeBox(0, ry, -rlen / 2 - 0.28, 0.16, 0.16, 0.05));      // encoder cap
-    parts.push(tubeAlong([0, ry, -rlen / 2], [0, ry, rlen / 2], 0.022, 8)); // leadscrew
-    // cable chain along the near rail
+    parts.push(makeBox(0, ry, rlen / 2, 0.90, 0.15, 0.09));
+    parts.push(makeBox(0, ry, -rlen / 2, 0.90, 0.15, 0.09));
+    parts.push(tubeAlong([0, ry, -rlen / 2 - 0.09], [0, ry, -rlen / 2 - 0.26], 0.10, 10));
+    parts.push(makeBox(0, ry, -rlen / 2 - 0.28, 0.16, 0.16, 0.05));
+    parts.push(tubeAlong([0, ry, -rlen / 2], [0, ry, rlen / 2], 0.022, 8));
     for (let i = 0; i < 9; i++) {
       const z = -rlen / 2 + 0.06 + i * (rlen - 0.12) / 8;
       parts.push(makeBox(rx + 0.075, ry + 0.03, z, 0.035, 0.045, 0.055));
     }
-    parts.push(makeBase(-1.02, 1.06));
+    parts.push(makeBase(-1.02, 0.98));
 
     const m = merge(parts);
     m.spinners = [];
-    m.deploys = true; // parked/collapsed when idle; deploys + records on hover
+    m.deploys = true;
 
     m.dynamic = function (time, deploy, spin, hoverT) {
       deploy = deploy == null ? 1 : deploy;
       spin = spin == null ? 0 : spin;
       hoverT = hoverT == null ? 99 : hoverT;
-      const dep = deploy * deploy * (3 - 2 * deploy);   // smoothstep the deploy
+      const dep = deploy * deploy * (3 - 2 * deploy);
       const segs = [], faces = [], dots = [];
       const P = pen(segs, faces);
 
-      // ---- DOF 0: travel along the rails, only once deployed ----
+      // ---- axis 0: travel along the rails ----
       const bz = Math.sin(time * 0.55) * 0.30 * dep;
+      // ---- axis 1: the slew. Parked square, sweeping once deployed. ----
+      const yaw = Math.sin(time * 0.42 + 0.6) * 0.85 * dep;
+      const cy1 = Math.cos(yaw), sy1 = Math.sin(yaw);
+      /* Local → world. u is reach, y is height, v is the lateral offset that
+         gives the machine its crank. The whole frame yaws about the turret. */
+      const W = (u, y, v) => [u * cy1 + v * sy1, y, bz + (-u * sy1 + v * cy1)];
 
-      // carriage: a plate on two bearing blocks, with a nut housing on the screw
+      // ---- carriage on the rails ----
       P.box(0, -0.845, bz, 0.60, 0.055, 0.40, 1.15);
       [-0.34, 0.34].forEach((x) => {
-        P.box(x, -0.885, bz, 0.155, 0.115, 0.30, 1.05);                  // bearing block
-        P.box(x, -0.822, bz, 0.175, 0.02, 0.32, 0.95);                   // block cap
+        P.box(x, -0.885, bz, 0.155, 0.115, 0.30, 1.05);
+        P.box(x, -0.822, bz, 0.175, 0.02, 0.32, 0.95);
       });
-      P.box(0, -0.885, bz, 0.13, 0.10, 0.13, 1.0);                       // leadscrew nut
+      P.box(0, -0.885, bz, 0.13, 0.10, 0.13, 1.0);
 
-      /* ---- the leg. A tapered four-post pedestal, not a stick. ----
-         Four corner posts leaning inward to a shoulder plate, cross-braced
-         on the two visible faces. It is the part that reads as "this thing
-         could hold a camera up", and it is why the base is worth drawing. */
-      const legY0 = -0.815, legY1 = -0.30;
-      const s0 = 0.215, s1 = 0.120;                                        // half-width, bottom → top
-      const posts = [[-1, -1], [1, -1], [1, 1], [-1, 1]];
-      const foot = posts.map(([a, b]) => [a * s0, legY0, bz + b * s0]);
-      const top = posts.map(([a, b]) => [a * s1, legY1, bz + b * s1]);
-      for (let i = 0; i < 4; i++) P.beam(foot[i], top[i], 0.032, 1.1, 0.026);
-      // cross-braces, alternating direction per face so it reads as a truss
-      for (let i = 0; i < 4; i++) {
-        const j = (i + 1) % 4;
-        const mid = (a, b, f) => [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f, a[2] + (b[2] - a[2]) * f];
-        P.line(foot[i], mid(top[j], foot[j], 0.35), 0.95);
-        P.line(mid(top[i], foot[i], 0.35), top[j], 0.95);
+      // ---- axis 1: cast pedestal and slew ring ----
+      // The pedestal is fixed to the carriage; the turret above the ring
+      // rotates, and every part above it is drawn through W().
+      P.tube([0, -0.815, bz], [0, 1, 0], [
+        { d: 0, r: 0.225 }, { d: 0.07, r: 0.210 }, { d: 0.20, r: 0.160 },
+        { d: 0.36, r: 0.150 }, { d: 0.435, r: 0.172 },
+      ], 16, 1.15);
+      P.ring(0, -0.395, bz, 0.176, 18, "y", 1.05);        // slew ring, lower race
+      P.ring(0, -0.370, bz, 0.184, 18, "y", 1.15);        // slew ring, upper race
+      for (let i = 0; i < 12; i++) {                       // ring bolts
+        const a = (i / 12) * Math.PI * 2;
+        P.line([Math.cos(a) * 0.200, -0.384, bz + Math.sin(a) * 0.200],
+               [Math.cos(a) * 0.200, -0.362, bz + Math.sin(a) * 0.200], 0.85);
       }
-      P.box(0, legY1 + 0.03, bz, 0.30, 0.055, 0.30, 1.15);               // shoulder plate
-      P.box(0, legY0 - 0.02, bz, 0.46, 0.045, 0.46, 1.1);                // base flange
-      [[-1, -1], [1, -1], [1, 1], [-1, 1]].forEach(([a, b]) =>           // bolt bosses
-        P.box(a * 0.185, legY0 - 0.02, bz + b * 0.185, 0.05, 0.06, 0.05, 0.9));
 
-      // ---- the shoulder: a yoke with a motor can hung off one side ----
-      const SH = [0, -0.215, bz];
-      P.box(SH[0], SH[1], SH[2], 0.20, 0.145, 0.20, 1.15);
-      [-1, 1].forEach((sd) => P.box(sd * 0.125, SH[1] + 0.02, SH[2], 0.055, 0.19, 0.155, 1.05));
-      P.tube([0.20, SH[1] + 0.02, bz], [1, 0, 0], [
-        { d: 0, r: 0.075 }, { d: 0.10, r: 0.085 }, { d: 0.145, r: 0.06 },
-      ], 10, 1.05);                                                       // shoulder motor can
-      P.ring(0.155, SH[1] + 0.02, bz, 0.055, 10, "x", 1.0);              // output shaft
-
-      /* ---- DOF 1-3. Links lerp from a parked, folded pose to a live
-             recording sweep. Widths taper toward the wrist. ---- */
-      const L = [0.50, 0.42, 0.28];
+      /* ---- axes 2 & 3: the arm plane ----
+         Parked folded down over the base; deployed into a live sweep. */
+      const SHy = -0.250, SHv = 0.0;                       // shoulder pivot
+      const L2 = 0.500, L3 = 0.425, L4 = 0.140;            // upper arm, forearm, wrist
       const ext = [
-        -0.05 + Math.sin(time * 0.7) * 0.42,        // shoulder
-         0.85 + Math.sin(time * 1.05 + 1.1) * 0.40, // elbow
-        -0.40 + Math.sin(time * 1.5 + 2.2) * 0.50,  // wrist
+        -0.28 + Math.sin(time * 0.62) * 0.42,              // axis 2, off vertical
+         1.15 + Math.sin(time * 0.94 + 1.1) * 0.52,        // axis 3, elbow
+        -0.55 + Math.sin(time * 1.35 + 2.2) * 0.55,        // axis 5, wrist pitch
       ];
-      const col = [0.70, 1.90, 1.70];               // parked / folded-down pose
-      const rel = [
-        col[0] + (ext[0] - col[0]) * dep,
-        col[1] + (ext[1] - col[1]) * dep,
-        col[2] + (ext[2] - col[2]) * dep,
-      ];
-      let dir = 0, x = SH[0], y = SH[1];
-      const J = [[x, y, bz]];
-      for (let i = 0; i < 3; i++) {
-        dir += rel[i];
-        x += Math.sin(dir) * L[i];
-        y += Math.cos(dir) * L[i];
-        J.push([x, y, bz]);
-      }
+      const col = [1.05, 1.95, 1.15];                      // parked, folded over the base
+      const a2 = col[0] + (ext[0] - col[0]) * dep;
+      const a3 = col[1] + (ext[1] - col[1]) * dep;
+      const a5 = col[2] + (ext[2] - col[2]) * dep;
 
-      // links, tapering; plus a slim cable conduit riding the outside of each
-      const bw = [0.072, 0.056, 0.040];
-      for (let i = 0; i < 3; i++) {
-        P.beam(J[i], J[i + 1], bw[i], 1.2, bw[i] * 0.82);
-        const off = 0.055 - i * 0.012;
-        P.line([J[i][0], J[i][1], bz + off], [J[i + 1][0], J[i + 1][1], bz + off], 0.9);
-      }
-      // joint housings: a can on the axis, with a cap ring on the near face
-      const kr = [0.105, 0.085, 0.062];
-      for (let i = 0; i < 3; i++) {
-        P.tube([J[i][0], J[i][1], bz - 0.075], [0, 0, 1], [
-          { d: 0, r: kr[i] }, { d: 0.15, r: kr[i] },
-        ], 12, 1.1);
-        P.cap([J[i][0], J[i][1], bz + 0.075], [1, 0, 0], [0, 1, 0], kr[i], 12, 1.0);
-        P.cap([J[i][0], J[i][1], bz - 0.075], [0, 1, 0], [1, 0, 0], kr[i], 12, 1.0);
-        P.ring(J[i][0], J[i][1], bz + 0.078, kr[i] * 0.55, 10, "z", 0.95);
-      }
-      // elbow drive: a motor can offset from the joint, belted to it
-      P.tube([J[1][0], J[1][1], bz + 0.135], [0, 0, 1], [
-        { d: 0, r: 0.062 }, { d: 0.085, r: 0.062 },
-      ], 10, 1.0);
+      const SH = [0, SHy];                                  // (u, y)
+      const EL = [SH[0] + Math.sin(a2) * L2, SH[1] + Math.cos(a2) * L2];
+      const d23 = a2 + a3;
+      const WR = [EL[0] + Math.sin(d23) * L3, EL[1] + Math.cos(d23) * L3];
+      const d5 = d23 + a5;
+      const TL = [WR[0] + Math.sin(d5) * L4, WR[1] + Math.cos(d5) * L4];
 
-      /* ---- wrist + camera head. Once deployed the head hunts for the
-             viewer, locks on, and every so often over-rotates, wobbles,
-             and catches itself. ---- */
-      const e = J[3];
+      // lateral offsets: the crank through the machine
+      const vSH = 0.0, vUP = 0.098, vEL = 0.098, vFA = 0.030, vWR = 0.0;
+
+      /* A tapered casting between two stations in the arm plane, at a
+         lateral offset that can differ end to end. Four longerons plus a
+         spine rib on the outer face — a real upper arm is a ribbed casting,
+         not a smooth bar, and the rib is what sells it at this size. */
+      const casting = (A, B, vA, vB, wA, wB, rib) => {
+        const dU = B[0] - A[0], dY = B[1] - A[1];
+        const len = Math.hypot(dU, dY) || 1;
+        const nu = -dY / len, ny = dU / len;              // in-plane normal
+        const corner = (Pt, v, w) => [
+          W(Pt[0] + nu * w, Pt[1] + ny * w, v + w),
+          W(Pt[0] - nu * w, Pt[1] - ny * w, v + w),
+          W(Pt[0] - nu * w, Pt[1] - ny * w, v - w),
+          W(Pt[0] + nu * w, Pt[1] + ny * w, v - w),
+        ];
+        const cA = corner(A, vA, wA), cB = corner(B, vB, wB);
+        for (let i = 0; i < 4; i++) {
+          const j = (i + 1) % 4;
+          P.line(cA[i], cA[j], 1.2); P.line(cB[i], cB[j], 1.2); P.line(cA[i], cB[i], 1.2);
+          P.face([cA[i], cA[j], cB[j], cB[i]]);
+        }
+        P.face([cA[0], cA[1], cA[2], cA[3]]);
+        P.face([cB[3], cB[2], cB[1], cB[0]]);
+        if (rib) {
+          // a raised spine down the outboard face
+          const r = 0.4;
+          P.line(W(A[0] + nu * wA * r, A[1] + ny * wA * r, vA + wA * 1.22),
+                 W(B[0] + nu * wB * r, B[1] + ny * wB * r, vB + wB * 1.22), 0.95);
+          P.line(W(A[0] - nu * wA * r, A[1] - ny * wA * r, vA + wA * 1.22),
+                 W(B[0] - nu * wB * r, B[1] - ny * wB * r, vB + wB * 1.22), 0.95);
+        }
+        return { nu, ny, len };
+      };
+
+      // A joint drum: a short cylinder whose axis is the lateral direction.
+      const drum = (Pt, v, r, halfLen, seg, lw) => {
+        const c0 = W(Pt[0], Pt[1], v - halfLen), c1 = W(Pt[0], Pt[1], v + halfLen);
+        const ax = [c1[0] - c0[0], c1[1] - c0[1], c1[2] - c0[2]];
+        const axLen = Math.hypot(ax[0], ax[1], ax[2]) || 1;
+        P.tube(c0, ax, [{ d: 0, r: r }, { d: axLen, r: r }], seg, lw);
+        const u1 = V.norm(V.sub(W(Pt[0] + 1, Pt[1], v), W(Pt[0], Pt[1], v)));
+        const u2 = [0, 1, 0];
+        P.cap(c1, u1, u2, r, seg, lw * 0.9);
+        P.cap(c0, u2, u1, r, seg, lw * 0.9);
+        return { c0, c1, u1, u2 };
+      };
+
+      // ---- shoulder casting: a wide box straddling the turret, with the
+      //      axis-2 drum hung off one side ----
+      P.box(0, SHy - 0.055, bz, 0.30, 0.16, 0.30, 1.15, (x, y, z) => W(x, y, z - bz));
+      const sh = drum(SH, vSH + 0.055, 0.132, 0.075, 14, 1.15);
+      // axis-2 motor can on the opposite side of the casting, so the machine
+      // is visibly not symmetrical — real ones never are
+      const mc0 = W(SH[0], SH[1], vSH - 0.085), mc1 = W(SH[0] - 0.015, SH[1] - 0.015, vSH - 0.225);
+      const mcL = Math.hypot(mc1[0] - mc0[0], mc1[1] - mc0[1], mc1[2] - mc0[2]);
+      P.tube(mc0, V.sub(mc1, mc0), [
+        { d: 0, r: 0.092 }, { d: mcL * 0.72, r: 0.092 }, { d: mcL, r: 0.064 },
+      ], 12, 1.05);
+      P.cap(mc1, sh.u1, sh.u2, 0.064, 12, 0.95);
+
+      // ---- upper arm: thick tapered casting, offset to one side ----
+      casting(SH, EL, vSH + 0.048, vEL, 0.104, 0.082, true);
+      // ---- elbow drum + axis-3 drive ----
+      const el = drum(EL, vEL, 0.098, 0.082, 14, 1.15);
+      const em0 = W(EL[0], EL[1], vEL + 0.09), em1 = W(EL[0] - 0.012, EL[1] - 0.012, vEL + 0.205);
+      const emL = Math.hypot(em1[0] - em0[0], em1[1] - em0[1], em1[2] - em0[2]);
+      P.tube(em0, V.sub(em1, em0), [{ d: 0, r: 0.064 }, { d: emL, r: 0.058 }], 10, 1.0);
+      P.cap(em1, el.u1, el.u2, 0.058, 10, 0.9);
+
+      // ---- forearm: returns toward the centreline, carrying the wrist drive ----
+      casting(EL, WR, vEL - 0.010, vFA, 0.080, 0.056, false);
+      // wrist drive housing sat on top of the forearm, two thirds along
+      const fm = [EL[0] + (WR[0] - EL[0]) * 0.62, EL[1] + (WR[1] - EL[1]) * 0.62];
+      const fn = V.norm(V.sub([WR[0], WR[1], 0], [EL[0], EL[1], 0]));
+      P.box(fm[0], fm[1], vFA + 0.005, 0.11, 0.085, 0.15, 1.0,
+            (x, y, z) => W(x, y, z));
+
+      /* ---- the wrist: roll · pitch · roll, three short cylinders in
+             series at right angles. Compact and busy, which is exactly how a
+             real wrist looks next to the arm carrying it. ---- */
+      const wrDir = [Math.sin(d23), Math.cos(d23)];                 // forearm axis
+      const wrA = W(WR[0], WR[1], vWR);
+      const wrB = W(WR[0] + wrDir[0] * 0.075, WR[1] + wrDir[1] * 0.075, vWR);
+      const wrL = Math.hypot(wrB[0] - wrA[0], wrB[1] - wrA[1], wrB[2] - wrA[2]);
+      P.tube(wrA, V.sub(wrB, wrA), [{ d: 0, r: 0.062 }, { d: wrL, r: 0.058 }], 12, 1.1); // axis 4 roll
+      drum(WR, vWR, 0.058, 0.062, 12, 1.05);                        // axis 5 pitch
+      const tlDir = [Math.sin(d5), Math.cos(d5)];
+      const fl0 = W(WR[0] + tlDir[0] * 0.045, WR[1] + tlDir[1] * 0.045, vWR);
+      const fl1 = W(TL[0], TL[1], vWR);
+      const flL = Math.hypot(fl1[0] - fl0[0], fl1[1] - fl0[1], fl1[2] - fl0[2]) || 0.001;
+      P.tube(fl0, V.sub(fl1, fl0), [
+        { d: 0, r: 0.050 }, { d: flL * 0.78, r: 0.046 }, { d: flL, r: 0.060 },
+      ], 12, 1.1);
+
+      /* ---- dress pack: the cable loop every real arm carries down its
+             outside. It sags between the shoulder and the forearm and moves
+             with them, which is a lot of life for four line segments. ---- */
+      const sag = 0.10 + 0.05 * Math.sin(time * 0.62);
+      const dpA = W(SH[0] - 0.06, SH[1] + 0.06, vSH + 0.135);
+      const dpB = W(EL[0] - 0.04, EL[1] + 0.02, vEL + 0.125);
+      const dpC = W(fm[0], fm[1] + 0.04, vFA + 0.085);
+      const mid1 = [(dpA[0] + dpB[0]) / 2, (dpA[1] + dpB[1]) / 2 - sag, (dpA[2] + dpB[2]) / 2];
+      const mid2 = [(dpB[0] + dpC[0]) / 2, (dpB[1] + dpC[1]) / 2 - sag * 0.6, (dpB[2] + dpC[2]) / 2];
+      P.poly([dpA, mid1, dpB, mid2, dpC], 1.0);
+
+      /* ---- tool: the camera head on the flange. Once deployed it hunts for
+             the viewer, locks on, and occasionally over-rotates and catches
+             itself. ---- */
       const trip = (time * 0.15) % 1;
       let wob = 0;
       if (trip < 0.32) { const q = trip / 0.32; wob = Math.sin(q * Math.PI * 2.4) * Math.exp(-q * 3.2) * 0.7; }
@@ -706,9 +790,10 @@
       const searchGaze = Math.PI * Math.max(0, 1 - hoverT * 0.5) + Math.sin(hoverT * 3.0) * 1.1;
       const gaze = searchGaze * (1 - lockS) + (-wob) * lockS;
       const pitch = 0.408 * lockS + scanPitch * (1 - lockS);
-      const ga = spin + gaze;
+      const ga = spin + yaw + gaze;
+      // parked, the head simply points along the tool flange
+      const fPark = V.norm(V.sub(W(TL[0] + tlDir[0], TL[1] + tlDir[1], vWR), fl1));
       const fActive = [0.913 * Math.sin(ga), pitch, -0.913 * Math.cos(ga)];
-      const fPark = [Math.sin(dir), Math.cos(dir), 0];
       const f = V.norm([
         fPark[0] * (1 - dep) + fActive[0] * dep,
         fPark[1] * (1 - dep) + fActive[1] * dep,
@@ -718,16 +803,13 @@
       if (Math.hypot(rgt[0], rgt[1], rgt[2]) < 0.001) rgt = [1, 0, 0];
       rgt = V.norm(rgt);
       const cup = V.cross(f, rgt);
-      const O = [e[0], e[1], bz];
+      const O = fl1;
       const Pt = (d, u, v) => [
         O[0] + f[0] * d + rgt[0] * u + cup[0] * v,
         O[1] + f[1] * d + rgt[1] * u + cup[1] * v,
         O[2] + f[2] * d + rgt[2] * u + cup[2] * v,
       ];
-
-      // wrist roll can, then the head body
-      P.tube(Pt(-0.04, 0, 0), f, [{ d: 0, r: 0.058 }, { d: 0.06, r: 0.070 }], 10, 1.05);
-      const hw = 0.105, hh = 0.085, dB = 0.03, dF = 0.24;
+      const hw = 0.098, hh = 0.080, dB = 0.02, dF = 0.215;
       const bk = [Pt(dB, -hw, -hh), Pt(dB, hw, -hh), Pt(dB, hw, hh), Pt(dB, -hw, hh)];
       const fr = [Pt(dF, -hw, -hh), Pt(dF, hw, -hh), Pt(dF, hw, hh), Pt(dF, -hw, hh)];
       for (let i = 0; i < 4; i++) {
@@ -737,19 +819,15 @@
       }
       P.face([bk[3], bk[2], bk[1], bk[0]]);
       P.face(fr);
-      // lens barrel standing proud of the front face, plus a second sensor
-      P.tube(Pt(dF, -0.01, -0.015), f, [
-        { d: 0, r: 0.060 }, { d: 0.05, r: 0.060 }, { d: 0.062, r: 0.046 },
+      P.tube(Pt(dF, -0.01, -0.012), f, [
+        { d: 0, r: 0.058 }, { d: 0.05, r: 0.058 }, { d: 0.064, r: 0.044 },
       ], 12, 1.1);
-      P.tube(Pt(dF, 0.070, 0.048), f, [{ d: 0, r: 0.026 }, { d: 0.03, r: 0.026 }], 8, 0.95);
-      // a cooling fin pair on top, and the antenna nub
-      [-0.03, 0.03].forEach((u) => P.line(Pt(0.06, u, hh), Pt(0.20, u, hh + 0.018), 0.9));
-      P.line(Pt(0.09, 0, hh), Pt(0.09, 0, hh + 0.075), 1.0);
-      P.ring(Pt(0.09, 0, hh + 0.075)[0], Pt(0.09, 0, hh + 0.075)[1], Pt(0.09, 0, hh + 0.075)[2], 0.016, 6, "y", 0.9);
+      P.tube(Pt(dF, 0.066, 0.046), f, [{ d: 0, r: 0.024 }, { d: 0.028, r: 0.024 }], 8, 0.95);
+      [-0.028, 0.028].forEach((u) => P.line(Pt(0.05, u, hh), Pt(0.18, u, hh + 0.016), 0.9));
+      P.line(Pt(0.08, 0, hh), Pt(0.08, 0, hh + 0.070), 1.0);
 
-      const lc = Pt(dF + 0.075, -0.01, -0.015);
+      const lc = Pt(dF + 0.075, -0.01, -0.012);
       dots.push([lc[0], lc[1], lc[2], 2.4 + lockS * 1.6, 1]);
-      // a red-eye record tally on the head's shoulder, lit once locked
       const tally = Pt(dB + 0.03, hw, hh * 0.6);
       dots.push([tally[0], tally[1], tally[2], lockS > 0.9 ? 2.0 : 0.9, lockS > 0.9 ? 1 : 0]);
       return { segments: segs, faces, dots };

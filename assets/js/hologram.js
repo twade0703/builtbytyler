@@ -700,9 +700,22 @@
       const segs = [], faces = [], dots = [];
       const P = pen(segs, faces);
 
-      // axis 0: the carriage runs most of the rail, because that is the point
-      const bz = Math.sin(time * 0.42) * (rlen * 0.34) * dep;
-      const yaw = Math.sin(time * 0.40 + 0.6) * 0.85 * dep;
+      /* THE SUBJECT. Everything below is solved to keep the camera on this
+         point, so the rig is doing a job rather than running through angles.
+         It crosses in front of the rail, drifts nearer and further, and
+         changes height slightly — a person moving around a set. */
+      const SUB = [
+        0.74 + Math.sin(time * 0.23 + 1.1) * 0.18,
+        -0.15 + Math.sin(time * 0.51) * 0.06,
+        Math.sin(time * 0.30) * 0.82,
+      ];
+
+      // axis 0: the carriage runs the rail to keep pace with the subject —
+      // which is the entire reason a slider this long exists
+      const bz = Math.max(-rlen * 0.40, Math.min(rlen * 0.40, SUB[2])) * dep;
+      // axis 1: slew to face it. W() maps local reach +u to world
+      // (cos yaw, -sin yaw), so the yaw that points at the subject is this.
+      const yaw = Math.atan2(-(SUB[2] - bz), SUB[0]) * dep;
       const cy1 = Math.cos(yaw), sy1 = Math.sin(yaw);
       const W = (u, y, v) => [u * cy1 + v * sy1, y, bz + (-u * sy1 + v * cy1)];
 
@@ -742,15 +755,29 @@
       /* ---- axes 2, 3 and 5. Longer links than before, because the arm
              grew with the rail; the last one is still the short one. ---- */
       const L2 = 0.520, L3 = 0.330, L4 = 0.088;
-      const ext = [
-        -0.24 + Math.sin(time * 0.62) * 0.38,
-         1.05 + Math.sin(time * 0.94 + 1.1) * 0.46,
-        -0.50 + Math.sin(time * 1.35 + 2.2) * 0.46,
-      ];
+
+      /* Two-link inverse kinematics. Given where the wrist should be — out
+         toward the subject, a little above it — this solves the shoulder and
+         elbow that put it there, instead of animating both and hoping. The
+         reach is a fraction of the distance to the subject so the camera
+         sits between the rig and the shot rather than lunging at it. */
+      const clamp = (v, lo, hi) => (v < lo ? lo : v > hi ? hi : v);
+      const flat = Math.hypot(SUB[0], SUB[2] - bz);
+      const reach = clamp(flat * 0.44, 0.22, L2 + L3 - 0.07);
+      const rise = clamp((SUB[1] - SHy) + 0.15, -0.10, L2 + L3 - 0.10);
+      const D = clamp(Math.hypot(reach, rise), Math.abs(L2 - L3) + 0.02, L2 + L3 - 0.02);
+      const interior = Math.acos(clamp((L2 * L2 + L3 * L3 - D * D) / (2 * L2 * L3), -1, 1));
+      const offset = Math.acos(clamp((L2 * L2 + D * D - L3 * L3) / (2 * L2 * D), -1, 1));
+      const a2ik = Math.atan2(reach, rise) - offset;
+      const a3ik = Math.PI - interior;                     // elbow up
+      // wrist pitch drops the flange toward the subject
+      const a5ik = -(a2ik + a3ik) + Math.atan2(reach, rise) - 0.30;
+
+      // parked: folded down over the base until the rig is woken up
       const col = [1.00, 1.92, 1.06];
-      const a2 = col[0] + (ext[0] - col[0]) * dep;
-      const a3 = col[1] + (ext[1] - col[1]) * dep;
-      const a5 = col[2] + (ext[2] - col[2]) * dep;
+      const a2 = col[0] + (a2ik - col[0]) * dep;
+      const a3 = col[1] + (a3ik - col[1]) * dep;
+      const a5 = col[2] + (a5ik - col[2]) * dep;
 
       const SH = [0, SHy];
       const EL = [SH[0] + Math.sin(a2) * L2, SH[1] + Math.cos(a2) * L2];
@@ -878,18 +905,15 @@
       }
 
       // ---- the camera on the mount ----
-      const trip = (time * 0.15) % 1;
-      let wob = 0;
-      if (trip < 0.32) { const q = trip / 0.32; wob = Math.sin(q * Math.PI * 2.4) * Math.exp(-q * 3.2) * 0.6; }
-      const lock = Math.max(0, Math.min(1, (hoverT - 1.9) / 0.6));
+      /* The head looks at the subject. A small lagging correction is added
+         on top: a real operator is always a fraction behind the movement and
+         catching up, and a head that tracks perfectly reads as a servo. */
+      const lock = Math.max(0, Math.min(1, (hoverT - 1.2) / 0.8));
       const lockS = lock * lock * (3 - 2 * lock);
-      const scanPitch = 0.12 + Math.sin(hoverT * 2.2 + 1.0) * 0.26;
-      const searchGaze = Math.PI * Math.max(0, 1 - hoverT * 0.5) + Math.sin(hoverT * 3.0) * 1.0;
-      const gaze = searchGaze * (1 - lockS) + (-wob) * lockS;
-      const pitch = 0.40 * lockS + scanPitch * (1 - lockS);
-      const ga = spin + yaw + gaze;
+      const settle = Math.sin(time * 1.7) * 0.035 * (1 - lockS * 0.7);
+      const aim = V.norm(V.sub(SUB, f1));
+      const fAct = V.norm([aim[0], aim[1] + settle, aim[2]]);
       const fPark = V.norm(V.sub(W(TL[0] + tDir[0], TL[1] + tDir[1], vFA), f1));
-      const fAct = [0.913 * Math.sin(ga), pitch, -0.913 * Math.cos(ga)];
       const fv = V.norm([
         fPark[0] * (1 - dep) + fAct[0] * dep,
         fPark[1] * (1 - dep) + fAct[1] * dep,
@@ -927,8 +951,25 @@
 
       const lc = C(z1 + 0.064, 0, -0.003);
       dots.push([lc[0], lc[1], lc[2], 2.2 + lockS * 1.3, 1]);
+      // record tally, blinking the way a camera's does while rolling
+      const rolling = lockS > 0.9 && (time * 1.1) % 1 < 0.62;
       const tally = C(z0 + 0.012, bw * 0.6, bh);
-      dots.push([tally[0], tally[1], tally[2], lockS > 0.9 ? 1.9 : 0.85, lockS > 0.9 ? 1 : 0]);
+      dots.push([tally[0], tally[1], tally[2], rolling ? 2.0 : 0.85, rolling ? 1 : 0]);
+
+      /* What it is shooting: a framing reticle on the subject, closing in as
+         the shot settles. Without this the arm is aiming at nothing and the
+         viewer has no way to know it is tracking rather than sweeping. */
+      if (dep > 0.4) {
+        const fr2 = 0.10 + (1 - lockS) * 0.10, tick = 0.038;
+        const rt = V.norm(V.cross(fv, [0, 1, 0]));
+        const upv = V.cross(fv, rt);
+        [[-1, -1], [1, -1], [1, 1], [-1, 1]].forEach(([sx, sy]) => {
+          const corner = V.add(SUB, V.add(V.mul(rt, sx * fr2), V.mul(upv, sy * fr2)));
+          P.line(corner, V.sub(corner, V.mul(rt, sx * tick)), 0.95);
+          P.line(corner, V.sub(corner, V.mul(upv, sy * tick)), 0.95);
+        });
+        dots.push([SUB[0], SUB[1], SUB[2], 1.5, lockS > 0.9 ? 1 : 0]);
+      }
       return { segments: segs, faces, dots };
     };
     return m;
@@ -1543,13 +1584,18 @@
       // 1.5 left visible stair-stepping on the thin far edges, which is
       // most of what made these look low-fidelity. The extra cost is a
       // one-off: only a hovered hologram animates.
-      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      dpr = Math.min(window.devicePixelRatio || 1, 1.6);
       canvas.width = Math.round(w * dpr);
       canvas.height = Math.round(h * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       // 0.36 left the models floating small in a large frame. 0.41 fills the
       // card without the ground ellipse (radius 1.1) touching the edges.
-      scale = Math.min(w, h) * 0.41 * (model.zoom || 1);
+      /* Fit the model to the frame rather than hoping a fixed scale suits
+         it. fitR/fitY are the widest and tallest this model ever projects,
+         measured once at construction over a full turn; 0.46 leaves a margin
+         so the base pad's tick marks are not clipped. model.zoom stays as a
+         deliberate nudge on top for compositions that want to sit smaller. */
+      scale = Math.min(w * 0.46 / fitR, h * 0.46 / fitY) * (model.zoom || 1);
       cx = w / 2;
       cy = h / 2 + h * 0.04;
     }
@@ -1574,6 +1620,37 @@
       const f = viewerDist / (viewerDist + Z2); // perspective foreshortening
       return [cx + X * f * scale, cy - Y2 * f * scale, f, -Z2];
     }
+
+    /* How far this model reaches, in projected units at scale 1. Sampled
+       over twelve rotations, and INCLUDING live geometry sampled through a
+       cycle — otherwise a rotor disc or an extended arm link, which exist
+       only inside dynamic(), hangs out of a frame sized to the static shell. */
+    let fitR = 1, fitY = 1;
+    (function measure() {
+      const pts = model.v.slice();
+      if (model.dynamic) {
+        for (let k = 0; k < 6; k++) {
+          let gen;
+          try { gen = model.dynamic(k * 1.7, 1, 0, 99); } catch (e) { break; }
+          (gen.segments || []).forEach((sg) => { pts.push([sg[0], sg[1], sg[2]], [sg[3], sg[4], sg[5]]); });
+          (gen.faces || []).forEach((f) => f.forEach((q) => pts.push(q)));
+        }
+      }
+      let mr = 0.001, my = 0.001;
+      for (let a = 0; a < 12; a++) {
+        const th = (a / 12) * Math.PI * 2, ca = Math.cos(th), sa = Math.sin(th);
+        for (let i = 0; i < pts.length; i++) {
+          const q = pts[i];
+          const X = q[0] * ca + q[2] * sa, Z = -q[0] * sa + q[2] * ca;
+          const Y2 = q[1] * cosT - Z * sinT, Z2 = q[1] * sinT + Z * cosT;
+          const f = viewerDist / (viewerDist + Z2);
+          const px = Math.abs(X * f), py = Math.abs(Y2 * f);
+          if (px > mr) mr = px;
+          if (py > my) my = py;
+        }
+      }
+      fitR = mr; fitY = my;
+    })();
 
     /* ---------------- the hologram renderer ----------------
        This is a solid-surface renderer that happens to be drawn as a
@@ -1756,6 +1833,18 @@
           zs += p[3];
         }
         if (!ok) continue;
+        // Cull faces below a couple of pixels square. They cost a subpath
+        // each and contribute nothing — on the long-rail models that is a
+        // few hundred of them per frame.
+        let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+        for (let k = 0; k < n; k++) {
+          const q = proj[fa[k]];
+          if (q[0] < x0) x0 = q[0];
+          if (q[0] > x1) x1 = q[0];
+          if (q[1] < y0) y0 = q[1];
+          if (q[1] > y1) y1 = q[1];
+        }
+        if ((x1 - x0) * (y1 - y0) < 5) continue;
         // Face normal in model space, then through the same rotation the
         // vertices took, so the light is fixed to the viewer and the model
         // turns underneath it.
@@ -1891,7 +1980,11 @@
           ctx.lineTo(ar[k + 2], ar[k + 3]);
         }
         ctx.stroke();
-        if (depth > 0.66) for (let k = 0; k < ar.length; k++) rimEdges.push(ar[k]);
+        // Only the nearest quarter feeds the glow. shadowBlur is the most
+        // expensive operation on the canvas and its cost scales with both the
+        // path length and the blurred area, so this is the cheapest real
+        // saving available without changing how it looks.
+        if (depth > 0.76) for (let k = 0; k < ar.length; k++) rimEdges.push(ar[k]);
       }
 
       // ---- 2. rim pass ----
@@ -1902,7 +1995,7 @@
         const prevOp = ctx.globalCompositeOperation;
         ctx.globalCompositeOperation = "lighter";
         ctx.shadowColor = "rgba(" + rgb + ",0.9)";
-        ctx.shadowBlur = 9;
+        ctx.shadowBlur = 7;
         ctx.strokeStyle = "rgba(" + cNear.join(",") + "," + (0.20 * flicker).toFixed(3) + ")";
         ctx.lineWidth = 1.05;
         ctx.beginPath();
@@ -1955,23 +2048,34 @@
       }
     }
 
-    // Cap the spin to ~40fps — visually smooth, but far less work per second
-    // than running flat-out at 60/120Hz while a card is hovered.
+    /* Run at the display's rate, and advance by elapsed time.
+
+       The old loop capped itself at 40fps by discarding any frame that
+       arrived inside a 25ms window. On a 60Hz display that leaves frames
+       2,1,2,1 vsyncs apart: the motion is not slow, it is unevenly paced,
+       and uneven pacing is exactly what reads as lag. Worse, everything
+       advanced per FRAME, so the same animation ran at different speeds on
+       different displays.
+
+       T_RATE and SPIN_RATE are the old per-frame steps times the old 40fps
+       cap, so nothing changes speed — it just arrives smoothly now. dt is
+       clamped so a backgrounded tab returning does not jump the animation. */
     let lastTs = 0;
-    const frameMin = 1000 / 40;
+    const T_RATE = 0.018 * 40;      // model time per second
+    const SPIN_RATE = 0.0055 * 40;  // radians per second
     function loop(ts) {
       raf = requestAnimationFrame(loop);
-      if (document.hidden) return;
-      if (lastTs && ts - lastTs < frameMin) return;
+      if (document.hidden) { lastTs = ts; return; }
+      const dt = lastTs ? Math.min(0.05, (ts - lastTs) / 1000) : 1 / 60;
       lastTs = ts;
-      t += 0.018;
-      angY += 0.0055; // calmer, more deliberate rotation
+      t += T_RATE * dt;
+      angY += SPIN_RATE * dt;
       if (model.deploys) {
         const target = hovered ? 1 : 0;
-        deploy += (target - deploy) * 0.09; // ease toward parked / deployed
+        deploy += (target - deploy) * Math.min(1, 3.6 * dt); // ease, per second
         if (Math.abs(target - deploy) < 0.003) deploy = target;
       }
-      hoverT = hovered ? hoverT + 0.018 : 0; // reset each time the hover starts
+      hoverT = hovered ? hoverT + T_RATE * dt : 0;
       render();
       // Wind the loop down once idle (and, for deploying models, fully parked).
       if (!hovered && !(model.deploys && deploy > 0.003)) { cancelAnimationFrame(raf); raf = 0; }

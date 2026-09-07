@@ -18,9 +18,23 @@
   "use strict";
 
   /* ---------------- geometry primitives ----------------
-     Every builder returns { v: [[x,y,z]...], e: [[i,j]...] }.
-     Models are authored around the origin, roughly within a unit
-     sphere; the renderer scales them to the canvas. */
+     Every builder returns { v: [[x,y,z]...], e: [[i,j]...], f: [[i,j,k,...]] }.
+
+     `f` is the surface list, and it is the whole reason these models stopped
+     looking like a tangle of lines. Without faces there is nothing to hide a
+     far edge behind a near one, so every model reads as a transparent mess of
+     identical strokes no matter how well the strokes are graded. With faces
+     the renderer can sort back to front, fill each surface with near-black,
+     and let the near side of an object cover the far side of it — which is
+     what a viewer reads as "solid".
+
+     Faces are wound consistently anticlockwise seen from outside where it is
+     cheap to do so. Nothing depends on that being perfect: the renderer sorts
+     rather than culls, so a face wound the wrong way is shaded as a back face
+     and still occludes correctly. It never disappears.
+
+     Models are authored around the origin, roughly within a unit sphere; the
+     renderer scales them to the canvas. */
 
   /* Propeller blade planform, normalised to a unit radius: narrow root,
      widest around 60% span, swept and rounded off at the tip. Shared by
@@ -42,10 +56,15 @@
       [0, 1], [1, 2], [2, 3], [3, 0], [4, 5], [5, 6], [6, 7], [7, 4],
       [0, 4], [1, 5], [2, 6], [3, 7],
     ];
-    return { v, e };
+    const f = [
+      [4, 5, 6, 7], [1, 0, 3, 2], [0, 4, 7, 3],
+      [5, 1, 2, 6], [0, 1, 5, 4], [3, 7, 6, 2],
+    ];
+    return { v, e, f };
   }
 
   // Circle of `seg` points; axis = the axis it is perpendicular to.
+  // A ring is an outline, not a surface — see makeDisc for a capped one.
   function makeRing(cx, cy, cz, r, seg, axis) {
     const v = [], e = [];
     for (let i = 0; i < seg; i++) {
@@ -56,19 +75,37 @@
       else v.push([cx, cy + c, cz + s]); // axis === 'x'
       e.push([i, (i + 1) % seg]);
     }
-    return { v, e };
+    return { v, e, f: [] };
   }
 
-  // Short tube along Y: two rings + vertical struts.
-  function makeCylinderY(cx, cy, cz, r, len, seg) {
+  // A filled circle — a ring plus the n-gon that closes it. Used for the ends
+  // of tubes, where an open ring lets you see straight through the object.
+  function makeDisc(cx, cy, cz, r, seg, axis) {
+    const m = makeRing(cx, cy, cz, r, seg, axis);
+    m.f = [m.v.map((_, i) => i)];
+    return m;
+  }
+
+  // Short tube along Y: two rings, vertical struts, side quads and two caps.
+  function makeCylinderY(cx, cy, cz, r, len, seg, open) {
     const top = makeRing(cx, cy + len / 2, cz, r, seg, "y");
     const bot = makeRing(cx, cy - len / 2, cz, r, seg, "y");
     const parts = merge([top, bot]);
     for (let i = 0; i < seg; i++) parts.e.push([i, i + seg]);
+    for (let i = 0; i < seg; i++) {
+      const j = (i + 1) % seg;
+      parts.f.push([i, j, j + seg, i + seg]);
+    }
+    if (!open) {
+      parts.f.push(top.v.map((_, i) => i));
+      parts.f.push(bot.v.map((_, i) => seg + i).reverse());
+    }
     return parts;
   }
 
   // A capsule/segment box spanning two 3D joints (used for arm links).
+  // Built from makeBox, so it inherits its six faces; only the coordinates
+  // are remapped, and face indices are untouched.
   function segBox(p0, p1, thick) {
     const mx = (p0[0] + p1[0]) / 2, my = (p0[1] + p1[1]) / 2, mz = (p0[2] + p1[2]) / 2;
     const dx = p1[0] - p0[0], dy = p1[1] - p0[1];
@@ -81,21 +118,25 @@
   }
 
   function merge(parts) {
-    const v = [], e = [];
+    const v = [], e = [], f = [];
     for (const p of parts) {
       const off = v.length;
       for (const vert of p.v) v.push(vert);
       for (const ed of p.e) e.push([ed[0] + off, ed[1] + off]);
+      if (p.f) for (const fa of p.f) f.push(fa.map((i) => i + off));
     }
-    return { v, e };
+    return { v, e, f };
   }
 
   // Holographic projector base: a ground ring + crosshair spokes.
-  /* The pad every model stands on. Three concentric rings, twelve
-     radials and a ring of graduation ticks — it reads as a calibrated
-     instrument stage rather than the four-spoke wagon wheel this used to
-     be, and the extra segments stop the circles going polygonal at the
-     size these render at. */
+  /* The pad every model stands on. Three concentric rings, twelve radials and
+     a ring of graduation ticks — it reads as a calibrated instrument stage
+     rather than a wagon wheel, and the extra segments stop the circles going
+     polygonal at the size these render at.
+
+     Deliberately faceless. The pad is a drawn marking on the floor, not a
+     surface: give it faces and it becomes a solid disc that swallows the
+     landing gear standing on it. */
   function makeBase(y, r) {
     const parts = [
       makeRing(0, y, 0, r, 64, "y"),
@@ -132,11 +173,36 @@
 
   // Lofted tube: a chain of rings (in XY, perpendicular to Z) joined by
   // longerons — used for smoothly tapered fuselage bodies.
-  function makeLoft(stations, seg) {
+  function makeLoft(stations, seg, capEnds) {
     const rings = stations.map((s) => makeRing(s.cx || 0, s.cy || 0, s.z, s.r, seg, "z"));
     const m = merge(rings);
     for (let s = 0; s < stations.length - 1; s++) {
-      for (let i = 0; i < seg; i++) m.e.push([s * seg + i, (s + 1) * seg + i]);
+      for (let i = 0; i < seg; i++) {
+        m.e.push([s * seg + i, (s + 1) * seg + i]);
+        const j = (i + 1) % seg;
+        m.f.push([s * seg + i, s * seg + j, (s + 1) * seg + j, (s + 1) * seg + i]);
+      }
+    }
+    if (capEnds) {
+      const last = (stations.length - 1) * seg;
+      m.f.push(stations[0] && Array.from({ length: seg }, (_, i) => i));
+      m.f.push(Array.from({ length: seg }, (_, i) => last + seg - 1 - i));
+    }
+    return m;
+  }
+
+  // Loft along Y: a stack of horizontal rings joined by longerons. For bodies
+  // of revolution about the vertical axis — a rocket's nose cone and boat
+  // tail — where makeLoft (which runs fore-aft along Z) is the wrong axis.
+  function makeLoftY(stations, seg) {
+    const rings = stations.map((s) => makeRing(s.cx || 0, s.y, s.cz || 0, s.r, seg, "y"));
+    const m = merge(rings);
+    for (let s = 0; s < stations.length - 1; s++) {
+      for (let i = 0; i < seg; i++) {
+        m.e.push([s * seg + i, (s + 1) * seg + i]);
+        const j = (i + 1) % seg;
+        m.f.push([s * seg + i, s * seg + j, (s + 1) * seg + j, (s + 1) * seg + i]);
+      }
     }
     return m;
   }
@@ -146,25 +212,68 @@
     const a = makeRing(cx, cy, cz - len / 2, r, seg, "z");
     const b = makeRing(cx, cy, cz + len / 2, r, seg, "z");
     const m = merge([a, b]);
-    for (let i = 0; i < seg; i++) m.e.push([i, i + seg]);
-    return m;
-  }
-
-  // Loft along Y: a stack of horizontal rings joined by longerons. For bodies
-  // of revolution about the vertical axis — the rocket's nose cone and boat
-  // tail — where makeLoft (which runs fore-aft along Z) is the wrong axis.
-  function makeLoftY(stations, seg) {
-    const rings = stations.map((s) => makeRing(s.cx || 0, s.y, s.cz || 0, s.r, seg, "y"));
-    const m = merge(rings);
-    for (let s = 0; s < stations.length - 1; s++) {
-      for (let i = 0; i < seg; i++) m.e.push([s * seg + i, (s + 1) * seg + i]);
+    for (let i = 0; i < seg; i++) {
+      m.e.push([i, i + seg]);
+      const j = (i + 1) % seg;
+      m.f.push([i, j, j + seg, i + seg]);
     }
+    m.f.push(Array.from({ length: seg }, (_, i) => i));
+    m.f.push(Array.from({ length: seg }, (_, i) => seg + seg - 1 - i));
     return m;
   }
 
-  /* Shared live-geometry helpers. Every model's dynamic() draws into a flat
-     segment list; these build the recurring shapes so each model reads as
-     the machine it is rather than a pile of hand-typed line calls. */
+  // A cylinder along an arbitrary axis, with caps. The workhorse for motor
+  // cans, hydraulic rams, bearing housings and cable conduits — anything that
+  // has to read as a machined round part rather than a drawn circle.
+  function tubeAlong(c0, c1, r, seg) {
+    const ax = [c1[0] - c0[0], c1[1] - c0[1], c1[2] - c0[2]];
+    const L = Math.hypot(ax[0], ax[1], ax[2]) || 1;
+    const a = [ax[0] / L, ax[1] / L, ax[2] / L];
+    let u = Math.abs(a[1]) > 0.92 ? [1, 0, 0] : [0, 1, 0];
+    let w = [a[1] * u[2] - a[2] * u[1], a[2] * u[0] - a[0] * u[2], a[0] * u[1] - a[1] * u[0]];
+    const wl = Math.hypot(w[0], w[1], w[2]) || 1;
+    w = [w[0] / wl, w[1] / wl, w[2] / wl];
+    u = [w[1] * a[2] - w[2] * a[1], w[2] * a[0] - w[0] * a[2], w[0] * a[1] - w[1] * a[0]];
+    const v = [], e = [], f = [];
+    for (let s = 0; s < 2; s++) {
+      const c = s === 0 ? c0 : c1;
+      for (let i = 0; i < seg; i++) {
+        const t = (i / seg) * Math.PI * 2, cc = Math.cos(t) * r, ss = Math.sin(t) * r;
+        v.push([c[0] + w[0] * cc + u[0] * ss, c[1] + w[1] * cc + u[1] * ss, c[2] + w[2] * cc + u[2] * ss]);
+      }
+    }
+    for (let i = 0; i < seg; i++) {
+      const j = (i + 1) % seg;
+      e.push([i, j], [seg + i, seg + j], [i, seg + i]);
+      f.push([i, j, seg + j, seg + i]);
+    }
+    f.push(Array.from({ length: seg }, (_, i) => seg - 1 - i));
+    f.push(Array.from({ length: seg }, (_, i) => seg + i));
+    return { v, e, f };
+  }
+
+  // A flat plate from a closed 2D outline, extruded to a thickness along one
+  // axis. Wings, fins, chassis plates, brackets — the shapes that are sheet
+  // rather than tube. `plane` names the two axes the outline lives in.
+  function plate(pts, plane, at, thick) {
+    const lift = (p, o) => {
+      if (plane === "xz") return [p[0], at + o, p[1]];
+      if (plane === "xy") return [p[0], p[1], at + o];
+      return [at + o, p[0], p[1]]; // yz
+    };
+    const n = pts.length, v = [], e = [], f = [];
+    for (const p of pts) v.push(lift(p, thick / 2));
+    for (const p of pts) v.push(lift(p, -thick / 2));
+    for (let i = 0; i < n; i++) {
+      const j = (i + 1) % n;
+      e.push([i, j], [n + i, n + j], [i, n + i]);
+      f.push([i, j, n + j, n + i]);
+    }
+    f.push(Array.from({ length: n }, (_, i) => i));
+    f.push(Array.from({ length: n }, (_, i) => n + n - 1 - i));
+    return { v, e, f };
+  }
+
   const V = {
     add: (a, b) => [a[0] + b[0], a[1] + b[1], a[2] + b[2]],
     sub: (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]],
@@ -173,9 +282,16 @@
     norm: (v) => { const m = Math.hypot(v[0], v[1], v[2]) || 1; return [v[0] / m, v[1] / m, v[2] / m]; },
     ss: (x) => { x = x < 0 ? 0 : x > 1 ? 1 : x; return x * x * (3 - 2 * x); },
   };
-  // A pen bound to one segment list.
-  function pen(segs) {
+  /* A pen bound to one segment list, and optionally to a surface list.
+
+     Live geometry has to be able to occlude. A model whose static shell is
+     solid but whose moving parts are bare wireframe looks broken in a very
+     specific way: the arm appears to be made of glass and the base does not.
+     So every shape here writes lines AND, when a face list is supplied, the
+     surfaces those lines are the edges of. */
+  function pen(segs, faces) {
     const line = (a, b, lw) => segs.push([a[0], a[1], a[2], b[0], b[1], b[2], lw || 1.1]);
+    const face = faces ? (pts) => faces.push(pts) : () => {};
     const loop = (pts, lw) => { for (let i = 0; i < pts.length; i++) line(pts[i], pts[(i + 1) % pts.length], lw); };
     const poly = (pts, lw) => { for (let i = 0; i < pts.length - 1; i++) line(pts[i], pts[i + 1], lw); };
     // Ring of n points around centre c, in the plane spanned by unit vectors u,v.
@@ -206,19 +322,32 @@
       if (tr) v = v.map((p) => tr(p[0], p[1], p[2]));
       [[0, 1], [1, 2], [2, 3], [3, 0], [4, 5], [5, 6], [6, 7], [7, 4], [0, 4], [1, 5], [2, 6], [3, 7]]
         .forEach(([i, j]) => line(v[i], v[j], lw));
+      [[4, 5, 6, 7], [1, 0, 3, 2], [0, 4, 7, 3], [5, 1, 2, 6], [0, 1, 5, 4], [3, 7, 6, 2]]
+        .forEach((q) => face(q.map((i) => v[i])));
       return v;
     };
-    // A square-section beam between two points in space.
-    const beam = (a, b, w, lw) => {
+    /* A square-section beam between two points in space. `wb` tapers the far
+       end — a link that is thicker at the shoulder than at the wrist is the
+       single cheapest thing that makes a robot arm look engineered rather
+       than assembled from equal sticks. */
+    const beam = (a, b, w, lw, wb) => {
+      const w2 = wb == null ? w : wb;
       const d = V.norm(V.sub(b, a));
       let up = Math.abs(d[1]) > 0.92 ? [0, 0, 1] : [0, 1, 0];
       const s = V.norm(V.cross(d, up)); up = V.norm(V.cross(s, d));
-      const c = (p) => [
-        V.add(p, V.add(V.mul(s, w), V.mul(up, w))), V.add(p, V.sub(V.mul(s, w), V.mul(up, w))),
-        V.sub(p, V.add(V.mul(s, w), V.mul(up, w))), V.sub(p, V.sub(V.mul(s, w), V.mul(up, w))),
+      const c = (p, ww) => [
+        V.add(p, V.add(V.mul(s, ww), V.mul(up, ww))), V.add(p, V.sub(V.mul(s, ww), V.mul(up, ww))),
+        V.sub(p, V.add(V.mul(s, ww), V.mul(up, ww))), V.sub(p, V.sub(V.mul(s, ww), V.mul(up, ww))),
       ];
-      const A = c(a), B = c(b);
-      for (let i = 0; i < 4; i++) { const j = (i + 1) % 4; line(A[i], A[j], lw); line(B[i], B[j], lw); line(A[i], B[i], lw); }
+      const A = c(a, w), B = c(b, w2);
+      for (let i = 0; i < 4; i++) {
+        const j = (i + 1) % 4;
+        line(A[i], A[j], lw); line(B[i], B[j], lw); line(A[i], B[i], lw);
+        face([A[i], A[j], B[j], B[i]]);
+      }
+      face([A[0], A[1], A[2], A[3]]);
+      face([B[3], B[2], B[1], B[0]]);
+      return [A, B];
     };
     // A tube along an arbitrary axis: rings at each station plus longerons.
     const tube = (c0, axis, stations, seg, lw) => {
@@ -229,126 +358,175 @@
       for (const st of stations) {
         const cen = V.add(c0, V.mul(ax, st.d));
         const pts = ringUV(cen, u, v, st.r, seg, lw);
-        if (prev) for (let i = 0; i < seg; i++) line(prev[i], pts[i], lw);
+        if (prev) {
+          for (let i = 0; i < seg; i++) {
+            line(prev[i], pts[i], lw);
+            face([prev[i], prev[(i + 1) % seg], pts[(i + 1) % seg], pts[i]]);
+          }
+        }
         prev = pts;
       }
+      return prev;
     };
-    return { line, loop, poly, ring, ringUV, box, beam, tube };
+    // A disc closing a ringUV — stops you seeing straight down a tube.
+    const cap = (c, u, v, r, n, lw) => { face(ringUV(c, u, v, r, n, lw)); };
+    return { line, loop, poly, ring, ringUV, box, beam, tube, face, cap };
   }
 
 
   /* ---------------- models ---------------- */
 
-  // Tilt-rotor VTOL — the V-22 layout at drone scale: a high tapered wing with
-  // a proprotor nacelle at each tip, twin fins on an H-tail, skids underneath.
-  // The two nacelles TILT live from vertical (hover) to horizontal (cruise),
-  // dwelling at each end so the transition reads as a manoeuvre and not a
-  // wobble. The flaperons droop in the hover and the elevator works in cruise.
+  /* Tilt-rotor VTOL — the V-22 layout at drone scale: a high tapered wing
+     with a proprotor nacelle at each tip, twin fins on an H-tail, skids
+     underneath, and a glazed cockpit with a cabin door.
+
+     The two nacelles tilt live from vertical (hover) to horizontal (cruise),
+     dwelling at each end so the transition reads as a manoeuvre rather than
+     a wobble. Flaperons droop in the hover and roll in cruise; the elevator
+     works in cruise. Everything else is structure, and there is deliberately
+     a lot of it: with surfaces occluding properly, detail now reads as
+     engineering instead of as tangle. */
   function buildEvtol() {
     const parts = [];
-    // fuselage, nose (+Z) to tail (-Z)
-    parts.push(makeLoft([
-      { z: 0.98, cy: -0.02, r: 0.018 },
-      { z: 0.84, cy: -0.02, r: 0.072 },
-      { z: 0.64, cy: 0.00, r: 0.115 },
-      { z: 0.36, cy: 0.01, r: 0.145 },
-      { z: 0.02, cy: 0.01, r: 0.145 },
-      { z: -0.34, cy: 0.03, r: 0.112 },
-      { z: -0.66, cy: 0.06, r: 0.062 },
-      { z: -0.92, cy: 0.09, r: 0.024 },
-    ], 10));
-    // canopy: a ridge and two sills over the nose
-    parts.push({ v: [[0, 0.055, 0.80], [0, 0.17, 0.62], [0, 0.20, 0.42], [0, 0.165, 0.24]], e: [[0, 1], [1, 2], [2, 3]] });
-    [-1, 1].forEach((s) => parts.push({
-      v: [[s * 0.065, 0.02, 0.82], [s * 0.105, 0.11, 0.63], [s * 0.115, 0.135, 0.43], [s * 0.105, 0.115, 0.25]],
-      e: [[0, 1], [1, 2], [2, 3]],
-    }));
 
-    // high wing: tapered, slightly swept. (x, z) planform, root → tip.
-    const WY = 0.175, WT = 0.036;
-    const LE = (x) => 0.30 - (x - 0.12) * (0.10 / 0.88);   // leading edge z at span x
-    const TE = (x) => 0.00 + (x - 0.12) * (0.02 / 0.88);   // trailing edge z at span x
-    [-1, 1].forEach((s) => {
-      const top = [[0.12, LE(0.12)], [1.0, LE(1.0)], [1.0, TE(1.0)], [0.12, TE(0.12)]].map(([x, z]) => [s * x, WY, z]);
+    // ---- fuselage: nose (+Z) to tail (-Z) ----
+    parts.push(makeLoft([
+      { z: 1.00, cy: -0.02, r: 0.020 },
+      { z: 0.88, cy: -0.02, r: 0.070 },
+      { z: 0.68, cy: 0.00, r: 0.118 },
+      { z: 0.38, cy: 0.01, r: 0.150 },
+      { z: 0.02, cy: 0.01, r: 0.150 },
+      { z: -0.34, cy: 0.03, r: 0.115 },
+      { z: -0.68, cy: 0.06, r: 0.064 },
+      { z: -0.94, cy: 0.09, r: 0.024 },
+    ], 12, true));
+
+    // nose boom / air-data probe — the detail that says "this is an aircraft"
+    parts.push(tubeAlong([0, -0.02, 1.00], [0, -0.02, 1.16], 0.009, 6));
+    parts.push(makeRing(0, -0.02, 1.10, 0.020, 6, "z"));
+
+    /* ---- cockpit glazing. Four framed panels: a two-piece windscreen and
+           a quarter light each side. Drawn as their own surfaces so they
+           catch the light differently from the skin around them. ---- */
+    const glass = [
+      [[0.000, 0.150, 0.60], [0.000, 0.055, 0.83], [0.085, 0.035, 0.79], [0.090, 0.115, 0.58]],
+      [[0.000, 0.150, 0.60], [0.000, 0.055, 0.83], [-0.085, 0.035, 0.79], [-0.090, 0.115, 0.58]],
+      [[0.090, 0.115, 0.58], [0.085, 0.035, 0.79], [0.130, 0.005, 0.62], [0.132, 0.075, 0.48]],
+      [[-0.090, 0.115, 0.58], [-0.085, 0.035, 0.79], [-0.130, 0.005, 0.62], [-0.132, 0.075, 0.48]],
+    ];
+    glass.forEach((q) => parts.push({
+      v: q, e: [[0, 1], [1, 2], [2, 3], [3, 0]], f: [[0, 1, 2, 3]],
+    }));
+    // canopy spine and the frame arch behind the glazing
+    parts.push({ v: [[0, 0.150, 0.60], [0, 0.165, 0.42], [0, 0.150, 0.24]], e: [[0, 1], [1, 2]], f: [] });
+
+    // ---- cabin: a door outline each side, and two windows behind it ----
+    [-1, 1].forEach((sd) => {
+      const x = sd * 0.148;
+      parts.push({
+        v: [[x, 0.085, 0.30], [x, 0.085, 0.02], [x, -0.085, 0.02], [x, -0.085, 0.30]],
+        e: [[0, 1], [1, 2], [2, 3], [3, 0]], f: [],
+      });
+      parts.push(makeRing(x, 0.030, 0.20, 0.038, 10, "x"));
+      parts.push(makeRing(x, 0.030, 0.09, 0.038, 10, "x"));
+      // door handle recess
+      parts.push({ v: [[x, -0.01, 0.055], [x, -0.01, 0.10]], e: [[0, 1]], f: [] });
+    });
+
+    // ---- high wing: tapered, slightly swept, with a real section ----
+    const WY = 0.180, WT = 0.040;
+    const LE = (x) => 0.30 - (x - 0.12) * (0.10 / 0.88);
+    const TE = (x) => 0.00 + (x - 0.12) * (0.02 / 0.88);
+    [-1, 1].forEach((sd) => {
+      const top = [[0.12, LE(0.12)], [1.0, LE(1.0)], [1.0, TE(1.0)], [0.12, TE(0.12)]].map(([x, z]) => [sd * x, WY, z]);
       const bot = top.map((p) => [p[0], WY - WT, p[2]]);
       const v = [...top, ...bot];
       const e = [[0, 1], [1, 2], [2, 3], [3, 0], [4, 5], [5, 6], [6, 7], [7, 4], [0, 4], [1, 5], [2, 6], [3, 7]];
-      // spar at 30% chord + three ribs
-      const sp = (x) => LE(x) - (LE(x) - TE(x)) * 0.3;
+      const f = [[0, 1, 2, 3], [7, 6, 5, 4], [0, 3, 7, 4], [1, 5, 6, 2], [0, 4, 5, 1], [3, 2, 6, 7]];
       let k = v.length;
-      v.push([s * 0.12, WY, sp(0.12)], [s * 1.0, WY, sp(1.0)], [s * 0.12, WY - WT, sp(0.12)], [s * 1.0, WY - WT, sp(1.0)]);
+      const sp = (x) => LE(x) - (LE(x) - TE(x)) * 0.3;
+      v.push([sd * 0.12, WY, sp(0.12)], [sd * 1.0, WY, sp(1.0)], [sd * 0.12, WY - WT, sp(0.12)], [sd * 1.0, WY - WT, sp(1.0)]);
       e.push([k, k + 1], [k + 2, k + 3]);
-      [0.36, 0.58, 0.80].forEach((x) => {
+      [0.30, 0.48, 0.66, 0.84].forEach((x) => {
         k = v.length;
-        v.push([s * x, WY, LE(x)], [s * x, WY, TE(x)], [s * x, WY - WT, LE(x)], [s * x, WY - WT, TE(x)]);
+        v.push([sd * x, WY, LE(x)], [sd * x, WY, TE(x)], [sd * x, WY - WT, LE(x)], [sd * x, WY - WT, TE(x)]);
         e.push([k, k + 1], [k + 2, k + 3], [k, k + 2], [k + 1, k + 3]);
       });
-      parts.push({ v, e });
+      parts.push({ v, e, f });
+      // wing-root fairing blending the wing into the fuselage
+      parts.push(plate([[sd * 0.10, 0.36], [sd * 0.20, 0.30], [sd * 0.20, -0.04], [sd * 0.10, -0.10]], "xz", WY - WT / 2, 0.11));
+      // nacelle pylon shoulder at the tip
+      parts.push(makeBox(sd * 0.955, WY - WT / 2, LE(1.0) - 0.09, 0.075, 0.10, 0.22));
     });
-    parts.push(makeBox(0, WY - WT / 2, 0.15, 0.24, WT + 0.02, 0.32)); // carry-through box over the fuselage
+    parts.push(makeBox(0, WY - WT / 2, 0.15, 0.26, WT + 0.03, 0.34)); // carry-through box
+    // wing-root exhausts
+    [-1, 1].forEach((sd) => parts.push(tubeAlong([sd * 0.17, WY - 0.02, -0.02], [sd * 0.17, WY - 0.02, -0.12], 0.028, 8)));
 
-    // H-tail: stabiliser + twin fins
-    const SY = 0.115;
-    parts.push({
-      v: [[-0.36, SY, -0.68], [0.36, SY, -0.68], [0.36, SY, -0.84], [-0.36, SY, -0.84],
-          [-0.36, SY - 0.02, -0.68], [0.36, SY - 0.02, -0.68], [0.36, SY - 0.02, -0.84], [-0.36, SY - 0.02, -0.84]],
-      e: [[0, 1], [1, 2], [2, 3], [3, 0], [4, 5], [5, 6], [6, 7], [7, 4], [0, 4], [1, 5], [2, 6], [3, 7]],
+    // ---- H-tail: stabiliser + twin fins with a real section ----
+    const SY = 0.118;
+    parts.push(plate([[-0.38, -0.66], [0.38, -0.66], [0.38, -0.86], [-0.38, -0.86]], "xz", SY, 0.028));
+    [-0.38, 0.38].forEach((x) => {
+      parts.push(plate([[SY, -0.64], [0.42, -0.74], [0.42, -0.88], [SY, -0.88]], "yz", x, 0.026));
+      parts.push({ v: [[x, 0.27, -0.70], [x, 0.27, -0.88]], e: [[0, 1]], f: [] }); // fin rib
+      parts.push(makeRing(x, 0.42, -0.80, 0.022, 6, "x"));                          // fin-tip light pod
     });
-    [-0.36, 0.36].forEach((x) => parts.push({
-      v: [[x, SY, -0.66], [x, 0.40, -0.75], [x, 0.40, -0.86], [x, SY, -0.86], [x, 0.26, -0.71], [x, 0.26, -0.86]],
-      e: [[0, 1], [1, 2], [2, 3], [3, 0], [4, 5]],
-    }));
 
-    // skids: two tubes on inverted-V struts
-    const KY = -0.25;
-    [-0.19, 0.19].forEach((x) => {
-      parts.push(makeBox(x, KY, 0.02, 0.04, 0.04, 0.70));
-      parts.push({ v: [[x, KY, 0.37], [x, KY + 0.06, 0.45]], e: [[0, 1]] });          // upturned tip
-      [-0.2, 0.24].forEach((z) => parts.push(segBox([x, KY, z], [x * 0.35, -0.11, z], 0.024)));
+    // ---- skids on inverted-V struts, with step pads ----
+    const KY = -0.26;
+    [-0.20, 0.20].forEach((x) => {
+      parts.push(tubeAlong([x, KY, -0.36], [x, KY, 0.34], 0.024, 8));
+      parts.push(tubeAlong([x, KY, 0.34], [x, KY + 0.07, 0.46], 0.020, 6)); // upturned tip
+      [-0.20, 0.24].forEach((z) => parts.push(segBox([x, KY, z], [x * 0.35, -0.11, z], 0.026)));
+      parts.push(makeBox(x, KY + 0.035, 0.02, 0.075, 0.016, 0.20));         // step pad
     });
-    parts.push(makeBase(-0.92, 1.14));
+    parts.push(makeBase(-0.96, 1.16));
 
     const m = merge(parts);
     m.spinners = [];
-    const PIV = [0.985, WY - WT / 2, LE(1.0) - (LE(1.0) - TE(1.0)) * 0.42];     // nacelle pivot at each wing tip
+    const PIV = [0.985, WY - WT / 2, LE(1.0) - (LE(1.0) - TE(1.0)) * 0.42];
     m.dynamic = function (time) {
-      const segs = [];
-      const P = pen(segs);
+      const segs = [], faces = [], dots = [];
+      const P = pen(segs, faces);
       // tilt cycle: hover ↔ cruise with a dwell at each end
       const a = (time * 0.15) % 1;
       const tri = a < 0.5 ? a * 2 : 2 - a * 2;
-      const s = V.ss(V.ss(tri));
-      const tlt = s * (Math.PI / 2);                 // 0 = rotors up (hover), π/2 = rotors forward (cruise)
+      const sm = V.ss(V.ss(tri));
+      const tlt = sm * (Math.PI / 2);            // 0 = rotors up, π/2 = rotors forward
       const ct = Math.cos(tlt), st = Math.sin(tlt);
-      const axis = [0, ct, st];                      // thrust axis
-      const e1 = [1, 0, 0], e2 = [0, st, -ct];       // rotor disc basis
+      const axis = [0, ct, st];
+      const e1 = [1, 0, 0], e2 = [0, st, -ct];
       const spin = time * 7.5;
       [-1, 1].forEach((side) => {
         const hub0 = [side * PIV[0], PIV[1], PIV[2]];
-        // nacelle body: a pod lofted along the thrust axis, rotor at the front
-        P.tube(hub0, axis, [
-          { d: -0.24, r: 0.045 }, { d: -0.14, r: 0.08 }, { d: 0.0, r: 0.088 }, { d: 0.12, r: 0.07 }, { d: 0.17, r: 0.045 },
-        ], 10, 1.05);
-        // pivot bearing on the wing tip
-        P.ringUV(hub0, [0, 1, 0], [0, 0, 1], 0.055, 10, 1.0);
-        // exhaust at the rear of the pod
-        P.ringUV(V.add(hub0, V.mul(axis, -0.25)), e1, e2, 0.03, 8, 1.0);
+        // nacelle: a lofted pod along the thrust axis, capped at both ends
+        P.tube(V.add(hub0, V.mul(axis, -0.26)), axis, [
+          { d: 0, r: 0.042 }, { d: 0.10, r: 0.078 }, { d: 0.22, r: 0.090 },
+          { d: 0.34, r: 0.072 }, { d: 0.42, r: 0.048 },
+        ], 12, 1.05);
+        P.cap(V.add(hub0, V.mul(axis, -0.26)), e1, e2, 0.042, 12, 1.0);
+        // intake lip and exhaust ring
+        P.ringUV(V.add(hub0, V.mul(axis, -0.20)), e1, e2, 0.070, 12, 0.95);
+        P.ringUV(V.add(hub0, V.mul(axis, 0.10)), e1, e2, 0.088, 12, 0.95);
+        // tilt bearing on the wing tip, and the actuator ram driving it
+        P.ringUV(hub0, [0, 1, 0], [0, 0, 1], 0.058, 12, 1.05);
+        const ramEnd = V.add(hub0, V.mul(axis, -0.16));
+        P.beam([side * 0.86, PIV[1] - 0.02, PIV[2] - 0.10], ramEnd, 0.016, 0.95, 0.012);
         // spinner + three proprotor blades in the tilting disc
-        const hub = V.add(hub0, V.mul(axis, 0.20));
-        P.ringUV(hub, e1, e2, 0.045, 8, 1.0);
-        P.line(hub, V.add(hub, V.mul(axis, 0.05)), 1.0);
+        const hub = V.add(hub0, V.mul(axis, 0.22));
+        P.tube(hub, axis, [{ d: 0, r: 0.048 }, { d: 0.05, r: 0.030 }, { d: 0.075, r: 0.008 }], 10, 1.0);
         const R = 0.44;
         for (let b = 0; b < 3; b++) {
           const ba = spin + (b / 3) * Math.PI * 2 + side;
           const cb = Math.cos(ba), sb = Math.sin(ba);
-          const pts = BLADE.map(([u, v]) => {
-            const c = (u * cb - v * sb) * R, s2 = (u * sb + v * cb) * R;
+          const pts = BLADE.map(([u, vv]) => {
+            const c = (u * cb - vv * sb) * R, s2 = (u * sb + vv * cb) * R;
             return [hub[0] + e1[0] * c + e2[0] * s2, hub[1] + e1[1] * c + e2[1] * s2, hub[2] + e1[2] * c + e2[2] * s2];
           });
           P.loop(pts, 1.0);
+          P.face(pts);
         }
-        // tip-path circle, faint, so the disc reads even between blades
-        P.ringUV(hub, e1, e2, R, 28, 0.6);
+        // tip-path circle, faint, so the disc reads between blades
+        P.ringUV(hub, e1, e2, R, 30, 0.55);
       });
 
       // control surfaces
@@ -358,196 +536,223 @@
         const d0 = V.norm(V.sub(chordDir, V.mul(u, dp)));
         const ux = V.cross(u, d0), cd = Math.cos(defl), sd = Math.sin(defl);
         const d = V.mul(V.add(V.mul(d0, cd), V.mul(ux, sd)), chordLen);
-        P.loop([h0, h1, V.add(h1, d), V.add(h0, d)], 1.05);
+        const q = [h0, h1, V.add(h1, d), V.add(h0, d)];
+        P.loop(q, 1.05);
+        P.face(q);
       };
-      // flaperons: droop together in the hover, roll opposite in cruise
-      const droop = (1 - s) * 0.42, roll = Math.sin(time * 0.9) * 0.22 * s;
+      const droop = (1 - sm) * 0.42, roll = Math.sin(time * 0.9) * 0.22 * sm;
       surface([0.42, WY - WT / 2, TE(0.42)], [0.92, WY - WT / 2, TE(0.92)], [0, 0, -1], 0.10, droop + roll);
       surface([-0.42, WY - WT / 2, TE(0.42)], [-0.92, WY - WT / 2, TE(0.92)], [0, 0, -1], 0.10, droop - roll);
-      // elevator across the stabiliser
-      surface([-0.30, SY - 0.01, -0.84], [0.30, SY - 0.01, -0.84], [0, 0, -1], 0.07, Math.sin(time * 0.8) * 0.22 * s);
-      // navigation strobe on the tail, wing-tip lamps steady
+      surface([-0.30, SY - 0.014, -0.86], [0.30, SY - 0.014, -0.86], [0, 0, -1], 0.07, Math.sin(time * 0.8) * 0.22 * sm);
+
+      // lights: tail strobe double-flashes, wing tips steady, landing light on
+      // in the hover and off in cruise, which is what a real one does
       const tb = (time * 1.2) % 1, lit = tb < 0.08 || (tb > 0.16 && tb < 0.24);
-      return {
-        segments: segs,
-        dots: [
-          [0, 0.40, -0.86, lit ? 3.2 : 1.0, lit ? 1 : 0],
-          [-1.0, WY, LE(1.0), 1.6, 1], [1.0, WY, LE(1.0), 1.6, 1],
-        ],
-      };
+      dots.push([0, 0.42, -0.88, lit ? 3.2 : 1.0, lit ? 1 : 0]);
+      dots.push([-1.0, WY, LE(1.0), 1.6, 1], [1.0, WY, LE(1.0), 1.6, 1]);
+      dots.push([0, -0.10, 0.86, sm < 0.5 ? 2.6 : 0.9, sm < 0.5 ? 1 : 0]);
+      return { segments: segs, faces, dots };
     };
     return m;
   }
 
-  // NEMO camera arm — the whole arm rides a LINEAR SLIDE base (two guide
-  // rails + a leadscrew) for horizontal travel, on a RIGID pedestal, with a
-  // live 3-joint arm (shoulder · elbow · wrist). 4 total DOF — the rail slide
-  // plus the three joints — each animates independently to demo the range.
-  // The base and camera are rigid (camera fixed to the wrist).
+  /* NEMO camera arm — a six-axis industrial robot on a linear slide.
+
+     The previous version drew the arm as three equal sticks with circles at
+     the joints, which is a diagram of a robot rather than a robot. This one
+     is built the way the real machine is: a cast base on a rail carriage, a
+     structured pedestal leg with a shoulder yoke, a boxed upper arm tapering
+     to the wrist, motor cans on the axes that actually drive, a cable
+     conduit running the length of it, and a camera head on a two-axis wrist.
+
+     Everything that moves is generated per frame with faces as well as
+     lines, so the near side of the arm hides the far side of it and the arm
+     hides the base it is standing on. That, not the extra detail, is what
+     stopped it looking cheap.
+
+     Motion: parked and folded when idle. On hover it deploys, the carriage
+     slides on the rail, and the head hunts for the viewer, locks on, and
+     occasionally over-rotates and catches itself. */
   function buildArm() {
     const parts = [];
 
-    // ---- linear slide base: two guide rails + end mounts + central leadscrew ----
-    const rx = 0.34, ry = -0.9, rlen = 1.08;
-    parts.push(makeBox(-rx, ry, 0, 0.1, 0.1, rlen));              // left guide rail
-    parts.push(makeBox(rx, ry, 0, 0.1, 0.1, rlen));               // right guide rail
-    parts.push(makeBox(0, ry, rlen / 2, 0.86, 0.16, 0.1));        // front end mount
-    parts.push(makeBox(0, ry, -rlen / 2, 0.86, 0.16, 0.1));       // rear end mount
-    parts.push(makeBox(0, ry, -rlen / 2 - 0.1, 0.22, 0.22, 0.14)); // drive stepper
-    parts.push(makeBox(0, ry, 0, 0.045, 0.045, rlen));            // central leadscrew
-    parts.push({ v: [[-rx, ry + 0.05, -rlen / 2], [-rx, ry + 0.05, rlen / 2]], e: [[0, 1]] }); // rail top line
-    parts.push({ v: [[rx, ry + 0.05, -rlen / 2], [rx, ry + 0.05, rlen / 2]], e: [[0, 1]] });
-    parts.push(makeBase(-1.0, 1.06));
+    // ---- linear slide: two guide rails, end mounts, leadscrew, drive ----
+    const rx = 0.34, ry = -0.90, rlen = 1.12;
+    [-rx, rx].forEach((x) => {
+      parts.push(makeBox(x, ry, 0, 0.085, 0.085, rlen));                 // guide rail
+      parts.push(makeBox(x, ry + 0.052, 0, 0.10, 0.02, rlen));           // rail cap strip
+    });
+    parts.push(makeBox(0, ry, rlen / 2, 0.90, 0.15, 0.09));              // front end mount
+    parts.push(makeBox(0, ry, -rlen / 2, 0.90, 0.15, 0.09));             // rear end mount
+    parts.push(tubeAlong([0, ry, -rlen / 2 - 0.09], [0, ry, -rlen / 2 - 0.26], 0.10, 10)); // drive motor
+    parts.push(makeBox(0, ry, -rlen / 2 - 0.28, 0.16, 0.16, 0.05));      // encoder cap
+    parts.push(tubeAlong([0, ry, -rlen / 2], [0, ry, rlen / 2], 0.022, 8)); // leadscrew
+    // cable chain along the near rail
+    for (let i = 0; i < 9; i++) {
+      const z = -rlen / 2 + 0.06 + i * (rlen - 0.12) / 8;
+      parts.push(makeBox(rx + 0.075, ry + 0.03, z, 0.035, 0.045, 0.055));
+    }
+    parts.push(makeBase(-1.02, 1.06));
 
     const m = merge(parts);
     m.spinners = [];
     m.deploys = true; // parked/collapsed when idle; deploys + records on hover
 
-    // Everything that MOVES — the carriage (rails) and the three joints — is
-    // drawn live. The arm DEPLOYS from a parked, folded pose on hover, slides
-    // on the rail, and the wrist swivel pans the camera as if recording someone.
     m.dynamic = function (time, deploy, spin, hoverT) {
       deploy = deploy == null ? 1 : deploy;
-      spin = spin == null ? 0 : spin;                 // model's Y-rotation, for camera tracking
-      hoverT = hoverT == null ? 99 : hoverT;          // time since hover began (big = already locked)
-      const dep = deploy * deploy * (3 - 2 * deploy); // smoothstep the deploy 0..1
-      const segs = [];
-      const line = (a, b, lw) => segs.push([a[0], a[1], a[2], b[0], b[1], b[2], lw]);
-      function box(cx, cy, cz, w, h, d, lw) {
-        const x0 = cx - w / 2, x1 = cx + w / 2, y0 = cy - h / 2, y1 = cy + h / 2, z0 = cz - d / 2, z1 = cz + d / 2;
-        const v = [[x0, y0, z0], [x1, y0, z0], [x1, y1, z0], [x0, y1, z0], [x0, y0, z1], [x1, y0, z1], [x1, y1, z1], [x0, y1, z1]];
-        [[0, 1], [1, 2], [2, 3], [3, 0], [4, 5], [5, 6], [6, 7], [7, 4], [0, 4], [1, 5], [2, 6], [3, 7]]
-          .forEach(([i, j]) => line(v[i], v[j], lw));
-      }
-      // a structural box-beam between two in-plane points a,b at depth cz
-      function beam(a, b, w, cz, lw) {
-        const dx = b[0] - a[0], dy = b[1] - a[1], len = Math.hypot(dx, dy) || 1;
-        const px = (-dy / len) * w, py = (dx / len) * w;
-        const cor = (p) => [
-          [p[0] + px, p[1] + py, cz + w], [p[0] - px, p[1] - py, cz + w],
-          [p[0] - px, p[1] - py, cz - w], [p[0] + px, p[1] + py, cz - w],
-        ];
-        const A = cor(a), B = cor(b);
-        for (let i = 0; i < 4; i++) {
-          const j = (i + 1) % 4;
-          line(A[i], A[j], lw); line(B[i], B[j], lw); line(A[i], B[i], lw);
-        }
-      }
-      // joint knuckle — a short cylinder whose axis is along Z (the pivot axis)
-      function knuckle(cx, cy, cz, r, lw) {
-        const seg = 12, zf = 0.09;
-        for (let i = 0; i < seg; i++) {
-          const a0 = (i / seg) * Math.PI * 2, a1 = ((i + 1) / seg) * Math.PI * 2;
-          const c0 = Math.cos(a0) * r, s0 = Math.sin(a0) * r, c1 = Math.cos(a1) * r, s1 = Math.sin(a1) * r;
-          line([cx + c0, cy + s0, cz + zf], [cx + c1, cy + s1, cz + zf], lw);
-          line([cx + c0, cy + s0, cz - zf], [cx + c1, cy + s1, cz - zf], lw);
-          line([cx + c0, cy + s0, cz + zf], [cx + c0, cy + s0, cz - zf], lw);
-        }
-      }
+      spin = spin == null ? 0 : spin;
+      hoverT = hoverT == null ? 99 : hoverT;
+      const dep = deploy * deploy * (3 - 2 * deploy);   // smoothstep the deploy
+      const segs = [], faces = [], dots = [];
+      const P = pen(segs, faces);
 
-      // ---- DOF 0: horizontal travel along the rails (only once deployed) ----
-      const bz = Math.sin(time * 0.55) * 0.28 * dep; // carriage / arm-plane depth
+      // ---- DOF 0: travel along the rails, only once deployed ----
+      const bz = Math.sin(time * 0.55) * 0.30 * dep;
 
-      // carriage + the two bearing blocks that ride the guide rails
-      box(0, -0.82, bz, 0.52, 0.1, 0.44, 1.2);
-      box(-0.34, -0.88, bz, 0.18, 0.13, 0.32, 1.0);
-      box(0.34, -0.88, bz, 0.18, 0.13, 0.32, 1.0);
-      // RIGID base pedestal (no rotary base joint)
-      box(0, -0.76, bz, 0.4, 0.06, 0.36, 1.1);
-      box(0, -0.63, bz, 0.24, 0.26, 0.24, 1.2);
+      // carriage: a plate on two bearing blocks, with a nut housing on the screw
+      P.box(0, -0.845, bz, 0.60, 0.055, 0.40, 1.15);
+      [-0.34, 0.34].forEach((x) => {
+        P.box(x, -0.885, bz, 0.155, 0.115, 0.30, 1.05);                  // bearing block
+        P.box(x, -0.822, bz, 0.175, 0.02, 0.32, 0.95);                   // block cap
+      });
+      P.box(0, -0.885, bz, 0.13, 0.10, 0.13, 1.0);                       // leadscrew nut
 
-      // ---- DOF 1-3: three joints. They LERP from a parked, folded-down pose
-      //      (dep=0) up to a lively "recording" sweep (dep=1) — the upward
-      //      activation movement. ----
-      const L = [0.44, 0.36, 0.28]; // shorter links — a more compact robot
+      /* ---- the leg. A tapered four-post pedestal, not a stick. ----
+         Four corner posts leaning inward to a shoulder plate, cross-braced
+         on the two visible faces. It is the part that reads as "this thing
+         could hold a camera up", and it is why the base is worth drawing. */
+      const legY0 = -0.815, legY1 = -0.30;
+      const s0 = 0.215, s1 = 0.120;                                        // half-width, bottom → top
+      const posts = [[-1, -1], [1, -1], [1, 1], [-1, 1]];
+      const foot = posts.map(([a, b]) => [a * s0, legY0, bz + b * s0]);
+      const top = posts.map(([a, b]) => [a * s1, legY1, bz + b * s1]);
+      for (let i = 0; i < 4; i++) P.beam(foot[i], top[i], 0.032, 1.1, 0.026);
+      // cross-braces, alternating direction per face so it reads as a truss
+      for (let i = 0; i < 4; i++) {
+        const j = (i + 1) % 4;
+        const mid = (a, b, f) => [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f, a[2] + (b[2] - a[2]) * f];
+        P.line(foot[i], mid(top[j], foot[j], 0.35), 0.95);
+        P.line(mid(top[i], foot[i], 0.35), top[j], 0.95);
+      }
+      P.box(0, legY1 + 0.03, bz, 0.30, 0.055, 0.30, 1.15);               // shoulder plate
+      P.box(0, legY0 - 0.02, bz, 0.46, 0.045, 0.46, 1.1);                // base flange
+      [[-1, -1], [1, -1], [1, 1], [-1, 1]].forEach(([a, b]) =>           // bolt bosses
+        P.box(a * 0.185, legY0 - 0.02, bz + b * 0.185, 0.05, 0.06, 0.05, 0.9));
+
+      // ---- the shoulder: a yoke with a motor can hung off one side ----
+      const SH = [0, -0.215, bz];
+      P.box(SH[0], SH[1], SH[2], 0.20, 0.145, 0.20, 1.15);
+      [-1, 1].forEach((sd) => P.box(sd * 0.125, SH[1] + 0.02, SH[2], 0.055, 0.19, 0.155, 1.05));
+      P.tube([0.20, SH[1] + 0.02, bz], [1, 0, 0], [
+        { d: 0, r: 0.075 }, { d: 0.10, r: 0.085 }, { d: 0.145, r: 0.06 },
+      ], 10, 1.05);                                                       // shoulder motor can
+      P.ring(0.155, SH[1] + 0.02, bz, 0.055, 10, "x", 1.0);              // output shaft
+
+      /* ---- DOF 1-3. Links lerp from a parked, folded pose to a live
+             recording sweep. Widths taper toward the wrist. ---- */
+      const L = [0.50, 0.42, 0.28];
       const ext = [
         -0.05 + Math.sin(time * 0.7) * 0.42,        // shoulder
-         0.85 + Math.sin(time * 1.05 + 1.1) * 0.4,  // elbow
-        -0.4 + Math.sin(time * 1.5 + 2.2) * 0.5,    // wrist
+         0.85 + Math.sin(time * 1.05 + 1.1) * 0.40, // elbow
+        -0.40 + Math.sin(time * 1.5 + 2.2) * 0.50,  // wrist
       ];
-      const col = [0.7, 1.9, 1.7];                  // parked / folded-down pose
+      const col = [0.70, 1.90, 1.70];               // parked / folded-down pose
       const rel = [
         col[0] + (ext[0] - col[0]) * dep,
         col[1] + (ext[1] - col[1]) * dep,
         col[2] + (ext[2] - col[2]) * dep,
       ];
-      let dir = 0, x = 0, y = -0.5;
+      let dir = 0, x = SH[0], y = SH[1];
       const J = [[x, y, bz]];
-      for (let i = 0; i < 3; i++) { dir += rel[i]; x += Math.sin(dir) * L[i]; y += Math.cos(dir) * L[i]; J.push([x, y, bz]); }
+      for (let i = 0; i < 3; i++) {
+        dir += rel[i];
+        x += Math.sin(dir) * L[i];
+        y += Math.cos(dir) * L[i];
+        J.push([x, y, bz]);
+      }
 
-      // structural beams — BEEFY, tapering toward the wrist (looks load-bearing)
-      const bw = [0.11, 0.088, 0.066];
-      for (let i = 0; i < 3; i++) beam(J[i], J[i + 1], bw[i], bz, 1.2);
-      // stout diagonal brace off the base for rigidity
-      beam([J[0][0], J[0][1] - 0.18], [J[1][0], J[1][1]], 0.03, bz, 1.0);
-      // joint knuckles — chunky, wide base joint tapering up
-      const kr = [0.2, 0.16, 0.13];
-      for (let i = 0; i < 3; i++) knuckle(J[i][0], J[i][1], bz, kr[i], 1.1);
+      // links, tapering; plus a slim cable conduit riding the outside of each
+      const bw = [0.072, 0.056, 0.040];
+      for (let i = 0; i < 3; i++) {
+        P.beam(J[i], J[i + 1], bw[i], 1.2, bw[i] * 0.82);
+        const off = 0.055 - i * 0.012;
+        P.line([J[i][0], J[i][1], bz + off], [J[i + 1][0], J[i + 1][1], bz + off], 0.9);
+      }
+      // joint housings: a can on the axis, with a cap ring on the near face
+      const kr = [0.105, 0.085, 0.062];
+      for (let i = 0; i < 3; i++) {
+        P.tube([J[i][0], J[i][1], bz - 0.075], [0, 0, 1], [
+          { d: 0, r: kr[i] }, { d: 0.15, r: kr[i] },
+        ], 12, 1.1);
+        P.cap([J[i][0], J[i][1], bz + 0.075], [1, 0, 0], [0, 1, 0], kr[i], 12, 1.0);
+        P.cap([J[i][0], J[i][1], bz - 0.075], [0, 1, 0], [1, 0, 0], kr[i], 12, 1.0);
+        P.ring(J[i][0], J[i][1], bz + 0.078, kr[i] * 0.55, 10, "z", 0.95);
+      }
+      // elbow drive: a motor can offset from the joint, belted to it
+      P.tube([J[1][0], J[1][1], bz + 0.135], [0, 0, 1], [
+        { d: 0, r: 0.062 }, { d: 0.085, r: 0.062 },
+      ], 10, 1.0);
 
-      // ---- wrist swivel camera head: once deployed it LOCKS onto the viewer
-      //      as the robot spins around. It's a bit clumsy though — every so
-      //      often it over-rotates ("trips"), wobbles, then catches itself and
-      //      re-locks onto you. ----
+      /* ---- wrist + camera head. Once deployed the head hunts for the
+             viewer, locks on, and every so often over-rotates, wobbles,
+             and catches itself. ---- */
       const e = J[3];
-      knuckle(e[0], e[1], bz, 0.09, 1.1); // beefy swivel motor housing at the wrist
-      const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
-      const norm = (v) => { const m2 = Math.hypot(v[0], v[1], v[2]) || 1; return [v[0] / m2, v[1] / m2, v[2] / m2]; };
-      // clumsy trip: a periodic over-rotation that decays back to a lock
       const trip = (time * 0.15) % 1;
       let wob = 0;
       if (trip < 0.32) { const q = trip / 0.32; wob = Math.sin(q * Math.PI * 2.4) * Math.exp(-q * 3.2) * 0.7; }
-      // After deploying, the head LOOKS AROUND (~2s) hunting for the viewer's
-      // POV, then locks on. lock 0 = searching, 1 = locked.
       const lock = Math.max(0, Math.min(1, (hoverT - 1.9) / 0.6));
       const lockS = lock * lock * (3 - 2 * lock);
-      // Gaze yaw RELATIVE TO THE VIEWER: 0 = staring straight at them, π = away.
-      // Search starts away (~π) and sweeps in; lock settles on 0 (+ the clumsy
-      // over-rotate). Pitch tilts up to meet the viewer's eye once locked.
       const scanPitch = 0.15 + Math.sin(hoverT * 2.2 + 1.0) * 0.3;
       const searchGaze = Math.PI * Math.max(0, 1 - hoverT * 0.5) + Math.sin(hoverT * 3.0) * 1.1;
       const gaze = searchGaze * (1 - lockS) + (-wob) * lockS;
       const pitch = 0.408 * lockS + scanPitch * (1 - lockS);
       const ga = spin + gaze;
-      // toward-viewer basis: f renders to -Z (at the camera) when gaze ≈ 0
       const fActive = [0.913 * Math.sin(ga), pitch, -0.913 * Math.cos(ga)];
       const fPark = [Math.sin(dir), Math.cos(dir), 0];
-      const f = norm([
+      const f = V.norm([
         fPark[0] * (1 - dep) + fActive[0] * dep,
         fPark[1] * (1 - dep) + fActive[1] * dep,
         fPark[2] * (1 - dep) + fActive[2] * dep,
       ]);
-      let rgt = cross(f, [0, 1, 0]);
+      let rgt = V.cross(f, [0, 1, 0]);
       if (Math.hypot(rgt[0], rgt[1], rgt[2]) < 0.001) rgt = [1, 0, 0];
-      rgt = norm(rgt);
-      const cup = cross(f, rgt);
+      rgt = V.norm(rgt);
+      const cup = V.cross(f, rgt);
       const O = [e[0], e[1], bz];
-      // oriented point in the head's frame: forward d, right u, up v
-      const P = (d, u, v) => [
+      const Pt = (d, u, v) => [
         O[0] + f[0] * d + rgt[0] * u + cup[0] * v,
         O[1] + f[1] * d + rgt[1] * u + cup[1] * v,
         O[2] + f[2] * d + rgt[2] * u + cup[2] * v,
       ];
-      // ---- chunky boxed sensor head (a camera module, not a thin barrel) ----
-      const hw = 0.12, hh = 0.1, dB = 0.02, dF = 0.24;
-      const bk = [P(dB, -hw, -hh), P(dB, hw, -hh), P(dB, hw, hh), P(dB, -hw, hh)];
-      const fr = [P(dF, -hw, -hh), P(dF, hw, -hh), P(dF, hw, hh), P(dF, -hw, hh)];
-      for (let i = 0; i < 4; i++) { const j = (i + 1) % 4; line(bk[i], bk[j], 1.2); line(fr[i], fr[j], 1.2); line(bk[i], fr[i], 1.2); }
-      // main lens + a small secondary sensor on the front face
-      const faceRing = (r, ou, ov) => {
-        const seg = 12, pts = [];
-        for (let i = 0; i < seg; i++) { const a = (i / seg) * Math.PI * 2; pts.push(P(dF + 0.02, ou + Math.cos(a) * r, ov + Math.sin(a) * r)); }
-        for (let i = 0; i < seg; i++) line(pts[i], pts[(i + 1) % seg], 1.1);
-      };
-      faceRing(0.062, -0.01, -0.015);  // main lens
-      faceRing(0.028, 0.075, 0.05);    // secondary sensor (upper-right)
-      line(P(0.1, 0, hh), P(0.1, 0, hh + 0.07), 1.0); // short antenna nub on top
 
-      const lc = P(dF + 0.04, -0.01, -0.015); // glowing main lens centre
-      return {
-        segments: segs,
-        // the lens "eye" brightens + grows as it locks on, so it clearly stares at you
-        dots: [[lc[0], lc[1], lc[2], 2.4 + lockS * 1.5, 1]],
-      };
+      // wrist roll can, then the head body
+      P.tube(Pt(-0.04, 0, 0), f, [{ d: 0, r: 0.058 }, { d: 0.06, r: 0.070 }], 10, 1.05);
+      const hw = 0.105, hh = 0.085, dB = 0.03, dF = 0.24;
+      const bk = [Pt(dB, -hw, -hh), Pt(dB, hw, -hh), Pt(dB, hw, hh), Pt(dB, -hw, hh)];
+      const fr = [Pt(dF, -hw, -hh), Pt(dF, hw, -hh), Pt(dF, hw, hh), Pt(dF, -hw, hh)];
+      for (let i = 0; i < 4; i++) {
+        const j = (i + 1) % 4;
+        P.line(bk[i], bk[j], 1.2); P.line(fr[i], fr[j], 1.2); P.line(bk[i], fr[i], 1.2);
+        P.face([bk[i], bk[j], fr[j], fr[i]]);
+      }
+      P.face([bk[3], bk[2], bk[1], bk[0]]);
+      P.face(fr);
+      // lens barrel standing proud of the front face, plus a second sensor
+      P.tube(Pt(dF, -0.01, -0.015), f, [
+        { d: 0, r: 0.060 }, { d: 0.05, r: 0.060 }, { d: 0.062, r: 0.046 },
+      ], 12, 1.1);
+      P.tube(Pt(dF, 0.070, 0.048), f, [{ d: 0, r: 0.026 }, { d: 0.03, r: 0.026 }], 8, 0.95);
+      // a cooling fin pair on top, and the antenna nub
+      [-0.03, 0.03].forEach((u) => P.line(Pt(0.06, u, hh), Pt(0.20, u, hh + 0.018), 0.9));
+      P.line(Pt(0.09, 0, hh), Pt(0.09, 0, hh + 0.075), 1.0);
+      P.ring(Pt(0.09, 0, hh + 0.075)[0], Pt(0.09, 0, hh + 0.075)[1], Pt(0.09, 0, hh + 0.075)[2], 0.016, 6, "y", 0.9);
+
+      const lc = Pt(dF + 0.075, -0.01, -0.015);
+      dots.push([lc[0], lc[1], lc[2], 2.4 + lockS * 1.6, 1]);
+      // a red-eye record tally on the head's shoulder, lit once locked
+      const tally = Pt(dB + 0.03, hw, hh * 0.6);
+      dots.push([tally[0], tally[1], tally[2], lockS > 0.9 ? 2.0 : 0.9, lockS > 0.9 ? 1 : 0]);
+      return { segments: segs, faces, dots };
     };
     return m;
   }
@@ -1143,24 +1348,19 @@
     const viewerDist = 3.4;
 
     /* The depth ramp. Far edges are cold, thin and dim; near edges are hot,
-       wide and bright. This gradient is doing the job hidden-line removal
-       would do in a real 3D renderer — without it every model reads as a
-       flat tangle of identical strokes. */
+       wide and bright. With surfaces now doing the occluding, this no longer
+       has to stand in for hidden-line removal — it is free to be what it
+       always should have been, a distance cue. */
     const cFar = [
-      Math.round(tint[0] * 0.22),
-      Math.round(tint[1] * 0.42),
-      Math.round(tint[2] * 0.78),
+      Math.round(tint[0] * 0.20),
+      Math.round(tint[1] * 0.38),
+      Math.round(tint[2] * 0.72),
     ];
     const cNear = [
-      Math.min(255, tint[0] + 135),
-      Math.min(255, tint[1] + 46),
+      Math.min(255, tint[0] + 140),
+      Math.min(255, tint[1] + 50),
       255,
     ];
-
-    // Reused per-frame scratch so the draw loop allocates nothing.
-    const projBuf = new Array(model.v.length);
-    const NB = 16;                                    // depth bands (5 posterised)
-    const edgeBuckets = Array.from({ length: NB }, () => []);
 
     function resize() {
       const rect = canvas.getBoundingClientRect();
@@ -1181,71 +1381,158 @@
     }
 
     const cosT = Math.cos(tilt), sinT = Math.sin(tilt);
+    /* Returns [screenX, screenY, perspectiveFactor, viewZ].
+
+       viewZ is the fourth element and it is the one that matters most: the
+       painter's algorithm sorts on true view depth, not on the perspective
+       factor. They are monotonically related for a single point, but the
+       factor compresses hard with distance, so sorting on it drops far
+       geometry into too few buckets and surfaces start swapping order as the
+       model turns. */
     function project(x, y, z, ca, sa) {
       // rotate about Y
       const X = x * ca + z * sa;
-      let Z = -x * sa + z * ca;
+      const Z = -x * sa + z * ca;
       const Y = y;
       // tilt about X
       const Y2 = Y * cosT - Z * sinT;
       const Z2 = Y * sinT + Z * cosT;
       const f = viewerDist / (viewerDist + Z2); // perspective foreshortening
-      return [cx + X * f * scale, cy - Y2 * f * scale, f];
+      return [cx + X * f * scale, cy - Y2 * f * scale, f, -Z2];
     }
 
     /* ---------------- the hologram renderer ----------------
-       What makes this read as a projected hologram rather than a line
-       drawing is entirely depth. Every edge is graded along four axes at
-       once — colour, opacity, line width and glow — from a cold, thin,
-       far blue to a hot, bright, near white-cyan. That single gradient is
-       what separates the near side of a shape from the far side without
-       any hidden-line removal, which a canvas cannot afford to do.
+       This is a solid-surface renderer that happens to be drawn as a
+       wireframe, and the distinction is the whole quality difference.
 
-       Draw order per frame:
-         0. floor pool     — a soft radial gradient the model sits in
-         1. haze           — one wide-blur pass, very low alpha
-         2. cores          — depth-graded crisp strokes, no shadow
-         3. vertex glints  — nodes, sized and lit by depth
+       The first version graded every edge by depth across four axes at once
+       and hoped that would separate the near side of an object from the far
+       side. It cannot: with nothing to hide behind, every edge in the model
+       is visible at all times, and a detailed model therefore looks *worse*
+       than a crude one — more edges, more tangle. Adding detail made it
+       cheaper-looking, which is exactly backwards.
 
-       There is deliberately no scan sweep. An earlier version ran a band
-       of light up through every model on a loop; it read as a gimmick on
-       six cards at once and was cut. The only motion is the object's own.
+       So each model now carries a surface list, and the pipeline is a
+       painter's algorithm:
 
-       Everything is batched per depth band, so the whole model costs a
-       couple of dozen stroke calls no matter how many edges it has. */
+         0. floor pool     — a soft ellipse of light the model stands in
+         1. depth slices   — everything sorted far to near, in NSLICE bands.
+                             Per band: fill the surfaces, then stroke the
+                             edges. A far edge drawn in an early band is
+                             painted over by a near surface in a later one,
+                             which is hidden-line removal for the cost of a
+                             sort.
+         2. rim pass       — the nearest edges again, additively, with a
+                             blur. This is the glow, and it is applied only
+                             to the near shell so it reads as light coming
+                             off the object rather than fog over all of it.
+         3. vertex glints  — nodes on the near shell.
+         4. live dots      — lamps, lenses, contacts.
+
+       Surfaces are SORTED, never culled. Winding across seven hand-authored
+       models cannot be trusted to be consistent, and a culled face that
+       should not have been is a hole straight through the object. A face
+       wound the wrong way here is merely shaded as a back face — dimmer, and
+       still occluding. It is the failure mode you can ship.
+
+       Lighting is one directional light in view space. It is what gives the
+       models form: a flat fill at constant alpha reads as a paper cutout no
+       matter how good the geometry is. */
+
+    const NSLICE = 18;                       // depth bands for the painter's sort
+    const LIGHT = [-0.42, 0.76, 0.50];       // key light, view space
+    (function normLight() {
+      const m = Math.hypot(LIGHT[0], LIGHT[1], LIGHT[2]);
+      LIGHT[0] /= m; LIGHT[1] /= m; LIGHT[2] /= m;
+    })();
+
+    /* Reused per-frame scratch so the draw loop allocates nothing.
+
+       Faces are bucketed by depth slice AND by quantised light, because the
+       cost here is not the geometry, it is the canvas state change: one
+       beginPath/fill per face ran the seven-panel preview at 1fps. Grouping
+       every face that shares a slice and a light level into a single path
+       costs at most NSLICE × NLIT fills per frame instead of one per face,
+       and is visually identical — the quantisation is finer than the eye
+       resolves against a dark ground. */
+    const NLIT = 6;
+    const projBuf = new Array(model.v.length);
+    const slices = Array.from({ length: NSLICE }, () => ({
+      lit: Array.from({ length: NLIT }, () => []),
+      edges: [],
+    }));
+    const rimEdges = [];
+
+    // The body colour surfaces are filled with: near-black, faintly blue, and
+    // opaque enough to occlude. Lit faces lift toward the tint, so the object
+    // has a bright side without ever becoming a solid silhouette.
+    const BODY = [6, 14, 24];
+
+    /* The fill palette, built once. Depth and light are both quantised, so
+       there are only NSLICE × NLIT possible surface colours and every one of
+       them can be a string that already exists. Building these per face was
+       a meaningful slice of the frame budget on its own. */
+    const FILL = [];
+    for (let sI = 0; sI < NSLICE; sI++) {
+      const depth = (sI + 0.5) / NSLICE;
+      const row = [];
+      for (let lI = 0; lI < NLIT; lI++) {
+        const lit = (lI + 0.5) / NLIT;
+        const k = (0.34 + lit * 0.66) * (0.45 + depth * 0.55);
+        const r = Math.round(BODY[0] + (tint[0] * 0.30 - BODY[0]) * k);
+        const g = Math.round(BODY[1] + (tint[1] * 0.34 - BODY[1]) * k);
+        const b = Math.round(BODY[2] + (tint[2] * 0.42 - BODY[2]) * k);
+        row.push("rgba(" + r + "," + g + "," + b + ",0.93)");
+      }
+      FILL.push(row);
+    }
+    const litBucket = (l) => {
+      const i = (l * NLIT) | 0;
+      return i < 0 ? 0 : i >= NLIT ? NLIT - 1 : i;
+    };
+
+    function shadeEdge(lit, depth, alphaScale) {
+      // Depth carries most of the grade; the light adds the highlight that
+      // makes a panel edge read as an edge of something rather than a line.
+      const e = depth * depth;
+      const k = Math.min(1, e * 0.72 + lit * 0.5);
+      const r = Math.round(cFar[0] + (cNear[0] - cFar[0]) * k);
+      const g = Math.round(cFar[1] + (cNear[1] - cFar[1]) * k);
+      const b = Math.round(cFar[2] + (cNear[2] - cFar[2]) * k);
+      const a = (0.16 + depth * 0.52 + lit * 0.26) * alphaScale;
+      return "rgba(" + r + "," + g + "," + b + "," + a.toFixed(3) + ")";
+    }
+
     function render() {
       ctx.clearRect(0, 0, w, h);
       const ca = Math.cos(angY), sa = Math.sin(angY);
 
-      // A slow, shallow flicker. Anything stronger reads as a broken
-      // screen rather than a projection.
-      const flicker = reduce ? 1 : 0.965 + 0.035 * Math.sin(t * 3.2) * Math.sin(t * 1.6);
+      // A slow, shallow flicker. Anything stronger reads as a broken screen
+      // rather than a projection.
+      const flicker = reduce ? 1 : 0.972 + 0.028 * Math.sin(t * 3.2) * Math.sin(t * 1.6);
 
       // ---- project every vertex once, into reused scratch ----
-      const pv = model.v;
-      const proj = projBuf;
-      let fmin = Infinity, fmax = -Infinity;
+      const pv = model.v, proj = projBuf;
+      let zmin = Infinity, zmax = -Infinity;
       for (let i = 0; i < pv.length; i++) {
         const p = project(pv[i][0], pv[i][1], pv[i][2], ca, sa);
         proj[i] = p;
-        if (p[2] < fmin) fmin = p[2];
-        if (p[2] > fmax) fmax = p[2];
+        if (p[3] < zmin) zmin = p[3];
+        if (p[3] > zmax) zmax = p[3];
       }
-      const fspan = fmax - fmin || 1;
 
       // ---- 0. floor pool ----
-      // The models are all built standing on a base ring at y≈-1. A soft
-      // pool of light under that ring stops the object floating in a void,
-      // and costs one gradient fill.
+      // Every model stands on a base ring at y≈-1. A soft pool of light under
+      // it stops the object floating in a void, and costs one gradient fill.
       const floor = project(0, -0.98, 0, ca, sa);
       const fr = scale * 1.15;
       const pool = ctx.createRadialGradient(floor[0], floor[1], 0, floor[0], floor[1], fr);
-      pool.addColorStop(0, `rgba(${rgb},${(0.10 * flicker).toFixed(3)})`);
-      pool.addColorStop(0.45, `rgba(${rgb},${(0.04 * flicker).toFixed(3)})`);
-      pool.addColorStop(1, `rgba(${rgb},0)`);
+      pool.addColorStop(0, "rgba(" + rgb + "," + (0.11 * flicker).toFixed(3) + ")");
+      pool.addColorStop(0.45, "rgba(" + rgb + "," + (0.042 * flicker).toFixed(3) + ")");
+      pool.addColorStop(1, "rgba(" + rgb + ",0)");
       ctx.save();
       ctx.translate(floor[0], floor[1]);
-      ctx.scale(1, 0.30);              // flatten to an ellipse on the ground plane
+      ctx.scale(1, 0.30);
       ctx.translate(-floor[0], -floor[1]);
       ctx.fillStyle = pool;
       ctx.beginPath();
@@ -1253,151 +1540,237 @@
       ctx.fill();
       ctx.restore();
 
-      // ---- bucket edges by depth ----
-      // NB bands rather than the handful the first version used: at five
-      // the grading stepped visibly and the model looked posterised.
-      for (let b = 0; b < NB; b++) edgeBuckets[b].length = 0;
+      // ---- live geometry, projected into the same depth space ----
+      // Articulated parts are generated per frame in model space, so they have
+      // to enter the sort alongside the static shell or an arm link will draw
+      // over the body it is behind.
+      let dynSegs = null, dynDots = null, dynFaces = null;
+      if (model.dynamic) {
+        const gen = model.dynamic(reduce ? 0 : t, deploy, angY, hoverT);
+        dynSegs = gen.segments || [];
+        dynDots = gen.dots || [];
+        dynFaces = gen.faces || null;
+      }
+
+      // ---- bucket everything by depth ----
+      for (let s = 0; s < NSLICE; s++) {
+        const sl = slices[s];
+        sl.edges.length = 0;
+        for (let b = 0; b < NLIT; b++) sl.lit[b].length = 0;
+      }
+      rimEdges.length = 0;
+      const zspan = (zmax - zmin) || 1;
+      const sliceOf = (z) => {
+        let i = (((z - zmin) / zspan) * NSLICE) | 0;
+        return i < 0 ? 0 : i >= NSLICE ? NSLICE - 1 : i;
+      };
+
+      const F = model.f || [];
+      for (let i = 0; i < F.length; i++) {
+        const fa = F[i];
+        const n = fa.length;
+        let zs = 0, ok = true;
+        for (let k = 0; k < n; k++) {
+          const p = proj[fa[k]];
+          if (!p) { ok = false; break; }
+          zs += p[3];
+        }
+        if (!ok) continue;
+        // Face normal in model space, then through the same rotation the
+        // vertices took, so the light is fixed to the viewer and the model
+        // turns underneath it.
+        const a = pv[fa[0]], b = pv[fa[1]], c = pv[fa[n - 1]];
+        const ux = b[0] - a[0], uy = b[1] - a[1], uz = b[2] - a[2];
+        const vx = c[0] - a[0], vy = c[1] - a[1], vz = c[2] - a[2];
+        let nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx;
+        const nl = Math.hypot(nx, ny, nz) || 1;
+        nx /= nl; ny /= nl; nz /= nl;
+        const rx = nx * ca + nz * sa, rz0 = -nx * sa + nz * ca;
+        const ry = ny * cosT - rz0 * sinT, rz = ny * sinT + rz0 * cosT;
+        let lit = rx * LIGHT[0] + ry * LIGHT[1] + rz * LIGHT[2];
+        lit = lit < 0 ? -lit * 0.42 : lit;    // a back face is dim, never black
+        slices[sliceOf(zs / n)].lit[litBucket(lit)].push(fa);
+      }
+
+      if (dynFaces) {
+        for (let i = 0; i < dynFaces.length; i++) {
+          const q = dynFaces[i], n = q.length;
+          const pts = new Array(n);
+          let zs = 0;
+          for (let k = 0; k < n; k++) {
+            const pr = project(q[k][0], q[k][1], q[k][2], ca, sa);
+            pts[k] = pr; zs += pr[3];
+          }
+          const a = q[0], b = q[1], c = q[n - 1];
+          const ux = b[0] - a[0], uy = b[1] - a[1], uz = b[2] - a[2];
+          const vx = c[0] - a[0], vy = c[1] - a[1], vz = c[2] - a[2];
+          let nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx;
+          const nl = Math.hypot(nx, ny, nz) || 1;
+          nx /= nl; ny /= nl; nz /= nl;
+          const rx = nx * ca + nz * sa, rz0 = -nx * sa + nz * ca;
+          const ry = ny * cosT - rz0 * sinT, rz = ny * sinT + rz0 * cosT;
+          let lit = rx * LIGHT[0] + ry * LIGHT[1] + rz * LIGHT[2];
+          lit = lit < 0 ? -lit * 0.42 : lit;
+          slices[sliceOf(zs / n)].lit[litBucket(lit)].push(pts);
+        }
+      }
 
       const E = model.e;
       for (let i = 0; i < E.length; i++) {
-        const a = proj[E[i][0]], c = proj[E[i][1]];
-        let d = ((a[2] + c[2]) * 0.5 - fmin) / fspan;
-        let bi = (d * NB) | 0;
-        if (bi < 0) bi = 0; else if (bi >= NB) bi = NB - 1;
-        const arr = edgeBuckets[bi];
-        arr.push(a[0], a[1], c[0], c[1]);
+        const a = proj[E[i][0]], b = proj[E[i][1]];
+        if (!a || !b) continue;
+        slices[sliceOf((a[3] + b[3]) * 0.5)].edges.push(a[0], a[1], b[0], b[1]);
       }
-
-      ctx.lineCap = "round";
-      ctx.lineJoin = "round";
-
-      // ---- 1. haze ----
-      // One wide-blur pass under everything. Low alpha on purpose: this is
-      // the light the projection throws, not the model itself.
-      if (!reduce) {
-        ctx.shadowColor = `rgba(${rgb},0.85)`;
-        ctx.shadowBlur = 13;
-        ctx.strokeStyle = `rgba(${rgb},${(0.085 * flicker).toFixed(3)})`;
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        for (let b = 0; b < NB; b++) {
-          const arr = edgeBuckets[b];
-          for (let k = 0; k < arr.length; k += 4) {
-            ctx.moveTo(arr[k], arr[k + 1]);
-            ctx.lineTo(arr[k + 2], arr[k + 3]);
-          }
+      if (dynSegs) {
+        for (let i = 0; i < dynSegs.length; i++) {
+          const s = dynSegs[i];
+          const a = project(s[0], s[1], s[2], ca, sa);
+          const b = project(s[3], s[4], s[5], ca, sa);
+          slices[sliceOf((a[3] + b[3]) * 0.5)].edges.push(a[0], a[1], b[0], b[1]);
         }
-        ctx.stroke();
-        ctx.shadowBlur = 0;
       }
-
-      // ---- 2. depth-graded cores ----
-      // Additive compositing so overlapping far/near edges build up light
-      // the way a real projection would, instead of painting over.
-      const prevOp = ctx.globalCompositeOperation;
-      ctx.globalCompositeOperation = "lighter";
-      for (let b = 0; b < NB; b++) {
-        const arr = edgeBuckets[b];
-        if (!arr.length) continue;
-        const d = (b + 0.5) / NB;          // 0 = furthest, 1 = nearest
-        const e = d * d;                   // bias the grade toward the near edges
-        ctx.strokeStyle =
-          `rgba(${Math.round(cFar[0] + (cNear[0] - cFar[0]) * e)},` +
-          `${Math.round(cFar[1] + (cNear[1] - cFar[1]) * e)},` +
-          `${Math.round(cFar[2] + (cNear[2] - cFar[2]) * e)},` +
-          `${((0.13 + d * 0.62) * flicker).toFixed(3)})`;
-        ctx.lineWidth = 0.45 + e * 1.05;
-        ctx.beginPath();
-        for (let k = 0; k < arr.length; k += 4) {
-          ctx.moveTo(arr[k], arr[k + 1]);
-          ctx.lineTo(arr[k + 2], arr[k + 3]);
-        }
-        ctx.stroke();
-      }
-
-      // ---- 3. vertex glints ----
-      // Drawn in two passes so the near nodes actually read as points of
-      // light rather than the uniform dot field the first version had.
-      for (let pass = 0; pass < 2; pass++) {
-        const lo = pass === 0 ? 0 : 0.62;   // pass 1: everything faint; pass 2: near only, hot
-        ctx.fillStyle = pass === 0
-          ? `rgba(${rgb},${(0.13 * flicker).toFixed(3)})`
-          : `rgba(${cNear.join(",")},${(0.42 * flicker).toFixed(3)})`;
-        ctx.beginPath();
-        for (let i = 0; i < proj.length; i++) {
-          const p = proj[i];
-          const d = (p[2] - fmin) / fspan;
-          if (d < lo) continue;
-          const r = pass === 0 ? 0.4 + d * 0.5 : 0.5 + (d - lo) * 1.9;
-          ctx.moveTo(p[0] + r, p[1]);
-          ctx.arc(p[0], p[1], r, 0, Math.PI * 2);
-        }
-        ctx.fill();
-      }
-      ctx.globalCompositeOperation = prevOp;
-
-      // Spinning rotor blades — batched into a single stroke.
-      // Each blade is a closed, tapered planform rather than a spoke: a
-      // three-spoke star reads as a wheel at any size, a bladed prop reads
-      // as a prop. Authored once, normalised to a unit radius, and swept
-      // into the rotor plane per blade.
+      // Spinning rotor blades: a closed tapered planform per blade, generated
+      // at the hub's depth so a blade behind the body is hidden by it.
       const spinners = model.spinners || [];
       if (spinners.length) {
         const spin = reduce ? 0 : t;
-        ctx.strokeStyle = `rgba(${rgb},${(0.6 * flicker).toFixed(3)})`;
-        ctx.lineWidth = 1.1;
-        ctx.beginPath();
         for (let s = 0; s < spinners.length; s++) {
           const sp = spinners[s];
-          const r = sp.r;
-          // Hub ring, so the blades visibly attach to something.
-          const hubR = 0.1 * r;
+          const hub = project(sp.cx, sp.cy, sp.cz, ca, sa);
+          const bucket = slices[sliceOf(hub[3])].edges;
+          const hubR = 0.1 * sp.r;
+          let prev = null, first = null;
           for (let k = 0; k <= 8; k++) {
             const a = (k / 8) * Math.PI * 2;
             const p = project(sp.cx + Math.cos(a) * hubR, sp.cy, sp.cz + Math.sin(a) * hubR, ca, sa);
-            if (k === 0) ctx.moveTo(p[0], p[1]); else ctx.lineTo(p[0], p[1]);
+            if (prev) bucket.push(prev[0], prev[1], p[0], p[1]);
+            prev = p;
           }
           for (let bl = 0; bl < sp.blades; bl++) {
             const ba = spin * sp.speed + (bl / sp.blades) * Math.PI * 2;
             const cb = Math.cos(ba), sb = Math.sin(ba);
-            for (let k = 0; k <= BLADE.length; k++) {
-              const [u, v] = BLADE[k % BLADE.length];
-              const x = sp.cx + (u * cb - v * sb) * r;
-              const z = sp.cz + (u * sb + v * cb) * r;
-              // A touch of pitch across the span, so the disc is not flat-on.
-              const p = project(x, sp.cy + v * 0.16 * r, z, ca, sa);
-              if (k === 0) ctx.moveTo(p[0], p[1]); else ctx.lineTo(p[0], p[1]);
+            prev = null; first = null;
+            for (let k = 0; k < BLADE.length; k++) {
+              const u = BLADE[k][0], vv = BLADE[k][1];
+              const x = sp.cx + (u * cb - vv * sb) * sp.r;
+              const z = sp.cz + (u * sb + vv * cb) * sp.r;
+              const p = project(x, sp.cy + vv * 0.16 * sp.r, z, ca, sa);
+              if (prev) bucket.push(prev[0], prev[1], p[0], p[1]);
+              else first = p;
+              prev = p;
             }
+            if (prev && first) bucket.push(prev[0], prev[1], first[0], first[1]);
           }
         }
-        ctx.stroke();
       }
 
-      // Live dynamic geometry — articulated arm / tilting laser barrel.
-      // model.dynamic(t) returns model-space segments + dots; batched stroke.
-      const dyn = model.dynamic;
-      if (dyn) {
-        const gen = dyn(reduce ? 0 : t, deploy, angY, hoverT);
-        const segs = gen.segments || [];
-        ctx.strokeStyle = `rgba(${rgb},${(0.72 * flicker).toFixed(3)})`;
-        ctx.lineWidth = 1.2;
+      // ---- 1. depth slices, far to near ----
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      for (let s = 0; s < NSLICE; s++) {
+        const depth = (s + 0.5) / NSLICE;
+        const sl = slices[s];
+
+        // surfaces first: they are what the edges in this slice sit on, and
+        // what the edges of every slice behind get hidden by
+        /* One path, one fill, per light bucket. A static face arrives as
+           vertex indices into the shared projection buffer and a live one
+           arrives already projected; both are just points by the time they
+           reach the path, so they batch together. */
+        for (let bI = 0; bI < NLIT; bI++) {
+          const bucket = sl.lit[bI];
+          if (!bucket.length) continue;
+          ctx.fillStyle = FILL[s][bI];
+          ctx.beginPath();
+          for (let i = 0; i < bucket.length; i++) {
+            const fa = bucket[i];
+            const first = fa[0];
+            if (typeof first === "number") {
+              const p0 = proj[first];
+              ctx.moveTo(p0[0], p0[1]);
+              for (let k = 1; k < fa.length; k++) {
+                const pk = proj[fa[k]];
+                ctx.lineTo(pk[0], pk[1]);
+              }
+            } else {
+              ctx.moveTo(first[0], first[1]);
+              for (let k = 1; k < fa.length; k++) ctx.lineTo(fa[k][0], fa[k][1]);
+            }
+            ctx.closePath();
+          }
+          ctx.fill();
+        }
+
+        const ar = sl.edges;
+        if (!ar.length) continue;
+        ctx.strokeStyle = shadeEdge(0.35, depth, flicker);
+        ctx.lineWidth = 0.5 + depth * depth * 1.15;
         ctx.beginPath();
-        for (let i = 0; i < segs.length; i++) {
-          const s = segs[i];
-          const a = project(s[0], s[1], s[2], ca, sa);
-          const b = project(s[3], s[4], s[5], ca, sa);
-          ctx.moveTo(a[0], a[1]);
-          ctx.lineTo(b[0], b[1]);
+        for (let k = 0; k < ar.length; k += 4) {
+          ctx.moveTo(ar[k], ar[k + 1]);
+          ctx.lineTo(ar[k + 2], ar[k + 3]);
         }
         ctx.stroke();
-        const dots = gen.dots || [];
-        for (let i = 0; i < dots.length; i++) {
-          const d = dots[i];
+        if (depth > 0.66) for (let k = 0; k < ar.length; k++) rimEdges.push(ar[k]);
+      }
+
+      // ---- 2. rim pass ----
+      // The glow, additively, over the near shell only. Applied to everything
+      // it becomes fog; applied to the near edges it reads as light coming off
+      // the object, which is the thing that made the old version look flat.
+      if (!reduce && rimEdges.length) {
+        const prevOp = ctx.globalCompositeOperation;
+        ctx.globalCompositeOperation = "lighter";
+        ctx.shadowColor = "rgba(" + rgb + ",0.9)";
+        ctx.shadowBlur = 9;
+        ctx.strokeStyle = "rgba(" + cNear.join(",") + "," + (0.20 * flicker).toFixed(3) + ")";
+        ctx.lineWidth = 1.05;
+        ctx.beginPath();
+        for (let k = 0; k < rimEdges.length; k += 4) {
+          ctx.moveTo(rimEdges[k], rimEdges[k + 1]);
+          ctx.lineTo(rimEdges[k + 2], rimEdges[k + 3]);
+        }
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+        ctx.globalCompositeOperation = prevOp;
+      }
+
+      // ---- 3. vertex glints ----
+      const prevOp2 = ctx.globalCompositeOperation;
+      ctx.globalCompositeOperation = "lighter";
+      ctx.fillStyle = "rgba(" + cNear.join(",") + "," + (0.30 * flicker).toFixed(3) + ")";
+      ctx.beginPath();
+      for (let i = 0; i < proj.length; i++) {
+        const p = proj[i];
+        const d = (p[3] - zmin) / zspan;
+        if (d < 0.74) continue;
+        const r = 0.5 + (d - 0.74) * 2.2;
+        ctx.moveTo(p[0] + r, p[1]);
+        ctx.arc(p[0], p[1], r, 0, Math.PI * 2);
+      }
+      ctx.fill();
+      ctx.globalCompositeOperation = prevOp2;
+
+      // ---- 4. live dots: lamps, lenses, contacts ----
+      if (dynDots) {
+        for (let i = 0; i < dynDots.length; i++) {
+          const d = dynDots[i];
           const pp = project(d[0], d[1], d[2], ca, sa);
           ctx.beginPath();
           ctx.arc(pp[0], pp[1], d[3] || 3, 0, Math.PI * 2);
-          if (d[4]) { ctx.fillStyle = `rgba(${rgb},${flicker.toFixed(3)})`; ctx.fill(); }
-          else { ctx.strokeStyle = `rgba(${rgb},${(0.7 * flicker).toFixed(3)})`; ctx.lineWidth = 1.2; ctx.stroke(); }
+          if (d[4]) {
+            ctx.save();
+            ctx.globalCompositeOperation = "lighter";
+            ctx.shadowColor = "rgba(" + rgb + ",0.95)";
+            ctx.shadowBlur = 10;
+            ctx.fillStyle = "rgba(" + cNear.join(",") + "," + flicker.toFixed(3) + ")";
+            ctx.fill();
+            ctx.restore();
+          } else {
+            ctx.strokeStyle = "rgba(" + rgb + "," + (0.6 * flicker).toFixed(3) + ")";
+            ctx.lineWidth = 1.1;
+            ctx.stroke();
+          }
         }
       }
     }

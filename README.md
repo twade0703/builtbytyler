@@ -166,42 +166,69 @@ phones get ~40% of the particles at a capped pixel ratio with no MSAA.
 
 ## The holograms
 
-`hologram.js` draws each product as a wireframe on a 2D canvas — procedural
-geometry and a hand-rolled projection, no library. What makes it read as a
-projection rather than a line drawing is depth: every edge is graded along
-colour, opacity, width and glow from a cold thin far blue to a hot bright near
-white-cyan, across 16 bands. That grade is doing the job hidden-line removal
-would do in a real 3D renderer, which a canvas cannot afford.
+`hologram.js` draws each build on a 2D canvas — procedural geometry and a
+hand-rolled projection, no library. Seven models: `arm`, `drone`, `evtol`,
+`rover`, `transmitter`, `turret`, `rocket`.
 
-Per frame: a floor pool, one wide-blur haze pass, the depth-graded cores in
-`lighter` composite, a rising scan band that re-lights what it crosses, and
-vertex glints in two passes. Everything batches per depth band, so a model
-costs a couple of dozen stroke calls regardless of edge count. Only a hovered
-hologram animates, and the loop winds itself down when the pointer leaves.
+**It is a solid-surface renderer that happens to be drawn as a wireframe, and
+that distinction is the entire quality difference.** The first version graded
+every edge by depth across four axes at once and hoped that would separate the
+near side of an object from the far side. It cannot: with nothing to hide
+behind, every edge is visible at all times, so a *detailed* model looks worse
+than a crude one — more edges, more tangle. Adding detail made it look cheaper,
+which is exactly backwards, and it is why the models had to stay crude.
 
-Seven models: `arm`, `drone`, `evtol`, `rover`, `transmitter`, `turret`,
-`rocket`. Each is a static wireframe plus a `dynamic(t)` function returning live
-geometry — the part of the machine that actually moves. The tilt-rotor tilts its
-nacelles from hover to cruise and back; the rover's rocker-bogie articulates
-over a bump that rolls under it; the laser mount slews onto a weaving target and
-holds the beam; the telegraph key sends TYLER and the receiver lights a letter
-at a time; the rocket arms, lights and throttles down.
+So every primitive now emits a face list (`f`) alongside vertices and edges,
+and the pipeline is a painter's algorithm:
 
-**There is no scan sweep, and none is coming back.** A band of light used to
-rise through every model on a loop. Across six plates at once it read as a
-gimmick rather than as an instrument, and it was cut. The only motion is the
-object's own.
+| Pass | What it does |
+|---|---|
+| Floor pool | A soft ellipse of light the model stands in |
+| Depth slices | Everything sorted far to near in `NSLICE` bands. Per band: fill the surfaces, then stroke the edges — so a far edge is painted over by a near surface. Hidden-line removal for the cost of a sort |
+| Rim | The nearest third of the edges again, additively, blurred. The glow, on the near shell only |
+| Glints | Vertex highlights on the near shell |
+| Dots | Lamps, lenses, contacts |
 
-Three things that look like details but are not:
+Four things in there are load-bearing:
+
+- **Surfaces are sorted, never culled.** Winding across seven hand-authored
+  models cannot be trusted, and a wrongly culled face is a hole straight
+  through the object. A face wound backwards here is merely shaded as a back
+  face — dimmer, still occluding. It is the failure mode you can ship.
+- **Fills are batched by depth slice and quantised light.** One
+  `beginPath`/`fill` per face ran the seven-panel preview at 1fps; the cost is
+  canvas state changes, not geometry. Grouping every face sharing a slice and a
+  light level into one path is visually identical and bounded at
+  `NSLICE × NLIT` fills. One render now costs 2.6–7.9 ms.
+- **Live geometry carries faces too** (`dynamic()` returns `{segments, faces,
+  dots}`). A model whose static shell is solid but whose moving parts are bare
+  wireframe looks broken in a very specific way: the arm appears to be made of
+  glass and the base does not.
+- **`makeBase` is deliberately faceless.** The pad is a marking on the floor,
+  not a surface; give it faces and it becomes a disc that swallows the landing
+  gear standing on it.
+
+**There is no scan sweep, and none is coming back.** A band of light rising
+through every model on a loop read as a gimmick across six panels at once.
+
+Other details that are not details:
 
 - Rotor blades are tapered planforms (`BLADE`), never spokes. A three-spoke
   star reads as a wheel at any size.
 - `resize()` sets `canvas.width`, which wipes the bitmap, so it must be
-  followed by a `render()`. Without that a single resize leaves every
-  hologram permanently blank.
+  followed by a `render()`. Without that a single resize leaves every hologram
+  permanently blank.
 - Hover is bound to `.plate__media, .card__media, .detail__media`. Each page
-  frames the canvas differently; miss one and every model on that page sits
-  frozen.
+  frames the canvas differently; miss one and every model on that page freezes.
+- `project()` returns view depth as a fourth element, and the sort uses **that**
+  rather than the perspective factor. The factor compresses hard with distance,
+  so sorting on it drops far geometry into too few buckets and surfaces swap
+  order as the model turns.
+
+`tools/holo-preview.html` renders all seven at once with every panel hovered.
+Note that Chrome does not run `requestAnimationFrame` in a hidden tab, so any
+fps measured through a background tab is measuring the throttle. Time a single
+synchronous `mount()` instead.
 
 ## Editing the catalog
 

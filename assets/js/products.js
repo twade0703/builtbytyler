@@ -14,7 +14,7 @@
      id          unique slug used in product.html?id=<id>
      name        display name
      tagline     short one-liner
-     holo        hologram model: "arm" | "drone" | "evtol" | "rover" |
+     holo        hologram model: "arm" | "drone" | "evtol" | "rccar" |
                  "transmitter" | "turret" | "rocket" (see hologram.js;
                  omit for a clean placeholder panel)
      featured    show on the home page
@@ -82,20 +82,21 @@ const PRODUCTS = [
     ],
   },
   {
-    id: "rc-rover",
-    name: "RC Rover",
-    tagline: "Six-wheel rocker-bogie rover",
-    holo: "rover",
+    id: "rc-car",
+    name: "RC Car",
+    tagline: "Brushed DC sports car, built from the chassis up",
+    holo: "rccar",
     featured: true,
     available: false,
     description:
-      "A six-wheel rover on a rocker-bogie suspension — the same articulated chassis the " +
-      "Mars rovers use, which keeps all six wheels on the ground and the body level over " +
-      "rough terrain. Chassis, drivetrain and controls designed and built by hand.",
+      "A radio-controlled sports car built from the chassis plate up — DC drivetrain, " +
+      "steering linkage, double-wishbone suspension and a hand-shaped body, running on a " +
+      "pistol-grip transmitter. The kind of build where the electronics and the mechanics " +
+      "have to agree with each other or it just sits there.",
     specs: [
-      { label: "Chassis", value: "6-wheel rocker-bogie" },
-      { label: "Drive", value: "Independent wheel motors" },
-      { label: "Control", value: "Radio · onboard controller" },
+      { label: "Drive", value: "Brushed DC · rear wheel" },
+      { label: "Chassis", value: "Plate chassis, double wishbone" },
+      { label: "Control", value: "2.4GHz pistol-grip transmitter" },
       { label: "Lead time", value: "Made to order" },
     ],
   },

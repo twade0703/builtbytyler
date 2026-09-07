@@ -7,7 +7,7 @@ canvas{position:absolute;inset:0;width:100%;height:100%}
 <div class="g" id="g"></div>
 <script src="../assets/js/hologram.js"></script>
 <script>
-const types=["arm","drone","evtol","rover","transmitter","turret","rocket"];
+const types=["arm","drone","evtol","rccar","transmitter","turret","rocket"];
 const g=document.getElementById("g");
 g.innerHTML=types.map(t=>`<div class="c plate__media"><span class="l">${t}</span><canvas data-holo="${t}"></canvas></div>`).join("");
 window.BBTHolograms.mount();

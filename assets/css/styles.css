@@ -434,6 +434,9 @@ html.nav-open, html.nav-open body { overflow: hidden; }
 
 /* Page opener: headline left, a mono ledger of facts right. */
 .opener { padding-top: clamp(4.5rem, 12vh, 8rem); padding-bottom: clamp(2.5rem, 6vw, 4.5rem); }
+/* With the facts ledger gone the opener is one column, held to a readable
+   measure rather than stretched across the full grid. */
+.opener__grid--solo { grid-template-columns: minmax(0, 1fr) !important; max-width: 62rem; }
 .opener__grid {
   display: grid;
   grid-template-columns: minmax(0, 1.5fr) minmax(240px, 0.8fr);
@@ -504,15 +507,24 @@ html.nav-open, html.nav-open body { overflow: hidden; }
    INDEX — compact numbered rows (the software services list).
    =================================================================== */
 .index { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--hairline-strong); counter-reset: ix; }
+/* Two columns, not three. The number now sits directly ABOVE the heading it
+   belongs to instead of in a gutter of its own, because the section eyebrow
+   already carries a number: "01 — What I build" followed immediately by an
+   item also labelled 01 read as a numbering bug. Attached to the heading, an
+   item number is obviously an item number. */
 .index__row {
   display: grid;
-  grid-template-columns: minmax(0, 6rem) minmax(0, 0.9fr) minmax(0, 1.4fr);
-  column-gap: clamp(1rem, 3vw, 2.5rem);
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.3fr);
+  grid-template-areas: "n    body"
+                       "head body";
+  grid-template-rows: auto 1fr;
+  column-gap: clamp(1.25rem, 3vw, 2.5rem);
   padding: clamp(1.25rem, 2.4vw, 1.9rem) 0;
   border-bottom: 1px solid var(--hairline);
   position: relative;
 }
 .index__row::before {
+  grid-area: n;
   counter-increment: ix;
   content: "0" counter(ix);
   font-family: var(--font-mono);
@@ -521,7 +533,8 @@ html.nav-open, html.nav-open body { overflow: hidden; }
   color: var(--accent);
   padding-top: 0.35rem;
 }
-.index__row h3 { font-size: var(--fs-h3); font-weight: 500; letter-spacing: -0.012em; max-width: 16ch; }
+.index__row > h3 { grid-area: head; font-size: var(--fs-h3); font-weight: 500; letter-spacing: -0.012em; max-width: 18ch; }
+.index__row > div { grid-area: body; }
 .index__row p { color: var(--muted); max-width: 58ch; }
 .index__tags { display: block; margin-top: 0.85rem; font-family: var(--font-mono); font-size: var(--fs-micro); letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); opacity: 0.85; }
 /* The slash separators carry margin but no whitespace, and a margin is not a
@@ -850,10 +863,24 @@ html.nav-open, html.nav-open body { overflow: hidden; }
 :root { --lock: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='4' y='10' width='16' height='11' rx='2'/%3E%3Cpath d='M8 10V7a4 4 0 0 1 8 0v3'/%3E%3C/svg%3E"); }
 
 /* The stack, as a line of text rather than a row of chips. */
-.stack { display: flex; flex-wrap: wrap; gap: 0.35rem 0; list-style: none; padding: 0; margin: 0; font-family: var(--font-mono); font-size: var(--fs-micro); letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); }
-.stack li + li::before { content: "·"; color: var(--hairline-strong); margin: 0 0.85rem; }
-.stack-row { display: grid; grid-template-columns: minmax(0, 6rem) 1fr; column-gap: clamp(1rem, 3vw, 2.5rem); align-items: baseline; padding-top: 1.1rem; border-top: 1px solid var(--hairline); }
-.stack-row > span { font-family: var(--font-mono); font-size: var(--fs-micro); letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); }
+/* The separator rule used to be `.stack li + li`, but this list is built from
+   <span>s — so nothing separated the items and, with a zero column gap, the
+   row rendered as "TypeScriptReactNext.jsNode…". Match the children that are
+   actually there, and give the row a real gap of its own. */
+.stack {
+  display: flex; flex-wrap: wrap; align-items: baseline;
+  gap: 0.4rem 0; list-style: none; padding: 0; margin: 0;
+  font-family: var(--font-mono); font-size: var(--fs-micro);
+  letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted);
+}
+.stack > * + *::before { content: "·"; color: var(--hairline-strong); margin: 0 0.7rem; }
+.stack-row {
+  display: grid; grid-template-columns: minmax(0, 7rem) minmax(0, 1fr);
+  column-gap: clamp(1.25rem, 3vw, 2.5rem); align-items: baseline;
+  margin-top: clamp(2rem, 4vw, 3rem); padding-top: 1.1rem;
+  border-top: 1px solid var(--hairline);
+}
+.stack-row__lab { font-family: var(--font-mono); font-size: var(--fs-micro); letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); }
 
 /* ===================================================================
    SPLIT feature rows + the browser-window figure (software page)
@@ -1181,10 +1208,13 @@ body::before {
      DIV is the grid item, not the <p> inside it. Targeting the paragraph
      placed nothing and left the wrapper in the 4rem number gutter — a
      64px-wide column of prose, one word per line. Place the direct child. */
-  .index__row { grid-template-columns: minmax(0, 4rem) minmax(0, 1fr); row-gap: 0.5rem; }
-  .index__row > h3 { grid-column: 2; }
-  .index__row > div,
-  .index__row > p { grid-column: 2; }
+  .index__row {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "n" "head" "body";
+    grid-template-rows: auto auto auto;
+    row-gap: 0.35rem;
+  }
+  .stack-row { grid-template-columns: minmax(0, 1fr); row-gap: 0.6rem; }
   .band__grid { grid-template-columns: minmax(0, 4rem) minmax(0, 1fr); grid-template-areas: "lab lab" "n h" "n text"; }
   .band--figure .band__grid { grid-template-columns: minmax(0, 1fr); grid-template-areas: "lab" "fig" "h" "text"; }
   .band__fig { max-width: 280px; margin-bottom: 1.75rem; }
@@ -1263,7 +1293,7 @@ body::before {
    about the look changes; the text just gets the width back.
    ------------------------------------------------------------------- */
 @media (max-width: 620px) {
-  .idx, .idx--split, .ledger__row, .index__row, .close, .prose-grid {
+  .idx, .idx--split, .ledger__row, .close, .prose-grid {
     grid-template-columns: minmax(0, 1fr);
     column-gap: 0;
   }
@@ -1275,7 +1305,6 @@ body::before {
      `.index__row > h3` — and a child still sitting in column 2 makes the
      browser generate an implicit second column, which is the whole bug. */
   .ledger__row > *, .index__row > *, .close > *, .prose-grid > * { grid-column: 1; }
-  .index__row > h3, .index__row > div, .index__row > p { grid-column: 1; }
   .ledger__row > h3, .ledger__row > p, .ledger__row > div { grid-column: 1; }
   .close > h2, .close > p, .close > div { grid-column: 1; }
   .prose-grid > h2, .prose-grid > p, .prose-grid > div { grid-column: 1; }

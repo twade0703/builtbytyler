@@ -497,6 +497,7 @@ html.nav-open, html.nav-open body { overflow: hidden; }
 .ledger__meta { display: flex; flex-direction: column; justify-content: space-between; gap: 1.5rem; padding-top: 0.55rem; }
 .ledger__tags { font-family: var(--font-mono); font-size: var(--fs-micro); letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); line-height: 2; }
 .ledger__tags i { font-style: normal; color: var(--hairline-strong); margin: 0 0.5rem; }
+.ledger__tags i::after { content: "\200B"; }   /* see .index__tags i::after */
 .ledger__row:hover .link-arrow::after { transform: translateX(4px); }
 
 /* ===================================================================
@@ -523,7 +524,13 @@ html.nav-open, html.nav-open body { overflow: hidden; }
 .index__row h3 { font-size: var(--fs-h3); font-weight: 500; letter-spacing: -0.012em; max-width: 16ch; }
 .index__row p { color: var(--muted); max-width: 58ch; }
 .index__tags { display: block; margin-top: 0.85rem; font-family: var(--font-mono); font-size: var(--fs-micro); letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); opacity: 0.85; }
+/* The slash separators carry margin but no whitespace, and a margin is not a
+   line-break opportunity — so "structure/Analytics/Accessible/Copywriting"
+   was a single unbreakable word to the line breaker and ran off the side of
+   a phone. A zero-width space after each slash gives the browser somewhere
+   to break without putting a real space in the copy. */
 .index__tags i { font-style: normal; color: var(--hairline-strong); margin: 0 0.45rem; }
+.index__tags i::after { content: "\200B"; }
 .index__row--lead { padding-block: clamp(1.75rem, 3.5vw, 2.75rem); }
 .index__row--lead h3 { font-size: var(--fs-h2); font-weight: 400; letter-spacing: -0.024em; }
 .index__row--lead p { max-width: 62ch; font-size: 1.05rem; }
@@ -701,6 +708,12 @@ html.nav-open, html.nav-open body { overflow: hidden; }
 .band__fig { grid-area: fig; margin: 0; align-self: start; }
 .band__fig img {
   width: 100%;
+  /* The width/height attributes on the <img> are there to reserve space and
+     avoid a layout shift, but they also become presentational hints for the
+     CSS width and height. width:100% overrides one of them; without this the
+     other stands, height wins over aspect-ratio (both dimensions being
+     specified), and the frame renders 190x500 instead of square. */
+  height: auto;
   aspect-ratio: 4 / 5;
   object-fit: cover;
   object-position: 50% 22%;
@@ -1164,11 +1177,17 @@ body::before {
   .idx, .idx--split { grid-template-columns: minmax(0, 4rem) minmax(0, 1fr); grid-template-areas: "n lab" "n h" "n p"; }
   .ledger__row { grid-template-columns: minmax(0, 4rem) minmax(0, 1fr); }
   .ledger__meta { grid-column: 2; padding-top: 1.25rem; gap: 1rem; }
+  /* The row's content is wrapped in a <div> (paragraph + tag list), so the
+     DIV is the grid item, not the <p> inside it. Targeting the paragraph
+     placed nothing and left the wrapper in the 4rem number gutter — a
+     64px-wide column of prose, one word per line. Place the direct child. */
   .index__row { grid-template-columns: minmax(0, 4rem) minmax(0, 1fr); row-gap: 0.5rem; }
-  .index__row p { grid-column: 2; }
+  .index__row > h3 { grid-column: 2; }
+  .index__row > div,
+  .index__row > p { grid-column: 2; }
   .band__grid { grid-template-columns: minmax(0, 4rem) minmax(0, 1fr); grid-template-areas: "lab lab" "n h" "n text"; }
   .band--figure .band__grid { grid-template-columns: minmax(0, 1fr); grid-template-areas: "lab" "fig" "h" "text"; }
-  .band__fig { max-width: 300px; margin-bottom: 1.75rem; }
+  .band__fig { max-width: 280px; margin-bottom: 1.75rem; }
   .band__text { padding-top: 1.5rem; }
   .band__row, .timeline { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .band__row > li:nth-child(2) { border-right: 0; }
@@ -1225,9 +1244,52 @@ body::before {
   .timeline li { padding-right: 0; }
   .site-footer__inner { grid-template-columns: 1fr; }
   .scroll-cue { display: none; }
+  /* A headshot should not be the tallest thing on the screen. At 300px it
+     took 80% of a 375px viewport, and the source is only 400px square, so it
+     was both dominant and soft. Half the column, squarer crop. */
+  .band__fig { max-width: 190px; margin-bottom: 1.5rem; }
+  .band__fig img { aspect-ratio: 1 / 1; }
   .strip { grid-template-columns: 1fr; }
   .strip figure, .strip figure:nth-child(1), .strip figure:nth-child(2) { grid-column: span 1; }
 }
+/* -------------------------------------------------------------------
+   Phones: give the measure back.
+
+   The house grammar hangs a mono number in a gutter to the left of every
+   section, and at 960px that gutter narrows to 4rem. On a 375px screen 4rem
+   plus the column gap is about 85px — 23% of the viewport spent on a
+   two-digit label, leaving 255px for the prose. Under 620px the number stops
+   being a column and becomes a line of its own above the heading. Nothing
+   about the look changes; the text just gets the width back.
+   ------------------------------------------------------------------- */
+@media (max-width: 620px) {
+  .idx, .idx--split, .ledger__row, .index__row, .close, .prose-grid {
+    grid-template-columns: minmax(0, 1fr);
+    column-gap: 0;
+  }
+  .idx, .idx--split { grid-template-areas: "n" "lab" "h" "p"; }
+  .idx__n, .ledger__n, .close__n, .prose-grid__n, .index__row::before { padding-top: 0; }
+  /* Every child pushed into column 2 at the 960 breakpoint comes back to
+     column 1. These have to MATCH the specificity of the rules they undo:
+     `.index__row > *` is one class plus a universal, which loses to
+     `.index__row > h3` — and a child still sitting in column 2 makes the
+     browser generate an implicit second column, which is the whole bug. */
+  .ledger__row > *, .index__row > *, .close > *, .prose-grid > * { grid-column: 1; }
+  .index__row > h3, .index__row > div, .index__row > p { grid-column: 1; }
+  .ledger__row > h3, .ledger__row > p, .ledger__row > div { grid-column: 1; }
+  .close > h2, .close > p, .close > div { grid-column: 1; }
+  .prose-grid > h2, .prose-grid > p, .prose-grid > div { grid-column: 1; }
+  .ledger__meta, .close__side, .prose-aside { grid-column: 1; }
+  .index__row { row-gap: 0.35rem; }
+  .index__row::before { margin-bottom: 0.15rem; }
+
+  .band__grid { grid-template-columns: minmax(0, 1fr); grid-template-areas: "lab" "n" "h" "text"; }
+  .band--figure .band__grid { grid-template-areas: "lab" "fig" "h" "text"; }
+  .band__n { margin-bottom: 0.15rem; }
+  .band__text { padding-top: 1.25rem; }
+  .timeline, .band__row { grid-column: 1; }
+}
+
 @media (max-width: 540px) {
   .hero__cta, .opener__cta, .close__actions, .cta-band__actions, .detail__actions { flex-direction: column; align-items: stretch; }
   .hero__cta .btn, .opener__cta .btn, .close__actions .btn, .cta-band__actions .btn, .detail__actions .btn { width: 100%; }

@@ -15,12 +15,21 @@
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="manifest" href="/site.webmanifest">
   <meta name="theme-color" content="#121216">
+  <link rel="canonical" href="https://builtbytyler.com/terms">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Built by Tyler">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:url" content="https://builtbytyler.com/terms">
+  <meta property="og:title" content="Website terms · BuiltByTyler">
+  <meta property="og:description" content="The whole agreement for a BuiltByTyler website build and its monthly care plan, in plain language.">
+  <meta name="twitter:title" content="Website terms · BuiltByTyler">
+  <meta name="twitter:description" content="The whole agreement for a BuiltByTyler website build and its monthly care plan, in plain language.">
   <meta property="og:image" content="https://builtbytyler.com/assets/img/og-image.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
-  <link rel="stylesheet" href="assets/css/styles.css?v=11">
-  <link rel="stylesheet" href="assets/css/motion.css?v=11">
+  <link rel="stylesheet" href="assets/css/styles.css?v=12">
+  <link rel="stylesheet" href="assets/css/motion.css?v=12">
   <style>
     /* A line to sign on. The one rule this page needs that the site stylesheet
        does not already carry. Inline styles are allowed by the CSP in _headers. */
@@ -43,7 +52,7 @@
         <p>This agreement is with <b>BuiltByTyler LLC</b>, a California limited liability company, of Monterey, California. Everywhere below that I write "I", that means the company. I am Tyler Wade; I own it, I do the work, and I sign for it.</p>
         <h2>What the agreement is</h2>
         <p>This page, the package you bought as it is described in the packages sheet, and any written scope or add-on quote you have said yes to. That is all of it. Emails, calls, my website and anything I said while selling you this are not part of the agreement unless one of those three says it. If I promised you something and it is not written down in one of them, ask me to write it down. I will, and then it counts.</p>
-        <p><b>If two of my documents disagree.</b> It happens; I write them all myself. The order is: a written scope you have agreed, then an add-on quote you have said yes to, then this page, then the packages sheet, then the one-page guide, then anything on builtbytyler.com. Higher up wins. If you spot a disagreement, tell me and I will fix the document. You should never be the one carrying the cost of my paperwork.</p>
+        <p><b>Which document wins.</b> Your paperwork is layered, most specific first: a written scope you have agreed, then an add-on quote you have said yes to, then this page, then the packages sheet, then the one-page guide, then builtbytyler.com. The higher one wins. That is not because they contradict each other &mdash; they are checked against each other before they go out, and they carry the same prices, the same response times and the same notice periods &mdash; it is because a scope written for your job is more specific than a page written for everyone. If you ever do find a disagreement, tell me: I will fix the document, and until it is fixed you get whichever reading is better for you. You should never be the one carrying the cost of my paperwork.</p>
         <h2>What you are paying for</h2>
         <p>A one-off build fee, then a monthly care plan. The build fee covers making the site. The monthly covers hosting it, keeping it patched and backed up, changing it when you ask, and fixing it when it breaks. Prices are in the packages sheet and on builtbytyler.com.</p>
         <h2>Billing</h2>
@@ -63,7 +72,7 @@
         <ul>
           <li><b>Your domain.</b> Registered in your name, on your card, at Cloudflare Registrar, from the day we set it up. The account is yours and the login is yours; I do not keep it. What I hold is your say-so to point the domain at whatever is hosting your site, and nothing else. When you leave, I point it wherever you tell me to and then I am out of it. I never hold your domain and I could not hold it hostage if I wanted to. If I ever register a name for you before you have paid — to stop someone else taking it while we are still talking — I move it into your account on the onboarding call, at what it cost me, and it is yours from that moment.</li>
           <li><b>Your site.</b> Everything that makes it yours is yours: your words, your photographs, your logo, the pages as I built them for you. I send you the full copy at go-live, and you can ask for a fresh one at any time, including after you have left.</li>
-          <li><b>What stays mine, and what you can do with it.</b> Underneath every site I build is the same framework I wrote and reuse for everyone — the stylesheet, the animation code, the page template, and the tools that put them together. That stays mine. What you get is a licence to it that is permanent, worldwide, free and cannot be taken back: you can use it, host it, change it, and let anyone you hire do the same, as part of your site, for as long as you like. It survives you leaving, which is what makes the line above real, and it goes with the business if you sell it. The one thing it does not let you do is lift the framework out of your site and sell it, licence it, or build sites for other people with it. That is the only thing I hold back, and it is the reason I can build yours in a week at this price.</li>
+          <li><b>What stays mine, and what you can do with it.</b> Underneath every site I build is the same framework I wrote and reuse for everyone — the stylesheet, the animation code, the page template, and the tools that put them together. That stays mine. What you get is a licence to it that is permanent, worldwide, free and cannot be taken back: you can use it, host it, change it, and let anyone you hire do the same, as part of your site, for as long as you like. It survives you leaving, which is what makes the line above real, and it goes with the business if you sell it. The one thing it does not let you do is lift the framework out of your site and sell it, licence it, or build sites for other people with it. That is the only thing I hold back, and it is the reason I can build yours in days rather than months, at this price.</li>
           <li><b>Other people's work.</b> Some of what runs your site was written by other people and comes with its own free licence — the animation library, the fonts. Those come with your copy under their own terms. Nothing there costs you anything or renews, and I cannot give you more rights in that code than I have myself.</li>
           <li><b>Your content.</b> Your photos, your words, your reviews, your customer enquiries.</li>
           <li><b>Showing your site as my work.</b> I may show your finished site, and pictures of it, as an example of what I build. Nothing private ever goes in it: no enquiries, no numbers, no customer names beyond what is already public on your own page. Tell me you would rather I did not and I will not, and that holds after you leave as well.</li>
@@ -156,18 +165,32 @@
   </main>
 
   <footer id="site-footer" data-year="2026">
+    <!-- Static fallback only. components.js overwrites this block on load, so
+         no visitor ever sees it. It exists because the nav and the footer are
+         BOTH rendered into empty hosts by JS, which left a non-executing
+         crawler with no internal links and no company name anywhere in the
+         served HTML. Keep the links here in step with NAV_ITEMS. -->
     <div class="container site-footer__inner">
       <address>
-        <strong>BuiltByTyler LLC</strong><br>
+        <strong>Built by Tyler</strong> &mdash; BuiltByTyler LLC<br>
         770 Madison St, Monterey, CA 93940<br>
         <a href="tel:+12817398942">(281) 739-8942</a> &middot;
         <a href="mailto:twade@builtbytyler.com">twade@builtbytyler.com</a>
       </address>
+      <nav aria-label="Footer">
+        <a href="index.html">Home</a>
+        <a href="software.html">Websites &amp; software</a>
+        <a href="shop.html">The builds</a>
+        <a href="about.html">About Tyler Wade</a>
+        <a href="contact.html">Contact</a>
+        <a href="policies.html">Lead times, shipping &amp; refunds</a>
+        <a href="terms.html">Website terms</a>
+      </nav>
     </div>
   </footer>
 
-  <script src="assets/js/products.js?v=11"></script>
-  <script src="assets/js/components.js?v=11"></script>
-  <script src="assets/js/main.js?v=11"></script>
+  <script src="assets/js/products.js?v=12"></script>
+  <script src="assets/js/components.js?v=12"></script>
+  <script src="assets/js/main.js?v=12"></script>
 </body>
 </html>

@@ -19,8 +19,8 @@
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
-  <link rel="stylesheet" href="assets/css/styles.css?v=11">
-  <link rel="stylesheet" href="assets/css/motion.css?v=11">
+  <link rel="stylesheet" href="assets/css/styles.css?v=12">
+  <link rel="stylesheet" href="assets/css/motion.css?v=12">
 
 <!-- Structured data. Every fact here is one this site already states in prose:
        the entity, the city and the email come off contact.html. Nothing is
@@ -31,8 +31,14 @@
     "@context": "https://schema.org",
     "@type": "ProfessionalService",
     "@id": "https://builtbytyler.com/#business",
-    "name": "BuiltByTyler LLC",
-    "alternateName": "BuiltByTyler",
+    "name": "BuiltByTyler",
+    "legalName": "BuiltByTyler LLC",
+    "alternateName": [
+      "Built by Tyler",
+      "Built By Tyler",
+      "BuiltByTyler LLC",
+      "Built by Tyler LLC"
+    ],
     "url": "https://builtbytyler.com/",
     "email": "twade@builtbytyler.com",
     "telephone": "+12817398942",
@@ -144,24 +150,38 @@
   </main>
 
   <footer id="site-footer" data-year="2026">
+    <!-- Static fallback only. components.js overwrites this block on load, so
+         no visitor ever sees it. It exists because the nav and the footer are
+         BOTH rendered into empty hosts by JS, which left a non-executing
+         crawler with no internal links and no company name anywhere in the
+         served HTML. Keep the links here in step with NAV_ITEMS. -->
     <div class="container site-footer__inner">
       <address>
-        <strong>BuiltByTyler LLC</strong><br>
+        <strong>Built by Tyler</strong> &mdash; BuiltByTyler LLC<br>
         770 Madison St, Monterey, CA 93940<br>
         <a href="tel:+12817398942">(281) 739-8942</a> &middot;
         <a href="mailto:twade@builtbytyler.com">twade@builtbytyler.com</a>
       </address>
+      <nav aria-label="Footer">
+        <a href="index.html">Home</a>
+        <a href="software.html">Websites &amp; software</a>
+        <a href="shop.html">The builds</a>
+        <a href="about.html">About Tyler Wade</a>
+        <a href="contact.html">Contact</a>
+        <a href="policies.html">Lead times, shipping &amp; refunds</a>
+        <a href="terms.html">Website terms</a>
+      </nav>
     </div>
   </footer>
 
-  <script src="assets/js/products.js?v=11"></script>
-  <script src="assets/js/components.js?v=11"></script>
-  <script src="assets/js/main.js?v=11"></script>
+  <script src="assets/js/products.js?v=12"></script>
+  <script src="assets/js/components.js?v=12"></script>
+  <script src="assets/js/main.js?v=12"></script>
   <!-- ?v=3 busts the module cache. three.js is vendored at assets/vendor/,
        so the star field no longer needs an inline importmap (which the CSP
        blocks) or a third-party fetch from unpkg. A returning visitor still
        holding an older starfield.js would pair it with HTML that no longer
        ships that map, so the version query has to move whenever this does. -->
-  <script type="module" src="assets/js/starfield.js?v=11"></script>
+  <script type="module" src="assets/js/starfield.js?v=12"></script>
 </body>
 </html>

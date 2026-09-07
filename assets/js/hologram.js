@@ -1021,202 +1021,249 @@
     return m;
   }
 
-  /* RC car — a 1/10-scale sports car and the transmitter that drives it.
+  /* RC car — a 992-generation Porsche 911 GT3 RS, and the transmitter for it.
 
-     This replaced a six-wheel rocker-bogie rover, which was the wrong
-     machine entirely: that is a planetary lander's suspension on a vehicle
-     the size of a coffee table, and the real build is a foot-long DC-motor
-     RC car. Wrong reference, wrong scale, wrong everything.
+     Modelled against reference photographs rather than from memory. The
+     things that actually identify this car, in the order the eye checks
+     them:
 
-     So: a low wedge body over a visible chassis plate, four wheels on
-     wishbones, a rear wing on struts and a front splitter. The transmitter
-     stands beside it on the pad — a pistol grip with a steering wheel and a
-     throttle trigger — and its wheel turns in lockstep with the car's front
-     wheels, which is the detail that says these two things are one product
-     rather than two models sharing a stage. */
+       1. THE ROOFLINE. A 911 is a fastback: the roof peaks just behind the
+          A-pillar and then falls in ONE unbroken line to the tail. Every
+          other detail can be right and a wrong roofline still reads as a
+          generic sports car.
+       2. THE WING. On a GT3 RS it is the tallest thing on the car — the
+          top edge sits above the roof — it has TWO elements with a slot
+          between them, and it hangs from swan-neck uprights that meet it
+          on the upper surface. Big endplates.
+       3. THE HAUNCHES. Widest point of the car, over the rear axle, and
+          the rear wheels are visibly fatter than the fronts (335 vs 275).
+       4. THE FENDER LOUVRES. Horizontal slats let air out of the top of
+          the front arches. Almost nothing else on the road has these, and
+          they are what separates an RS from a plain GT3.
+       5. Round headlights, the dipped bonnet between raised fender tops,
+          the deep front splitter with dive planes, side intakes ahead of
+          the rear wheels, a full-width diffuser and centre-exit exhaust.
+
+     Sections are six-point rather than rectangular: tucked at the sill,
+     widest at the waist, narrower again at the roof. A four-point box
+     section cannot make a car, however good the numbers in it are. */
   function buildRccar() {
     const parts = [];
-    const GY = -0.44;                       // ground plane
-    const WR = 0.112, WW = 0.092;           // wheel radius / width — fat, to fill the arches
-    const HUB = GY + WR;
-    const AXF = 0.300, AXR = -0.300, TRK = 0.252;
+    const GY = -0.44;                          // ground plane
+    const WRF = 0.104, WWF = 0.086;            // front wheel: radius, width
+    const WRR = 0.120, WWR = 0.112;            // rear: fatter and wider — 335s
+    const AXF = 0.315, AXR = -0.315;
+    const TRKF = 0.245, TRKR = 0.258;          // rear track is wider too
 
-    /* Body: a chain of rectangular sections lofted along Z. A car is a
-       tapering box with a roof, and sections are the honest way to draw one
-       — a smooth loft would read as a jelly bean at this line weight. */
-    /* A 911 in section. Everything that makes the shape recognisable is in
-       this table and nowhere else: a low dropped nose, a bonnet that dips
-       between raised wings, a fast screen into a roof that peaks early, then
-       the fastback — one long fall to the tail over rear haunches that are the
-       WIDEST part of the car. Get the hips wrong and no amount of wing and
-       splitter on top of it will save the shape. */
+    /* z, bottom half-width, waist half-width, top half-width, floor, waist y, top y */
     const SEC = [
-      { z: 0.560, hw: 0.118, y0: -0.302, y1: -0.258 },   // nose, dropped
-      { z: 0.470, hw: 0.180, y0: -0.312, y1: -0.226 },
-      { z: 0.360, hw: 0.214, y0: -0.315, y1: -0.204 },   // headlights stand here
-      { z: 0.215, hw: 0.220, y0: -0.315, y1: -0.196 },   // bonnet dips between the wings
-      { z: 0.090, hw: 0.226, y0: -0.315, y1: -0.150 },   // scuttle
-      { z: -0.040, hw: 0.232, y0: -0.315, y1: -0.068 },  // roof peaks early
-      { z: -0.170, hw: 0.240, y0: -0.315, y1: -0.074 },
-      { z: -0.310, hw: 0.252, y0: -0.312, y1: -0.104 },  // haunches: widest point
-      { z: -0.440, hw: 0.244, y0: -0.308, y1: -0.150 },  // fastback falling away
-      { z: -0.552, hw: 0.186, y0: -0.300, y1: -0.196 },  // tail
+      { z: 0.578, bw: 0.100, hw: 0.135, tw: 0.100, y0: -0.338, ym: -0.315, y1: -0.288 },
+      { z: 0.505, bw: 0.150, hw: 0.198, tw: 0.160, y0: -0.348, ym: -0.310, y1: -0.262 },
+      { z: 0.430, bw: 0.180, hw: 0.232, tw: 0.205, y0: -0.352, ym: -0.300, y1: -0.238 },
+      { z: 0.320, bw: 0.190, hw: 0.246, tw: 0.225, y0: -0.352, ym: -0.292, y1: -0.222 },
+      { z: 0.190, bw: 0.195, hw: 0.250, tw: 0.232, y0: -0.352, ym: -0.288, y1: -0.208 },
+      { z: 0.060, bw: 0.200, hw: 0.252, tw: 0.205, y0: -0.352, ym: -0.285, y1: -0.135 },
+      { z: -0.060, bw: 0.200, hw: 0.254, tw: 0.150, y0: -0.352, ym: -0.282, y1: -0.055 },
+      { z: -0.180, bw: 0.200, hw: 0.258, tw: 0.155, y0: -0.350, ym: -0.280, y1: -0.062 },
+      { z: -0.310, bw: 0.200, hw: 0.266, tw: 0.190, y0: -0.348, ym: -0.278, y1: -0.098 },
+      { z: -0.440, bw: 0.190, hw: 0.262, tw: 0.225, y0: -0.344, ym: -0.280, y1: -0.145 },
+      { z: -0.540, bw: 0.170, hw: 0.232, tw: 0.212, y0: -0.340, ym: -0.285, y1: -0.185 },
+      { z: -0.590, bw: 0.130, hw: 0.185, tw: 0.170, y0: -0.336, ym: -0.290, y1: -0.212 },
     ];
-    const ring = (s) => [
-      [-s.hw, s.y0, s.z], [s.hw, s.y0, s.z], [s.hw, s.y1, s.z], [-s.hw, s.y1, s.z],
+    const sectionRing = (s) => [
+      [-s.bw, s.y0, s.z], [s.bw, s.y0, s.z], [s.hw, s.ym, s.z],
+      [s.tw, s.y1, s.z], [-s.tw, s.y1, s.z], [-s.hw, s.ym, s.z],
     ];
     const bv = [], be = [], bf = [];
     SEC.forEach((s, i) => {
-      const r = ring(s), o = bv.length;
+      const r = sectionRing(s), o = bv.length;
       r.forEach((q) => bv.push(q));
-      be.push([o, o + 1], [o + 1, o + 2], [o + 2, o + 3], [o + 3, o]);
+      for (let k = 0; k < 6; k++) be.push([o + k, o + ((k + 1) % 6)]);
       if (i > 0) {
-        const p = o - 4;
-        for (let k = 0; k < 4; k++) {
-          const j = (k + 1) % 4;
+        const p = o - 6;
+        for (let k = 0; k < 6; k++) {
+          const j = (k + 1) % 6;
           be.push([p + k, o + k]);
           bf.push([p + k, p + j, o + j, o + k]);
         }
       }
     });
-    bf.push([0, 1, 2, 3]);                                  // nose cap
-    const lastO = bv.length - 4;
-    bf.push([lastO + 3, lastO + 2, lastO + 1, lastO]);      // tail cap
+    bf.push([0, 1, 2, 3, 4, 5]);
+    const last = bv.length - 6;
+    bf.push([last + 5, last + 4, last + 3, last + 2, last + 1, last]);
     parts.push({ v: bv, e: be, f: bf });
 
-    // waistline crease down each flank — the line that makes it read as a car
+    /* ---- the dipped bonnet. On a 911 the fender tops stand PROUD of the
+           bonnet between them; that dip is half the front-end character. ---- */
+    const bonnet = [
+      [0.160, -0.252, 0.430], [0.150, -0.244, 0.300], [0.150, -0.238, 0.180],
+      [-0.150, -0.238, 0.180], [-0.150, -0.244, 0.300], [-0.160, -0.252, 0.430],
+    ];
+    parts.push({ v: bonnet, e: [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 0]], f: [[0, 1, 2, 3, 4, 5]] });
+    // the two big bonnet extractor vents
     [-1, 1].forEach((sd) => parts.push({
-      v: [[sd * 0.120, -0.270, 0.555], [sd * 0.184, -0.254, 0.460],
-          [sd * 0.222, -0.240, 0.200], [sd * 0.230, -0.238, -0.150],
-          [sd * 0.250, -0.240, -0.310], [sd * 0.200, -0.250, -0.470],
-          [sd * 0.130, -0.254, -0.548]],
-      e: [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6]], f: [],
+      v: [[sd * 0.040, -0.240, 0.360], [sd * 0.122, -0.244, 0.348],
+          [sd * 0.122, -0.240, 0.250], [sd * 0.040, -0.237, 0.258]],
+      e: [[0, 1], [1, 2], [2, 3], [3, 0]], f: [[0, 1, 2, 3]],
     }));
 
-    // cabin: a recessed cockpit opening on the deck, with a roll hoop
-    // glasshouse: raked screen, side glass, and the fastback rear window
+    /* ---- FENDER LOUVRES. The RS signature: slats venting the top of each
+           front arch. Nothing else on the road looks like this. ---- */
+    [-1, 1].forEach((sd) => {
+      for (let i = 0; i < 5; i++) {
+        const z = 0.386 - i * 0.042;
+        parts.push({
+          v: [[sd * 0.172, -0.230 - i * 0.004, z], [sd * 0.238, -0.236 - i * 0.004, z]],
+          e: [[0, 1]], f: [],
+        });
+      }
+      // the recess the slats sit in
+      parts.push({
+        v: [[sd * 0.168, -0.228, 0.398], [sd * 0.242, -0.234, 0.398],
+            [sd * 0.242, -0.252, 0.208], [sd * 0.168, -0.246, 0.208]],
+        e: [[0, 1], [1, 2], [2, 3], [3, 0]], f: [],
+      });
+    });
+
+    // ---- round headlights, set into the fender fronts ----
+    [-0.158, 0.158].forEach((x) => {
+      parts.push(makeRing(x, -0.252, 0.470, 0.054, 12, "z"));
+      parts.push(makeRing(x, -0.252, 0.482, 0.036, 10, "z"));
+      parts.push(makeRing(x, -0.252, 0.490, 0.015, 8, "z"));
+    });
+
+    /* ---- the front. One big centre radiator mouth with a splitter under
+           it, and a dive plane on each corner. ---- */
     parts.push({
-      v: [[-0.196, -0.152, 0.088], [0.196, -0.152, 0.088],
-          [0.168, -0.072, -0.048], [-0.168, -0.072, -0.048]],
+      v: [[-0.132, -0.286, 0.560], [0.132, -0.286, 0.560],
+          [0.132, -0.336, 0.560], [-0.132, -0.336, 0.560]],
+      e: [[0, 1], [1, 2], [2, 3], [3, 0]], f: [[0, 1, 2, 3]],
+    });
+    for (let i = 0; i < 3; i++) {                     // its horizontal blades
+      const y = -0.298 - i * 0.013;
+      parts.push({ v: [[-0.126, y, 0.562], [0.126, y, 0.562]], e: [[0, 1]], f: [] });
+    }
+    parts.push(plate([[-0.262, 0.640], [0.262, 0.640], [0.214, 0.516], [-0.214, 0.516]], "xz", -0.344, 0.014));
+    [-1, 1].forEach((sd) => parts.push(plate(         // dive planes
+      [[-0.300, 0.618], [-0.300, 0.532], [-0.262, 0.520], [-0.262, 0.606]],
+      "yz", sd * 0.268, 0.010)));
+
+    /* ---- glasshouse: raked screen, side glass, and the fast rear window
+           that IS the fastback. ---- */
+    parts.push({
+      v: [[-0.204, -0.140, 0.062], [0.204, -0.140, 0.062],
+          [0.150, -0.058, -0.068], [-0.150, -0.058, -0.068]],
       e: [[0, 1], [1, 2], [2, 3], [3, 0]], f: [[0, 1, 2, 3]],
     });
     parts.push({
-      v: [[-0.166, -0.074, -0.058], [0.166, -0.074, -0.058],
-          [0.212, -0.116, -0.330], [-0.212, -0.116, -0.330]],
+      v: [[-0.148, -0.060, -0.078], [0.148, -0.060, -0.078],
+          [0.212, -0.112, -0.372], [-0.212, -0.112, -0.372]],
       e: [[0, 1], [1, 2], [2, 3], [3, 0]], f: [[0, 1, 2, 3]],
     });
     [-1, 1].forEach((sd) => parts.push({
-      v: [[sd * 0.180, -0.150, 0.080], [sd * 0.208, -0.084, -0.052],
-          [sd * 0.216, -0.100, -0.212], [sd * 0.196, -0.170, -0.180]],
+      v: [[sd * 0.196, -0.138, 0.055], [sd * 0.156, -0.062, -0.072],
+          [sd * 0.166, -0.078, -0.230], [sd * 0.216, -0.150, -0.196]],
       e: [[0, 1], [1, 2], [2, 3], [3, 0]], f: [],
     }));
-    // engine-lid louvres across the rear deck
-    for (let i = 0; i < 5; i++) {
-      const z = -0.360 - i * 0.030;
-      parts.push({ v: [[-0.150, -0.126 - i * 0.006, z], [0.150, -0.126 - i * 0.006, z]], e: [[0, 1]], f: [] });
+    // the channel down the centre of the roof
+    [-0.040, 0.040].forEach((x) =>
+      parts.push({ v: [[x, -0.054, -0.030], [x, -0.058, -0.200]], e: [[0, 1]], f: [] }));
+
+    // ---- engine lid grille over the rear deck ----
+    for (let i = 0; i < 6; i++) {
+      const z = -0.392 - i * 0.026;
+      parts.push({ v: [[-0.168, -0.130 - i * 0.009, z], [0.168, -0.130 - i * 0.009, z]], e: [[0, 1]], f: [] });
     }
-    // NACA ducts on the bonnet, and the crease along each raised wing
+
+    // ---- side intakes ahead of the rear wheels ----
     [-1, 1].forEach((sd) => {
       parts.push({
-        v: [[sd * 0.050, -0.196, 0.330], [sd * 0.105, -0.196, 0.250],
-            [sd * 0.085, -0.198, 0.196], [sd * 0.045, -0.198, 0.250]],
+        v: [[sd * 0.252, -0.268, -0.128], [sd * 0.252, -0.208, -0.170],
+            [sd * 0.252, -0.212, -0.242], [sd * 0.252, -0.270, -0.208]],
         e: [[0, 1], [1, 2], [2, 3], [3, 0]], f: [[0, 1, 2, 3]],
       });
+      // and the vent behind each front arch
       parts.push({
-        v: [[sd * 0.170, -0.206, 0.420], [sd * 0.196, -0.200, 0.300], [sd * 0.198, -0.176, 0.150]],
-        e: [[0, 1], [1, 2]], f: [],
+        v: [[sd * 0.246, -0.262, 0.204], [sd * 0.246, -0.226, 0.186],
+            [sd * 0.246, -0.230, 0.132], [sd * 0.246, -0.264, 0.148]],
+        e: [[0, 1], [1, 2], [2, 3], [3, 0]], f: [[0, 1, 2, 3]],
       });
     });
 
-    // front splitter and rear diffuser
-    parts.push(plate([[-0.252, 0.622], [0.252, 0.622], [0.208, 0.500], [-0.208, 0.500]], "xz", -0.308, 0.016));
-    parts.push(plate([[-0.212, -0.540], [0.212, -0.540], [0.170, -0.632], [-0.170, -0.632]], "xz", -0.296, 0.016));
-    for (let i = -2; i <= 2; i++) {                          // diffuser strakes
-      parts.push({ v: [[i * 0.070, -0.290, -0.546], [i * 0.070, -0.290, -0.626]], e: [[0, 1]], f: [] });
+    // ---- arch lips, sized to their own wheels ----
+    [[AXF, TRKF, 0.150], [AXR, TRKR, 0.166]].forEach(function (a) {
+      [-1, 1].forEach((sd) => parts.push(makeRing(sd * a[1], -0.330, a[0], a[2], 14, "x")));
+    });
+
+    /* ---- THE WING. Two elements with a slot, endplates, and swan necks
+           that hang it from above. Its top edge is higher than the roof,
+           which is the single most quoted thing about this car. ---- */
+    const WGY = -0.014, WGZ = -0.540;
+    parts.push(plate([[-0.278, WGZ + 0.070], [0.278, WGZ + 0.070], [0.278, WGZ - 0.040], [-0.278, WGZ - 0.040]], "xz", WGY, 0.015));
+    parts.push(plate([[-0.272, WGZ - 0.052], [0.272, WGZ - 0.052], [0.272, WGZ - 0.118], [-0.272, WGZ - 0.118]], "xz", WGY - 0.034, 0.012));
+    [-0.140, 0.140].forEach((x) => {                  // swan necks, over the top
+      parts.push(segBox([x, -0.166, WGZ + 0.150], [x, -0.082, WGZ + 0.104], 0.020));
+      parts.push(segBox([x, -0.082, WGZ + 0.104], [x, WGY + 0.014, WGZ + 0.040], 0.017));
+    });
+    [-1, 1].forEach((sd) => parts.push(plate(          // endplates
+      [[WGY + 0.062, WGZ + 0.098], [WGY + 0.062, WGZ - 0.132],
+       [WGY - 0.096, WGZ - 0.132], [WGY - 0.096, WGZ + 0.058]],
+      "yz", sd * 0.286, 0.012)));
+
+    // ---- rear: tail-light bar, diffuser, centre-exit exhaust ----
+    parts.push(makeBox(0, -0.230, -0.596, 0.340, 0.020, 0.010));
+    parts.push(plate([[-0.226, -0.572], [0.226, -0.572], [0.176, -0.664], [-0.176, -0.664]], "xz", -0.328, 0.016));
+    for (let i = -3; i <= 3; i++) {
+      parts.push({ v: [[i * 0.062, -0.320, -0.578], [i * 0.056, -0.320, -0.658]], e: [[0, 1]], f: [] });
     }
+    [-0.048, 0.048].forEach((x) =>
+      parts.push(tubeAlong([x, -0.278, -0.596], [x, -0.278, -0.638], 0.026, 10)));
 
-    /* The wing. On a GT3 RS it is the tallest thing on the car — its top edge
-       sits ABOVE the roof — and it hangs from swan-neck uprights that meet it
-       on the upper surface rather than propping it from underneath. Draw it
-       low, or prop it from below, and it is a different car. */
-    const WGY = -0.030, WGZ = -0.512;
-    parts.push(plate([[-0.268, WGZ + 0.062], [0.268, WGZ + 0.062], [0.268, WGZ - 0.062], [-0.268, WGZ - 0.062]], "xz", WGY, 0.016));
-    parts.push(plate([[-0.262, WGZ - 0.058], [0.262, WGZ - 0.058], [0.262, WGZ - 0.104], [-0.262, WGZ - 0.104]], "xz", WGY - 0.030, 0.012));
-    [-0.132, 0.132].forEach((x) => {
-      parts.push(segBox([x, -0.158, WGZ + 0.128], [x, -0.092, WGZ + 0.086], 0.019));
-      parts.push(segBox([x, -0.092, WGZ + 0.086], [x, WGY - 0.008, WGZ + 0.030], 0.017));
-    });
-    [-1, 1].forEach((sd) => parts.push(plate(
-      [[WGY + 0.052, WGZ + 0.086], [WGY + 0.052, WGZ - 0.116],
-       [WGY - 0.078, WGZ - 0.116], [WGY - 0.078, WGZ + 0.052]],
-      "yz", sd * 0.276, 0.012)));
-
-    // headlights and tail lights, set into the bodywork
-    /* Round headlights, set into the raised wings. After the roofline these
-       are the most identifiable thing on a 911, so they get real bezels
-       rather than the slots a generic wedge would have. */
-    [-0.145, 0.145].forEach((x) => {
-      parts.push(makeRing(x, -0.228, 0.462, 0.056, 12, "z"));
-      parts.push(makeRing(x, -0.228, 0.474, 0.038, 10, "z"));
-      parts.push(makeRing(x, -0.228, 0.482, 0.017, 8, "z"));
-    });
-    parts.push(makeBox(0, -0.236, -0.556, 0.330, 0.022, 0.010));   // one tail-light bar
-    [[0.300, 0.245], [-0.300, 0.262]].forEach(function (pair) {    // arch lips
-      var z = pair[0], r = pair[1];
-      [-1, 1].forEach((sd) => parts.push(makeRing(sd * r, -0.318, z, 0.150, 12, "x")));
-    });
-    [-1, 1].forEach((sd) => parts.push({                            // side intakes
-      v: [[sd * 0.238, -0.270, -0.140], [sd * 0.238, -0.222, -0.176],
-          [sd * 0.238, -0.226, -0.240], [sd * 0.238, -0.272, -0.210]],
-      e: [[0, 1], [1, 2], [2, 3], [3, 0]], f: [[0, 1, 2, 3]],
-    }));
-
-    // chassis plate and the running gear visible under the body
-    parts.push(plate([[-0.155, 0.430], [0.155, 0.430], [0.155, -0.440], [-0.155, -0.440]], "xz", -0.322, 0.012));
-    parts.push(makeBox(0, -0.290, -0.120, 0.115, 0.060, 0.230));       // battery pack
-    parts.push(tubeAlong([0, -0.288, -0.330], [0, -0.288, -0.430], 0.052, 10)); // motor can
-    parts.push(makeBox(0, -0.286, -0.245, 0.090, 0.048, 0.075));       // ESC
-    parts.push(makeBox(0.085, -0.286, 0.140, 0.070, 0.042, 0.060));    // receiver box
-    parts.push(tubeAlong([0.085, -0.262, 0.140], [0.105, -0.055, 0.170], 0.007, 6)); // aerial tube
+    // ---- chassis and running gear, visible under the body ----
+    parts.push(plate([[-0.158, 0.440], [0.158, 0.440], [0.158, -0.450], [-0.158, -0.450]], "xz", -0.356, 0.012));
+    parts.push(makeBox(0, -0.322, -0.120, 0.118, 0.058, 0.235));
+    parts.push(tubeAlong([0, -0.320, -0.336], [0, -0.320, -0.436], 0.052, 10));
+    parts.push(makeBox(0, -0.318, -0.250, 0.092, 0.046, 0.076));
+    parts.push(makeBox(0.088, -0.318, 0.146, 0.072, 0.042, 0.062));
+    parts.push(tubeAlong([0.088, -0.296, 0.146], [0.108, -0.092, 0.176], 0.007, 6));
 
     /* ---- the transmitter, standing on the pad beside the car ---- */
-    const TXC = [0.86, GY, 0.06];
-    // case: a wedge that leans back, with the grip below it
+    const TXC = [0.92, GY, -0.30];
     parts.push(makeBox(TXC[0], TXC[1] + 0.175, TXC[2], 0.165, 0.150, 0.115));
     parts.push(makeBox(TXC[0], TXC[1] + 0.258, TXC[2] - 0.008, 0.135, 0.040, 0.090));
     parts.push(segBox([TXC[0], TXC[1] + 0.105, TXC[2] + 0.010], [TXC[0], TXC[1] + 0.006, TXC[2] + 0.055], 0.088));
-    parts.push(plate([[-0.058, -0.050], [0.058, -0.050], [0.058, 0.050], [-0.058, 0.050]]
-      .map(([a, b]) => [TXC[0] + a, TXC[2] + b]), "xz", TXC[1] + 0.002, 0.012));   // foot
-    // antenna
+    parts.push(plate([[TXC[0] - 0.058, TXC[2] - 0.050], [TXC[0] + 0.058, TXC[2] - 0.050],
+                      [TXC[0] + 0.058, TXC[2] + 0.050], [TXC[0] - 0.058, TXC[2] + 0.050]],
+                     "xz", TXC[1] + 0.002, 0.012));
     parts.push(tubeAlong([TXC[0] - 0.055, TXC[1] + 0.278, TXC[2]], [TXC[0] - 0.075, TXC[1] + 0.470, TXC[2] - 0.020], 0.010, 6));
     parts.push(makeRing(TXC[0] - 0.075, TXC[1] + 0.470, TXC[2] - 0.020, 0.016, 6, "y"));
-    // trim knobs and a small screen on the face
     parts.push(makeBox(TXC[0] + 0.045, TXC[1] + 0.205, TXC[2] + 0.060, 0.055, 0.036, 0.008));
     [-0.030, 0.030].forEach((d) =>
       parts.push(makeRing(TXC[0] + 0.045 + d, TXC[1] + 0.150, TXC[2] + 0.060, 0.013, 8, "z")));
 
-    parts.push(makeBase(GY - 0.005, 1.06));
+    parts.push(makeBase(GY - 0.005, 1.14));
 
     const m = merge(parts);
     m.spinners = [];
+    m.zoom = 1.16;          // the car is the subject; let it fill its frame
     m.dynamic = function (time) {
       const segs = [], faces = [], dots = [];
       const P = pen(segs, faces);
+      const steer = Math.sin(time * 0.55) * 0.40;
+      const roll = time * 2.6;      // +ve rolls the top of the tyre toward +Z, i.e. forward
 
-      // one steering input drives the car's front wheels AND the wheel on
-      // the transmitter — the whole point of showing them together
-      const steer = Math.sin(time * 0.55) * 0.42;
-      const roll = time * 2.6;   // +ve rolls the top of the tyre toward +Z, i.e. forward
-
-      const wheel = (cx, cz, sd, steerAng) => {
+      /* A wheel with a centre-lock nut and five twin spokes — the RS wheel.
+         Radius and width differ front to rear, which is a thing you can see
+         on the real car from ten metres away. */
+      const wheel = (cx, cz, sd, steerAng, WR, WW) => {
         const cs = Math.cos(steerAng), sn = Math.sin(steerAng);
-        // steering rotates the wheel plane about Y through the hub
         const T = (x, y, z) => {
           const lx = x - cx, lz = z - cz;
           return [cx + lx * cs + lz * sn, y, cz + (-lx * sn + lz * cs)];
         };
+        const HUB = GY + WR;
         const xo = sd * WW / 2;
-        const n = 14, out = [], inn = [];
+        const n = 16, out = [], inn = [];
         for (let i = 0; i < n; i++) {
           const a = roll + (i / n) * Math.PI * 2;
           const cy = Math.cos(a) * WR, sz = Math.sin(a) * WR;
@@ -1227,59 +1274,66 @@
         for (let i = 0; i < n; i++) {
           const j = (i + 1) % n;
           P.face([out[i], out[j], inn[j], inn[i]]);
-          if (i % 3 === 0) P.line(out[i], inn[i], 0.85);
+          if (i % 4 === 0) P.line(out[i], inn[i], 0.85);
         }
-        // a dished five-spoke rim, so the wheel visibly turns
-        const rimC = T(cx + xo * 0.72, HUB, cz);
-        const ax = V.sub(T(cx + 1, HUB, cz), T(cx, HUB, cz));
-        P.ringUV(rimC, V.norm(V.cross(ax, [0, 0, 1])), V.norm(V.cross(ax, V.cross(ax, [0, 0, 1]))), WR * 0.66, 10, 1.0);
-        for (let k = 0; k < 5; k++) {
-          const a = roll * 1.0 + (k / 5) * Math.PI * 2;
-          P.line(T(cx + xo * 0.72, HUB, cz),
-                 T(cx + xo * 0.72, HUB + Math.cos(a) * WR * 0.62, cz + Math.sin(a) * WR * 0.62), 0.9);
+        // rim face, set in from the tyre shoulder
+        const rimC = T(cx + xo * 0.80, HUB, cz);
+        const ax = V.norm(V.sub(T(cx + 1, HUB, cz), T(cx, HUB, cz)));
+        const u = V.norm(V.cross(ax, [0, 0, 1])), v2 = V.norm(V.cross(ax, u));
+        P.ringUV(rimC, u, v2, WR * 0.76, 14, 1.05);
+        P.ringUV(rimC, u, v2, WR * 0.20, 8, 1.0);
+        P.cap(rimC, u, v2, WR * 0.20, 8, 0.9);      // centre-lock nut
+        for (let k = 0; k < 5; k++) {                // five twin spokes
+          const a = roll + (k / 5) * Math.PI * 2;
+          [-0.09, 0.09].forEach((off) => {
+            const a2 = a + off;
+            P.line([rimC[0] + u[0] * Math.cos(a) * WR * 0.20 + v2[0] * Math.sin(a) * WR * 0.20,
+                    rimC[1] + u[1] * Math.cos(a) * WR * 0.20 + v2[1] * Math.sin(a) * WR * 0.20,
+                    rimC[2] + u[2] * Math.cos(a) * WR * 0.20 + v2[2] * Math.sin(a) * WR * 0.20],
+                   [rimC[0] + u[0] * Math.cos(a2) * WR * 0.74 + v2[0] * Math.sin(a2) * WR * 0.74,
+                    rimC[1] + u[1] * Math.cos(a2) * WR * 0.74 + v2[1] * Math.sin(a2) * WR * 0.74,
+                    rimC[2] + u[2] * Math.cos(a2) * WR * 0.74 + v2[2] * Math.sin(a2) * WR * 0.74], 0.9);
+          });
         }
       };
 
-      [[AXF, 1, steer], [AXF, -1, steer], [AXR, 1, 0], [AXR, -1, 0]].forEach(([z, sd, st]) => {
-        const cx = sd * TRK;
-        wheel(cx, z, sd, st);
-        // double wishbone: two arms from the chassis rail out to the upright
+      [[AXF, 1, steer, WRF, WWF, TRKF], [AXF, -1, steer, WRF, WWF, TRKF],
+       [AXR, 1, 0, WRR, WWR, TRKR], [AXR, -1, 0, WRR, WWR, TRKR]].forEach(function (w) {
+        const z = w[0], sd = w[1], st = w[2], WR = w[3], WW = w[4], TRK = w[5];
+        const cx = sd * TRK, HUB = GY + WR;
+        wheel(cx, z, sd, st, WR, WW);
         const inner = sd * 0.150;
-        P.beam([inner, HUB + 0.048, z], [cx - sd * 0.030, HUB + 0.040, z], 0.011, 0.95);
-        P.beam([inner, HUB - 0.052, z], [cx - sd * 0.030, HUB - 0.044, z], 0.011, 0.95);
-        P.line([cx - sd * 0.030, HUB + 0.040, z], [cx - sd * 0.030, HUB - 0.044, z], 1.0);
-        // coil-over, leaning in to the chassis
-        P.line([cx - sd * 0.034, HUB + 0.036, z], [inner + sd * 0.018, HUB + 0.150, z * 0.82], 1.05);
+        P.beam([inner, HUB + 0.050, z], [cx - sd * 0.032, HUB + 0.042, z], 0.011, 0.95);
+        P.beam([inner, HUB - 0.054, z], [cx - sd * 0.032, HUB - 0.046, z], 0.011, 0.95);
+        P.line([cx - sd * 0.032, HUB + 0.042, z], [cx - sd * 0.032, HUB - 0.046, z], 1.0);
+        P.line([cx - sd * 0.036, HUB + 0.038, z], [inner + sd * 0.018, HUB + 0.152, z * 0.82], 1.05);
       });
-      // drive shafts to the rear wheels, and the steering rack to the front
       [-1, 1].forEach((sd) => {
-        P.line([0, HUB, AXR], [sd * (TRK - 0.040), HUB, AXR], 0.95);
+        const HUBR = GY + WRR, HUBF = GY + WRF;
+        P.line([0, HUBR, AXR], [sd * (TRKR - 0.044), HUBR, AXR], 0.95);
         const cs = Math.cos(steer), sn = Math.sin(steer);
-        const arm = [sd * (TRK - 0.030) + (-0.030) * cs, HUB, AXF + 0.030 * sn];
-        P.line([sd * 0.120, HUB + 0.010, AXF - 0.055], arm, 0.95);
+        P.line([sd * 0.120, HUBF + 0.010, AXF - 0.058],
+               [sd * (TRKF - 0.032) - 0.030 * cs, HUBF, AXF + 0.030 * sn], 0.95);
       });
 
-      /* ---- the transmitter's steering wheel, turning with the car ---- */
+      // the transmitter's wheel, turning with the car
       const WC = [TXC[0] + 0.098, TXC[1] + 0.205, TXC[2] + 0.010];
       const u = [0, Math.cos(steer * 1.6), Math.sin(steer * 1.6)];
       const v2 = [0, -Math.sin(steer * 1.6), Math.cos(steer * 1.6)];
-      P.ringUV(WC, u, v2, 0.062, 16, 1.15);                    // rim
-      P.ringUV(WC, u, v2, 0.018, 8, 1.0);                      // hub
-      for (let k = 0; k < 3; k++) {                            // spokes
+      P.ringUV(WC, u, v2, 0.062, 16, 1.15);
+      P.ringUV(WC, u, v2, 0.018, 8, 1.0);
+      for (let k = 0; k < 3; k++) {
         const a = (k / 3) * Math.PI * 2;
         P.line(WC, [WC[0] + u[0] * Math.cos(a) * 0.060 + v2[0] * Math.sin(a) * 0.060,
                     WC[1] + u[1] * Math.cos(a) * 0.060 + v2[1] * Math.sin(a) * 0.060,
                     WC[2] + u[2] * Math.cos(a) * 0.060 + v2[2] * Math.sin(a) * 0.060], 1.0);
       }
-      // throttle trigger on the front of the grip, pulled in time with the drive
       const trig = 0.012 + 0.010 * (0.5 + 0.5 * Math.sin(time * 1.1));
       P.box(TXC[0] - 0.030, TXC[1] + 0.098, TXC[2] + 0.075 + trig, 0.022, 0.055, 0.014, 1.0);
 
-      // headlights on, a status LED on the transmitter, brake lights pulsing
-      dots.push([-0.140, -0.252, 0.516, 2.2, 1], [0.140, -0.252, 0.516, 2.2, 1]);
+      dots.push([-0.158, -0.252, 0.494, 2.2, 1], [0.158, -0.252, 0.494, 2.2, 1]);
       const brake = Math.sin(time * 1.1) < -0.3;
-      dots.push([-0.130, -0.238, -0.518, brake ? 2.4 : 1.0, brake ? 1 : 0]);
-      dots.push([0.130, -0.238, -0.518, brake ? 2.4 : 1.0, brake ? 1 : 0]);
+      [-0.120, 0.120].forEach((x) => dots.push([x, -0.230, -0.600, brake ? 2.4 : 1.0, brake ? 1 : 0]));
       const bound = (time * 0.9) % 1 < 0.5;
       dots.push([TXC[0] + 0.045, TXC[1] + 0.205, TXC[2] + 0.066, bound ? 2.0 : 0.9, bound ? 1 : 0]);
       return { segments: segs, faces, dots };
@@ -1438,7 +1492,7 @@
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       // 0.36 left the models floating small in a large frame. 0.41 fills the
       // card without the ground ellipse (radius 1.1) touching the edges.
-      scale = Math.min(w, h) * 0.41;
+      scale = Math.min(w, h) * 0.41 * (model.zoom || 1);
       cx = w / 2;
       cy = h / 2 + h * 0.04;
     }

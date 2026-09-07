@@ -2,15 +2,35 @@
 <style>body{margin:0;background:#04070C;color:#8fb;font:12px monospace;padding:8px}
 .c{position:relative;width:900px;aspect-ratio:4/3;background:radial-gradient(115% 95% at 50% 58%,#06223a,#010305);border:1px solid #234}
 canvas{position:absolute;inset:0;width:100%;height:100%}
-#t{margin-top:6px}</style></head><body>
+#out{margin-top:6px}</style></head><body>
 <div class="c plate__media"><canvas id="cv"></canvas></div>
-<div id="t"></div>
+<div id="out"></div>
 <script src="../assets/js/hologram.js"></script>
 <script>
-const type = new URLSearchParams(location.search).get("m") || "arm";
+/* ?m=<model>  which model
+   ?spin=0     freeze rotation so a chosen angle can be inspected
+   The panel is hovered on load, because a hologram only animates while
+   hovered — without this the harness renders one static frame and every
+   screenshot taken from it looks identical no matter how long you wait. */
+const q = new URLSearchParams(location.search);
+const type = q.get("m") || "evtol";
 document.getElementById("cv").setAttribute("data-holo", type);
+if (q.has("a")) document.getElementById("cv").setAttribute("data-holo-angle", q.get("a"));
 const t0 = performance.now();
 window.BBTHolograms.mount();
-document.getElementById("t").textContent = type + " · first render " + (performance.now()-t0).toFixed(1) + " ms";
-document.querySelector(".plate__media").dispatchEvent(new Event("pointerenter"));
+const t1 = performance.now();
+document.getElementById("out").textContent =
+  type + "  ·  first render " + (t1 - t0).toFixed(1) + " ms";
+/* Re-assert the hover on a timer. A hologram animates only while hovered,
+   and the real cursor is not over this panel — so the browser fires a genuine
+   pointerleave shortly after the synthetic pointerenter and the loop winds
+   itself down. Without this the harness animates for a second and then sits
+   on one frame, which looks exactly like a model that does not move. */
+const panel = document.querySelector(".plate__media");
+// Swallow pointerleave before the hologram's own handler sees it. A synthetic
+// pointerenter starts the loop, but the real cursor is elsewhere, so the
+// browser fires a genuine leave almost immediately and the loop winds down
+// after a frame or two — which reads as a model that barely rotates.
+panel.addEventListener("pointerleave", (e) => e.stopImmediatePropagation(), true);
+panel.dispatchEvent(new Event("pointerenter"));
 </script></body></html>

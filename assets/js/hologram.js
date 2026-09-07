@@ -691,6 +691,7 @@
     const m = merge(parts);
     m.spinners = [];
     m.deploys = true;
+    m.zoom = 1.16;   // crop the rail ends; the robot is the subject
 
     m.dynamic = function (time, deploy, spin, hoverT) {
       deploy = deploy == null ? 1 : deploy;
@@ -763,15 +764,28 @@
          sits between the rig and the shot rather than lunging at it. */
       const clamp = (v, lo, hi) => (v < lo ? lo : v > hi ? hi : v);
       const flat = Math.hypot(SUB[0], SUB[2] - bz);
-      const reach = clamp(flat * 0.44, 0.22, L2 + L3 - 0.07);
-      const rise = clamp((SUB[1] - SHy) + 0.15, -0.10, L2 + L3 - 0.10);
+      /* Reach far enough that the arm EXTENDS. At 0.44 of the distance the
+         solver put the elbow directly above the shoulder and folded the
+         forearm back over it — a hunched pose using 61% of the arm's reach,
+         which is what made it look wrong. 0.70 works it out at about 69%,
+         where the elbow is out over the rail and the machine reads as
+         holding a camera out rather than hugging itself. */
+      const reach = clamp(flat * 0.70, 0.30, L2 + L3 - 0.05);
+      const rise = clamp((SUB[1] - SHy) + 0.02, -0.10, L2 + L3 - 0.12);
       const D = clamp(Math.hypot(reach, rise), Math.abs(L2 - L3) + 0.02, L2 + L3 - 0.02);
       const interior = Math.acos(clamp((L2 * L2 + L3 * L3 - D * D) / (2 * L2 * L3), -1, 1));
       const offset = Math.acos(clamp((L2 * L2 + D * D - L3 * L3) / (2 * L2 * D), -1, 1));
       const a2ik = Math.atan2(reach, rise) - offset;
       const a3ik = Math.PI - interior;                     // elbow up
-      // wrist pitch drops the flange toward the subject
-      const a5ik = -(a2ik + a3ik) + Math.atan2(reach, rise) - 0.30;
+      /* Wrist pitch, actually solved: point the flange from where the wrist
+         ends up toward the subject. The previous expression combined the
+         joint angles and a constant and solved for nothing, so the head was
+         being dragged into aim by its own look-at against a flange pointing
+         somewhere else. */
+      const d23ik = a2ik + a3ik;
+      const wxik = Math.sin(a2ik) * L2 + Math.sin(d23ik) * L3;
+      const wyik = Math.cos(a2ik) * L2 + Math.cos(d23ik) * L3;
+      const a5ik = Math.atan2(flat - wxik, (SUB[1] - SHy) - wyik) - d23ik;
 
       // parked: folded down over the base until the rig is woken up
       const col = [1.00, 1.92, 1.06];

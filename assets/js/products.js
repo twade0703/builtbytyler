@@ -14,8 +14,9 @@
      id          unique slug used in product.html?id=<id>
      name        display name
      tagline     short one-liner
-     holo        home/shop hologram model: "arm" | "drone" | "evtol"
-                 (omit for a clean placeholder panel)
+     holo        hologram model: "arm" | "drone" | "evtol" | "rover" |
+                 "transmitter" | "turret" | "rocket" (see hologram.js;
+                 omit for a clean placeholder panel)
      featured    show on the home page
      available   true = buyable now, false = sold via a build package
      description paragraph for the detail page
@@ -44,7 +45,7 @@ const PRODUCTS = [
   {
     id: "fpv-drones",
     name: "Quad FPV Drones",
-    tagline: "3\", 5\" and 7\" builds, made to order",
+    tagline: "Race, freestyle and long-range quads",
     holo: "drone",
     featured: true,
     available: false,
@@ -64,26 +65,44 @@ const PRODUCTS = [
   },
   {
     id: "tilt-rotor",
-    name: "Tilt Rotor Drone",
-    tagline: "eVTOL tilt-rotor aircraft",
+    name: "Tilt-Rotor Drone",
+    tagline: "VTOL aircraft that lifts like a helicopter and flies like a plane",
     holo: "evtol",
     featured: true,
     available: false,
     description:
-      "A custom tilt-rotor VTOL aircraft — lifts off vertically on its rotors, then tilts " +
-      "them forward for efficient cruise. Airframe, propulsion and controls designed, built " +
-      "and tuned end to end.",
+      "A custom tilt-rotor VTOL aircraft. It lifts off vertically on its proprotors, then " +
+      "tilts them forward and flies on the wing for efficient cruise — the transition is " +
+      "the hard part, and it is the part that was designed, built and tuned here end to end.",
     specs: [
       { label: "Config", value: "Tilt-rotor VTOL" },
-      { label: "Flight", value: "Vertical lift + forward cruise" },
+      { label: "Flight", value: "Vertical lift · wing-borne cruise" },
       { label: "Airframe", value: "Custom-built" },
+      { label: "Lead time", value: "Made to order" },
+    ],
+  },
+  {
+    id: "rc-rover",
+    name: "RC Rover",
+    tagline: "Six-wheel rocker-bogie rover",
+    holo: "rover",
+    featured: true,
+    available: false,
+    description:
+      "A six-wheel rover on a rocker-bogie suspension — the same articulated chassis the " +
+      "Mars rovers use, which keeps all six wheels on the ground and the body level over " +
+      "rough terrain. Chassis, drivetrain and controls designed and built by hand.",
+    specs: [
+      { label: "Chassis", value: "6-wheel rocker-bogie" },
+      { label: "Drive", value: "Independent wheel motors" },
+      { label: "Control", value: "Radio · onboard controller" },
       { label: "Lead time", value: "Made to order" },
     ],
   },
   {
     id: "morse-device",
     name: "Morse Code Device",
-    tagline: "Transmitter and receiver ESP project",
+    tagline: "A telegraph key that sends over the air, and a receiver that decodes it",
     holo: "transmitter",
     featured: false,
     available: false,
@@ -101,32 +120,33 @@ const PRODUCTS = [
   {
     id: "laser-tracker",
     name: "Laser Tracking System",
-    tagline: "Raspberry Pi turret that tracks & aims at targets",
+    tagline: "Two-axis mount that finds a target and holds a laser on it",
     holo: "turret",
     featured: false,
     available: false,
     description:
-      "A Raspberry Pi–powered pan/tilt laser turret. A camera spots and follows a target " +
-      "while two servos slew the laser to keep it locked on — vision-based auto-aim, built " +
-      "and tuned end to end.",
+      "A Raspberry Pi vision system driving a two-axis mount. The camera finds and follows " +
+      "a moving target; the mount slews the laser head onto it and holds the beam there as " +
+      "the target moves — vision-based auto-aim, built and tuned end to end.",
     specs: [
       { label: "Brain", value: "Raspberry Pi" },
-      { label: "Motion", value: "2-axis pan/tilt servos" },
-      { label: "Payload", value: "Laser emitter" },
+      { label: "Motion", value: "2-axis pan/tilt mount" },
+      { label: "Payload", value: "Laser head + camera" },
       { label: "Tracking", value: "Vision-based auto-aim" },
       { label: "Lead time", value: "Made to order" },
     ],
   },
   {
     id: "rockets",
-    name: "Rockets",
-    tagline: "Custom model rockets, built to fly",
+    name: "High-Power Rocket",
+    tagline: "Custom airframe, built to fly and come back",
     holo: "rocket",
     featured: false,
     available: false,
     description:
-      "Custom-designed model rockets — airframe, fins, recovery and propulsion mounts " +
-      "engineered to fly and built by hand.",
+      "A custom high-power rocket — nose cone, body tube, fins, motor mount and recovery " +
+      "designed as one airframe, with a bay for the flight electronics. Engineered to fly " +
+      "straight, deploy on time and be flown again.",
     specs: [
       { label: "Type", value: "High-power model rocket" },
       { label: "Airframe", value: "Custom-built" },

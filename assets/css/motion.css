@@ -210,7 +210,6 @@ main { overflow-x: clip; }
 
 /* Buttons: lift on hover, compress on press. */
 .btn,
-.card__add,
 .cart-btn {
   transition: background var(--m-mid) var(--m-ease),
               color var(--m-mid) var(--m-ease),
@@ -219,8 +218,7 @@ main { overflow-x: clip; }
               box-shadow var(--m-mid) var(--m-ease),
               filter var(--m-mid) var(--m-ease);
 }
-.btn:active,
-.card__add:active { transform: translateY(0) scale(.985); }
+.btn:active { transform: translateY(0) scale(.985); }
 
 /* A sheen that wipes across a button on hover. Pure decoration, but it is
    the difference between "a rectangle" and "a control". */
@@ -237,16 +235,16 @@ main { overflow-x: clip; }
 .btn:hover::after { transform: translateX(120%); }
 .btn--ghost::after { background: linear-gradient(105deg, transparent 30%, rgba(120, 220, 255, .16) 48%, transparent 66%); }
 
-/* Cards: lift, sharpen the border, let the media breathe. */
-.card,
+/* Surfaces: lift, sharpen the rule, let the media breathe. The list names
+   the components that actually exist; a hover transition on a class nothing
+   renders is dead weight that outlives the design it was written for. */
+.plate,
 .package,
-.about-card,
+.route,
 .contact-list a,
-.included li,
-.svc-card,
 .tier,
-.step,
-.proof {
+.ledger__row,
+.index__row {
   transition: transform var(--m-mid) var(--m-ease),
               box-shadow var(--m-mid) var(--m-ease),
               border-color var(--m-mid) var(--m-ease),
@@ -261,11 +259,9 @@ main { overflow-x: clip; }
 .brand:hover { letter-spacing: .01em; }
 
 /* Any icon inside a hoverable surface drifts up with it. */
-.svc-card svg,
-.included svg,
+.route svg,
 .contact-list svg { transition: transform var(--m-slow) var(--m-ease), color var(--m-mid) var(--m-ease); }
-.svc-card:hover svg,
-.included li:hover svg,
+.route:hover svg,
 .contact-list a:hover svg { transform: translateY(-2px) scale(1.05); }
 
 /* =================================================================

@@ -8,7 +8,7 @@
   <meta name="robots" content="noindex, follow">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Space+Grotesk:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
     /* Standalone on purpose. A 404 that depends on the site's stylesheet fails
        exactly when something is already wrong, and Cloudflare Pages serves this
@@ -18,13 +18,13 @@
     html,body{height:100%}
     body{
       margin:0; background:var(--void); color:var(--ink);
-      font:400 16px/1.65 Inter,system-ui,-apple-system,sans-serif;
+      font:400 16px/1.6 "Instrument Sans",system-ui,-apple-system,sans-serif;
       display:grid; place-items:center; padding:32px 22px;
       -webkit-font-smoothing:antialiased;
     }
     .w{max-width:520px;text-align:center}
     .code{
-      font:500 12px/1 "Space Grotesk",system-ui,sans-serif;
+      font:500 12px/1 "JetBrains Mono",ui-monospace,monospace;
       letter-spacing:.24em; text-transform:uppercase; color:var(--cyan);
       margin:0 0 20px;
     }
@@ -37,7 +37,7 @@
     .row{display:flex;gap:11px;justify-content:center;flex-wrap:wrap}
     a.btn{
       display:inline-block; padding:12px 22px; border-radius:2px;
-      font:500 12px/1 "Space Grotesk",system-ui,sans-serif;
+      font:500 12px/1 "JetBrains Mono",ui-monospace,monospace;
       letter-spacing:.13em; text-transform:uppercase; text-decoration:none;
       background:var(--cyan); color:#04222A; border:1px solid var(--cyan);
       transition:opacity .18s ease;

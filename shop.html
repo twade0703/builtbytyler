@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Shop &middot; BuiltByTyler</title>
-  <meta name="description" content="Rovers, controllers, CAD packages and custom engineering builds, designed and built by Tyler Wade in Monterey, California.">
+  <title>The Builds &middot; BuiltByTyler</title>
+  <meta name="description" content="Rovers, robotic arms, FPV drones, tilt-rotor aircraft and custom engineering builds, designed and built by hand by Tyler Wade in Monterey, California.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Space+Grotesk:wght@300;400;500;600&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500&family=Instrument+Sans:wght@400;500&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="icon" type="image/png" sizes="48x48" href="/assets/img/icon-48.png">
   <link rel="icon" type="image/png" sizes="96x96" href="/assets/img/icon-96.png">
   <link rel="icon" type="image/png" sizes="192x192" href="/assets/img/icon-192.png">
@@ -69,60 +69,131 @@
   <header id="site-nav"></header>
 
   <main>
-    <section class="section section--tight">
-      <div class="container section-head" data-enter>
-        <p class="eyebrow">The collection</p>
-        <h2 data-split>Shop the <em>collection</em></h2>
-        <p>Each piece is designed and built by hand. Browse the work below, then choose a
-          configured <a href="#packages">build package</a> to order.</p>
+    <!-- ===============================================================
+         OPENER — the collection, stated. A third composition again:
+         headline left, the plain terms of buying on the right.
+         =============================================================== -->
+    <section class="section opener" data-sec="top">
+      <div class="container opener__grid" data-enter>
+        <div>
+          <p class="kicker">The collection <b>—</b> made to order</p>
+          <h1 class="display" data-split>Machines that had to <em>work</em>.</h1>
+          <p class="opener__lead">Every piece here was designed, prototyped and made by hand
+            &mdash; the airframe and the flight code, the chassis and the control loop. Browse
+            the work below, then choose a configured build package to order.</p>
+          <div class="opener__cta">
+            <a class="btn" href="#packages">Build packages</a>
+            <a class="btn btn--ghost" href="contact.html">Ask about a custom build</a>
+          </div>
+        </div>
+        <ul class="facts" data-reveal="right">
+          <li><b>7</b><span>Builds in the collection</span></li>
+          <li><b>2&ndash;4</b><span>Weeks, made to order</span></li>
+          <li><b>Free</b><span>Shipping, continental US</span></li>
+          <li><b>Yours</b><span>CAD, firmware and parts list</span></li>
+        </ul>
       </div>
     </section>
 
-    <section class="section--tight">
+    <!-- ===============================================================
+         01 · THE COLLECTION — plates. The grid composition here is
+         deliberately different from the homepage's: two halves at the
+         top, then the rest in thirds, so a visitor arriving from the
+         home page does not see the same arrangement twice.
+         =============================================================== -->
+    <section class="section" id="collection" data-sec="collection">
       <div class="container">
-        <div class="product-grid" id="shop-grid"></div>
+        <div class="idx" data-reveal>
+          <span class="idx__n">01</span>
+          <p class="idx__lab">The collection</p>
+          <h2 class="idx__h">Seven builds. Hover one to bring it to life.</h2>
+        </div>
+        <div class="plates" id="shop-grid" data-spans="plate--half,plate--half,-,-,-,plate--half,plate--half"></div>
       </div>
     </section>
 
-    <!-- What every build ships with -->
-    <section class="section--tight">
-      <div class="container">
-        <p class="eyebrow" style="text-align:center; margin-bottom: clamp(1.25rem,3vw,2rem);">Included with every build</p>
-        <ul class="included" data-reveal="scale" aria-label="Included with every build">
+    <!-- ===============================================================
+         02 · WHAT SHIPS — the inverted band. This is the reassurance
+         section, and it belongs on light paper: it is the part someone
+         reads carefully before spending money.
+         =============================================================== -->
+    <section class="band" id="included" data-sec="included">
+      <div class="container band__grid" data-reveal>
+        <p class="band__lab">02 <b>—</b> Included with every build</p>
+        <span class="band__n">02</span>
+        <h2 class="band__h">You get the machine <em>and how it was made</em>.</h2>
+        <div class="band__text">
+          <p>A finished build that you cannot repair, modify or reprint is a dead end. So every
+            order ships with the files it was made from, the code it runs, the parts that went
+            into it, and a full video walkthrough of the assembly.</p>
+          <p>Modify it, print a spare, fork the firmware. It is yours.</p>
+        </div>
+        <ul class="band__row">
           <li>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M12 3 L20 7.5 L20 16.5 L12 21 L4 16.5 L4 7.5 Z"/><path d="M12 12 L12 21 M12 12 L20 7.5 M12 12 L4 7.5"/>
-            </svg>
-            <div><span class="included__title">STEP/STL files</span><span class="included__desc">Editable CAD + print-ready meshes</span></div>
+            <span class="n">01</span>
+            <b>STEP / STL files</b>
+            <span>Editable CAD plus print-ready meshes for every part.</span>
           </li>
           <li>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M9 8 L5 12 L9 16 M15 8 L19 12 L15 16 M13 6 L11 18"/>
-            </svg>
-            <div><span class="included__title">Program files</span><span class="included__desc">Firmware &amp; source code</span></div>
+            <span class="n">02</span>
+            <b>Program files</b>
+            <span>The firmware and source code the build actually runs.</span>
           </li>
           <li>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <rect x="7" y="7" width="10" height="10" rx="1"/><path d="M10 7 V4 M14 7 V4 M10 20 V17 M14 20 V17 M7 10 H4 M7 14 H4 M20 10 H17 M20 14 H17"/>
-            </svg>
-            <div><span class="included__title">Hardware package</span><span class="included__desc">All the electronics &amp; parts, ready to build</span></div>
+            <span class="n">03</span>
+            <b>Hardware package</b>
+            <span>All the electronics and parts, ready to build.</span>
           </li>
           <li>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <rect x="3" y="6" width="18" height="12" rx="2.5"/><path d="M11 9.5 L15 12 L11 14.5 Z"/>
-            </svg>
-            <div><span class="included__title">Build videos</span><span class="included__desc">Full YouTube walkthroughs</span></div>
+            <span class="n">04</span>
+            <b>Build videos</b>
+            <span>Full walkthroughs — assembly, tuning and first flight.</span>
           </li>
         </ul>
+      </div>
+    </section>
 
-        <!-- Highlight: the build walkthrough video.
-             Replace VIDEO_ID below with your YouTube video id (the part after watch?v=). -->
+    <!-- ===============================================================
+         03 · BUILD PACKAGES — the orderable configurations, with prices.
+         =============================================================== -->
+    <section class="section" id="packages" data-sec="packages">
+      <div class="container">
+        <div class="idx idx--split" data-reveal>
+          <span class="idx__n">03</span>
+          <p class="idx__lab">Build packages</p>
+          <h2 class="idx__h">Configured builds, ready to order.</h2>
+          <p class="idx__p">Every build is made to order and tuned by hand before it ships. Pick a
+            package, or bring an idea and have the whole thing scoped from scratch.</p>
+        </div>
+        <div class="package-grid" id="packages-grid"></div>
+        <p class="pricing-note">Lead times, shipping and the refund policy are on the
+          <a href="policies.html">lead times, shipping &amp; refunds</a> page. Payment is handled
+          by <b>Stripe</b> on their own secure checkout page &mdash; card details never touch
+          this site.</p>
+      </div>
+    </section>
+
+    <!-- ===============================================================
+         04 · THE WALKTHROUGH
+
+         The video is commented out until there is a real YouTube id to
+         put in it. It shipped live for weeks as an embed pointing at the
+         literal string VIDEO_ID, which renders as a black box with a
+         play button that goes nowhere — worse than no section at all,
+         because it looks like something broken rather than something
+         absent. Paste the id after /embed/ and uncomment.
+
+    <section class="section" id="walkthrough" data-sec="walkthrough">
+      <div class="container">
+        <div class="idx" data-reveal>
+          <span class="idx__n">04</span>
+          <p class="idx__lab">The walkthrough</p>
+          <h2 class="idx__h">Watch one get built.</h2>
+        </div>
         <figure class="build-video" data-reveal>
           <div class="build-video__frame">
-            <iframe
-              src="https://www.youtube-nocookie.com/embed/VIDEO_ID"
-              title="Build walkthrough"
-              loading="lazy"
+            <iframe src="https://www.youtube-nocookie.com/embed/VIDEO_ID"
+              title="Build walkthrough" loading="lazy"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
               allowfullscreen></iframe>
           </div>
@@ -130,20 +201,30 @@
         </figure>
       </div>
     </section>
+         =============================================================== -->
 
-    <!-- Build packages — the orderable configurations, with prices -->
-    <section class="section section--alt" id="packages">
+    <!-- ===============================================================
+         04 · CLOSE
+         =============================================================== -->
+    <section class="section" id="next" data-sec="next">
       <div class="container">
-        <div class="section-head" data-reveal>
-          <p class="eyebrow">Build packages</p>
-          <h2>Configured builds, ready to <em>order</em></h2>
-          <p>Every build is made to order and tuned by hand. Pick a package below, or
-            request a fully custom build.</p>
+        <div class="close" data-reveal>
+          <span class="close__n">04</span>
+          <h2>Or bring me something that doesn't exist yet.</h2>
+          <div class="close__side">
+            <p>Custom engineering builds are scoped per project: discovery, CAD, prototype
+              iteration, fabrication and handover. Tell me what you are actually trying to do
+              and I will tell you whether it is worth building.</p>
+            <div class="close__actions">
+              <a class="btn" href="contact.html">Start a build enquiry</a>
+              <a class="btn btn--ghost" href="about.html">Who builds it</a>
+            </div>
+          </div>
         </div>
-        <div class="package-grid" id="packages-grid"></div>
       </div>
     </section>
   </main>
+
 
   <footer id="site-footer" data-year="2026">
     <div class="container site-footer__inner">
@@ -156,10 +237,16 @@
     </div>
   </footer>
 
-  <script src="assets/js/products.js"></script>
-  <script src="assets/js/components.js"></script>
-  <script src="assets/js/hologram.js"></script>
-  <script src="assets/js/main.js"></script>
+  <!-- defer keeps execution order but stops these blocking first paint, which
+       was costing ~900 ms of the 4.6 s LCP. hologram.js stays: it is 64 KB and
+       looks unused here because the page ships no canvas[data-holo] in its
+       HTML, but main.js CREATES those canvases for the build plates. Removing
+       it blanks every hologram. If the 64 KB is ever worth reclaiming, the fix
+       is to load it on demand when a plate scrolls into view. -->
+  <script defer src="assets/js/products.js"></script>
+  <script defer src="assets/js/components.js"></script>
+  <script defer src="assets/js/hologram.js"></script>
+  <script defer src="assets/js/main.js"></script>
   <!-- ?v=3 busts the module cache. three.js is vendored at assets/vendor/,
        so the star field no longer needs an inline importmap (which the CSP
        blocks) or a third-party fetch from unpkg. A returning visitor still

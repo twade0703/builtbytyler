@@ -4,10 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>About BuiltByTyler &middot; Tyler Wade, Monterey CA</title>
-  <meta name="description" content="BuiltByTyler is a one-person studio in Monterey building websites and software for small businesses and trades, plus robotics and custom hardware.">
+  <meta name="description" content="BuiltByTyler is a one-person engineering studio in Monterey building websites and software for small businesses, plus robotics and custom hardware.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Space+Grotesk:wght@300;400;500;600&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500&family=Instrument+Sans:wght@400;500&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="icon" type="image/png" sizes="48x48" href="/assets/img/icon-48.png">
   <link rel="icon" type="image/png" sizes="96x96" href="/assets/img/icon-96.png">
   <link rel="icon" type="image/png" sizes="192x192" href="/assets/img/icon-192.png">
@@ -70,142 +70,231 @@
 
   <main>
     <!-- ===============================================================
-         OPENER — portrait, positioning, and what the studio actually is
+         OPENER — portrait left, statement right. The portrait is a 4:5
+         frame on a hairline with a mono caption under it, so it reads as
+         a plate in the same system as the builds rather than a headshot
+         dropped into a circle.
          =============================================================== -->
-    <section class="section">
-      <div class="container">
-        <div class="about-hero about-hero--split">
-          <figure class="portrait" data-reveal="left">
-            <div class="portrait__frame">
-              <img src="assets/img/headshot.jpg" alt="Tyler Wade" onerror="this.style.display='none'">
-              <span class="portrait__scan" aria-hidden="true"></span>
-            </div>
-            <figcaption class="portrait__cap">
-              <span class="portrait__name">Tyler Wade</span>
-              <span class="portrait__role">Engineer · Monterey, California</span>
-            </figcaption>
-          </figure>
-          <div class="about-hero__text" data-enter>
-            <p class="eyebrow">About</p>
-            <h1 data-split>I build the machine, and the software that <em>runs it</em>.</h1>
-            <p class="lead">BuiltByTyler is a one-person engineering studio. I design and
-              build hardware you can order &mdash; robotic arms, FPV drones, tilt-rotor
-              aircraft &mdash; and I build the websites and software that other businesses
-              run on. Same hands, same standard, both ends of the problem.</p>
-            <div class="hero__cta" style="margin-top:2rem; justify-content:flex-start;">
-              <a class="btn" href="software.html">Work with me</a>
-              <a class="btn btn--ghost" href="shop.html">See the builds</a>
-            </div>
+    <section class="section opener" data-sec="top">
+      <div class="container about-open">
+        <figure class="portrait" data-reveal="left">
+          <div class="portrait__frame">
+            <img src="assets/img/headshot.jpg" alt="Tyler Wade" onerror="this.style.display='none'">
+            <span class="portrait__scan" aria-hidden="true"></span>
+          </div>
+          <figcaption class="portrait__cap">
+            <span class="portrait__name">Tyler Wade</span>
+            <span class="portrait__role">Founder &middot; Monterey, California</span>
+          </figcaption>
+        </figure>
+        <div class="about-open__text" data-enter>
+          <p class="kicker">About <b>—</b> the person you will actually deal with</p>
+          <h1 class="display" data-split>One person, and that is the <em>whole point</em>.</h1>
+          <p class="opener__lead">BuiltByTyler is a one-person engineering studio in Monterey.
+            I design and build hardware you can order &mdash; robotic arms, FPV drones, rovers,
+            tilt-rotor aircraft &mdash; and I build the websites and software that other
+            businesses run on. Same hands, same standard, both ends of the problem.</p>
+          <div class="opener__cta">
+            <a class="btn" href="software.html">Work with me</a>
+            <a class="btn btn--ghost" href="shop.html">See the builds</a>
           </div>
         </div>
       </div>
     </section>
 
     <!-- ===============================================================
-         THE TWO DISCIPLINES
+         01 · THE STORY — prose set against a sticky ledger of the plain
+         facts. The first paragraph is set at display weight so the page
+         opens with a voice rather than a bio.
          =============================================================== -->
-    <section class="section section--alt">
-      <div class="container">
-        <div class="section-head section-head--left" data-reveal>
-          <p class="eyebrow">What I actually do</p>
-          <h2>Two disciplines, one bench.</h2>
+    <section class="section" id="story" data-sec="story">
+      <div class="container prose-grid" data-reveal>
+        <span class="prose-grid__n">01</span>
+        <p class="prose-grid__lab">The short version</p>
+        <div class="prose">
+          <p>I have been taking things apart and putting them back together wrong, then right,
+            for as long as I can remember. Everything here started that way.</p>
+          <p>The mechanical side came first. Parametric CAD, fatigue and flow simulation,
+            prototyping and fabrication &mdash; parts analysed before they get cut and tested
+            after they are assembled, iterated until they hold up under load rather than on a
+            screen. A rover chassis that keeps six wheels on the ground over rough terrain, a
+            tilt-rotor that has to survive the transition from hovering to flying, a laser mount
+            that has to hold a beam on something moving. Every one of those is a problem that
+            does not care how good the render looked.</p>
+          <p>The software side grew out of it, because a drone or a robot is never just
+            mechanical. It is both, designed and integrated as one system: engineering the
+            structure, writing the control that brings it to life, then watching the two click
+            together into something that actually flies or drives. That intersection is where
+            the interesting problems live, and it is what I chase with every build.</p>
+          <p>It is also why I build software for other businesses. Most people making websites
+            have never had to make something work under load, where a failure is a part on the
+            floor rather than a bug report. That changes how you build: you test it, you
+            document it, and you hand it over so somebody else can maintain it. A business
+            website is a small problem by comparison &mdash; which is exactly why it should be
+            done properly, quickly, and for a price you can see before you call.</p>
+          <p>I work out of Monterey, California. If you email me, I am the one who answers.</p>
         </div>
+        <aside class="prose-aside">
+          <dl>
+            <dt>Based</dt><dd>Monterey, California</dd>
+            <dt>Entity</dt><dd>BuiltByTyler LLC</dd>
+            <dt>Team size</dt><dd class="mono">1</dd>
+            <dt>Disciplines</dt><dd>Mechanical &amp; software</dd>
+            <dt>Serving</dt><dd>Monterey Bay &amp; the Bay Area</dd>
+          </dl>
+        </aside>
+      </div>
+    </section>
 
-        <div class="svc-grid">
-          <article class="svc-card" data-reveal data-reveal-i="1">
-            <span class="svc-card__no">01</span>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M12 3 20 7.5v9L12 21 4 16.5v-9z"/><path d="M12 12v9M12 12l8-4.5M12 12 4 7.5"/>
-            </svg>
-            <h3>Mechanical</h3>
-            <p>Parametric CAD, fatigue and flow simulation, prototyping and fabrication.
-              Parts get analysed before they get cut and tested after they are assembled,
-              and they get iterated until they hold up under load rather than on a screen.</p>
-            <ul class="chips">
-              <li>CAD</li><li>FEA / CFD</li><li>Machining</li><li>3D print</li><li>Assembly</li>
+    <!-- ===============================================================
+         02 · THE BENCH — the inverted band. A ledger of what I actually
+         use, with how long, because "full stack engineer" means nothing
+         and a list of tools with years on it means something.
+
+         Every line here comes off Tyler's own capability sheets in
+         assets/img (CAD.png, Code.png, ENV.png). If any of it goes stale
+         — the years tick over, a tool drops off — this is the one place
+         to edit; nothing else on the site repeats these numbers.
+         =============================================================== -->
+    <section class="band" id="bench" data-sec="bench">
+      <div class="container band__grid" data-reveal>
+        <p class="band__lab">02 <b>—</b> The bench</p>
+        <span class="band__n">02</span>
+        <h2 class="band__h">What is actually <em>on the bench</em>.</h2>
+        <div class="band__text">
+          <p>Not a logo wall. These are the tools I use often enough to be quick in, with how
+            long I have been in them &mdash; the mechanical set from design and analysis work,
+            the software set from the things I build here.</p>
+          <p>Anything not on this list, I will tell you who to call rather than learn it on
+            your budget.</p>
+        </div>
+        <div class="bench">
+          <div>
+            <h3>Design &amp; analysis</h3>
+            <ul>
+              <li>SOLIDWORKS <span>6 yrs</span></li>
+              <li>Siemens NX <span>Aerostructures</span></li>
+              <li>Inventor <span>7 yrs</span></li>
+              <li>CAESAR II <span>Pipe stress</span></li>
+              <li>FEA &amp; CFD <span>Sim</span></li>
             </ul>
-          </article>
-
-          <article class="svc-card" data-reveal data-reveal-i="2">
-            <span class="svc-card__no">02</span>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M9 8 5 12l4 4M15 8l4 4-4 4M13 6l-2 12"/>
-            </svg>
+          </div>
+          <div>
+            <h3>Make</h3>
+            <ul>
+              <li>3D printing <span>FDM / resin</span></li>
+              <li>Machining <span>Manual</span></li>
+              <li>Carbon &amp; composites <span>Airframes</span></li>
+              <li>Soldering &amp; wiring <span>Bench</span></li>
+              <li>Flight &amp; bench test <span>Every build</span></li>
+            </ul>
+          </div>
+          <div>
             <h3>Software</h3>
-            <p>Embedded firmware and flight control at one end, and full web applications
-              at the other &mdash; engineering GUIs, agent workflows, customer portals and
-              the sites that businesses are judged by.</p>
-            <ul class="chips">
-              <li>Firmware</li><li>Control</li><li>Web apps</li><li>Automation</li><li>SaaS</li>
+            <ul>
+              <li>Python <span>4 yrs</span></li>
+              <li>TypeScript &amp; React <span>Web</span></li>
+              <li>C++ <span>Embedded</span></li>
+              <li>Postgres <span>Data</span></li>
+              <li>Stripe &amp; Cloudflare <span>Ship</span></li>
             </ul>
-          </article>
-        </div>
-      </div>
-    </section>
-
-    <!-- ===============================================================
-         THE INTERSECTION — the reason the two sit together
-         =============================================================== -->
-    <section class="section">
-      <div class="container">
-        <div class="split">
-          <div class="split__text" data-reveal="left">
-            <p class="eyebrow">Where it comes together</p>
-            <h2>The best part is the combination.</h2>
-            <p>A drone or a robot is never just mechanical or just software. It is both,
-              designed and integrated as one system. Engineering the structure, writing the
-              control that brings it to life, then watching the two click together into
-              something that actually flies or drives &mdash; that intersection is where
-              the interesting problems live, and it is what I chase with every build.</p>
-            <p>It is also why the software side of this studio exists. Most people building
-              websites have never had to make anything work under load. I have, and it
-              changes how you build software: you test it, you document it, and you hand it
-              over so somebody else can maintain it.</p>
           </div>
-          <ul class="tenets" data-reveal="right">
-            <li>
-              <b>Everything ships with its source</b>
-              <span>CAD, firmware, code and documentation. If you paid for it, you own it
-                outright and you can take it anywhere.</span>
-            </li>
-            <li>
-              <b>Nothing is bought and rebadged</b>
-              <span>No white-labelled hardware, no page-builder templates. It is designed
-                here or it is not sold here.</span>
-            </li>
-            <li>
-              <b>You deal with me</b>
-              <span>No account manager, no handoff to a junior. The person who scopes the
-                work is the person who builds it.</span>
-            </li>
-            <li>
-              <b>I will talk you out of it</b>
-              <span>If a build or a piece of software is the wrong answer for what you are
-                trying to do, I would rather say so on the first call.</span>
-            </li>
-          </ul>
         </div>
       </div>
     </section>
 
     <!-- ===============================================================
-         CLOSE
+         03 · HOW I WORK — the tenets, beside the reason they exist.
          =============================================================== -->
-    <section class="section--tight" style="padding-bottom: clamp(3.5rem,8vw,7rem);">
+    <section class="section" id="how" data-sec="how">
       <div class="container">
-        <div class="cta-band ticked" data-reveal="scale">
-          <p class="eyebrow">Next step</p>
-          <h2>Two things I can do for you.</h2>
-          <p>Order something I have already built, or have me build the software your
-            business runs on. Either way it starts with a conversation.</p>
-          <div class="cta-band__actions">
-            <a class="btn" href="software.html">Software &amp; web</a>
-            <a class="btn btn--ghost" href="shop.html">Shop the collection</a>
+        <div class="idx idx--split" data-reveal>
+          <span class="idx__n">03</span>
+          <p class="idx__lab">How I work</p>
+          <h2 class="idx__h">Four things I will not trade away.</h2>
+          <p class="idx__p">Every one of these costs me something. They are here because the
+            alternative costs you more, and because a promise you can check is worth more than
+            a page of adjectives.</p>
+        </div>
+        <ul class="tenets" data-reveal>
+          <li>
+            <b>Everything ships with its source</b>
+            <span>CAD, firmware, code and documentation. If you paid for it, you own it
+              outright and you can take it anywhere.</span>
+          </li>
+          <li>
+            <b>Nothing is bought and rebadged</b>
+            <span>No white-labelled hardware, no page-builder templates. It is designed here
+              or it is not sold here.</span>
+          </li>
+          <li>
+            <b>You deal with me</b>
+            <span>No account manager, no handoff to a junior. The person who scopes the work
+              is the person who builds it, and the person who answers the email.</span>
+          </li>
+          <li>
+            <b>I will talk you out of it</b>
+            <span>If a build or a piece of software is the wrong answer for what you are
+              trying to do, I would rather say so on the first call than take the money.</span>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ===============================================================
+         04 · IN THE SHOP — the personal slot.
+
+         DELIBERATELY EMPTY UNTIL TYLER SENDS PHOTOGRAPHS. This is the
+         section that makes the page personable rather than corporate:
+         four or five real shots off his own phone / Instagram — the
+         bench mid-build, a failed print, a first flight, the rover on
+         actual dirt — each with one honest line under it.
+
+         To switch it on: drop the images into assets/img/shop/ , uncomment
+         the block below, and write the captions in his own voice. Do not
+         fill it with stock photography; an empty section is better than a
+         staged one, and it is the reason this ships commented out rather
+         than with placeholders in it.
+
+    <section class="section" id="shop" data-sec="shop">
+      <div class="container">
+        <div class="idx" data-reveal>
+          <span class="idx__n">04</span>
+          <p class="idx__lab">In the shop</p>
+          <h2 class="idx__h">Where it all actually happens.</h2>
+        </div>
+        <div class="strip" data-reveal>
+          <figure><img src="assets/img/shop/bench.jpg" alt=""><figcaption>The bench</figcaption></figure>
+          <figure><img src="assets/img/shop/print.jpg" alt=""><figcaption>Attempt four</figcaption></figure>
+          <figure><img src="assets/img/shop/flight.jpg" alt=""><figcaption>First flight</figcaption></figure>
+          <figure><img src="assets/img/shop/rover.jpg" alt=""><figcaption>Rover, real dirt</figcaption></figure>
+        </div>
+      </div>
+    </section>
+         =============================================================== -->
+
+    <!-- ===============================================================
+         04 · CLOSE
+         =============================================================== -->
+    <section class="section" id="next" data-sec="next">
+      <div class="container">
+        <div class="close" data-reveal>
+          <span class="close__n">04</span>
+          <h2>Two ways to put me to work.</h2>
+          <div class="close__side">
+            <p>Have me build the software your business runs on, or order something I have
+              already built. Both start the same way: you send an email, and I answer it
+              myself.</p>
+            <div class="close__actions">
+              <a class="btn" href="software.html">Software &amp; web</a>
+              <a class="btn btn--ghost" href="contact.html">Get in touch</a>
+            </div>
           </div>
         </div>
       </div>
     </section>
   </main>
+
 
   <footer id="site-footer" data-year="2026">
     <div class="container site-footer__inner">
@@ -218,9 +307,16 @@
     </div>
   </footer>
 
-  <script src="assets/js/products.js"></script>
-  <script src="assets/js/components.js"></script>
-  <script src="assets/js/main.js"></script>
+  <!-- defer keeps execution order but stops these blocking first paint, which
+       was costing ~900 ms of the 4.6 s LCP. hologram.js stays: it is 64 KB and
+       looks unused here because the page ships no canvas[data-holo] in its
+       HTML, but main.js CREATES those canvases for the build plates. Removing
+       it blanks every hologram. If the 64 KB is ever worth reclaiming, the fix
+       is to load it on demand when a plate scrolls into view. -->
+  <script defer src="assets/js/products.js"></script>
+  <script defer src="assets/js/components.js"></script>
+  <script defer src="assets/js/hologram.js"></script>
+  <script defer src="assets/js/main.js"></script>
   <!-- ?v=3 busts the module cache. three.js is vendored at assets/vendor/,
        so the star field no longer needs an inline importmap (which the CSP
        blocks) or a third-party fetch from unpkg. A returning visitor still

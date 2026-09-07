@@ -13,11 +13,11 @@ a page and it runs. Deployed to Cloudflare Pages (see `_headers`).
 ```
 builtbytyler/
 ├── index.html              Home — the studio, its two halves, featured builds
-├── shop.html               Product collection + orderable build packages
+├── shop.html               The builds + orderable build packages
 ├── software.html           Software & web services, process, published pricing
-├── about.html              Who Tyler is; mechanical + software
+├── about.html              Who Tyler is; the story, the bench, how he works
 ├── contact.html            Ways to reach him (accepts ?plan= from software.html)
-├── product.html            Product detail, driven by ?id=<slug>
+├── product.html            Build detail, driven by ?id=<slug>
 ├── policies.html           Lead times, shipping, refunds — the terms of sale
 ├── order-confirmed.html    Stripe success return page
 ├── checkout-test.html      Standalone Stripe harness. Self-contained by design:
@@ -35,7 +35,7 @@ builtbytyler/
 │   │   ├── products.js     Catalog + packages — the single source of truth
 │   │   ├── components.js   Shared chrome (nav, footer, cart drawer, modals)
 │   │   ├── main.js         Behaviour: grids, cart, nav, HUD, plan handoff, reveals
-│   │   ├── hologram.js     2D-canvas wireframe holograms (cards + detail)
+│   │   ├── hologram.js     2D-canvas wireframe holograms (plates + detail)
 │   │   └── starfield.js    The drifting star field behind every page (Three.js, ESM)
 │   └── img/                Photography and raster assets
 │
@@ -62,15 +62,55 @@ silently skip the backdrop.
 ## The three layers
 
 **1 · Design system — `assets/css/styles.css`**
-Every colour, type size, radius and shadow is a custom property in `:root`.
-Retune the look there and the whole site follows. The visual language is
-engineered rather than soft: near-square corners, hairline rules, mono
-micro-labels, one cut corner on the primary button, and a serif italic
-(`--font-accent`) for emphasis.
+Every colour, type size and radius is a custom property in `:root`. Retune the
+look there and the whole site follows.
+
+The grammar, in one paragraph: a six-column hairline measuring grid behind the
+page; mono type on anything that is a fact; hairline rules doing the work that
+boxes used to do; numbered section heads that read like an index; one big
+display face at real size; a serif italic reserved for the page opener; and one
+inverted (light) band per page so the eye has somewhere to rest.
+
+**No two sections on a page use the same composition, and that is deliberate.**
+The rebuild before this one was a good design applied six times per page — a
+centred head over a grid of identically bordered cards — which is what makes a
+site read as generated rather than made. The components exist so that each
+section can take a different shape:
+
+| Component | What it is | Where |
+|---|---|---|
+| `.idx` | Numbered section head. `--split` puts the standfirst beside the headline; `--big` sizes it up | Every section |
+| `.ledger` | Tall hairline rows: label, headline, paragraph, then tags and a go-link | Home, the two halves |
+| `.index` | Compact numbered rows; `--lead` makes the first one a statement | Software services |
+| `.plates` | Builds in framed panels with a museum-plate caption on a rule | Home, shop |
+| `.band` | The one inverted section per page. Carries `.band__row`, `.timeline` or `.bench` | Every page, once |
+| `.close` | Closing statement on a rule, never a boxed CTA | Every page |
+
+**Type.** Bricolage Grotesque carries the display because it has real optical
+sizes — at 100px it tightens into something mechanical, at 18px it stays a plain
+grotesque. Instrument Sans is the body and pairs with the Instrument Serif
+italic. JetBrains Mono is on every fact: a price, an hour, a count, a status.
 
 The serif is a **page-opener device only** — scoped to `h1 em` and `.display em`.
 At h2/h3 scale it stops reading as editorial and starts reading as the wrong
 font; below h1 the emphasis is carried by weight and accent colour instead.
+
+**Three rules in the CSS that look like tidiness and are not.** Each one is a
+bug that shipped during this rebuild, with the reason written above it in the
+stylesheet:
+
+- Anything spanning a band's full width needs `grid-column: 1 / -1`.
+  `.band__grid` is laid out with `grid-template-areas`, so a child with no area
+  named lands in the 6rem number column — four list items in a 6rem column
+  overlap into an unreadable stack.
+- `.faq` needs an explicit `grid-column: 2`. A spacer element carrying
+  `.idx__n` does not work: `.idx__n` sets `grid-area: n`, naming a line that
+  grid does not define, which collapsed the whole FAQ to one word per line.
+- Build frames get one constant height (`--plate-h`), not matched aspect
+  ratios. Ratios chosen to agree across spans cannot survive a column gap — a
+  four-column frame is not twice a two-column frame once there is a gutter —
+  and stretching them to the grid row is defeated by `aspect-ratio`, which
+  Chrome resolves against the width even when the item is told to stretch.
 
 **2 · Motion engine — `assets/css/motion.css`**
 One easing curve, four speeds, and scroll reveals built on native CSS
@@ -139,19 +179,43 @@ vertex glints in two passes. Everything batches per depth band, so a model
 costs a couple of dozen stroke calls regardless of edge count. Only a hovered
 hologram animates, and the loop winds itself down when the pointer leaves.
 
-Two things that look like details but are not:
+Seven models: `arm`, `drone`, `evtol`, `rover`, `transmitter`, `turret`,
+`rocket`. Each is a static wireframe plus a `dynamic(t)` function returning live
+geometry — the part of the machine that actually moves. The tilt-rotor tilts its
+nacelles from hover to cruise and back; the rover's rocker-bogie articulates
+over a bump that rolls under it; the laser mount slews onto a weaving target and
+holds the beam; the telegraph key sends TYLER and the receiver lights a letter
+at a time; the rocket arms, lights and throttles down.
+
+**There is no scan sweep, and none is coming back.** A band of light used to
+rise through every model on a loop. Across six plates at once it read as a
+gimmick rather than as an instrument, and it was cut. The only motion is the
+object's own.
+
+Three things that look like details but are not:
 
 - Rotor blades are tapered planforms (`BLADE`), never spokes. A three-spoke
   star reads as a wheel at any size.
 - `resize()` sets `canvas.width`, which wipes the bitmap, so it must be
   followed by a `render()`. Without that a single resize leaves every
   hologram permanently blank.
+- Hover is bound to `.plate__media, .card__media, .detail__media`. Each page
+  frames the canvas differently; miss one and every model on that page sits
+  frozen.
 
 ## Editing the catalog
 
 `assets/js/products.js` is the only file to touch. `PRODUCTS` are the showcase
 pieces; `PACKAGES` are the configured builds that carry prices and Stripe
-payment links. A package is only buyable when `paymentLink` is a real
+payment links.
+
+**The build grids vary their composition per page**, and the page decides:
+`<div class="plates" data-spans="plate--lead,-,plate--half,plate--half">`. A
+`-` means the default two-column span. The homepage leads with one wide frame;
+the shop opens with two halves and then a row of thirds, so a visitor arriving
+from the homepage does not meet the same arrangement twice. Add a build to
+`PRODUCTS` and you must extend `data-spans` on `shop.html` to match, or the new
+one falls back to a default span and its row will not add up to six. A package is only buyable when `paymentLink` is a real
 `https://buy.stripe.com/…` URL — otherwise the button falls back to the enquiry
 flow so it can never dead-end.
 

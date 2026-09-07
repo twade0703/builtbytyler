@@ -1,6 +1,6 @@
 /* =================================================================
    main.js — behavior layer
-   · renders product grids (home + shop) and product detail
+   · renders the build plates (home + shop) and the build detail page
    · placeholder cart (localStorage) with drawer + toast
    · mobile nav toggle
    · scroll-in reveal animations
@@ -121,11 +121,14 @@
       .join("");
   }
 
-  /* ---------------- Product card markup ----------------
-     On the home page, featured cards render a spinning wireframe
-     hologram (canvas) instead of a flat image — see hologram.js. */
-  /* A clean cyan reticle used wherever there's no 3D model — replaces
-     the old product photos. */
+  /* ---------------- Build plates ----------------
+     A build is presented as a museum plate: the hologram in a framed
+     panel, and the caption on a hairline underneath — index number,
+     name, one line of what it is, and its status set in mono on the
+     right. Not a bordered card with a button in it.
+
+     Sizes vary across the grid (`span`), because six identical tiles is
+     the pattern this rebuild exists to remove. The caller decides. */
   const RETICLE = `
     <svg class="reticle" viewBox="0 0 100 100" aria-hidden="true">
       <circle cx="50" cy="50" r="30" fill="none" stroke="currentColor" stroke-width="0.6"/>
@@ -133,49 +136,47 @@
       <path d="M50 4 V28 M50 72 V96 M4 50 H28 M72 50 H96" stroke="currentColor" stroke-width="0.6"/>
     </svg>`;
 
-  function mediaHTML(p, holo) {
-    if (holo && p.holo) {
-      return `
-        <a class="card__media is-holo" href="product.html?id=${p.id}" aria-label="${p.name}">
-          <canvas class="card__holo" data-holo="${p.holo}"></canvas>
-          <span class="holo-hud">3D · Wireframe</span>
-        </a>`;
-    }
-    return `
-      <a class="card__media is-placeholder" href="product.html?id=${p.id}" aria-label="${p.name}">
-        ${RETICLE}
-      </a>`;
-  }
+  const TICKS = `<span class="tick tick--tl"></span><span class="tick tick--br"></span>`;
 
-  function cardHTML(p, holo, index) {
+  function plateHTML(p, index, span) {
     const idx = String((index || 0) + 1).padStart(2, "0");
-    const cta = p.available
-      ? `<button class="card__add" data-add="${p.id}">Add to cart</button>`
-      : `<a class="card__add" href="shop.html#packages">View packages</a>`;
+    const href = `product.html?id=${p.id}`;
+    const status = p.available ? "Available" : "Made to order";
+    const media = p.holo
+      ? `<canvas class="plate__holo" data-holo="${p.holo}"></canvas>
+         <span class="plate__hud">3D <em>·</em> Wireframe</span>`
+      : RETICLE;
     return `
-      <article class="card" data-reveal="scale" data-reveal-i="${((index || 0) % 6) + 1}">
-        <span class="card__index">${idx}</span>
-        ${mediaHTML(p, holo)}
-        <div class="card__body">
-          <h3 class="card__name"><a href="product.html?id=${p.id}">${p.name}</a></h3>
-          <p class="card__tag">${p.tagline}</p>
-          <div class="card__row">
-            <span class="price">${window.formatPrice(p)}</span>
-            ${cta}
-          </div>
+      <article class="plate ${span || ""}" data-reveal data-reveal-i="${((index || 0) % 6) + 1}">
+        <a class="plate__media ${p.holo ? "is-holo" : "is-placeholder"}" href="${href}" aria-label="${p.name}">
+          ${TICKS}${media}
+        </a>
+        <div class="plate__cap">
+          <span class="plate__n">${idx}</span>
+          <h3 class="plate__name"><a href="${href}">${p.name}</a></h3>
+          <span class="plate__price">${status}</span>
+          <p class="plate__tag">${p.tagline}</p>
         </div>
       </article>`;
   }
 
-  function renderGrid(targetId, list, opts) {
+  /* The composition, expressed as spans. The first build gets four of the
+     six columns and a wider frame; the rest fall into halves and thirds.
+     A grid that reads left to right at different weights is the whole
+     difference between "a portfolio" and "a row of tiles". */
+  const SPANS = ["plate--lead", "plate--half", "", "", "", "plate--half", "plate--half"];
+
+  function renderGrid(targetId, list) {
     const grid = document.getElementById(targetId);
     if (!grid) return;
     if (!list.length) {
-      grid.innerHTML = `<p class="cart-empty">No products yet — check back soon.</p>`;
+      grid.innerHTML = `<p class="cart-empty">No builds listed yet — check back soon.</p>`;
       return;
     }
-    const holo = !!(opts && opts.holo);
-    grid.innerHTML = list.map((p, i) => cardHTML(p, holo, i)).join("");
+    const custom = (grid.getAttribute("data-spans") || "").split(",").map((v) => v.trim());
+    grid.innerHTML = list
+      .map((p, i) => plateHTML(p, i, custom[i] !== undefined && custom[i] !== "" ? (custom[i] === "-" ? "" : custom[i]) : SPANS[i] || ""))
+      .join("");
   }
 
   /* ---------------- Build packages (shop.html#packages) ---------------- */
@@ -186,7 +187,7 @@
         <div class="package__head">
           ${pkg.badge ? `<span class="package__badge">${pkg.badge}</span>` : ""}
           <h3 class="package__name">${pkg.name}</h3>
-          <div class="package__price">${window.formatPackagePrice(pkg)}</div>
+          <p class="package__price">${window.formatPackagePrice(pkg)}</p>
         </div>
         <p class="package__blurb">${pkg.blurb}</p>
         <ul class="package__list">${includes}</ul>
@@ -232,12 +233,12 @@
       : `<a class="btn" href="shop.html#packages">View build packages</a>`;
 
     const media = p.holo
-      ? `<canvas class="card__holo" data-holo="${p.holo}"></canvas>
-         <span class="holo-hud">3D · Wireframe</span>`
+      ? `<canvas class="plate__holo" data-holo="${p.holo}"></canvas>
+         <span class="plate__hud">3D <em>·</em> Wireframe</span>`
       : RETICLE;
 
     host.innerHTML = `
-      <a class="back-link" href="shop.html">&larr; All products</a>
+      <a class="back-link" href="shop.html">&larr; All builds</a>
       <div class="detail" data-reveal>
         <div class="detail__media ${p.holo ? "is-holo" : "is-placeholder"}">
           ${media}
@@ -246,7 +247,7 @@
           <p class="badge">${p.available ? "Available" : "Coming soon"}</p>
           <h1>${p.name}</h1>
           <p class="detail__tag">${p.tagline}</p>
-          <div class="detail__price">${window.formatPrice(p)}</div>
+          <p class="detail__price">${p.available ? "Available to order" : "Made to order &middot; sold as a configured build"}</p>
           <div class="detail__desc"><p>${p.description}</p></div>
           <div class="detail__actions">${buyBtn}</div>
           <span class="notice">${
@@ -425,22 +426,24 @@
   }
 
   /* ---------------- Scroll-aware nav ----------------
-     Keep the bar clear over the hero/landing; only firm + slim it once the
-     first content section reaches the top. Pages without a hero firm near top. */
+     Clear bar at the very top, frosted the moment the page moves.
+
+     It used to hold the transparent state until the first content section
+     reached the top, which on a page with a 100vh hero meant a thousand
+     pixels of display-size headline sliding under an unlit bar. At this
+     type size that is not a subtle overlap — the words collide with the
+     brand mark. A short threshold keeps the clean first impression and
+     protects every scroll position after it. */
+  const NAV_FIRM_AT = 24;
+
   function initNavScroll() {
     const nav = document.getElementById("site-nav");
     if (!nav) return;
-    const after = document.querySelector("main section:not(.hero)");
-    let threshold = 8;
-    const recompute = () => {
-      threshold = after ? Math.max(8, after.offsetTop - (nav.offsetHeight || 50) - 24) : 8;
-    };
-    const onScroll = () => nav.classList.toggle("is-scrolled", window.scrollY > threshold);
-    recompute();
+    const onScroll = () => nav.classList.toggle("is-scrolled", window.scrollY > NAV_FIRM_AT);
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", () => { recompute(); onScroll(); }, { passive: true });
-    window.addEventListener("load", () => { recompute(); onScroll(); });
+    window.addEventListener("resize", onScroll, { passive: true });
+    window.addEventListener("load", onScroll);
   }
 
   /* ---------------- Software plan handoff (contact.html?plan=…) ----------------
@@ -706,8 +709,8 @@
   function init() {
     // Home featured grid + shop grid (whichever exists on the page)
     if (window.PRODUCTS) {
-      renderGrid("featured-grid", window.PRODUCTS.filter((p) => p.featured), { holo: true });
-      renderGrid("shop-grid", window.PRODUCTS, { holo: true });
+      renderGrid("featured-grid", window.PRODUCTS.filter((p) => p.featured));
+      renderGrid("shop-grid", window.PRODUCTS);
       renderPackages();
     renderPolicyLeadTimes();
       renderDetail();

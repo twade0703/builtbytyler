@@ -7,7 +7,7 @@
   <meta name="description" content="Hand-built websites and software for small businesses and trades in Monterey County. Fast on a phone, maintained after launch. Also robotics and custom hardware.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Space+Grotesk:wght@300;400;500;600&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500&family=Instrument+Sans:wght@400;500&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="icon" type="image/png" sizes="48x48" href="/assets/img/icon-48.png">
   <link rel="icon" type="image/png" sizes="96x96" href="/assets/img/icon-96.png">
   <link rel="icon" type="image/png" sizes="192x192" href="/assets/img/icon-192.png">
@@ -69,90 +69,170 @@
   <header id="site-nav"></header>
 
   <main>
-    <!-- Hero -->
-    <section class="hero">
-      <div class="container hero__inner" data-enter>
-        <p class="eyebrow">Designed &amp; built by<br>Tyler Wade</p>
-        <h1 data-split>Building things<br>should be <em>fun</em>.</h1>
-        <p class="hero__sub">A one-person studio for the two halves of a modern product —
-          the machine, and the software that runs it.</p>
-        <div class="hero__cta">
-          <a class="btn" href="shop.html">Shop the collection</a>
-          <a class="btn btn--ghost" href="software.html">Software &amp; web</a>
+    <!-- ===============================================================
+         OPENER — the statement on the left, the page's own index on the
+         right. Nothing centred: the eye starts top-left and the index
+         tells it what the rest of the page contains.
+         =============================================================== -->
+    <section class="hero" data-sec="top">
+      <div class="container hero__grid" data-enter>
+        <div class="hero__main">
+          <p class="kicker">BuiltByTyler <b>—</b> Monterey, California</p>
+          <h1 class="display" data-split>I build the machine, and the software that <em>runs it</em>.</h1>
+          <p class="hero__sub">One engineer, two disciplines. Websites and software for
+            businesses that need to be found and believed — and hardware that flies,
+            drives and holds up under load.</p>
+          <div class="hero__cta">
+            <a class="btn" href="software.html">Software &amp; web</a>
+            <a class="btn btn--ghost" href="shop.html">The builds</a>
+          </div>
         </div>
+        <nav class="hero__index" aria-label="On this page">
+          <ul>
+            <li><a href="#studio"><span>01</span><span>The studio</span></a></li>
+            <li><a href="#work"><span>02</span><span>Selected builds</span></a></li>
+            <li><a href="#method"><span>03</span><span>How it works</span></a></li>
+            <li><a href="#next"><span>04</span><span>Start something</span></a></li>
+          </ul>
+        </nav>
       </div>
       <span class="scroll-cue" aria-hidden="true">Scroll</span>
     </section>
 
-    <!-- The two halves of the studio — the split that runs through everything -->
-    <section class="section section--alt" id="studio">
+    <!-- ===============================================================
+         01 · THE STUDIO — the two halves, as a ledger rather than two
+         matching cards. Each row is one discipline: number, headline,
+         paragraph, then its tags and its way in.
+         =============================================================== -->
+    <section class="section" id="studio" data-sec="studio">
       <div class="container">
-        <div class="section-head section-head--left" data-reveal>
-          <p class="eyebrow">The studio</p>
-          <h2>One engineer, two <em>disciplines</em>.</h2>
+        <div class="idx idx--split" data-reveal>
+          <span class="idx__n">01</span>
+          <p class="idx__lab">The studio</p>
+          <h2 class="idx__h">One engineer, two disciplines.</h2>
+          <p class="idx__p">The same hands do both, and that is the point. Software written by
+            someone who has had to make a physical thing survive contact with the real world
+            gets tested, documented and handed over.</p>
         </div>
 
-        <div class="svc-grid">
-          <article class="svc-card" data-reveal data-reveal-i="1">
-            <span class="svc-card__no">01</span>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M12 3 20 7.5v9L12 21 4 16.5v-9z"/><path d="M12 12v9M12 12l8-4.5M12 12 4 7.5"/>
-            </svg>
-            <h3>Hardware you can order</h3>
-            <p>Robotic arms, FPV drones, tilt-rotor aircraft and one-off engineering builds —
-              designed, machined and assembled by hand, and shipped with the CAD, the firmware
-              and a full video walkthrough.</p>
-            <ul class="chips">
-              <li>CAD</li><li>Fabrication</li><li>Firmware</li><li>Flight test</li>
-            </ul>
-            <p style="margin-top:auto;"><a class="btn btn--ghost" href="shop.html">Browse the collection</a></p>
+        <div class="ledger">
+          <article class="ledger__row" data-reveal data-reveal-i="1">
+            <span class="ledger__n">Software</span>
+            <div class="ledger__main">
+              <h3>Software for your business</h3>
+              <p>The website people judge you by, the web app that replaces the spreadsheet,
+                and the automation that stops someone re-typing the same thing twice.
+                Published pricing, fixed scope, and you own everything at the end.</p>
+            </div>
+            <div class="ledger__meta">
+              <p class="ledger__tags">Websites<i>/</i>Web apps<i>/</i>SaaS<i>/</i>Automation</p>
+              <a class="link-arrow" href="software.html">See software &amp; web</a>
+            </div>
           </article>
 
-          <article class="svc-card" data-reveal data-reveal-i="2">
-            <span class="svc-card__no">02</span>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <rect x="3" y="4" width="18" height="16" rx="1.5"/><path d="M3 9h18M7 6.5h.01M9.5 6.5h.01"/>
-            </svg>
-            <h3>Software for your business</h3>
-            <p>The website people judge you by, the web app that replaces the spreadsheet, and the
-              automation that stops someone re-typing the same thing twice. Published pricing,
-              fixed scope, and you own everything at the end.</p>
-            <ul class="chips">
-              <li>Websites</li><li>Web apps</li><li>SaaS</li><li>Automation</li>
-            </ul>
-            <p style="margin-top:auto;"><a class="btn" href="software.html">See software &amp; web</a></p>
+          <article class="ledger__row" data-reveal data-reveal-i="2">
+            <span class="ledger__n">Hardware</span>
+            <div class="ledger__main">
+              <h3>Hardware you can order</h3>
+              <p>Robotic arms, FPV drones, rovers, tilt-rotor aircraft and one-off engineering
+                builds — designed, machined and assembled by hand, and shipped with the CAD,
+                the firmware and a full video walkthrough.</p>
+            </div>
+            <div class="ledger__meta">
+              <p class="ledger__tags">CAD<i>/</i>Fabrication<i>/</i>Firmware<i>/</i>Flight test</p>
+              <a class="link-arrow" href="shop.html">Browse the builds</a>
+            </div>
           </article>
         </div>
       </div>
     </section>
 
-    <!-- Featured products -->
-    <section class="section">
+    <!-- ===============================================================
+         02 · SELECTED BUILDS — plates, rendered by main.js. The first
+         one takes four of the six columns; the rest fall in behind it.
+         =============================================================== -->
+    <section class="section" id="work" data-sec="work">
       <div class="container">
-        <div class="section-head" data-reveal>
-          <p class="eyebrow">Featured</p>
-          <h2>Selected work, available to order</h2>
-          <p>A rotating selection of builds. Each one designed, prototyped and made by hand.</p>
+        <div class="idx idx--split" data-reveal>
+          <span class="idx__n">02</span>
+          <p class="idx__lab">Selected builds</p>
+          <h2 class="idx__h">Things that had to work, not just render.</h2>
+          <p class="idx__p">Each one designed, prototyped and made by hand — the airframe and
+            the flight code, the chassis and the control loop. Hover a panel to bring it to
+            life.</p>
         </div>
-        <div class="product-grid" id="featured-grid"></div>
-        <div style="text-align:center; margin-top: clamp(2rem,4vw,3rem);" data-reveal>
-          <a class="btn btn--ghost" href="shop.html">View all products</a>
+        <div class="plates" id="featured-grid" data-spans="plate--lead,-,plate--half,plate--half"></div>
+        <div class="plates__more" data-reveal>
+          <a class="link-arrow" href="shop.html">Every build</a>
         </div>
       </div>
     </section>
 
-    <!-- Brand statement -->
-    <section class="section section--alt">
-      <div class="container section-head" data-reveal="blur" style="max-width:760px;">
-        <p class="eyebrow">The approach</p>
-        <h2>Every product starts as a sketch and ends as something <em>real</em>.</h2>
-        <p>I'm Tyler — I design and build mechanical and software products end to end.
-          The process, the iterations, the dead ends and everything they teach are the
-          whole point. I work through the hard parts so you don't have to — turning builds
-          most people think are too difficult into something you can learn to make yourself.</p>
+    <!-- ===============================================================
+         03 · METHOD — the inverted band. One per page, and this is it.
+         =============================================================== -->
+    <section class="band" id="method" data-sec="method">
+      <div class="container band__grid" data-reveal>
+        <p class="band__lab">03 <b>—</b> How it works</p>
+        <span class="band__n">03</span>
+        <h2 class="band__h">Every product starts as a sketch and ends as something <em>real</em>.</h2>
+        <div class="band__text">
+          <p>I'm Tyler. I design and build mechanical and software products end to end. The
+            process, the iterations, the dead ends and everything they teach are the whole
+            point.</p>
+          <p>I work through the hard parts so you don't have to — turning builds most people
+            think are too difficult into something you can learn to make yourself, and
+            software most agencies would quote four months for into something live in three
+            weeks.</p>
+          <p style="margin-top:1.75rem"><a class="link-arrow" href="about.html">More about me</a></p>
+        </div>
+        <ol class="band__row">
+          <li>
+            <span class="n">01</span>
+            <b>Call</b>
+            <span>Twenty minutes on what it actually needs. I say so if the answer is nothing.</span>
+          </li>
+          <li>
+            <span class="n">02</span>
+            <b>Scope</b>
+            <span>A written scope, a fixed price and a date, before anything starts.</span>
+          </li>
+          <li>
+            <span class="n">03</span>
+            <b>Build in the open</b>
+            <span>A live link from the first week. You watch it fill in.</span>
+          </li>
+          <li>
+            <span class="n">04</span>
+            <b>Hand over</b>
+            <span>The code, the domain, the files. You own it outright.</span>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- ===============================================================
+         04 · CLOSE
+         =============================================================== -->
+    <section class="section" id="next" data-sec="next">
+      <div class="container">
+        <div class="close" data-reveal>
+          <span class="close__n">04</span>
+          <h2>Two things I can do for you.</h2>
+          <div class="close__side">
+            <p>Have me build the software your business runs on, or order something I have
+              already built. Either way it starts with a conversation, and I will tell you
+              straight if it is the wrong answer.</p>
+            <div class="close__actions">
+              <a class="btn" href="software.html">Software &amp; web</a>
+              <a class="btn btn--ghost" href="contact.html">Get in touch</a>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
   </main>
+
 
   <footer id="site-footer" data-year="2026">
     <div class="container site-footer__inner">
@@ -167,10 +247,10 @@
 
   <!-- defer keeps execution order but stops these blocking first paint, which
        was costing ~900 ms of the 4.6 s LCP. hologram.js stays: it is 64 KB and
-       looks unused here because the homepage ships no canvas[data-holo] in its
-       HTML, but main.js CREATES those canvases for the featured cards. Removing
-       it blanks the product holograms. If the 64 KB is ever worth reclaiming,
-       the fix is to load it on demand when a card scrolls into view. -->
+       looks unused here because the page ships no canvas[data-holo] in its
+       HTML, but main.js CREATES those canvases for the build plates. Removing
+       it blanks every hologram. If the 64 KB is ever worth reclaiming, the fix
+       is to load it on demand when a plate scrolls into view. -->
   <script defer src="assets/js/products.js"></script>
   <script defer src="assets/js/components.js"></script>
   <script defer src="assets/js/hologram.js"></script>

@@ -12,8 +12,8 @@
 
 const NAV_ITEMS = [
   { href: "index.html", label: "Home" },
-  { href: "shop.html", label: "Shop" },
   { href: "software.html", label: "Software" },
+  { href: "shop.html", label: "Builds" },
   { href: "about.html", label: "About" },
   { href: "contact.html", label: "Contact" },
 ];
@@ -48,7 +48,7 @@ function renderNav() {
   host.innerHTML = `
     <div class="container site-nav__inner">
       <a href="index.html" class="brand">Built<b>ByTyler</b></a>
-      <nav>
+      <nav aria-label="Primary">
         <ul class="nav-links" id="nav-links">${links}</ul>
       </nav>
       <div class="nav-actions">
@@ -166,7 +166,22 @@ function renderOrderModal() {
   document.body.appendChild(wrap);
 }
 
+/* The measuring grid — six columns of hairlines behind every page.
+   Fixed rather than per-section, so a column line runs unbroken from the
+   nav to the footer; that continuity is what makes the layout read as
+   set on a grid rather than merely aligned. Injected here so no page
+   can forget it, and marked aria-hidden because it carries no meaning. */
+function renderRules() {
+  if (document.getElementById("rules")) return;
+  const r = document.createElement("div");
+  r.className = "rules";
+  r.id = "rules";
+  r.setAttribute("aria-hidden", "true");
+  document.body.appendChild(r);
+}
+
 function mountChrome() {
+  renderRules();
   renderNav();
   renderFooter();
   renderCartDrawer();

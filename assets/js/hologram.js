@@ -10,7 +10,8 @@
    Public API (called by main.js after cards render):
      window.BBTHolograms.mount()   // scan DOM, animate any <canvas data-holo>
 
-   Each <canvas data-holo="evtol|arm|drone"> becomes one hologram.
+   Each <canvas data-holo="evtol|arm|drone|rover|transmitter|turret|rocket">
+   becomes one hologram.
    Degrades to a single static frame on prefers-reduced-motion.
    ================================================================= */
 (function () {
@@ -149,140 +150,231 @@
     return m;
   }
 
+  // Loft along Y: a stack of horizontal rings joined by longerons. For bodies
+  // of revolution about the vertical axis — the rocket's nose cone and boat
+  // tail — where makeLoft (which runs fore-aft along Z) is the wrong axis.
+  function makeLoftY(stations, seg) {
+    const rings = stations.map((s) => makeRing(s.cx || 0, s.y, s.cz || 0, s.r, seg, "y"));
+    const m = merge(rings);
+    for (let s = 0; s < stations.length - 1; s++) {
+      for (let i = 0; i < seg; i++) m.e.push([s * seg + i, (s + 1) * seg + i]);
+    }
+    return m;
+  }
+
+  /* Shared live-geometry helpers. Every model's dynamic() draws into a flat
+     segment list; these build the recurring shapes so each model reads as
+     the machine it is rather than a pile of hand-typed line calls. */
+  const V = {
+    add: (a, b) => [a[0] + b[0], a[1] + b[1], a[2] + b[2]],
+    sub: (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]],
+    mul: (a, k) => [a[0] * k, a[1] * k, a[2] * k],
+    cross: (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]],
+    norm: (v) => { const m = Math.hypot(v[0], v[1], v[2]) || 1; return [v[0] / m, v[1] / m, v[2] / m]; },
+    ss: (x) => { x = x < 0 ? 0 : x > 1 ? 1 : x; return x * x * (3 - 2 * x); },
+  };
+  // A pen bound to one segment list.
+  function pen(segs) {
+    const line = (a, b, lw) => segs.push([a[0], a[1], a[2], b[0], b[1], b[2], lw || 1.1]);
+    const loop = (pts, lw) => { for (let i = 0; i < pts.length; i++) line(pts[i], pts[(i + 1) % pts.length], lw); };
+    const poly = (pts, lw) => { for (let i = 0; i < pts.length - 1; i++) line(pts[i], pts[i + 1], lw); };
+    // Ring of n points around centre c, in the plane spanned by unit vectors u,v.
+    const ringUV = (c, u, v, r, n, lw) => {
+      const pts = [];
+      for (let i = 0; i < n; i++) {
+        const a = (i / n) * Math.PI * 2, cs = Math.cos(a) * r, sn = Math.sin(a) * r;
+        pts.push([c[0] + u[0] * cs + v[0] * sn, c[1] + u[1] * cs + v[1] * sn, c[2] + u[2] * cs + v[2] * sn]);
+      }
+      loop(pts, lw);
+      return pts;
+    };
+    // Axis-aligned ring, like makeRing but live. tr = optional point transform.
+    const ring = (cx, cy, cz, r, n, ax, lw, tr) => {
+      const pts = [];
+      for (let i = 0; i < n; i++) {
+        const a = (i / n) * Math.PI * 2, c = Math.cos(a) * r, s = Math.sin(a) * r;
+        const p = ax === "y" ? [cx + c, cy, cz + s] : ax === "x" ? [cx, cy + c, cz + s] : [cx + c, cy + s, cz];
+        pts.push(tr ? tr(p[0], p[1], p[2]) : p);
+      }
+      loop(pts, lw);
+      return pts;
+    };
+    // Axis-aligned box, optionally through a point transform.
+    const box = (cx, cy, cz, w, h, d, lw, tr) => {
+      const x0 = cx - w / 2, x1 = cx + w / 2, y0 = cy - h / 2, y1 = cy + h / 2, z0 = cz - d / 2, z1 = cz + d / 2;
+      let v = [[x0, y0, z0], [x1, y0, z0], [x1, y1, z0], [x0, y1, z0], [x0, y0, z1], [x1, y0, z1], [x1, y1, z1], [x0, y1, z1]];
+      if (tr) v = v.map((p) => tr(p[0], p[1], p[2]));
+      [[0, 1], [1, 2], [2, 3], [3, 0], [4, 5], [5, 6], [6, 7], [7, 4], [0, 4], [1, 5], [2, 6], [3, 7]]
+        .forEach(([i, j]) => line(v[i], v[j], lw));
+      return v;
+    };
+    // A square-section beam between two points in space.
+    const beam = (a, b, w, lw) => {
+      const d = V.norm(V.sub(b, a));
+      let up = Math.abs(d[1]) > 0.92 ? [0, 0, 1] : [0, 1, 0];
+      const s = V.norm(V.cross(d, up)); up = V.norm(V.cross(s, d));
+      const c = (p) => [
+        V.add(p, V.add(V.mul(s, w), V.mul(up, w))), V.add(p, V.sub(V.mul(s, w), V.mul(up, w))),
+        V.sub(p, V.add(V.mul(s, w), V.mul(up, w))), V.sub(p, V.sub(V.mul(s, w), V.mul(up, w))),
+      ];
+      const A = c(a), B = c(b);
+      for (let i = 0; i < 4; i++) { const j = (i + 1) % 4; line(A[i], A[j], lw); line(B[i], B[j], lw); line(A[i], B[i], lw); }
+    };
+    // A tube along an arbitrary axis: rings at each station plus longerons.
+    const tube = (c0, axis, stations, seg, lw) => {
+      const ax = V.norm(axis);
+      let u = Math.abs(ax[1]) > 0.92 ? [1, 0, 0] : [0, 1, 0];
+      const v = V.norm(V.cross(ax, u)); u = V.norm(V.cross(v, ax));
+      let prev = null;
+      for (const st of stations) {
+        const cen = V.add(c0, V.mul(ax, st.d));
+        const pts = ringUV(cen, u, v, st.r, seg, lw);
+        if (prev) for (let i = 0; i < seg; i++) line(prev[i], pts[i], lw);
+        prev = pts;
+      }
+    };
+    return { line, loop, poly, ring, ringUV, box, beam, tube };
+  }
+
+
   /* ---------------- models ---------------- */
 
-  // eVTOL tilt-rotor — the 6 rotors TILT from vertical (lift) to forward
-  // (cruise) and back, spinning throughout: a live VTOL → wing-borne transition.
+  // Tilt-rotor VTOL — the V-22 layout at drone scale: a high tapered wing with
+  // a proprotor nacelle at each tip, twin fins on an H-tail, skids underneath.
+  // The two nacelles TILT live from vertical (hover) to horizontal (cruise),
+  // dwelling at each end so the transition reads as a manoeuvre and not a
+  // wobble. The flaperons droop in the hover and the elevator works in cruise.
   function buildEvtol() {
     const parts = [];
-    // lofted fuselage, nose -> tail
+    // fuselage, nose (+Z) to tail (-Z)
     parts.push(makeLoft([
-      { z: 0.92, cy: -0.02, r: 0.015 },
-      { z: 0.74, cy: -0.04, r: 0.10 },
-      { z: 0.45, cy: -0.02, r: 0.16 },
-      { z: 0.05, cy: 0.00, r: 0.18 },
-      { z: -0.35, cy: 0.02, r: 0.14 },
-      { z: -0.70, cy: 0.05, r: 0.06 },
-      { z: -0.86, cy: 0.06, r: 0.02 },
-    ], 8));
-    // cockpit canopy ridge
-    parts.push({ v: [[0, 0.13, 0.52], [0, 0.14, 0.2], [0, 0.1, 0.0]], e: [[0, 1], [1, 2]] });
-    // main wing + ribs + spar
-    parts.push(makeBox(0, 0.03, 0.12, 2.0, 0.05, 0.34));
-    const ribs = { v: [], e: [] };
-    for (let i = -3; i <= 3; i++) {
-      if (i === 0) continue;
-      const x = i * 0.3, k = ribs.v.length;
-      ribs.v.push([x, 0.055, -0.05], [x, 0.005, -0.05], [x, 0.055, 0.29], [x, 0.005, 0.29]);
-      ribs.e.push([k, k + 1], [k + 2, k + 3], [k, k + 2], [k + 1, k + 3]);
-    }
-    parts.push(ribs);
-    parts.push({ v: [[-1.0, 0.03, 0.12], [1.0, 0.03, 0.12]], e: [[0, 1]] }); // spar
-    // V-tail
-    parts.push(segBox([0, 0.06, -0.62], [0.42, 0.42, -0.7], 0.04));
-    parts.push(segBox([0, 0.06, -0.62], [-0.42, 0.42, -0.7], 0.04));
-    // 6 rotors as [x, y, z]: four on the main wing, plus two on the TAIL — one
-    // each side, mounted on nacelles at the V-tail tips. Booms are static; the
-    // nacelles + rotors tilt live.
-    const rotors = [
-      [0.96, 0.06, 0.42], [0.5, 0.06, 0.44], [-0.5, 0.06, 0.44], [-0.96, 0.06, 0.42],
-      [0.42, 0.42, -0.7], [-0.42, 0.42, -0.7],
-    ];
-    // wing rotors hang off booms; the tail rotors sit on the V-tail tips
-    for (const [x, y, z] of rotors) {
-      if (z > 0) parts.push(segBox([x, 0.02, 0.12], [x, y, z], 0.05)); // wing boom
-    }
-    // landing gear — two fore-aft skid tubes carried on inverted-V cross-arches
-    // (helicopter-style: braced A-frames at the belly, not spindly legs)
-    const ys = -0.34, xs = 0.24, sl = 0.62; // skid height, track half-width, length
-    [-xs, xs].forEach((sx) => parts.push(makeBox(sx, ys, 0, 0.05, 0.05, sl))); // skid tubes
-    [-0.26, 0.26].forEach((zc) => {
-      parts.push(segBox([-xs, ys, zc], [0, -0.05, zc], 0.03));   // left arch leg
-      parts.push(segBox([xs, ys, zc], [0, -0.05, zc], 0.03));    // right arch leg
-      parts.push(makeBox(0, -0.05, zc, 0.16, 0.04, 0.05));       // belly mount
+      { z: 0.98, cy: -0.02, r: 0.018 },
+      { z: 0.84, cy: -0.02, r: 0.072 },
+      { z: 0.64, cy: 0.00, r: 0.115 },
+      { z: 0.36, cy: 0.01, r: 0.145 },
+      { z: 0.02, cy: 0.01, r: 0.145 },
+      { z: -0.34, cy: 0.03, r: 0.112 },
+      { z: -0.66, cy: 0.06, r: 0.062 },
+      { z: -0.92, cy: 0.09, r: 0.024 },
+    ], 10));
+    // canopy: a ridge and two sills over the nose
+    parts.push({ v: [[0, 0.055, 0.80], [0, 0.17, 0.62], [0, 0.20, 0.42], [0, 0.165, 0.24]], e: [[0, 1], [1, 2], [2, 3]] });
+    [-1, 1].forEach((s) => parts.push({
+      v: [[s * 0.065, 0.02, 0.82], [s * 0.105, 0.11, 0.63], [s * 0.115, 0.135, 0.43], [s * 0.105, 0.115, 0.25]],
+      e: [[0, 1], [1, 2], [2, 3]],
+    }));
+
+    // high wing: tapered, slightly swept. (x, z) planform, root → tip.
+    const WY = 0.175, WT = 0.036;
+    const LE = (x) => 0.30 - (x - 0.12) * (0.10 / 0.88);   // leading edge z at span x
+    const TE = (x) => 0.00 + (x - 0.12) * (0.02 / 0.88);   // trailing edge z at span x
+    [-1, 1].forEach((s) => {
+      const top = [[0.12, LE(0.12)], [1.0, LE(1.0)], [1.0, TE(1.0)], [0.12, TE(0.12)]].map(([x, z]) => [s * x, WY, z]);
+      const bot = top.map((p) => [p[0], WY - WT, p[2]]);
+      const v = [...top, ...bot];
+      const e = [[0, 1], [1, 2], [2, 3], [3, 0], [4, 5], [5, 6], [6, 7], [7, 4], [0, 4], [1, 5], [2, 6], [3, 7]];
+      // spar at 30% chord + three ribs
+      const sp = (x) => LE(x) - (LE(x) - TE(x)) * 0.3;
+      let k = v.length;
+      v.push([s * 0.12, WY, sp(0.12)], [s * 1.0, WY, sp(1.0)], [s * 0.12, WY - WT, sp(0.12)], [s * 1.0, WY - WT, sp(1.0)]);
+      e.push([k, k + 1], [k + 2, k + 3]);
+      [0.36, 0.58, 0.80].forEach((x) => {
+        k = v.length;
+        v.push([s * x, WY, LE(x)], [s * x, WY, TE(x)], [s * x, WY - WT, LE(x)], [s * x, WY - WT, TE(x)]);
+        e.push([k, k + 1], [k + 2, k + 3], [k, k + 2], [k + 1, k + 3]);
+      });
+      parts.push({ v, e });
     });
-    // fore-aft brace tube + upturned skid tips
-    [-xs, xs].forEach((sx) => {
-      parts.push({ v: [[sx, ys, -0.26], [sx, ys, 0.26]], e: [[0, 1]] });       // skid-line brace
-      parts.push({ v: [[sx, ys, sl / 2], [sx, ys + 0.06, sl / 2 + 0.08]], e: [[0, 1]] }); // upturned tip
+    parts.push(makeBox(0, WY - WT / 2, 0.15, 0.24, WT + 0.02, 0.32)); // carry-through box over the fuselage
+
+    // H-tail: stabiliser + twin fins
+    const SY = 0.115;
+    parts.push({
+      v: [[-0.36, SY, -0.68], [0.36, SY, -0.68], [0.36, SY, -0.84], [-0.36, SY, -0.84],
+          [-0.36, SY - 0.02, -0.68], [0.36, SY - 0.02, -0.68], [0.36, SY - 0.02, -0.84], [-0.36, SY - 0.02, -0.84]],
+      e: [[0, 1], [1, 2], [2, 3], [3, 0], [4, 5], [5, 6], [6, 7], [7, 4], [0, 4], [1, 5], [2, 6], [3, 7]],
     });
-    parts.push(makeBase(-0.92, 1.1));
+    [-0.36, 0.36].forEach((x) => parts.push({
+      v: [[x, SY, -0.66], [x, 0.40, -0.75], [x, 0.40, -0.86], [x, SY, -0.86], [x, 0.26, -0.71], [x, 0.26, -0.86]],
+      e: [[0, 1], [1, 2], [2, 3], [3, 0], [4, 5]],
+    }));
+
+    // skids: two tubes on inverted-V struts
+    const KY = -0.25;
+    [-0.19, 0.19].forEach((x) => {
+      parts.push(makeBox(x, KY, 0.02, 0.04, 0.04, 0.70));
+      parts.push({ v: [[x, KY, 0.37], [x, KY + 0.06, 0.45]], e: [[0, 1]] });          // upturned tip
+      [-0.2, 0.24].forEach((z) => parts.push(segBox([x, KY, z], [x * 0.35, -0.11, z], 0.024)));
+    });
+    parts.push(makeBase(-0.92, 1.14));
 
     const m = merge(parts);
     m.spinners = [];
-    // Every rotor tilts together: thrust axis sweeps +Y (lift) → +Z (cruise).
+    const PIV = [0.985, WY - WT / 2, LE(1.0) - (LE(1.0) - TE(1.0)) * 0.42];     // nacelle pivot at each wing tip
     m.dynamic = function (time) {
       const segs = [];
-      const line = (a, b, lw) => segs.push([a[0], a[1], a[2], b[0], b[1], b[2], lw]);
-      const tlt = (Math.sin(time * 0.35) * 0.5 + 0.5) * (Math.PI / 2); // 0 → full 90° (lift → cruise)
+      const P = pen(segs);
+      // tilt cycle: hover ↔ cruise with a dwell at each end
+      const a = (time * 0.15) % 1;
+      const tri = a < 0.5 ? a * 2 : 2 - a * 2;
+      const s = V.ss(V.ss(tri));
+      const tlt = s * (Math.PI / 2);                 // 0 = rotors up (hover), π/2 = rotors forward (cruise)
       const ct = Math.cos(tlt), st = Math.sin(tlt);
-      const e1 = [1, 0, 0];        // disc axis 1 (spanwise, fixed)
-      const e2 = [0, st, -ct];     // disc axis 2 (tilts with the nacelle)
-      const axis = [0, ct, st];    // thrust axis: +Y (lift) → +Z (cruise)
-      const spin = time * 6.5;
-      for (const [x, y, z] of rotors) {
-        const hub = [x, y, z];
-        const ringAt = (cen, r, n) => {
-          const pts = [];
-          for (let i = 0; i < n; i++) {
-            const a = (i / n) * Math.PI * 2, c = Math.cos(a) * r, s = Math.sin(a) * r;
-            pts.push([cen[0] + e1[0] * c + e2[0] * s, cen[1] + e1[1] * c + e2[1] * s, cen[2] + e1[2] * c + e2[2] * s]);
-          }
-          for (let i = 0; i < n; i++) line(pts[i], pts[(i + 1) % n], 1.1);
-          return pts;
-        };
-        ringAt(hub, 0.24, 20);     // rotor housing (tilts)
-        ringAt(hub, 0.05, 8);      // hub
-        // nacelle — a short tube along the thrust axis
-        const nb = [hub[0] - axis[0] * 0.12, hub[1] - axis[1] * 0.12, hub[2] - axis[2] * 0.12];
-        const r1 = ringAt(nb, 0.07, 8), r2 = ringAt(hub, 0.07, 8);
-        for (let i = 0; i < r1.length; i++) line(r1[i], r2[i], 1.1);
-        /* 5 spinning blades in the (tilting) disc plane. These are real
-           tapered planforms, not spokes: the disc basis is (e1, e2), so a
-           blade at angle `a` runs its span along that direction and its
-           chord across it. Spokes read as a wheel at any size. */
-        const R = 0.23;
-        for (let b = 0; b < 5; b++) {
-          const a = spin + (b / 5) * Math.PI * 2;
-          const cb = Math.cos(a), sb = Math.sin(a);
-          let prev = null, first = null;
-          for (let k = 0; k < BLADE.length; k++) {
-            const u = BLADE[k][0], v = BLADE[k][1];
+      const axis = [0, ct, st];                      // thrust axis
+      const e1 = [1, 0, 0], e2 = [0, st, -ct];       // rotor disc basis
+      const spin = time * 7.5;
+      [-1, 1].forEach((side) => {
+        const hub0 = [side * PIV[0], PIV[1], PIV[2]];
+        // nacelle body: a pod lofted along the thrust axis, rotor at the front
+        P.tube(hub0, axis, [
+          { d: -0.24, r: 0.045 }, { d: -0.14, r: 0.08 }, { d: 0.0, r: 0.088 }, { d: 0.12, r: 0.07 }, { d: 0.17, r: 0.045 },
+        ], 10, 1.05);
+        // pivot bearing on the wing tip
+        P.ringUV(hub0, [0, 1, 0], [0, 0, 1], 0.055, 10, 1.0);
+        // exhaust at the rear of the pod
+        P.ringUV(V.add(hub0, V.mul(axis, -0.25)), e1, e2, 0.03, 8, 1.0);
+        // spinner + three proprotor blades in the tilting disc
+        const hub = V.add(hub0, V.mul(axis, 0.20));
+        P.ringUV(hub, e1, e2, 0.045, 8, 1.0);
+        P.line(hub, V.add(hub, V.mul(axis, 0.05)), 1.0);
+        const R = 0.44;
+        for (let b = 0; b < 3; b++) {
+          const ba = spin + (b / 3) * Math.PI * 2 + side;
+          const cb = Math.cos(ba), sb = Math.sin(ba);
+          const pts = BLADE.map(([u, v]) => {
             const c = (u * cb - v * sb) * R, s2 = (u * sb + v * cb) * R;
-            const pt = [
-              hub[0] + e1[0] * c + e2[0] * s2,
-              hub[1] + e1[1] * c + e2[1] * s2,
-              hub[2] + e1[2] * c + e2[2] * s2,
-            ];
-            if (prev) line(prev, pt, 1.0); else first = pt;
-            prev = pt;
-          }
-          if (prev && first) line(prev, first, 1.0);
+            return [hub[0] + e1[0] * c + e2[0] * s2, hub[1] + e1[1] * c + e2[1] * s2, hub[2] + e1[2] * c + e2[2] * s2];
+          });
+          P.loop(pts, 1.0);
         }
-      }
+        // tip-path circle, faint, so the disc reads even between blades
+        P.ringUV(hub, e1, e2, R, 28, 0.6);
+      });
 
-      // ---- control surfaces reacting: ailerons (wing) + ruddervators (V-tail) ----
-      const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
-      const norm = (v) => { const m2 = Math.hypot(v[0], v[1], v[2]) || 1; return [v[0] / m2, v[1] / m2, v[2] / m2]; };
-      // A control surface: a panel hinged along h0→h1 that deflects by `defl`.
+      // control surfaces
       const surface = (h0, h1, chordDir, chordLen, defl) => {
-        const u = norm([h1[0] - h0[0], h1[1] - h0[1], h1[2] - h0[2]]); // hinge axis
+        const u = V.norm(V.sub(h1, h0));
         const dp = chordDir[0] * u[0] + chordDir[1] * u[1] + chordDir[2] * u[2];
-        const d0 = norm([chordDir[0] - u[0] * dp, chordDir[1] - u[1] * dp, chordDir[2] - u[2] * dp]);
-        const ux = cross(u, d0), cd = Math.cos(defl), sd = Math.sin(defl);
-        const d = [(d0[0] * cd + ux[0] * sd) * chordLen, (d0[1] * cd + ux[1] * sd) * chordLen, (d0[2] * cd + ux[2] * sd) * chordLen];
-        const p = [h0, h1, [h1[0] + d[0], h1[1] + d[1], h1[2] + d[2]], [h0[0] + d[0], h0[1] + d[1], h0[2] + d[2]]];
-        for (let i = 0; i < 4; i++) line(p[i], p[(i + 1) % 4], 1.1);
+        const d0 = V.norm(V.sub(chordDir, V.mul(u, dp)));
+        const ux = V.cross(u, d0), cd = Math.cos(defl), sd = Math.sin(defl);
+        const d = V.mul(V.add(V.mul(d0, cd), V.mul(ux, sd)), chordLen);
+        P.loop([h0, h1, V.add(h1, d), V.add(h0, d)], 1.05);
       };
-      // ailerons — outboard wing trailing edge (z = -0.05), deflect oppositely (roll)
-      const ail = Math.sin(time * 0.9) * 0.28;
-      surface([0.5, 0.03, -0.05], [0.95, 0.03, -0.05], [0, 0, -1], 0.13, ail);
-      surface([-0.5, 0.03, -0.05], [-0.95, 0.03, -0.05], [0, 0, -1], 0.13, -ail);
-      // ruddervators — the two V-tail surfaces, deflecting gently
-      surface([0, 0.06, -0.62], [0.42, 0.42, -0.7], [0, 0, -1], 0.16, Math.sin(time * 0.8) * 0.26);
-      surface([0, 0.06, -0.62], [-0.42, 0.42, -0.7], [0, 0, -1], 0.16, Math.sin(time * 0.8 + 0.5) * 0.26);
-
-      return { segments: segs, dots: [] };
+      // flaperons: droop together in the hover, roll opposite in cruise
+      const droop = (1 - s) * 0.42, roll = Math.sin(time * 0.9) * 0.22 * s;
+      surface([0.42, WY - WT / 2, TE(0.42)], [0.92, WY - WT / 2, TE(0.92)], [0, 0, -1], 0.10, droop + roll);
+      surface([-0.42, WY - WT / 2, TE(0.42)], [-0.92, WY - WT / 2, TE(0.92)], [0, 0, -1], 0.10, droop - roll);
+      // elevator across the stabiliser
+      surface([-0.30, SY - 0.01, -0.84], [0.30, SY - 0.01, -0.84], [0, 0, -1], 0.07, Math.sin(time * 0.8) * 0.22 * s);
+      // navigation strobe on the tail, wing-tip lamps steady
+      const tb = (time * 1.2) % 1, lit = tb < 0.08 || (tb > 0.16 && tb < 0.24);
+      return {
+        segments: segs,
+        dots: [
+          [0, 0.40, -0.86, lit ? 3.2 : 1.0, lit ? 1 : 0],
+          [-1.0, WY, LE(1.0), 1.6, 1], [1.0, WY, LE(1.0), 1.6, 1],
+        ],
+      };
     };
     return m;
   }
@@ -544,22 +636,350 @@
     return m;
   }
 
-  // Morse code kit — a simple TRANSMITTER (one key button) on the left and a
-  // separate RECEIVER on the right that blinks its LED + pulses its buzzer in
-  // the Morse pattern for "TYLER", pauses ~3s, then repeats. Visual only.
+  // RC rover — a six-wheel rocker-bogie chassis, the suspension every Mars
+  // rover uses. It is drawn live: the rover drives over a rolling bump, each
+  // wheel rides up and over it, and the rocker and bogie arms articulate so
+  // the body stays level. That articulation is the whole point of the
+  // geometry, so it is the thing that moves. The mast camera pans as it goes.
+  function buildRover() {
+    const parts = [];
+    const BW = 0.44, BH = 0.15, BL = 0.72, BY = 0.02;                              // body tub
+    parts.push(makeBox(0, BY, 0.0, BW, BH, BL));
+    parts.push(makeBox(0, BY + BH / 2 + 0.006, 0.0, BW * 0.9, 0.012, BL * 0.9));   // lid
+    parts.push(makeBox(-0.09, BY + BH / 2 + 0.055, -0.12, 0.18, 0.09, 0.28));      // battery pack
+    [-0.09, 0.09].forEach((dz) => parts.push(makeBox(-0.09, BY + BH / 2 + 0.055, -0.12 + dz, 0.21, 0.11, 0.02))); // straps
+    parts.push(makeBox(0.11, BY + BH / 2 + 0.03, 0.12, 0.15, 0.045, 0.19));        // controller board
+    parts.push(makeBox(0.11, BY + BH / 2 + 0.065, 0.12, 0.06, 0.025, 0.06));       // processor / heatsink
+    // front bumper + lamps
+    parts.push(makeBox(0, BY - 0.01, BL / 2 + 0.025, BW * 0.85, 0.035, 0.03));
+    [-0.13, 0.13].forEach((dx) => parts.push(makeRing(dx, BY + 0.02, BL / 2 + 0.005, 0.022, 8, "z")));
+    // radio whip at the rear corner
+    const AB = [-0.15, BY + BH / 2, -0.30], AT = [-0.19, BY + 0.52, -0.36];
+    parts.push(segBox(AB, AT, 0.012));
+    parts.push(makeRing(AB[0], AB[1], AB[2], 0.025, 6, "y"));
+    parts.push(makeRing(AT[0], AT[1], AT[2], 0.018, 6, "y"));
+    // mast — the head on it pans live
+    const MB = [0.13, BY + BH / 2, 0.24], MT = [0.13, BY + 0.44, 0.24];
+    parts.push(segBox(MB, MT, 0.022));
+    parts.push(makeRing(MB[0], MB[1], MB[2], 0.035, 8, "y"));
+    parts.push(makeBase(-0.52, 1.1));
+    const m = merge(parts);
+    m.spinners = [];
+
+    const TX = 0.40, WR = 0.125, WW = 0.09;      // track half-width, wheel radius, wheel width
+    const WZ = [0.40, -0.02, -0.42];               // front / middle / rear wheel stations
+    const GY = -0.50 + WR;                         // hub height on flat ground
+    const RPZ = 0.14, RPY = BY - BH / 2 - 0.02;    // rocker pivot on the body side
+    m.dynamic = function (time) {
+      const segs = [], dots = [];
+      const P = pen(segs);
+      const drive = time * 0.32;                   // ground travelled
+      // one bump rolls under the rover, left side first, right side later —
+      // so the two rockers are seen doing different things at the same time
+      const bump = (z, side) => {
+        const s = 1.4 - ((drive + (side < 0 ? 0 : 1.1)) % 2.8);
+        const d = (z - s) / 0.26;
+        return 0.085 * Math.exp(-d * d);
+      };
+      const wheelAngle = -drive / WR;
+      const wheel = (hub) => {
+        const c0 = [hub[0] - WW / 2, hub[1], hub[2]], c1 = [hub[0] + WW / 2, hub[1], hub[2]];
+        const n = 12, o = [], i2 = [];
+        for (let i = 0; i < n; i++) {
+          const a = wheelAngle + (i / n) * Math.PI * 2, cy = Math.cos(a) * WR, sz = Math.sin(a) * WR;
+          o.push([c0[0], c0[1] + cy, c0[2] + sz]);
+          i2.push([c1[0], c1[1] + cy, c1[2] + sz]);
+        }
+        P.loop(o, 1.1); P.loop(i2, 1.1);
+        for (let i = 0; i < n; i++) {
+          P.line(o[i], i2[i], 0.9);                                      // tread longerons
+          if (i % 2 === 0) {                                             // grousers, every other one
+            const g = V.mul(V.norm(V.sub(o[i], c0)), 0.016);
+            P.line(V.add(o[i], g), V.add(i2[i], g), 0.9);
+          }
+        }
+        // hub + spokes, so the wheel is visibly turning
+        const hc = [hub[0] + (hub[0] < 0 ? -1 : 1) * WW / 2, hub[1], hub[2]];
+        const rim = hub[0] < 0 ? o : i2;
+        P.ring(hc[0], hc[1], hc[2], 0.035, 8, "x", 1.0);
+        for (let i = 0; i < n; i += 2) P.line(hc, rim[i], 0.85);
+      };
+      [-1, 1].forEach((side) => {
+        const x = side * TX;
+        const hubs = WZ.map((z) => [x, GY + bump(z, side), z]);
+        // bogie: middle and rear wheels on a short arm, pivoted between them
+        const bp = [x, (hubs[1][1] + hubs[2][1]) / 2 + 0.17, (WZ[1] + WZ[2]) / 2];
+        // rocker: the front wheel and the bogie pivot on a long arm, pivoted on the body
+        const rp = [x * 0.8, RPY, RPZ];
+        P.beam(rp, hubs[0], 0.026, 1.1);
+        P.beam(rp, bp, 0.026, 1.1);
+        P.beam(bp, hubs[1], 0.022, 1.05);
+        P.beam(bp, hubs[2], 0.022, 1.05);
+        P.ring(rp[0], rp[1], rp[2], 0.04, 10, "x", 1.1);              // rocker pivot knuckle
+        P.ring(bp[0], bp[1], bp[2], 0.032, 8, "x", 1.05);             // bogie pivot knuckle
+        P.line(rp, [x * 0.55, RPY + 0.03, RPZ], 1.0);                 // bracket into the body
+        hubs.forEach((h) => { P.line(V.add(h, [-side * 0.02, 0, 0]), h, 1.0); wheel(h); }); // stub axles + wheels
+      });
+      // differential bar: the link across the body that averages the two rockers
+      P.beam([-TX * 0.8, RPY, RPZ], [TX * 0.8, RPY, RPZ], 0.014, 0.95);
+
+      // mast camera head pans, its lens lit
+      const yaw = Math.sin(time * 0.45) * 0.7;
+      const cy2 = Math.cos(yaw), sy2 = Math.sin(yaw);
+      const rot = (px, py, pz) => [MT[0] + px * cy2 + pz * sy2, MT[1] + py, MT[2] - px * sy2 + pz * cy2];
+      P.box(0, 0.035, 0.0, 0.12, 0.08, 0.13, 1.1, rot);
+      P.ring(0, 0.035, 0.07, 0.028, 10, "z", 1.05, rot);
+      P.ring(-0.035, 0.035, 0.07, 0.012, 6, "z", 0.9, rot);
+      const lens = rot(0, 0.035, 0.085);
+      dots.push([lens[0], lens[1], lens[2], 2.4, 1]);
+      // headlamps steady, controller status LED blinking slowly
+      dots.push([-0.13, BY + 0.02, BL / 2 + 0.01, 1.6, 1], [0.13, BY + 0.02, BL / 2 + 0.01, 1.6, 1]);
+      const blink = (time * 0.7) % 1 < 0.5;
+      dots.push([0.165, BY + BH / 2 + 0.06, 0.20, blink ? 2.2 : 1.0, blink ? 1 : 0]);
+      return { segments: segs, dots };
+    };
+    return m;
+  }
+
+  // High-power rocket on its launch rail. A proper airframe: ogive nose, body
+  // tube with a switch band at the avionics bay, three swept fins, boat tail,
+  // motor and retainer, rail buttons on the rail. The avionics sled is drawn
+  // inside the tube. Live: the rail is a static test stand — the arming lamp
+  // cycles, the motor lights, the plume builds and dies, and it arms again.
+  function buildRocket() {
+    const parts = [];
+    const R = 0.125, seg = 14;
+    const yB0 = -0.50, yB1 = 0.34;
+    // body tube + seams
+    parts.push(makeCylinderY(0, (yB0 + yB1) / 2, 0, R, yB1 - yB0, seg));
+    [0.04, -0.20].forEach((y) => parts.push(makeRing(0, y, 0, R, seg, "y")));
+    parts.push(makeRing(0, -0.10, 0, R + 0.012, seg, "y"));                 // switch band
+    parts.push(makeRing(0, -0.07, 0, R + 0.012, seg, "y"));
+    for (let i = 0; i < seg; i++) {
+      const a = (i / seg) * Math.PI * 2;
+      parts.push({ v: [[Math.cos(a) * (R + 0.012), -0.10, Math.sin(a) * (R + 0.012)], [Math.cos(a) * (R + 0.012), -0.07, Math.sin(a) * (R + 0.012)]], e: [[0, 1]] });
+    }
+    // nose cone: elliptical ogive, lofted
+    const L = 0.60, st = [];
+    for (let i = 0; i <= 5; i++) {
+      const f = i / 5;
+      st.push({ y: yB1 + L * f, r: Math.max(R * Math.sqrt(1 - f * f) * (1 - 0.06 * f), 0.012) });
+    }
+    parts.push(makeLoftY(st, seg));
+    parts.push({ v: [[0, yB1 + L, 0], [0, yB1 + L + 0.05, 0]], e: [[0, 1]] });  // tip
+    // shoulder ring inside the tube where the cone seats
+    parts.push(makeRing(0, yB1 - 0.06, 0, R - 0.015, seg, "y"));
+    // three swept fins, one facing the viewer
+    const fin = [[R, -0.18], [R + 0.22, -0.40], [R + 0.22, -0.56], [R, -0.50]];
+    [Math.PI / 2, Math.PI / 2 + (2 * Math.PI) / 3, Math.PI / 2 + (4 * Math.PI) / 3].forEach((th) => {
+      const c = Math.cos(th), s = Math.sin(th);
+      const p = fin.map(([r, y]) => [r * c, y, r * s]);
+      parts.push({ v: p, e: [[0, 1], [1, 2], [2, 3], [3, 0]] });
+      parts.push({ v: [[(R + 0.11) * c, -0.29, (R + 0.11) * s], [(R + 0.11) * c, -0.53, (R + 0.11) * s]], e: [[0, 1]] }); // mid-chord rib
+    });
+    // boat tail, motor, retainer, nozzle
+    parts.push(makeLoftY([{ y: yB0, r: R }, { y: yB0 - 0.07, r: R * 0.85 }, { y: yB0 - 0.13, r: 0.085 }], seg));
+    parts.push(makeCylinderY(0, yB0 - 0.20, 0, 0.062, 0.14, 10));
+    parts.push(makeRing(0, yB0 - 0.13, 0, 0.076, 12, "y"));
+    parts.push(makeRing(0, yB0 - 0.16, 0, 0.076, 12, "y"));
+    parts.push(makeRing(0, yB0 - 0.27, 0, 0.042, 10, "y"));               // nozzle throat
+    // launch rail beside the rocket, with two rail buttons on the tube
+    const RX = -R - 0.075;
+    parts.push(makeBox(RX, -0.20, 0, 0.032, 1.42, 0.032));
+    parts.push(makeBox(RX, -0.88, 0, 0.16, 0.05, 0.16));                   // rail foot
+    parts.push(makeBox(RX - 0.035, -0.88, 0, 0.09, 0.03, 0.3));
+    [-0.42, 0.12].forEach((y) => {
+      parts.push(makeBox(RX + 0.03, y, 0, 0.03, 0.04, 0.03));             // rail button
+      parts.push({ v: [[RX + 0.045, y, 0], [-R, y, 0]], e: [[0, 1]] });
+    });
+    // avionics sled inside the bay: a plate, an altimeter board, a battery
+    parts.push(makeBox(0, -0.08, 0, 0.16, 0.20, 0.012));
+    parts.push(makeBox(-0.035, -0.06, 0.02, 0.07, 0.10, 0.02));
+    parts.push(makeBox(0.045, -0.10, 0.02, 0.05, 0.12, 0.035));
+    parts.push(makeBase(-0.94, 0.98));
+
+    const m = merge(parts);
+    m.spinners = [];
+    m.dynamic = function (time) {
+      const segs = [], dots = [];
+      const P = pen(segs);
+      // arm → ignite → burn → fade, then arm again
+      const cyc = (time * 0.10) % 1;
+      let plume = 0;
+      if (cyc > 0.50 && cyc < 0.62) plume = V.ss((cyc - 0.50) / 0.12);
+      else if (cyc >= 0.62 && cyc < 0.86) plume = 1;
+      else if (cyc >= 0.86) plume = 1 - V.ss((cyc - 0.86) / 0.14);
+      const armed = cyc < 0.50 && ((time * 2.4) % 1) < 0.5;
+      if (plume > 0.02) {
+        const flick = 0.92 + 0.08 * Math.sin(time * 23) * Math.sin(time * 17);
+        const y0 = yB0 - 0.27;
+        // the plume: rings that widen and fade with distance from the nozzle
+        for (let i = 0; i < 5; i++) {
+          const f = (i + 1) / 5;
+          const y = y0 - f * 0.55 * plume * flick;
+          const r = 0.03 + f * f * 0.16 * plume;
+          const wob = 1 + 0.05 * Math.sin(time * 30 + i);
+          P.ring(0, y, 0, r * wob, 10, "y", 1.6 * (1 - f * 0.7) * plume);
+        }
+        // shock diamonds: a bright core down the centre
+        for (let i = 0; i < 3; i++) {
+          const y = y0 - (i + 0.5) * 0.11 * plume;
+          dots.push([0, y, 0, (2.6 - i * 0.5) * plume, 1]);
+        }
+        dots.push([0, y0 + 0.01, 0, 3.4 * plume, 1]);
+      }
+      // altimeter LED in the bay: blinks while armed, solid during the burn
+      const lit = plume > 0.5 || armed;
+      dots.push([-0.035, -0.02, 0.035, lit ? 2.4 : 1.0, lit ? 1 : 0]);
+      return { segments: segs, dots };
+    };
+    return m;
+  }
+
+  // High-power laser tracker — a two-axis instrument mount rather than a
+  // hobby servo pan/tilt: a slewing pedestal, a tall yoke on a turntable, and
+  // a finned laser head with a beam expander and a co-aligned camera in the
+  // cradle. A control box beside it carries the status lamps. A target drone
+  // weaves downrange; the camera acquires it, the mount slews onto it, and
+  // the beam holds for as long as the lock lasts.
+  function buildTurret() {
+    const parts = [];
+    // pedestal + slew bearing
+    parts.push(makeCylinderY(0, -0.66, 0, 0.36, 0.14, 24));
+    parts.push(makeRing(0, -0.585, 0, 0.30, 24, "y"));
+    for (let i = 0; i < 8; i++) {
+      const a = (i / 8) * Math.PI * 2 + Math.PI / 8;
+      parts.push(makeRing(Math.cos(a) * 0.32, -0.588, Math.sin(a) * 0.32, 0.018, 6, "y"));
+    }
+    parts.push(makeCylinderY(0, -0.55, 0, 0.27, 0.08, 24));
+    // control box, cabled to the pedestal
+    const CB = [0.74, -0.63, -0.12];
+    parts.push(makeBox(CB[0], CB[1], CB[2], 0.30, 0.20, 0.34));
+    parts.push(makeBox(CB[0], CB[1] + 0.105, CB[2] - 0.04, 0.20, 0.01, 0.14));        // display recess on top
+    [-0.09, -0.03, 0.03].forEach((dx) =>
+      parts.push(makeRing(CB[0] + dx, CB[1] + 0.05, CB[2] + 0.171, 0.016, 6, "z")));   // three lamps, front face
+    parts.push(makeBox(CB[0] + 0.09, CB[1] + 0.0, CB[2] + 0.171, 0.06, 0.05, 0.012));  // connector
+    parts.push({ v: [[CB[0] - 0.15, CB[1] - 0.05, CB[2]], [0.46, -0.68, -0.06], [0.36, -0.68, 0.0]], e: [[0, 1], [1, 2]] });
+    parts.push(makeBase(-0.74, 1.02));
+    const m = merge(parts);
+    m.spinners = [];
+    const Ty = 0.14;                               // elevation axis height
+    m.dynamic = function (time) {
+      const segs = [], dots = [];
+      const P = pen(segs);
+      // target drone weaving downrange
+      const T = [
+        Math.sin(time * 0.45) * 0.8,
+        Ty + 0.28 + Math.sin(time * 0.7 + 1.3) * 0.36,
+        1.32 + Math.sin(time * 0.33) * 0.24,
+      ];
+      // acquire → lock → hold, looping
+      const cyc = (time * 0.13) % 1;
+      const acq = cyc < 0.24 ? cyc / 0.24 : 1;
+      const acqS = V.ss(acq);
+      // aim: pan about Y, tilt about X. While acquiring, the mount is still
+      // slewing in from where it was, so it lags the target and catches up.
+      const dx = T[0], dy = T[1] - Ty, dz = T[2];
+      const dist = Math.hypot(dx, dy, dz) || 1;
+      const pan = Math.atan2(dx, dz) + (1 - acqS) * 0.55;
+      const tilt = Math.asin(Math.max(-1, Math.min(1, -dy / dist))) + (1 - acqS) * 0.25;
+      const cp = Math.cos(pan), sp = Math.sin(pan), ct = Math.cos(tilt), stt = Math.sin(tilt);
+      const panT = (x, y, z) => [x * cp + z * sp, y, -x * sp + z * cp];
+      const tf = (x, y, z) => { const ry = y - Ty, y1 = Ty + ry * ct - z * stt, z1 = ry * stt + z * ct; return [x * cp + z1 * sp, y1, -x * sp + z1 * cp]; };
+
+      // ---- azimuth stage: turntable, plate, yoke arms, bearings, drive ----
+      P.ring(0, -0.50, 0, 0.25, 20, "y", 1.1, panT);
+      P.ring(0, -0.50, 0, 0.10, 10, "y", 1.0, panT);
+      P.box(0, -0.475, 0, 0.52, 0.045, 0.34, 1.1, panT);
+      [-1, 1].forEach((s) => {
+        P.box(s * 0.235, -0.16, 0, 0.075, 0.60, 0.15, 1.15, panT);                    // yoke arm
+        P.ring(s * 0.235 + s * 0.04, Ty, 0, 0.065, 12, "x", 1.1, panT);               // bearing housing
+        P.ring(s * 0.235 + s * 0.04, Ty, 0, 0.03, 8, "x", 1.0, panT);
+      });
+      P.box(-0.34, Ty, 0.0, 0.11, 0.13, 0.13, 1.1, panT);                              // elevation drive motor
+      P.ring(-0.40, Ty, 0, 0.045, 8, "x", 1.0, panT);
+      P.line(panT(-0.40, Ty, 0), panT(-0.44, Ty, 0), 1.0);
+      P.line(panT(-0.30, Ty - 0.07, 0), panT(-0.24, -0.30, 0.02), 0.9);                // motor cable down the arm
+
+      // ---- elevation payload: cradle, laser head, expander, camera ----
+      P.box(0, Ty - 0.10, 0.06, 0.40, 0.04, 0.30, 1.1, tf);                             // cradle plate
+      [-1, 1].forEach((s) => P.box(s * 0.185, Ty - 0.02, 0.0, 0.035, 0.16, 0.16, 1.05, tf)); // cheeks to the bearings
+      const HR = 0.085;
+      const hz = [-0.26, -0.10, 0.10, 0.30, 0.44];
+      const ringsH = hz.map((z) => P.ring(0, Ty + 0.02, z, HR, 12, "z", 1.15, tf));
+      for (let k = 0; k < 12; k += 2) for (let i = 0; i < hz.length - 1; i++) P.line(ringsH[i][k], ringsH[i + 1][k], 1.05);
+      [-0.22, -0.16, -0.10, -0.04, 0.02].forEach((z) => P.ring(0, Ty + 0.02, z, 0.118, 12, "z", 0.95, tf)); // heat-sink fins
+      const ex0 = P.ring(0, Ty + 0.02, 0.44, 0.122, 12, "z", 1.15, tf);                 // beam expander
+      const ex1 = P.ring(0, Ty + 0.02, 0.57, 0.122, 12, "z", 1.15, tf);
+      for (let k = 0; k < 12; k += 3) P.line(ex0[k], ex1[k], 1.05);
+      P.ring(0, Ty + 0.02, 0.58, 0.05, 10, "z", 1.1, tf);                               // aperture
+      P.ring(0, Ty + 0.02, -0.30, 0.05, 8, "z", 1.05, tf);                              // rear cap + cable exit
+      P.line(tf(0, Ty + 0.02, -0.30), tf(0, Ty - 0.06, -0.36), 0.9);
+      P.box(0, Ty + 0.175, 0.18, 0.10, 0.09, 0.19, 1.1, tf);                            // co-aligned camera
+      P.ring(0, Ty + 0.175, 0.28, 0.032, 10, "z", 1.05, tf);
+      [-0.035, 0.035].forEach((x) => P.line(tf(x, Ty + 0.13, 0.12), tf(x, Ty + 0.105, 0.12), 0.95)); // camera rail
+      const lensCam = tf(0, Ty + 0.175, 0.285);
+
+      // ---- the target: a small quad silhouette, tumbling gently ----
+      const rA = time * 0.8, os = 0.11;
+      const ca2 = Math.cos(rA), sa2 = Math.sin(rA), cb2 = Math.cos(rA * 0.5), sb2 = Math.sin(rA * 0.5);
+      const op = (lx, ly, lz) => {
+        const x1 = lx * ca2 + lz * sa2, z1 = -lx * sa2 + lz * ca2;
+        const y2 = ly * cb2 - z1 * sb2, z2 = ly * sb2 + z1 * cb2;
+        return [T[0] + x1, T[1] + y2, T[2] + z2];
+      };
+      P.line(op(-os, 0, -os), op(os, 0, os), 1.0);
+      P.line(op(-os, 0, os), op(os, 0, -os), 1.0);
+      P.box(0, 0, 0, 0.05, 0.03, 0.07, 0.95, op);
+      [[-os, -os], [os, os], [-os, os], [os, -os]].forEach(([x, z]) => {
+        const pts = [];
+        for (let i = 0; i < 8; i++) { const a = (i / 8) * Math.PI * 2; pts.push(op(x + Math.cos(a) * 0.045, 0.01, z + Math.sin(a) * 0.045)); }
+        P.loop(pts, 0.9);
+      });
+      // recognition reticle: corner brackets that close in on the target
+      const rs = 0.16 + (1 - acqS) * 0.22, tk = 0.055;
+      [[-1, -1], [1, -1], [1, 1], [-1, 1]].forEach(([sx, sy]) => {
+        const bx = T[0] + sx * rs, by = T[1] + sy * rs;
+        P.line([bx, by, T[2]], [bx - sx * tk, by, T[2]], 1.0);
+        P.line([bx, by, T[2]], [bx, by - sy * tk, T[2]], 1.0);
+      });
+      // the beam, once locked — plus a little scatter where it lands
+      const locked = acqS > 0.98;
+      if (locked) {
+        const o = tf(0, Ty + 0.02, 0.585);
+        P.line(o, T, 1.9);
+        dots.push([T[0], T[1], T[2], 3.2, 1]);
+        for (let i = 0; i < 3; i++) {
+          const a = time * 9 + i * 2.1;
+          dots.push([T[0] + Math.cos(a) * 0.06, T[1] + Math.sin(a * 1.3) * 0.05, T[2], 1.3, 1]);
+        }
+        dots.push([o[0], o[1], o[2], 2.6, 1]);
+      }
+      // camera lens glows while it is looking
+      dots.push([lensCam[0], lensCam[1], lensCam[2], 2.0, 1]);
+      // control-box lamps: power steady · track blinks while acquiring, solid locked · fire on with the beam
+      const fast = (time * 5) % 1 < 0.5;
+      dots.push([CB[0] - 0.09, CB[1] + 0.05, CB[2] + 0.18, 1.8, 1]);
+      dots.push([CB[0] - 0.03, CB[1] + 0.05, CB[2] + 0.18, locked || fast ? 2.4 : 1.0, locked || fast ? 1 : 0]);
+      dots.push([CB[0] + 0.03, CB[1] + 0.05, CB[2] + 0.18, locked ? 2.6 : 1.0, locked ? 1 : 0]);
+      return { segments: segs, dots };
+    };
+    return m;
+  }
+
+  // Morse code kit — a straight telegraph key wired to an ESP32 on the left,
+  // and a matching receiver on the right that decodes what it hears. The key
+  // works the pattern for "TYLER"; the receiver's lamp and speaker follow it,
+  // and each letter lands on the readout as it completes. Then a pause, and
+  // it sends again.
   function buildTransmitter() {
     const parts = [];
-    const TX = -0.5, RX = 0.5; // transmitter (left) and receiver (right) centres
+    const TX = -0.46, RX = 0.46;
 
-    /* ---------------- TRANSMITTER: a straight telegraph key ----------------
-       The old version was a box with a round button on it, which could have
-       been anything. A pivoting lever with a knob, a contact post and a
-       return spring is the one shape everybody reads as Morse. */
-    const KEY_Y = -0.02;                 // deck height
-    const PIV = [TX - 0.10, KEY_Y + 0.10, 0]; // lever pivot
-
-    // Base: a plate with a chamfered outline, a rim, and four feet.
-    const bw = 0.23, bd = 0.20, ch = 0.05;
+    /* ---------------- TRANSMITTER: the key on its plate ---------------- */
+    const KEY_Y = -0.02;
+    const PIV = [TX - 0.10, KEY_Y + 0.10, 0];
+    const bw = 0.25, bd = 0.20, ch = 0.05;
     const baseLoop = (y) => {
       const pts = [
         [TX - bw + ch, y, -bd], [TX + bw - ch, y, -bd], [TX + bw, y, -bd + ch],
@@ -569,378 +989,136 @@
       return { v: pts, e: pts.map((_, k) => [k, (k + 1) % pts.length]) };
     };
     parts.push(baseLoop(KEY_Y));
-    parts.push(baseLoop(KEY_Y - 0.09));
-    baseLoop(KEY_Y).v.forEach((p, k) => {
-      const q = baseLoop(KEY_Y - 0.09).v[k];
-      parts.push({ v: [p, q], e: [[0, 1]] });
-    });
-    [[-0.17, -0.14], [0.17, -0.14], [-0.17, 0.14], [0.17, 0.14]].forEach(([dx, dz]) =>
-      parts.push(makeCylinderY(TX + dx, KEY_Y - 0.11, dz, 0.025, 0.04, 6)));
-
-    // Pivot yoke: two uprights carrying the lever's axle.
+    parts.push(baseLoop(KEY_Y - 0.08));
+    baseLoop(KEY_Y).v.forEach((p, k) => parts.push({ v: [p, baseLoop(KEY_Y - 0.08).v[k]], e: [[0, 1]] }));
+    [[-0.18, -0.14], [0.18, -0.14], [-0.18, 0.14], [0.18, 0.14]].forEach(([dx, dz]) =>
+      parts.push(makeCylinderY(TX + dx, KEY_Y - 0.10, dz, 0.022, 0.035, 6)));
+    // pivot yoke + axle
     [-0.05, 0.05].forEach((dz) => {
       parts.push(segBox([TX - 0.10, KEY_Y, dz], [TX - 0.10, PIV[1], dz], 0.018));
       parts.push(makeRing(TX - 0.10, PIV[1], dz, 0.032, 8, "z"));
     });
-    parts.push(segBox([TX - 0.10, PIV[1], -0.05], [TX - 0.10, PIV[1], 0.05], 0.012)); // axle
-
-    // Contact post under the front of the lever, and the anvil it strikes.
+    parts.push(segBox([TX - 0.10, PIV[1], -0.05], [TX - 0.10, PIV[1], 0.05], 0.012));
+    // contact post + anvil
     parts.push(makeCylinderY(TX + 0.13, KEY_Y + 0.03, 0, 0.030, 0.06, 8));
     parts.push(makeRing(TX + 0.13, KEY_Y + 0.06, 0, 0.038, 10, "y"));
-
-    // Two binding posts at the back — where the line wires land.
+    // binding posts at the back
     [-0.10, 0.10].forEach((dz) => {
-      parts.push(makeCylinderY(TX - 0.19, KEY_Y + 0.04, dz, 0.022, 0.08, 6));
-      parts.push(makeRing(TX - 0.19, KEY_Y + 0.085, dz, 0.034, 8, "y"));
+      parts.push(makeCylinderY(TX - 0.20, KEY_Y + 0.04, dz, 0.022, 0.08, 6));
+      parts.push(makeRing(TX - 0.20, KEY_Y + 0.085, dz, 0.034, 8, "y"));
     });
+    // ESP32 module on the plate behind the key: board, can, antenna trace
+    parts.push(makeBox(TX + 0.02, KEY_Y + 0.02, -0.15, 0.17, 0.014, 0.075));
+    parts.push(makeBox(TX + 0.0, KEY_Y + 0.045, -0.15, 0.09, 0.03, 0.045));
+    parts.push({ v: [[TX + 0.06, KEY_Y + 0.03, -0.17], [TX + 0.10, KEY_Y + 0.03, -0.17], [TX + 0.10, KEY_Y + 0.03, -0.13], [TX + 0.06, KEY_Y + 0.03, -0.13]], e: [[0, 1], [1, 2], [2, 3]] });
+    parts.push({ v: [[TX - 0.20, KEY_Y + 0.085, -0.10], [TX - 0.10, KEY_Y + 0.05, -0.14], [TX - 0.06, KEY_Y + 0.03, -0.15]], e: [[0, 1], [1, 2]] }); // wire post → board
 
-    // ESP32 module sat on the deck behind the key, with its pin headers.
-    parts.push(makeBox(TX, KEY_Y + 0.035, -0.145, 0.16, 0.02, 0.07));
-    parts.push(makeBox(TX, KEY_Y + 0.055, -0.145, 0.09, 0.02, 0.04)); // the can
-    for (let i = 0; i < 6; i++) {
-      const x = TX - 0.07 + (i / 5) * 0.14;
-      parts.push({ v: [[x, KEY_Y + 0.025, -0.115], [x, KEY_Y, -0.115]], e: [[0, 1]] });
-      parts.push({ v: [[x, KEY_Y + 0.025, -0.175], [x, KEY_Y, -0.175]], e: [[0, 1]] });
+    /* ---------------- RECEIVER: a low enclosure with a front readout ---------------- */
+    const RY = -0.13, RW = 0.46, RH = 0.22, RD = 0.36;
+    parts.push(makeBox(RX, RY, 0, RW, RH, RD));
+    parts.push(makeBox(RX, RY + RH / 2 - 0.01, 0, RW, 0.02, RD));                  // lid seam
+    // front face (+Z): readout window with five character cells, lamp beside it
+    const FZ = RD / 2 + 0.004;
+    parts.push(makeBox(RX - 0.04, RY + 0.02, FZ, 0.26, 0.09, 0.008));
+    for (let i = 0; i < 5; i++) {
+      const x = RX - 0.04 - 0.10 + i * 0.05;
+      parts.push(makeBox(x, RY + 0.02, FZ + 0.004, 0.028, 0.05, 0.004));
     }
-
-    /* ---------------- RECEIVER: enclosure, speaker, antenna ---------------- */
-    parts.push(makeBox(RX, -0.16, 0, 0.42, 0.30, 0.36));      // body
-    parts.push(makeBox(RX, -0.02, 0, 0.42, 0.02, 0.36));      // lid seam
-    parts.push(makeBox(RX, -0.005, 0, 0.36, 0.01, 0.30));     // recessed top panel
-
-    // Speaker grille: concentric rings plus radial slots.
-    [0.13, 0.095, 0.06, 0.028].forEach((r, i) =>
-      parts.push(makeRing(RX - 0.02, 0.005, -0.06, r, i < 2 ? 16 : 10, "y")));
+    parts.push(makeRing(RX + 0.16, RY + 0.02, FZ, 0.032, 12, "z"));
+    parts.push(makeRing(RX + 0.16, RY + 0.02, FZ, 0.018, 8, "z"));
+    parts.push(makeBox(RX - 0.14, RY - 0.07, FZ, 0.07, 0.03, 0.008));             // USB
+    parts.push(makeRing(RX + 0.16, RY - 0.07, FZ, 0.018, 8, "z"));                // volume knob
+    // speaker grille on the lid: rings + radial slots
+    const GC = [RX - 0.06, RY + RH / 2 + 0.004, -0.06];
+    [0.12, 0.09, 0.06, 0.03].forEach((r, i) => parts.push(makeRing(GC[0], GC[1], GC[2], r, i < 2 ? 16 : 10, "y")));
     for (let i = 0; i < 8; i++) {
       const a = (i / 8) * Math.PI * 2;
-      parts.push({
-        v: [[RX - 0.02 + Math.cos(a) * 0.03, 0.005, -0.06 + Math.sin(a) * 0.03],
-            [RX - 0.02 + Math.cos(a) * 0.13, 0.005, -0.06 + Math.sin(a) * 0.13]],
-        e: [[0, 1]],
-      });
+      parts.push({ v: [[GC[0] + Math.cos(a) * 0.03, GC[1], GC[2] + Math.sin(a) * 0.03], [GC[0] + Math.cos(a) * 0.12, GC[1], GC[2] + Math.sin(a) * 0.12]], e: [[0, 1]] });
     }
-
-    // Indicator LED in a bezel, and a decode readout window beside it.
-    parts.push(makeRing(RX + 0.10, 0.01, 0.10, 0.05, 12, "y"));
-    parts.push(makeRing(RX + 0.10, 0.01, 0.10, 0.028, 10, "y"));
-    parts.push(makeBox(RX - 0.09, 0.005, 0.11, 0.16, 0.01, 0.07)); // display window
-    for (let i = 0; i < 5; i++) {                                   // character cells
-      const x = RX - 0.155 + (i / 4) * 0.13;
-      parts.push(makeBox(x, 0.012, 0.11, 0.018, 0.004, 0.04));
-    }
-
-    // Whip antenna with a collar and a loading coil.
-    const AB = [RX + 0.17, -0.01, -0.14], AT = [RX + 0.20, 0.44, -0.14];
-    parts.push(makeRing(AB[0], AB[1], AB[2], 0.042, 8, "y"));
-    parts.push(segBox(AB, AT, 0.016));
-    for (let i = 0; i < 5; i++) {
-      const f = 0.30 + i * 0.045;
-      const y = AB[1] + (AT[1] - AB[1]) * f;
-      const x = AB[0] + (AT[0] - AB[0]) * f;
-      parts.push(makeRing(x, y, AB[2], 0.036, 8, "y"));
-    }
-    parts.push(makeRing(AT[0], AT[1], AT[2], 0.028, 8, "y"));
-
-    // USB port on the near face, and vent slots on the side.
-    parts.push(makeBox(RX - 0.14, -0.10, 0.185, 0.09, 0.04, 0.02));
+    // whip antenna at the rear corner, with a loading coil
+    const AB = [RX + 0.17, RY + RH / 2, -0.13], AT = [RX + 0.21, RY + 0.55, -0.15];
+    parts.push(makeRing(AB[0], AB[1], AB[2], 0.04, 8, "y"));
+    parts.push(segBox(AB, AT, 0.014));
     for (let i = 0; i < 4; i++) {
-      const z = -0.10 + i * 0.055;
-      parts.push(makeBox(RX + 0.212, -0.14, z, 0.01, 0.10, 0.02));
+      const f = 0.32 + i * 0.05, y = AB[1] + (AT[1] - AB[1]) * f, x = AB[0] + (AT[0] - AB[0]) * f;
+      parts.push(makeRing(x, y, AB[2], 0.03, 8, "y"));
     }
+    parts.push(makeRing(AT[0], AT[1], AT[2], 0.024, 8, "y"));
+    // vent slots on the far side
+    for (let i = 0; i < 4; i++) parts.push(makeBox(RX + RW / 2 + 0.002, RY - 0.02, -0.09 + i * 0.05, 0.006, 0.09, 0.02));
+    parts.push(makeBase(-0.5, 0.94));
 
-    parts.push(makeBase(-0.5, 1.05));
-
-    // ---- Morse timeline for "TYLER" (dit/dah/gaps + a ~3s stop) ----
+    // ---- Morse timeline for "TYLER" ----
     const MORSE = { T: "-", Y: "-.--", L: ".-..", E: ".", R: ".-." };
-    const DIT = 1, DAH = 3, GAP = 1, LGAP = 3, STOP = 18; // units; STOP ≈ 3s on screen
-    const seq = [];
-    "TYLER".split("").forEach((ch, li, arr) => {
-      const code = MORSE[ch];
+    const DIT = 1, DAH = 3, GAP = 1, LGAP = 3, STOP = 18;
+    const seq = [], letterEnd = [];
+    let acc = 0;
+    "TYLER".split("").forEach((chr, li, arr) => {
+      const code = MORSE[chr];
       code.split("").forEach((sym, si) => {
-        seq.push([true, sym === "-" ? DAH : DIT]);
-        if (si < code.length - 1) seq.push([false, GAP]);
+        const u = sym === "-" ? DAH : DIT;
+        seq.push([true, u]); acc += u;
+        if (si < code.length - 1) { seq.push([false, GAP]); acc += GAP; }
       });
-      seq.push([false, li < arr.length - 1 ? LGAP : STOP]);
+      letterEnd.push(acc);
+      const g = li < arr.length - 1 ? LGAP : STOP;
+      seq.push([false, g]); acc += g;
     });
-    let total = 0; for (const s of seq) total += s[1];
-    const UNIT = 0.12; // t-units per Morse unit (dit ≈ 0.17s on screen)
+    const total = acc, UNIT = 0.12;
 
     const m = merge(parts);
     m.spinners = [];
     m.dynamic = function (time) {
-      // Where are we in the TYLER pattern → is the key down right now?
-      let pos = ((time / UNIT) % total + total) % total;
-      let on = false;
-      for (const s of seq) { if (pos < s[1]) { on = s[0]; break; } pos -= s[1]; }
+      const pos = ((time / UNIT) % total + total) % total;
+      let p = pos, on = false;
+      for (const s of seq) { if (p < s[1]) { on = s[0]; break; } p -= s[1]; }
+      const done = letterEnd.filter((e) => e <= pos).length;
 
-      const segs = [];
-      const line = (a, b, lw) => segs.push([a[0], a[1], a[2], b[0], b[1], b[2], lw || 1.2]);
-      const dots = [];
-
-      /* The lever pivots about the yoke rather than sliding: front end down
-         onto the contact when the key is down, back up when it is released. */
-      const ang = on ? -0.13 : 0.10;             // radians, front end
+      const segs = [], dots = [];
+      const P = pen(segs);
+      // the lever pivots on the yoke: front end down onto the contact when keyed
+      const ang = on ? -0.13 : 0.10;
       const at = (d) => [PIV[0] + d * Math.cos(ang), PIV[1] + d * Math.sin(ang), 0];
-      const front = at(0.25), back = at(-0.11);
-
-      // Lever arm as a thin bar: two rails plus end caps.
-      [-0.022, 0.022].forEach((dz) => {
-        line([front[0], front[1], dz], [back[0], back[1], dz]);
-      });
-      line([front[0], front[1], -0.022], [front[0], front[1], 0.022]);
-      line([back[0], back[1], -0.022], [back[0], back[1], 0.022]);
-
-      // Knob on the front end.
-      const kn = 12, ky = front[1] - 0.03;
-      for (let i = 0; i < kn; i++) {
-        const a1 = (i / kn) * Math.PI * 2, a2 = ((i + 1) / kn) * Math.PI * 2;
-        line([front[0] + Math.cos(a1) * 0.055, ky, Math.sin(a1) * 0.055],
-             [front[0] + Math.cos(a2) * 0.055, ky, Math.sin(a2) * 0.055], 1.1);
+      const front = at(0.26), back = at(-0.11);
+      [-0.022, 0.022].forEach((dz) => P.line([front[0], front[1], dz], [back[0], back[1], dz], 1.2));
+      P.line([front[0], front[1], -0.022], [front[0], front[1], 0.022], 1.2);
+      P.line([back[0], back[1], -0.022], [back[0], back[1], 0.022], 1.2);
+      // knob on the front end
+      const ky = front[1] - 0.03;
+      P.ring(front[0], ky, 0, 0.055, 12, "y", 1.1);
+      P.ring(front[0], ky - 0.02, 0, 0.04, 10, "y", 1.0);
+      P.line([front[0], front[1], 0], [front[0], ky, 0], 1.1);
+      // return spring at the back, compressing as the front goes down
+      const coils = 5, sTop = back[1], sBot = KEY_Y + 0.02, N = coils * 4;
+      for (let i = 0; i < N; i++) {
+        const f = i / N, f2 = (i + 1) / N;
+        const a = f * coils * Math.PI * 2, a2 = f2 * coils * Math.PI * 2;
+        P.line([back[0] + Math.cos(a) * 0.03, sTop + (sBot - sTop) * f, Math.sin(a) * 0.03],
+               [back[0] + Math.cos(a2) * 0.03, sTop + (sBot - sTop) * f2, Math.sin(a2) * 0.03], 1.0);
       }
-      line([front[0], front[1], 0], [front[0], ky, 0], 1.1); // knob stem
-
-      // Return spring at the back — compresses as the front goes down.
-      const coils = 5, sTop = back[1], sBot = KEY_Y + 0.02;
-      for (let i = 0; i <= coils * 4; i++) {
-        const f = i / (coils * 4);
-        const a = f * coils * Math.PI * 2;
-        const y = sTop + (sBot - sTop) * f;
-        const f2 = (i + 1) / (coils * 4);
-        if (i === coils * 4) break;
-        const a2 = f2 * coils * Math.PI * 2;
-        const y2 = sTop + (sBot - sTop) * f2;
-        line([back[0] + Math.cos(a) * 0.03, y, Math.sin(a) * 0.03],
-             [back[0] + Math.cos(a2) * 0.03, y2, Math.sin(a2) * 0.03], 1.0);
-      }
-
-      // The contact closing is the moment worth lighting.
+      // the contact closing is the moment worth lighting
       dots.push([TX + 0.13, KEY_Y + 0.075, 0, on ? 3.0 : 1.2, on ? 1 : 0]);
-
-      // Receiver LED, and one soft ring off the speaker while the tone sounds.
-      dots.push([RX + 0.10, 0.03, 0.10, on ? 3.2 : 1.2, on ? 1 : 0]);
-      if (on) {
-        const rr = 0.17, m2 = 14;
-        for (let i = 0; i < m2; i++) {
-          const a1 = (i / m2) * Math.PI * 2, a2 = ((i + 1) / m2) * Math.PI * 2;
-          line([RX - 0.02 + Math.cos(a1) * rr, 0.06, -0.06 + Math.sin(a1) * rr],
-               [RX - 0.02 + Math.cos(a2) * rr, 0.06, -0.06 + Math.sin(a2) * rr], 1.0);
-        }
+      // receiver: lamp, a ring off the speaker while the tone sounds, and the
+      // letters landing on the readout one by one
+      dots.push([RX + 0.16, RY + 0.02, FZ + 0.01, on ? 3.2 : 1.2, on ? 1 : 0]);
+      if (on) P.ring(GC[0], GC[1] + 0.05, GC[2], 0.16, 14, "y", 1.0);
+      for (let i = 0; i < 5; i++) {
+        const x = RX - 0.04 - 0.10 + i * 0.05;
+        const lit = i < done;
+        dots.push([x, RY + 0.02, FZ + 0.012, lit ? 2.2 : 0.8, lit ? 1 : 0]);
       }
-      return { segments: segs, dots: dots };
+      return { segments: segs, dots };
     };
     return m;
   }
 
-  // Raspberry Pi laser tracking turret — a Pi board with a vision-relay module
-  // driving the pan + tilt servos. A target object weaves downrange; the vision
-  // module recognises it (a locking reticle), the servos track it, the laser
-  // fires along the barrel, and the board's LEDs alarm.
-  function buildTurret() {
-    const parts = [];
-
-    // Raspberry Pi base board + detail
-    parts.push(makeBox(0, -0.6, 0, 0.92, 0.05, 0.66));         // board
-    parts.push(makeBox(-0.28, -0.55, -0.26, 0.5, 0.04, 0.05)); // GPIO header
-    parts.push(makeBox(0.06, -0.55, 0.06, 0.18, 0.05, 0.18));  // SoC
-    parts.push(makeBox(0.36, -0.55, 0.2, 0.12, 0.09, 0.16));   // USB stack
-    parts.push(makeBox(0.36, -0.55, -0.08, 0.12, 0.07, 0.12)); // ethernet
-    parts.push(makeBox(-0.44, -0.56, 0.22, 0.05, 0.05, 0.1));  // USB-C power
-    [[-0.4, -0.26], [0.4, -0.26], [-0.4, 0.26], [0.4, 0.26]].forEach(([x, z]) =>
-      parts.push(makeRing(x, -0.575, z, 0.022, 6, "y")));       // mounting holes
-
-    // Pan servo body — fixed to the board. Everything above it (the output disc,
-    // platform, tilt yoke, tilt servo and barrel) PANS on this and is drawn live.
-    parts.push(makeBox(0, -0.44, 0, 0.24, 0.22, 0.2));
-
-    // vision-relay module on the board + status LEDs + drive wiring to the servos
-    parts.push(makeBox(-0.14, -0.55, 0.24, 0.16, 0.1, 0.12));      // relay module
-    parts.push(makeRing(-0.14, -0.49, 0.24, 0.04, 8, "y"));        // relay coil
-    [[0.34, 0.3], [0.42, 0.3], [-0.34, 0.3]].forEach(([lx, lz]) =>
-      parts.push(makeRing(lx, -0.566, lz, 0.022, 6, "y")));        // LED bezels (lit live)
-    parts.push({ v: [[-0.14, -0.52, 0.18], [-0.06, -0.46, 0.06], [0, -0.44, 0]], e: [[0, 1], [1, 2]] });  // relay → pan servo
-    parts.push({ v: [[-0.18, -0.5, 0.24], [-0.22, -0.16, 0.04], [-0.25, 0.0, 0]], e: [[0, 1], [1, 2]] }); // relay → tilt servo
-
-    // (the barrel, vision module, target object + laser are drawn live in render())
-
-    parts.push(makeBase(-0.68, 0.95));
-    const m = merge(parts);
-    m.spinners = [];
-    // Live laser barrel: tilts about the yoke pivot (the tilt servo); the
-    // beam is fired straight down the barrel axis, so it moves WITH the
-    // cylinder — just like the real hardware.
-    m.dynamic = function (time) {
-      const segs = [];
-      const line = (a, b, lw) => segs.push([a[0], a[1], a[2], b[0], b[1], b[2], lw]);
-      const dots = [];
-      const Ty = 0.06, armX = 0.17;
-
-      // target object — a small craft weaving around downrange
-      const T = [
-        Math.sin(time * 0.45) * 0.75,
-        Ty + 0.18 + Math.sin(time * 0.7 + 1.3) * 0.4,
-        1.25 + Math.sin(time * 0.33) * 0.22,
-      ];
-      // vision cycle: acquire → recognise → track + fire (loops)
-      const cyc = (time * 0.16) % 1;
-      const acq = cyc < 0.2 ? cyc / 0.2 : 1;
-      const acqS = acq * acq * (3 - 2 * acq);
-
-      // aim: PAN servo rotates about Y, the TILT servo pitches the barrel about X
-      const dx = T[0], dy = T[1] - Ty, dz = T[2];
-      const dist = Math.hypot(dx, dy, dz) || 1;
-      const pan = Math.atan2(dx, dz);
-      const tilt = Math.asin(Math.max(-1, Math.min(1, -dy / dist)));
-      const cp = Math.cos(pan), sp = Math.sin(pan), ct = Math.cos(tilt), st = Math.sin(tilt);
-      // panT: pan about Y only (platform + yoke + tilt servo ride this)
-      const panT = (x, y, z) => [x * cp + z * sp, y, -x * sp + z * cp];
-      // tf: tilt about X at the pivot, THEN pan (the barrel + vision ride this)
-      const tf = (x, y, z) => { const ry = y - Ty, y1 = Ty + ry * ct - z * st, z1 = ry * st + z * ct; return [x * cp + z1 * sp, y1, -x * sp + z1 * cp]; };
-      const boxT = (tr, cx, cy, cz, w, h, d) => {
-        const x0=cx-w/2,x1=cx+w/2,y0=cy-h/2,y1=cy+h/2,z0=cz-d/2,z1=cz+d/2;
-        const v=[[x0,y0,z0],[x1,y0,z0],[x1,y1,z0],[x0,y1,z0],[x0,y0,z1],[x1,y0,z1],[x1,y1,z1],[x0,y1,z1]].map(p=>tr(p[0],p[1],p[2]));
-        [[0,1],[1,2],[2,3],[3,0],[4,5],[5,6],[6,7],[7,4],[0,4],[1,5],[2,6],[3,7]].forEach(([i,j])=>line(v[i],v[j],1.1));
-      };
-      const ringT = (tr, cx, cy, cz, r, n, ax) => {
-        const pts=[];
-        for (let i=0;i<n;i++){ const a=(i/n)*Math.PI*2, c=Math.cos(a)*r, s=Math.sin(a)*r;
-          const p = ax==='y'?[cx+c,cy,cz+s]:ax==='x'?[cx,cy+c,cz+s]:[cx+c,cy+s,cz];
-          pts.push(tr(p[0],p[1],p[2])); }
-        for (let i=0;i<n;i++) line(pts[i], pts[(i+1)%n], 1.1);
-      };
-
-      // rotating platform + tilt yoke (PAN on the base servo)
-      ringT(panT, 0, -0.32, 0, 0.1, 14, 'y');   // pan output disc
-      ringT(panT, 0, -0.32, 0, 0.04, 8, 'y');   // hub
-      boxT(panT, 0, -0.29, 0, 0.34, 0.03, 0.22); // platform
-      [-1, 1].forEach((s) => boxT(panT, s * armX, -0.04, 0, 0.05, 0.34, 0.14)); // yoke arms
-      boxT(panT, 0, Ty, 0, armX * 2, 0.04, 0.04);            // tilt pivot rod
-      [-1, 1].forEach((s) => ringT(panT, s * armX, Ty, 0, 0.05, 10, 'x')); // bearings
-
-      // TILT SERVO — pitches the barrel cylinder that aims the laser. Body is
-      // fixed to the yoke; its output horn SWINGS with the tilt so the drive is
-      // visible.
-      boxT(panT, -armX - 0.06, Ty, 0, 0.12, 0.15, 0.12);   // tilt servo body
-      ringT(panT, -armX - 0.005, Ty, 0, 0.045, 8, 'x');    // servo output shaft (on the tilt axis)
-      const cplX = -armX + 0.04;
-      ringT(tf, cplX, Ty, 0, 0.05, 8, 'x');                // coupling to the barrel (turns with the tilt)
-      line(tf(cplX, Ty, 0), tf(cplX, Ty + 0.08, 0), 1.4);  // servo horn — swings as the barrel aims
-
-      // barrel tube (aimed at the object)
-      const segc = 12, rB = 0.07, rear = [], front = [];
-      for (let i = 0; i < segc; i++) { const a = (i / segc) * Math.PI * 2; rear.push(tf(Math.cos(a)*rB, Ty+Math.sin(a)*rB, 0.04)); front.push(tf(Math.cos(a)*rB, Ty+Math.sin(a)*rB, 0.44)); }
-      for (let i = 0; i < segc; i++) { const j = (i + 1) % segc; line(rear[i], rear[j], 1.2); line(front[i], front[j], 1.2); line(rear[i], front[i], 1.2); }
-      ringT(tf, 0, Ty, 0.46, 0.05, 10, 'z'); // emitter aperture
-
-      // vision module — camera + lens beside the barrel
-      boxT(tf, 0.13, Ty + 0.02, 0.34, 0.12, 0.12, 0.14);
-      ringT(tf, 0.13, Ty + 0.02, 0.42, 0.035, 10, 'z'); // vision lens
-
-      // the object — a small tumbling craft
-      const os = 0.08, rA = time * 0.8;
-      const ca2 = Math.cos(rA), sa2 = Math.sin(rA), cb2 = Math.cos(rA * 0.6), sb2 = Math.sin(rA * 0.6);
-      const op = (lx, ly, lz) => { const x1 = lx*ca2 + lz*sa2, z1 = -lx*sa2 + lz*ca2; const y2 = ly*cb2 - z1*sb2, z2 = ly*sb2 + z1*cb2; return [T[0]+x1, T[1]+y2, T[2]+z2]; };
-      const oc = [[-1,-1,-1],[1,-1,-1],[1,1,-1],[-1,1,-1],[-1,-1,1],[1,-1,1],[1,1,1],[-1,1,1]].map(([a,b,c]) => op(a*os, b*os, c*os));
-      [[0,1],[1,2],[2,3],[3,0],[4,5],[5,6],[6,7],[7,4],[0,4],[1,5],[2,6],[3,7]].forEach(([i,j]) => line(oc[i], oc[j], 1.0));
-
-      // recognition reticle — corner brackets that lock onto the object
-      const rs = 0.13 + (1 - acqS) * 0.2, tk = 0.05;
-      [[-1,-1],[1,-1],[1,1],[-1,1]].forEach(([sx, sy]) => { const bx = T[0]+sx*rs, by = T[1]+sy*rs, bzz = T[2]; line([bx,by,bzz],[bx-sx*tk,by,bzz],1.0); line([bx,by,bzz],[bx,by-sy*tk,bzz],1.0); });
-
-      // laser beam — fires once recognised
-      const o = tf(0, Ty, 0.46);
-      if (acqS > 0.5) { line(o, T, 1.7); dots.push([T[0], T[1], T[2], 3, 1]); }
-
-      // LED alarms on the board (A/B alternate; third = lock status)
-      const ph = (time * 6) % 1;
-      dots.push([0.34, -0.564, 0.3, ph < 0.5 ? 2.8 : 1.0, ph < 0.5 ? 1 : 0]);
-      dots.push([0.42, -0.564, 0.3, ph >= 0.5 ? 2.8 : 1.0, ph >= 0.5 ? 1 : 0]);
-      dots.push([-0.34, -0.564, 0.3, acqS > 0.99 ? 2.6 : 1.2, acqS > 0.99 ? 1 : 0]);
-
-      return { segments: segs, dots: dots };
-    };
-    return m;
-  }
-
-  // Finned rocket in SCHEMATIC view — body, nose cone, fins and engine bell,
-  // with the internal avionics shown through the wireframe: a microcontroller
-  // up near the cone, wired down to a servo at each fin.
-  function buildRocket() {
-    const parts = [];
-    const R = 0.2, seg = 16;
-    // body tube + detail rings
-    parts.push(makeCylinderY(0, -0.1, 0, R, 1.0, seg)); // y: -0.6 → 0.4
-    parts.push(makeRing(0, 0.12, 0, R, seg, "y"));
-    parts.push(makeRing(0, -0.3, 0, R, seg, "y"));
-    // nose cone — mid rings + struts to the tip
-    parts.push(makeRing(0, 0.58, 0, 0.13, seg, "y"));
-    parts.push(makeRing(0, 0.72, 0, 0.07, seg, "y"));
-    for (let i = 0; i < seg; i++) {
-      const a = (i / seg) * Math.PI * 2;
-      parts.push({ v: [[Math.cos(a) * R, 0.4, Math.sin(a) * R], [0, 0.9, 0]], e: [[0, 1]] });
-    }
-    // porthole
-    parts.push(makeRing(0, 0.16, R, 0.045, 10, "z"));
-    // (the 4 fins are CONTROL SURFACES — drawn live in m.dynamic so they deflect)
-    // flared engine bell
-    parts.push(makeRing(0, -0.6, 0, 0.1, 12, "y"));
-    parts.push(makeRing(0, -0.86, 0, 0.22, 12, "y"));
-    for (let i = 0; i < 12; i++) {
-      const a = (i / 12) * Math.PI * 2;
-      parts.push({ v: [[Math.cos(a) * 0.1, -0.6, Math.sin(a) * 0.1], [Math.cos(a) * 0.22, -0.86, Math.sin(a) * 0.22]], e: [[0, 1]] });
-    }
-
-    // ---- schematic internals: a microcontroller near the cone, a servo at
-    //      each fin, and the wiring that links them (seen through the body) ----
-    parts.push(makeBox(0, 0.34, 0, 0.2, 0.03, 0.12));          // MCU board (PCB)
-    parts.push(makeBox(0.035, 0.37, 0, 0.07, 0.04, 0.07));     // processor chip
-    parts.push({ v: [[-0.09, 0.355, 0.045], [0.09, 0.355, 0.045]], e: [[0, 1]] }); // header pins
-    parts.push({ v: [[-0.09, 0.355, -0.045], [0.09, 0.355, -0.045]], e: [[0, 1]] });
-    const mcu = [0, 0.31, 0];
-    [0, Math.PI / 2, Math.PI, Math.PI * 1.5].forEach((th) => {
-      const c = Math.cos(th), s = Math.sin(th);
-      const servo = [c * 0.11, -0.45, s * 0.11];               // servo at the fin root, inside
-      parts.push(makeBox(servo[0], servo[1], servo[2], 0.09, 0.13, 0.07)); // servo body
-      parts.push({                                                          // internal wire MCU → servo
-        v: [mcu, [c * 0.06, 0.12, s * 0.06], [c * 0.1, -0.22, s * 0.1], [servo[0], servo[1] + 0.06, servo[2]]],
-        e: [[0, 1], [1, 2], [2, 3]],
-      });
-    });
-
-    parts.push(makeBase(-0.96, 0.95));
-    const m = merge(parts);
-    m.spinners = [];
-    // The 4 fins stay bolted to the fuselage and PIVOT about the vertical hinge
-    // through their root (front-top point) — only the tip swings, like the
-    // steering fins on a rocket.
-    m.dynamic = function (time) {
-      const segs = [];
-      const line = (a, b, lw) => segs.push([a[0], a[1], a[2], b[0], b[1], b[2], lw]);
-      const prof = [[R, -0.33], [0.42, -0.5], [0.47, -0.72], [R, -0.6]];
-      [0, Math.PI / 2, Math.PI, Math.PI * 1.5].forEach((th, i) => {
-        const c = Math.cos(th), s = Math.sin(th);
-        const dfl = Math.sin(time * 1.6 + i * 1.7) * 0.4; // steering deflection
-        const cd = Math.cos(dfl), sd = Math.sin(dfl);
-        // root edge is at r = R (on the body); dr = 0 there so the root stays
-        // FIXED, and the fin rotates about that vertical hinge so the tip swings.
-        const pt = (r, y) => {
-          const dr = r - R;
-          return [R * c + dr * (c * cd + s * sd), y, R * s + dr * (s * cd - c * sd)];
-        };
-        const P = prof.map(([r, y]) => pt(r, y));
-        for (let k = 0; k < P.length; k++) line(P[k], P[(k + 1) % P.length], 1.1);
-        line([c * 0.11, -0.45, s * 0.11], pt(0.3, -0.45), 1.0); // servo pushrod → fin
-      });
-      return { segments: segs, dots: [] };
-    };
-    return m;
-  }
-
-  const MODELS = { evtol: buildEvtol, arm: buildArm, drone: buildDrone, transmitter: buildTransmitter, turret: buildTurret, rocket: buildRocket };
+  const MODELS = { evtol: buildEvtol, arm: buildArm, drone: buildDrone, rover: buildRover, transmitter: buildTransmitter, turret: buildTurret, rocket: buildRocket };
   // Per-model holographic tint (rgb triplets) — cyan family to match the UI.
   const TINTS = {
     evtol: [86, 200, 255],
     arm: [80, 196, 255],
     drone: [110, 214, 255],
+    rover: [104, 212, 255],
     transmitter: [95, 226, 255],
     turret: [90, 218, 255],
     rocket: [100, 224, 255],
@@ -957,7 +1135,7 @@
     const rgb = tint.join(",");
 
     let w = 0, h = 0, dpr = 1, scale = 1, cx = 0, cy = 0;
-    let raf = 0, t = 0, angY = type === "arm" ? -0.6 : 0.4;
+    let raf = 0, t = 0, angY = type === "arm" ? -0.6 : type === "rover" ? 0.7 : type === "turret" ? -0.35 : 0.4;
     let hovered = false;
     let deploy = reduce ? 1 : 0;     // 0 = parked/collapsed, 1 = deployed (deploy models)
     let hoverT = 0;                  // grows while hovered (arm's search-then-lock timing)
@@ -983,7 +1161,6 @@
     const projBuf = new Array(model.v.length);
     const NB = 16;                                    // depth bands (5 posterised)
     const edgeBuckets = Array.from({ length: NB }, () => []);
-    const scanEdges = [];                             // edges under the scan sweep
 
     function resize() {
       const rect = canvas.getBoundingClientRect();
@@ -1028,8 +1205,11 @@
          0. floor pool     — a soft radial gradient the model sits in
          1. haze           — one wide-blur pass, very low alpha
          2. cores          — depth-graded crisp strokes, no shadow
-         3. scan band      — edges crossed by a rising sweep, re-lit
-         4. vertex glints  — nodes, sized and lit by depth
+         3. vertex glints  — nodes, sized and lit by depth
+
+       There is deliberately no scan sweep. An earlier version ran a band
+       of light up through every model on a loop; it read as a gimmick on
+       six cards at once and was cut. The only motion is the object's own.
 
        Everything is batched per depth band, so the whole model costs a
        couple of dozen stroke calls no matter how many edges it has. */
@@ -1045,14 +1225,11 @@
       const pv = model.v;
       const proj = projBuf;
       let fmin = Infinity, fmax = -Infinity;
-      let ymin = Infinity, ymax = -Infinity;
       for (let i = 0; i < pv.length; i++) {
         const p = project(pv[i][0], pv[i][1], pv[i][2], ca, sa);
         proj[i] = p;
         if (p[2] < fmin) fmin = p[2];
         if (p[2] > fmax) fmax = p[2];
-        if (p[1] < ymin) ymin = p[1];
-        if (p[1] > ymax) ymax = p[1];
       }
       const fspan = fmax - fmin || 1;
 
@@ -1080,14 +1257,6 @@
       // NB bands rather than the handful the first version used: at five
       // the grading stepped visibly and the model looked posterised.
       for (let b = 0; b < NB; b++) edgeBuckets[b].length = 0;
-      scanEdges.length = 0;
-
-      // The scan band rises through the model and re-lights what it
-      // crosses. It is the one looping animation here, and it is doing
-      // work: it reads the object top to bottom like a scanner would.
-      const scanSpan = (ymax - ymin) || 1;
-      const scanY = reduce ? -1e9 : ymax - ((t * 0.22) % 1.35) * scanSpan * 1.35;
-      const scanHalf = scanSpan * 0.055 + 4;
 
       const E = model.e;
       for (let i = 0; i < E.length; i++) {
@@ -1097,9 +1266,6 @@
         if (bi < 0) bi = 0; else if (bi >= NB) bi = NB - 1;
         const arr = edgeBuckets[bi];
         arr.push(a[0], a[1], c[0], c[1]);
-        if (Math.abs((a[1] + c[1]) * 0.5 - scanY) < scanHalf) {
-          scanEdges.push(a[0], a[1], c[0], c[1]);
-        }
       }
 
       ctx.lineCap = "round";
@@ -1149,22 +1315,7 @@
         ctx.stroke();
       }
 
-      // ---- 3. scan band ----
-      if (scanEdges.length) {
-        ctx.shadowColor = `rgba(${cNear.join(",")},0.9)`;
-        ctx.shadowBlur = 8;
-        ctx.strokeStyle = `rgba(${cNear.join(",")},${(0.5 * flicker).toFixed(3)})`;
-        ctx.lineWidth = 1.15;
-        ctx.beginPath();
-        for (let k = 0; k < scanEdges.length; k += 4) {
-          ctx.moveTo(scanEdges[k], scanEdges[k + 1]);
-          ctx.lineTo(scanEdges[k + 2], scanEdges[k + 3]);
-        }
-        ctx.stroke();
-        ctx.shadowBlur = 0;
-      }
-
-      // ---- 4. vertex glints ----
+      // ---- 3. vertex glints ----
       // Drawn in two passes so the near nodes actually read as points of
       // light rather than the uniform dot field the first version had.
       for (let pass = 0; pass < 2; pass++) {
@@ -1301,11 +1452,14 @@
       if (!inst) return;
       instances.set(c, inst);
       if (inst.reduce) return; // static frame only — no motion
-      // Spin only while the pointer is hovering the media panel. The
-      // product detail page wraps its canvas in .detail__media, not
-      // .card__media — miss that and the model on every product page sits
-      // frozen, never spinning and never running its dynamic geometry.
-      const hot = c.closest(".card__media, .detail__media") || c;
+      // Spin only while the pointer is hovering the media panel. Each page
+      // frames the canvas differently — .plate__media in the build grids,
+      // .detail__media on the build page — and the hover has to be bound to
+      // whichever frame is actually there. Miss one and the model on that
+      // page sits frozen, never spinning and never running its dynamic
+      // geometry. .card__media is the old grid's name, kept so an older
+      // cached page still animates.
+      const hot = c.closest(".plate__media, .card__media, .detail__media") || c;
       hot.addEventListener("pointerenter", () => inst.setHover(true));
       hot.addEventListener("pointerleave", () => inst.setHover(false));
     });

@@ -1,15 +1,21 @@
 """Stamp a version on every local asset link so a returning visitor cannot
 pair new HTML with a cached old stylesheet.
 
-Cloudflare Pages serves assets with `Cache-Control: public, max-age=14400`
-regardless of what the `/*` block in _headers asks for, so for four hours
-after a deploy a returning browser keeps its old styles.css and main.js and
-renders the new markup against them. That is exactly what happened on the
-first deploy of this rebuild: the HTML was new, the CSS was four hours old,
-and the hero index rendered as a bulleted list.
+This used to matter for four hours. It now matters for a year.
 
-Bump VERSION on any deploy that changes CSS or JS. It is cheap and it is the
-only thing standing between a returning visitor and a broken page.
+Originally Cloudflare served assets with `Cache-Control: max-age=14400`, so a
+returning browser kept its old styles.css and main.js for four hours and
+rendered new markup against them — which is exactly what happened on the
+first deploy of this rebuild: new HTML, four-hour-old CSS, and the hero index
+rendered as a bulleted list.
+
+_headers now sets `max-age=31536000, immutable` on assets/js, assets/css and
+assets/vendor, precisely BECAUSE this script makes every URL unique. That is
+the trade: the cache is permanent, so the stamp is the only thing that
+invalidates it. Ship a CSS or JS change without bumping VERSION and a
+returning visitor keeps the old file for a year, not an afternoon.
+
+Bump VERSION on any deploy that changes CSS or JS.
 """
 import io, os, re, glob
 
@@ -43,4 +49,27 @@ for f in pages:
     if s != before:
         io.open(f, "w", encoding="utf-8", newline="\n").write(s)
         changed += 1
-print("versioned", changed, "pages at v=" + VERSION)
+
+# The vendored three.js is imported from inside starfield.js, not linked from
+# any page, so the loop above never sees it. It still sits under the immutable
+# cache rule in _headers, which means without a stamp here a new three.module.js
+# would be invisible to every returning visitor for a year. Stamping the import
+# is what makes that cache rule honest.
+MODULE_IMPORTS = [("assets/js/starfield.js", "../vendor/three.module.js")]
+
+for src, dep in MODULE_IMPORTS:
+    if not os.path.exists(src):
+        continue
+    s = io.open(src, encoding="utf-8").read()
+    before = s
+    s = re.sub(
+        r'(["\'])' + re.escape(dep) + r'(\?v=[0-9]+)?(["\'])',
+        r'\g<1>' + dep + "?v=" + VERSION + r'\g<3>',
+        s,
+    )
+    if s != before:
+        io.open(src, "w", encoding="utf-8", newline="\n").write(s)
+        changed += 1
+        print("  stamped", dep, "in", src)
+
+print("versioned", changed, "files at v=" + VERSION)

@@ -14,7 +14,7 @@
      id          unique slug used in product.html?id=<id>
      name        display name
      tagline     short one-liner
-     holo        hologram model: "arm" | "drone" | "evtol" | "rccar"
+     holo        hologram model: "arm" | "drone" | "evtol"
                  (see hologram.js;
                  omit for a clean placeholder panel)
      featured    show on the home page
@@ -78,25 +78,6 @@ const PRODUCTS = [
       { label: "Config", value: "Tilt-rotor VTOL" },
       { label: "Flight", value: "Vertical lift · wing-borne cruise" },
       { label: "Airframe", value: "Custom-built" },
-      { label: "Status", value: "In progress" },
-    ],
-  },
-  {
-    id: "rc-car",
-    name: "RC Car",
-    tagline: "Brushed DC sports car, built from the chassis up",
-    holo: "rccar",
-    featured: true,
-    available: false,
-    description:
-      "A radio-controlled sports car built from the chassis plate up — DC drivetrain, " +
-      "steering linkage, double-wishbone suspension and a hand-shaped body, running on a " +
-      "pistol-grip transmitter. The kind of build where the electronics and the mechanics " +
-      "have to agree with each other or it just sits there.",
-    specs: [
-      { label: "Drive", value: "Brushed DC · rear wheel" },
-      { label: "Chassis", value: "Plate chassis, double wishbone" },
-      { label: "Control", value: "2.4GHz pistol-grip transmitter" },
       { label: "Status", value: "In progress" },
     ],
   },

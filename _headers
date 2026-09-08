@@ -2,15 +2,39 @@
 # GitHub Pages cannot send these at all; this file is why we move.
 # CSP host list was derived by scanning the repo, not guessed.
 #
-# TEMPORARY, remove once the rebuild self-hosts its assets:
-#   script-src  cdnjs.cloudflare.com  GSAP + ScrollTrigger
-#   style-src   fonts.googleapis.com / font-src fonts.gstatic.com
+# Every header under a path must be INDENTED. Cloudflare's parser is
+# lenient about it today, but an unindented line is a path pattern by the
+# spec, so leaning on that leniency is how a security header silently
+# stops being sent.
 /*
   Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
-X-Content-Type-Options: nosniff
-X-Frame-Options: DENY
-Referrer-Policy: strict-origin-when-cross-origin
-Permissions-Policy: accelerometer=(), autoplay=(), camera=(), display-capture=(), encrypted-media=(), fullscreen=(self), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), midi=(), payment=(self "https://js.stripe.com" "https://checkout.stripe.com"), usb=(), xr-spatial-tracking=()
-Cross-Origin-Opener-Policy: same-origin
-Cache-Control: public, max-age=0, must-revalidate
-Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self' https://checkout.stripe.com https://buy.stripe.com; script-src 'self' https://js.stripe.com https://cdnjs.cloudflare.com https://static.cloudflareinsights.com; script-src-attr 'none'; frame-src https://js.stripe.com https://checkout.stripe.com https://hooks.stripe.com https://www.youtube-nocookie.com; connect-src 'self' https://api.stripe.com https://checkout.stripe.com https://cdnjs.cloudflare.com https://cloudflareinsights.com; img-src 'self' data: blob: https://*.stripe.com https://i.ytimg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; media-src 'self'; worker-src 'self' blob:; manifest-src 'self'; upgrade-insecure-requests
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: accelerometer=(), autoplay=(), camera=(), display-capture=(), encrypted-media=(), fullscreen=(self), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), midi=(), payment=(self "https://js.stripe.com" "https://checkout.stripe.com"), usb=(), xr-spatial-tracking=()
+  Cross-Origin-Opener-Policy: same-origin
+  Cache-Control: public, max-age=0, must-revalidate
+  Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self' https://checkout.stripe.com https://buy.stripe.com; script-src 'self' https://js.stripe.com https://static.cloudflareinsights.com; script-src-attr 'none'; frame-src https://js.stripe.com https://checkout.stripe.com https://hooks.stripe.com; connect-src 'self' https://api.stripe.com https://checkout.stripe.com https://cloudflareinsights.com; img-src 'self' data: blob: https://*.stripe.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; media-src 'self'; worker-src 'self' blob:; manifest-src 'self'; upgrade-insecure-requests
+
+# Code and styles are cache-busted by tools/version-assets.py, which stamps
+# ?v=N on every reference at deploy time. A stamped URL is a new URL, so the
+# bytes behind it never change and can be cached permanently — this is the
+# single biggest repeat-visit win available, and it costs nothing.
+#
+# THE TRADE: this is only safe while the stamp is actually bumped. Ship a
+# JavaScript change without running version-assets.py and returning visitors
+# keep the old file for a year. Bump VERSION, or this rule will hurt.
+/assets/js/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/assets/css/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/assets/vendor/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Images are NOT stamped — the icons and the headshot are referenced by a
+# bare path — so they get a long cache rather than a permanent one. A month
+# is the most that can be given to a URL whose contents may be replaced.
+/assets/img/*
+  Cache-Control: public, max-age=2592000

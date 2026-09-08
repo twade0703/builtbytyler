@@ -64,13 +64,33 @@ TAIL = """      </div>
   </main>
 
   <footer id="site-footer" data-year="2026">
+    <!-- Static fallback only. components.js overwrites this block on load, so
+         no visitor ever sees it. It exists because the nav and the footer are
+         BOTH rendered into empty hosts by JS, which left a non-executing
+         crawler with no internal links and no company name anywhere in the
+         served HTML. Keep the links here in step with NAV_ITEMS.
+
+         NO STREET ADDRESS. This template used to carry the home address, so
+         regenerating the page silently put it back on the site after it had
+         been deliberately removed. The city is all that belongs here; the
+         street address is required on cold email, and lives in exactly one
+         place for that: POSTAL_ADDRESS in 00 Framework/kit/outreach.py. -->
     <div class="container site-footer__inner">
       <address>
-        <strong>BuiltByTyler LLC</strong><br>
-        770 Madison St, Monterey, CA 93940<br>
+        <strong>Built by Tyler</strong> &mdash; BuiltByTyler LLC<br>
+        Monterey, California<br>
         <a href="tel:+12817398942">(281) 739-8942</a> &middot;
         <a href="mailto:twade@builtbytyler.com">twade@builtbytyler.com</a>
       </address>
+      <nav aria-label="Footer">
+        <a href="index.html">Home</a>
+        <a href="software.html">Websites &amp; software</a>
+        <a href="shop.html">The builds</a>
+        <a href="about.html">About Tyler Wade</a>
+        <a href="contact.html">Contact</a>
+        <a href="policies.html">Lead times, shipping &amp; refunds</a>
+        <a href="terms.html">Website terms</a>
+      </nav>
     </div>
   </footer>
 
@@ -82,6 +102,11 @@ TAIL = """      </div>
 """
 
 SIG = re.compile(r"_{3,}")
+
+# The region of terms.html that this script owns. Everything outside it — the
+# whole head, the nav host, the footer — belongs to the page and is preserved.
+OPEN_MARK = '<div class="container policy">'
+CLOSE_MARK = "      </div>\n    </section>"
 
 
 def inline(s):
@@ -181,7 +206,36 @@ def main():
         "plan. Read it before you pay. The packages sheet it refers to comes with "
         "your quote — ask for it first if you would rather read both together.**")
 
-    page = HEAD + render(md) + "\n" + TAIL
+    body = render(md)
+
+    # Splice into the existing page rather than rebuilding it.
+    #
+    # This used to be HEAD + body + TAIL, with the whole document duplicated in
+    # this file as two string constants. They drifted, silently, and the damage
+    # was only visible if you diffed the output: regenerating dropped the
+    # canonical link, every og: and twitter: tag, the icons, the manifest, the
+    # BreadcrumbList JSON-LD, and reverted the fonts to a pair the site stopped
+    # using — and it restored a home address that had been deliberately removed.
+    # The docstring tells people to run this after every edit to TERMS.md, so
+    # that was a loaded gun pointed at the one page a client reads before paying.
+    #
+    # Only the agreement text is generated now. Everything around it belongs to
+    # the page and is preserved byte for byte, so the head can never again be
+    # collateral damage of a terms edit. HEAD/TAIL remain, used only to create
+    # the page the first time if it does not exist.
+    if os.path.exists(OUT):
+        cur = open(OUT, encoding="utf-8").read()
+        a = cur.find(OPEN_MARK)
+        b = cur.find(CLOSE_MARK, a)
+        if a == -1 or b == -1:
+            raise SystemExit(
+                "cannot find the content region in %s.\n"
+                "Expected %r ... %r. Fix the page or delete it to rebuild from "
+                "the template." % (os.path.relpath(OUT, ROOT), OPEN_MARK, CLOSE_MARK))
+        page = cur[:a + len(OPEN_MARK)] + "\n" + body + "\n" + cur[b:]
+    else:
+        page = HEAD + body + "\n" + TAIL
+
     open(OUT, "w", encoding="utf-8", newline="\n").write(page)
 
     o, c = page.count("<p>"), page.count("</p>")

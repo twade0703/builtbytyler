@@ -28,8 +28,8 @@
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
-  <link rel="stylesheet" href="assets/css/styles.css?v=19">
-  <link rel="stylesheet" href="assets/css/motion.css?v=19">
+  <link rel="stylesheet" href="assets/css/styles.css?v=20">
+  <link rel="stylesheet" href="assets/css/motion.css?v=20">
 
 <!-- Structured data. Every fact here is one this site already states in prose:
        the entity, the city and the email come off contact.html. Nothing is
@@ -108,21 +108,22 @@
     <section class="section opener" data-sec="top">
       <div class="container opener__grid" data-enter>
         <div>
-          <p class="kicker">The collection <b>—</b> made to order</p>
+          <p class="kicker">The workshop <b>—</b> in progress</p>
           <h1 class="display" data-split>Machines that had to <em>work</em>.</h1>
-          <p class="opener__lead">Every piece here was designed, prototyped and made by hand
-            &mdash; the airframe and the flight code, the chassis and the control loop. Browse
-            the work below, then choose a configured build package to order.</p>
+          <p class="opener__lead">A few of the things on the bench. Each one designed,
+            prototyped and made by hand &mdash; the airframe and the flight code, the chassis
+            and the control loop. <b>None of these are for sale yet;</b> they are here because
+            they are what the software side is built by.</p>
           <div class="opener__cta">
-            <a class="btn" href="#packages">Build packages</a>
-            <a class="btn btn--ghost" href="contact.html">Ask about a custom build</a>
+            <a class="btn" href="software.html">Software &amp; web</a>
+            <a class="btn btn--ghost" href="contact.html">Ask about a build</a>
           </div>
         </div>
         <ul class="facts" data-reveal="right">
-          <li><b>5</b><span>Builds in the collection</span></li>
-          <li><b>2&ndash;4</b><span>Weeks, made to order</span></li>
-          <li><b>Free</b><span>Shipping, continental US</span></li>
-          <li><b>Yours</b><span>CAD, firmware and parts list</span></li>
+          <li><b>4</b><span>On the bench</span></li>
+          <li><b>0</b><span>Bought in and rebadged</span></li>
+          <li><b>CAD</b><span>Firmware and parts list, kept</span></li>
+          <li><b>Soon</b><span>Not for sale yet</span></li>
         </ul>
       </div>
     </section>
@@ -138,26 +139,26 @@
         <div class="idx" data-reveal>
           <span class="idx__n">01</span>
           <p class="idx__lab">The collection</p>
-          <h2 class="idx__h">Five builds. Hover one to bring it to life.</h2>
+          <h2 class="idx__h">Four builds. Hover one to bring it to life.</h2>
         </div>
-        <div class="plates" id="shop-grid" data-spans="plate--half,plate--half,-,-,-,plate--half,plate--half"></div>
+        <div class="plates" id="shop-grid" data-spans="plate--half,plate--half,plate--half,plate--half"></div>
       </div>
     </section>
 
     <!-- ===============================================================
-         02 · WHAT SHIPS — the inverted band. This is the reassurance
+         02 · WHAT IS KEPT — the inverted band. This is the reassurance
          section, and it belongs on light paper: it is the part someone
-         reads carefully before spending money.
+         reads carefully.
          =============================================================== -->
     <section class="band" id="included" data-sec="included">
       <div class="container band__grid" data-reveal>
-        <p class="band__lab">02 <b>—</b> Included with every build</p>
+        <p class="band__lab">02 <b>—</b> Kept with every build</p>
         <span class="band__n">02</span>
-        <h2 class="band__h">You get the machine <em>and how it was made</em>.</h2>
+        <h2 class="band__h">Every build keeps <em>how it was made</em>.</h2>
         <div class="band__text">
-          <p>A finished build that you cannot repair, modify or reprint is a dead end. So every
-            order ships with the files it was made from, the code it runs, the parts that went
-            into it, and a full video walkthrough of the assembly.</p>
+          <p>A finished build that you cannot repair, modify or reprint is a dead end. So each
+            one is kept with the files it was made from, the code it runs and the parts that
+            went into it &mdash; which is the same habit the client work runs on.</p>
           <p>Modify it, print a spare, fork the firmware. It is yours.</p>
         </div>
         <ul class="band__row">
@@ -178,70 +179,20 @@
           </li>
           <li>
             <span class="n">04</span>
-            <b>Build videos</b>
-            <span>Full walkthroughs — assembly, tuning and first flight.</span>
+            <b>Build notes</b>
+            <span>What broke, what changed and why — assembly through first flight.</span>
           </li>
         </ul>
       </div>
     </section>
 
     <!-- ===============================================================
-         03 · BUILD PACKAGES — the orderable configurations, with prices.
-         =============================================================== -->
-    <section class="section" id="packages" data-sec="packages">
-      <div class="container">
-        <div class="idx idx--split" data-reveal>
-          <span class="idx__n">03</span>
-          <p class="idx__lab">Build packages</p>
-          <h2 class="idx__h">Configured builds, ready to order.</h2>
-          <p class="idx__p">Every build is made to order and tuned by hand before it ships. Pick a
-            package, or bring an idea and have the whole thing scoped from scratch.</p>
-        </div>
-        <div class="package-grid" id="packages-grid"></div>
-        <p class="pricing-note">Lead times, shipping and the refund policy are on the
-          <a href="policies.html">lead times, shipping &amp; refunds</a> page. Payment is handled
-          by <b>Stripe</b> on their own secure checkout page &mdash; card details never touch
-          this site.</p>
-      </div>
-    </section>
-
-    <!-- ===============================================================
-         04 · THE WALKTHROUGH
-
-         The video is commented out until there is a real YouTube id to
-         put in it. It shipped live for weeks as an embed pointing at the
-         literal string VIDEO_ID, which renders as a black box with a
-         play button that goes nowhere — worse than no section at all,
-         because it looks like something broken rather than something
-         absent. Paste the id after /embed/ and uncomment.
-
-    <section class="section" id="walkthrough" data-sec="walkthrough">
-      <div class="container">
-        <div class="idx" data-reveal>
-          <span class="idx__n">04</span>
-          <p class="idx__lab">The walkthrough</p>
-          <h2 class="idx__h">Watch one get built.</h2>
-        </div>
-        <figure class="build-video" data-reveal>
-          <div class="build-video__frame">
-            <iframe src="https://www.youtube-nocookie.com/embed/VIDEO_ID"
-              title="Build walkthrough" loading="lazy"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-              allowfullscreen></iframe>
-          </div>
-          <figcaption>Every build ships with a full video walkthrough — assembly, tuning and first flight.</figcaption>
-        </figure>
-      </div>
-    </section>
-         =============================================================== -->
-
-    <!-- ===============================================================
-         04 · CLOSE
+         03 · CLOSE
          =============================================================== -->
     <section class="section" id="next" data-sec="next">
       <div class="container">
         <div class="close" data-reveal>
-          <span class="close__n">04</span>
+          <span class="close__n">03</span>
           <h2>Or bring me something that doesn't exist yet.</h2>
           <div class="close__side">
             <p>Custom engineering builds are scoped per project: discovery, CAD, prototype
@@ -289,15 +240,15 @@
        HTML, but main.js CREATES those canvases for the build plates. Removing
        it blanks every hologram. If the 64 KB is ever worth reclaiming, the fix
        is to load it on demand when a plate scrolls into view. -->
-  <script defer src="assets/js/products.js?v=19"></script>
-  <script defer src="assets/js/components.js?v=19"></script>
-  <script defer src="assets/js/hologram.js?v=19"></script>
-  <script defer src="assets/js/main.js?v=19"></script>
+  <script defer src="assets/js/products.js?v=20"></script>
+  <script defer src="assets/js/components.js?v=20"></script>
+  <script defer src="assets/js/hologram.js?v=20"></script>
+  <script defer src="assets/js/main.js?v=20"></script>
   <!-- ?v=3 busts the module cache. three.js is vendored at assets/vendor/,
        so the star field no longer needs an inline importmap (which the CSP
        blocks) or a third-party fetch from unpkg. A returning visitor still
        holding an older starfield.js would pair it with HTML that no longer
        ships that map, so the version query has to move whenever this does. -->
-  <script type="module" src="assets/js/starfield.js?v=19"></script>
+  <script type="module" src="assets/js/starfield.js?v=20"></script>
 </body>
 </html>

@@ -1,20 +1,20 @@
 /* =================================================================
-   PRODUCTS + PACKAGES — single source of truth for the store.
+   PRODUCTS — single source of truth for the builds.
    -----------------------------------------------------------------
-   To manage the catalog, edit these arrays only. Every page reads
-   from them.
+   To manage the catalogue, edit this array only. Every page reads
+   from it.
 
-   Products are the showcase pieces (rendered as 3D holograms or
-   placeholders — no photos). Selling happens through PACKAGES, shown
-   on the shop page (shop.html#packages), where the prices live.
-
-   TODO (Tyler): replace placeholder prices/copy with the real ones.
+   These are the machines on the bench, rendered as 3D holograms —
+   no photos. NONE OF THEM ARE FOR SALE. There is no price field and
+   no checkout anywhere in this file for a reason: a price on a thing
+   that cannot be bought is a promise that cannot be kept. If builds
+   open later, that is a deliberate change, not a missing feature.
 
    Product:
      id          unique slug used in product.html?id=<id>
      name        display name
      tagline     short one-liner
-     holo        hologram model: "arm" | "drone" | "evtol" | "rccar" | "rocket"
+     holo        hologram model: "arm" | "drone" | "evtol" | "rccar"
                  (see hologram.js;
                  omit for a clean placeholder panel)
      featured    show on the home page
@@ -39,7 +39,7 @@ const PRODUCTS = [
       { label: "Motion", value: "6-axis articulated" },
       { label: "Payload", value: "3D camera + gimbal" },
       { label: "Control", value: "Wireless · motion presets" },
-      { label: "Lead time", value: "Made to order" },
+      { label: "Status", value: "In progress" },
     ],
   },
   {
@@ -60,7 +60,7 @@ const PRODUCTS = [
       { label: "Class", value: "Race / freestyle / long range" },
       { label: "Power", value: "High-KV brushless" },
       { label: "Video", value: "Digital FPV" },
-      { label: "Lead time", value: "Made to order" },
+      { label: "Status", value: "In progress" },
     ],
   },
   {
@@ -78,7 +78,7 @@ const PRODUCTS = [
       { label: "Config", value: "Tilt-rotor VTOL" },
       { label: "Flight", value: "Vertical lift · wing-borne cruise" },
       { label: "Airframe", value: "Custom-built" },
-      { label: "Lead time", value: "Made to order" },
+      { label: "Status", value: "In progress" },
     ],
   },
   {
@@ -97,94 +97,7 @@ const PRODUCTS = [
       { label: "Drive", value: "Brushed DC · rear wheel" },
       { label: "Chassis", value: "Plate chassis, double wishbone" },
       { label: "Control", value: "2.4GHz pistol-grip transmitter" },
-      { label: "Lead time", value: "Made to order" },
-    ],
-  },
-  {
-    id: "rockets",
-    name: "High-Power Rocket",
-    tagline: "Custom airframe, built to fly and come back",
-    holo: "rocket",
-    featured: false,
-    available: false,
-    description:
-      "A custom high-power rocket — nose cone, body tube, fins, motor mount and recovery " +
-      "designed as one airframe, with a bay for the flight electronics. Engineered to fly " +
-      "straight, deploy on time and be flown again.",
-    specs: [
-      { label: "Type", value: "High-power model rocket" },
-      { label: "Airframe", value: "Custom-built" },
-      { label: "Recovery", value: "Parachute deploy" },
-      { label: "Lead time", value: "Made to order" },
-    ],
-  },
-];
-
-/* -----------------------------------------------------------------
-   BUILD PACKAGES — the things people actually order, with prices.
-   Shown on shop.html#packages. TODO (Tyler): set real prices + copy.
-   ----------------------------------------------------------------- */
-const PACKAGES = [
-  {
-    id: "nemo-stream",
-    name: "NEMO — Streaming Build",
-    badge: "Flagship",
-    price: 500,
-    // TEMPORARY — awaiting the real Stripe Payment Link for this build.
-    // Empty string = checkout disabled, so the button falls back to the
-    // enquiry flow and never dead-ends. Paste the live link from
-    // Stripe > Payment links to switch it on; nothing else to change.
-    // Set the link's success URL to:
-    //   https://builtbytyler.com/order-confirmed.html
-    paymentLink: "",
-    leadTime: "3–4 weeks from order",
-    shipping: "Free shipping, continental US",
-    blurb:
-      "The six-axis NEMO arm configured for live streaming and 3D capture — motion, mount and controller, tuned and ready.",
-    includes: [
-      "6-axis NEMO robotic arm",
-      "3D camera mount + gimbal",
-      "Wireless controller",
-      "Custom motion presets",
-      "Assembly + calibration",
-    ],
-  },
-  {
-    id: "fpv-performance",
-    name: "Quad FPV — Performance Build",
-    badge: "Popular",
-    price: 300,
-    paymentLink: "",
-    leadTime: "2–3 weeks from order",
-    shipping: "Free shipping, continental US",
-    blurb:
-      "A high-speed FPV quad built from the frame up, bench-tested and ready to fly. " +
-      "Choose 3\", 5\" or 7\" — tight and indoor, all-round freestyle, or long range.",
-    includes: [
-      "Your choice of 3\", 5\" or 7\" airframe",
-      "Carbon race frame",
-      "High-KV motor set",
-      "Digital FPV system",
-      "Tuned flight controller",
-      "Bench-tested + flight-ready",
-    ],
-  },
-  {
-    id: "custom-build",
-    name: "Custom Engineering Build",
-    badge: "By quote",
-    price: null, // quote-based — never gets a payment link
-    paymentLink: "",
-    leadTime: "Scoped per project",
-    shipping: "Quoted per project",
-    blurb:
-      "Bring your own idea — full design, CAD, prototyping and fabrication, handled end to end.",
-    includes: [
-      "Discovery + concept",
-      "Parametric CAD package",
-      "Prototype iteration",
-      "Final fabrication",
-      "Documentation + handoff",
+      { label: "Status", value: "In progress" },
     ],
   },
 ];
@@ -257,9 +170,9 @@ const SOFTWARE_PLANS = [
 ];
 
 /* True only when a plan can actually be paid for right now.
-   Mirrors isBuyable() for hardware: a link that is not a real Stripe
-   Payment Link is treated as no link at all, so a typo degrades to the
-   enquiry flow instead of sending someone to a broken page. */
+   A link that is not a real Stripe Payment Link is treated as no link
+   at all, so a typo degrades to the enquiry flow instead of sending
+   someone to a broken page. */
 function isPlanBuyable(plan) {
   return !!(plan && typeof plan.paymentLink === "string" &&
             plan.paymentLink.startsWith("https://buy.stripe.com/"));
@@ -281,37 +194,24 @@ function formatPlanPrice(plan) {
   return `${money(plan.setup)} build + ${money(plan.monthly)}/mo`;
 }
 
-/* True only when a package can actually be paid for right now. */
-function isBuyable(pkg) {
-  return !!(pkg && pkg.price != null && typeof pkg.paymentLink === "string" &&
-            pkg.paymentLink.startsWith("https://buy.stripe.com/"));
-}
 
 /* Helpers shared across pages */
 function getProductById(id) {
   return PRODUCTS.find((p) => p.id === id) || null;
 }
 
-function formatPrice(product) {
-  if (!product.available || product.price === null || product.price === 0 || product.price == null) {
-    return '<span class="soon">Coming soon</span>';
-  }
-  return "$" + Number(product.price).toLocaleString("en-US");
+/* Nothing here is for sale yet, so there is one status and it is honest.
+   A price on a thing you cannot buy is worse than no price. */
+function formatPrice() {
+  return '<span class="soon">In progress</span>';
 }
 
-function formatPackagePrice(pkg) {
-  if (pkg.price === null || pkg.price === undefined) return "By quote";
-  return "$" + Number(pkg.price).toLocaleString("en-US");
-}
 
 // Expose globally for the non-module scripts on each page.
 window.PRODUCTS = PRODUCTS;
-window.PACKAGES = PACKAGES;
 window.SOFTWARE_PLANS = SOFTWARE_PLANS;
 window.getProductById = getProductById;
 window.formatPrice = formatPrice;
-window.formatPackagePrice = formatPackagePrice;
-window.isBuyable = isBuyable;
 window.isPlanBuyable = isPlanBuyable;
 window.getPlanById = getPlanById;
 window.formatPlanPrice = formatPlanPrice;

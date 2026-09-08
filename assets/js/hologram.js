@@ -10,7 +10,7 @@
    Public API (called by main.js after cards render):
      window.BBTHolograms.mount()   // scan DOM, animate any <canvas data-holo>
 
-   Each <canvas data-holo="evtol|arm|drone|rccar|rocket"> becomes one hologram.
+   Each <canvas data-holo="evtol|arm|drone|rccar"> becomes one hologram.
    Degrades to a single static frame on prefers-reduced-motion.
    ================================================================= */
 (function () {
@@ -1445,109 +1445,13 @@
     return m;
   }
 
-  // High-power rocket on its launch rail. A proper airframe: ogive nose, body
-  // tube with a switch band at the avionics bay, three swept fins, boat tail,
-  // motor and retainer, rail buttons on the rail. The avionics sled is drawn
-  // inside the tube. Live: the rail is a static test stand — the arming lamp
-  // cycles, the motor lights, the plume builds and dies, and it arms again.
-  function buildRocket() {
-    const parts = [];
-    const R = 0.125, seg = 14;
-    const yB0 = -0.50, yB1 = 0.34;
-    // body tube + seams
-    parts.push(makeCylinderY(0, (yB0 + yB1) / 2, 0, R, yB1 - yB0, seg));
-    [0.04, -0.20].forEach((y) => parts.push(makeRing(0, y, 0, R, seg, "y")));
-    parts.push(makeRing(0, -0.10, 0, R + 0.012, seg, "y"));                 // switch band
-    parts.push(makeRing(0, -0.07, 0, R + 0.012, seg, "y"));
-    for (let i = 0; i < seg; i++) {
-      const a = (i / seg) * Math.PI * 2;
-      parts.push({ v: [[Math.cos(a) * (R + 0.012), -0.10, Math.sin(a) * (R + 0.012)], [Math.cos(a) * (R + 0.012), -0.07, Math.sin(a) * (R + 0.012)]], e: [[0, 1]] });
-    }
-    // nose cone: elliptical ogive, lofted
-    const L = 0.60, st = [];
-    for (let i = 0; i <= 5; i++) {
-      const f = i / 5;
-      st.push({ y: yB1 + L * f, r: Math.max(R * Math.sqrt(1 - f * f) * (1 - 0.06 * f), 0.012) });
-    }
-    parts.push(makeLoftY(st, seg));
-    parts.push({ v: [[0, yB1 + L, 0], [0, yB1 + L + 0.05, 0]], e: [[0, 1]] });  // tip
-    // shoulder ring inside the tube where the cone seats
-    parts.push(makeRing(0, yB1 - 0.06, 0, R - 0.015, seg, "y"));
-    // three swept fins, one facing the viewer
-    const fin = [[R, -0.18], [R + 0.22, -0.40], [R + 0.22, -0.56], [R, -0.50]];
-    [Math.PI / 2, Math.PI / 2 + (2 * Math.PI) / 3, Math.PI / 2 + (4 * Math.PI) / 3].forEach((th) => {
-      const c = Math.cos(th), s = Math.sin(th);
-      const p = fin.map(([r, y]) => [r * c, y, r * s]);
-      parts.push({ v: p, e: [[0, 1], [1, 2], [2, 3], [3, 0]] });
-      parts.push({ v: [[(R + 0.11) * c, -0.29, (R + 0.11) * s], [(R + 0.11) * c, -0.53, (R + 0.11) * s]], e: [[0, 1]] }); // mid-chord rib
-    });
-    // boat tail, motor, retainer, nozzle
-    parts.push(makeLoftY([{ y: yB0, r: R }, { y: yB0 - 0.07, r: R * 0.85 }, { y: yB0 - 0.13, r: 0.085 }], seg));
-    parts.push(makeCylinderY(0, yB0 - 0.20, 0, 0.062, 0.14, 10));
-    parts.push(makeRing(0, yB0 - 0.13, 0, 0.076, 12, "y"));
-    parts.push(makeRing(0, yB0 - 0.16, 0, 0.076, 12, "y"));
-    parts.push(makeRing(0, yB0 - 0.27, 0, 0.042, 10, "y"));               // nozzle throat
-    // launch rail beside the rocket, with two rail buttons on the tube
-    const RX = -R - 0.075;
-    parts.push(makeBox(RX, -0.20, 0, 0.032, 1.42, 0.032));
-    parts.push(makeBox(RX, -0.88, 0, 0.16, 0.05, 0.16));                   // rail foot
-    parts.push(makeBox(RX - 0.035, -0.88, 0, 0.09, 0.03, 0.3));
-    [-0.42, 0.12].forEach((y) => {
-      parts.push(makeBox(RX + 0.03, y, 0, 0.03, 0.04, 0.03));             // rail button
-      parts.push({ v: [[RX + 0.045, y, 0], [-R, y, 0]], e: [[0, 1]] });
-    });
-    // avionics sled inside the bay: a plate, an altimeter board, a battery
-    parts.push(makeBox(0, -0.08, 0, 0.16, 0.20, 0.012));
-    parts.push(makeBox(-0.035, -0.06, 0.02, 0.07, 0.10, 0.02));
-    parts.push(makeBox(0.045, -0.10, 0.02, 0.05, 0.12, 0.035));
-    parts.push(makeBase(-0.94, 0.98));
-
-    const m = merge(parts);
-    m.spinners = [];
-    m.dynamic = function (time) {
-      const segs = [], dots = [];
-      const P = pen(segs);
-      // arm → ignite → burn → fade, then arm again
-      const cyc = (time * 0.10) % 1;
-      let plume = 0;
-      if (cyc > 0.50 && cyc < 0.62) plume = V.ss((cyc - 0.50) / 0.12);
-      else if (cyc >= 0.62 && cyc < 0.86) plume = 1;
-      else if (cyc >= 0.86) plume = 1 - V.ss((cyc - 0.86) / 0.14);
-      const armed = cyc < 0.50 && ((time * 2.4) % 1) < 0.5;
-      if (plume > 0.02) {
-        const flick = 0.92 + 0.08 * Math.sin(time * 23) * Math.sin(time * 17);
-        const y0 = yB0 - 0.27;
-        // the plume: rings that widen and fade with distance from the nozzle
-        for (let i = 0; i < 5; i++) {
-          const f = (i + 1) / 5;
-          const y = y0 - f * 0.55 * plume * flick;
-          const r = 0.03 + f * f * 0.16 * plume;
-          const wob = 1 + 0.05 * Math.sin(time * 30 + i);
-          P.ring(0, y, 0, r * wob, 10, "y", 1.6 * (1 - f * 0.7) * plume);
-        }
-        // shock diamonds: a bright core down the centre
-        for (let i = 0; i < 3; i++) {
-          const y = y0 - (i + 0.5) * 0.11 * plume;
-          dots.push([0, y, 0, (2.6 - i * 0.5) * plume, 1]);
-        }
-        dots.push([0, y0 + 0.01, 0, 3.4 * plume, 1]);
-      }
-      // altimeter LED in the bay: blinks while armed, solid during the burn
-      const lit = plume > 0.5 || armed;
-      dots.push([-0.035, -0.02, 0.035, lit ? 2.4 : 1.0, lit ? 1 : 0]);
-      return { segments: segs, dots };
-    };
-    return m;
-  }
-
-  const MODELS = { evtol: buildEvtol, arm: buildArm, drone: buildDrone, rccar: buildRccar, rocket: buildRocket };
+  const MODELS = { evtol: buildEvtol, arm: buildArm, drone: buildDrone, rccar: buildRccar };
   // Per-model holographic tint (rgb triplets) — cyan family to match the UI.
   const TINTS = {
     evtol: [86, 200, 255],
     arm: [80, 196, 255],
     drone: [110, 214, 255],
     rccar: [104, 212, 255],
-    rocket: [100, 224, 255],
   };
 
   /* ---------------- a single hologram instance ---------------- */

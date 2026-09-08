@@ -1,7 +1,7 @@
 /* =================================================================
    main.js — behavior layer
-   · renders the build plates (home + shop) and the build detail page
-   · placeholder cart (localStorage) with drawer + toast
+   · renders the build plates (home + builds) and the build detail page
+   · upgrades the software tiers to live Stripe checkout
    · mobile nav toggle
    · scroll-in reveal animations
    Runs after components.js has injected the shared chrome.
@@ -17,109 +17,6 @@
      See the .js-reveal note in motion.css. */
   document.documentElement.classList.add("js-reveal");
 
-  const CART_KEY = "bbt_cart";
-
-  /* ---------------- Cart store (placeholder) ----------------
-     Real checkout is intentionally NOT implemented. When ready,
-     wire a Stripe / Gumroad / Shopify link into checkout() below.
-  */
-  function readCart() {
-    try {
-      return JSON.parse(localStorage.getItem(CART_KEY)) || [];
-    } catch (e) {
-      return [];
-    }
-  }
-  function writeCart(items) {
-    localStorage.setItem(CART_KEY, JSON.stringify(items));
-  }
-  function cartCount(items) {
-    return items.reduce((n, line) => n + line.qty, 0);
-  }
-
-  function addToCart(id) {
-    const product = window.getProductById(id);
-    if (!product) return;
-    const items = readCart();
-    const line = items.find((l) => l.id === id);
-    if (line) line.qty += 1;
-    else items.push({ id, qty: 1 });
-    writeCart(items);
-    updateCartBadge();
-    renderCartBody();
-    showToast(`${product.name} added — checkout coming soon`);
-  }
-
-  function removeFromCart(id) {
-    writeCart(readCart().filter((l) => l.id !== id));
-    updateCartBadge();
-    renderCartBody();
-  }
-
-  function updateCartBadge() {
-    const badge = document.getElementById("cart-count");
-    if (!badge) return;
-    const n = cartCount(readCart());
-    badge.textContent = n;
-    badge.classList.toggle("is-visible", n > 0);
-  }
-
-  /* Placeholder — real payment integration goes here later. */
-  function checkout() {
-    showToast("Checkout isn't live yet — get in touch to order.");
-  }
-
-  /* ---------------- Toast ---------------- */
-  let toastTimer;
-  function showToast(msg) {
-    const toast = document.getElementById("toast");
-    if (!toast) return;
-    toast.textContent = msg;
-    toast.classList.add("is-visible");
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => toast.classList.remove("is-visible"), 2600);
-  }
-
-  /* ---------------- Cart drawer ---------------- */
-  function openDrawer() {
-    document.getElementById("cart-backdrop")?.classList.add("is-open");
-    const d = document.getElementById("cart-drawer");
-    d?.classList.add("is-open");
-    d?.setAttribute("aria-hidden", "false");
-  }
-  function closeDrawer() {
-    document.getElementById("cart-backdrop")?.classList.remove("is-open");
-    const d = document.getElementById("cart-drawer");
-    d?.classList.remove("is-open");
-    d?.setAttribute("aria-hidden", "true");
-  }
-
-  function renderCartBody() {
-    const body = document.getElementById("cart-body");
-    if (!body) return;
-    const items = readCart();
-    if (!items.length) {
-      body.innerHTML = `<p class="cart-empty">Your cart is empty.</p>`;
-      return;
-    }
-    body.innerHTML = items
-      .map((line) => {
-        const p = window.getProductById(line.id);
-        if (!p) return "";
-        return `
-          <div class="cart-line">
-            <span class="cart-line__thumb" aria-hidden="true"></span>
-            <div class="cart-line__info">
-              <div class="cart-line__name">${p.name}</div>
-              <div class="cart-line__meta">Qty ${line.qty} · ${
-          p.available && p.price ? "$" + p.price.toLocaleString("en-US") : "Coming soon"
-        }</div>
-            </div>
-            <button class="cart-line__remove" data-remove="${p.id}" aria-label="Remove ${p.name}">Remove</button>
-          </div>`;
-      })
-      .join("");
-  }
 
   /* ---------------- Build plates ----------------
      A build is presented as a museum plate: the hologram in a framed
@@ -141,7 +38,7 @@
   function plateHTML(p, index, span) {
     const idx = String((index || 0) + 1).padStart(2, "0");
     const href = `product.html?id=${p.id}`;
-    const status = p.available ? "Available" : "Made to order";
+    const status = "In progress";
     const media = p.holo
       ? `<canvas class="plate__holo" data-holo="${p.holo}"></canvas>
          <span class="plate__hud">3D <em>·</em> Wireframe</span>`
@@ -188,38 +85,13 @@
       return;
     }
     if (!list.length) {
-      grid.innerHTML = `<p class="cart-empty">No builds listed yet — check back soon.</p>`;
+      grid.innerHTML = `<p class="plate-empty">No builds listed yet — check back soon.</p>`;
       return;
     }
     const custom = (grid.getAttribute("data-spans") || "").split(",").map((v) => v.trim());
     grid.innerHTML = list
       .map((p, i) => plateHTML(p, i, custom[i] !== undefined && custom[i] !== "" ? (custom[i] === "-" ? "" : custom[i]) : SPANS[i] || ""))
       .join("");
-  }
-
-  /* ---------------- Build packages (shop.html#packages) ---------------- */
-  function packageHTML(pkg, i) {
-    const includes = (pkg.includes || []).map((li) => `<li>${li}</li>`).join("");
-    return `
-      <article class="package" data-reveal data-reveal-i="${(i || 0) + 1}">
-        <div class="package__head">
-          ${pkg.badge ? `<span class="package__badge">${pkg.badge}</span>` : ""}
-          <h3 class="package__name">${pkg.name}</h3>
-          <p class="package__price">${window.formatPackagePrice(pkg)}</p>
-        </div>
-        <p class="package__blurb">${pkg.blurb}</p>
-        <ul class="package__list">${includes}</ul>
-        <button class="btn btn--block" data-order="${pkg.id}">${
-          pkg.price == null ? "Request a quote"
-            : (window.isBuyable && window.isBuyable(pkg)) ? "Order now" : "Order"
-        }</button>
-      </article>`;
-  }
-
-  function renderPackages() {
-    const grid = document.getElementById("packages-grid");
-    if (!grid || !window.PACKAGES) return;
-    grid.innerHTML = window.PACKAGES.map(packageHTML).join("");
   }
 
   /* ---------------- Product detail (product.html) ---------------- */
@@ -245,10 +117,7 @@
       .map((s) => `<dt>${s.label}</dt><dd>${s.value}</dd>`)
       .join("");
 
-    const buyBtn = p.available
-      ? `<button class="btn" data-add="${p.id}">Add to cart</button>
-         <button class="btn btn--ghost" data-buy="${p.id}">Buy now</button>`
-      : `<a class="btn" href="shop.html#packages">View build packages</a>`;
+    const buyBtn = `<a class="btn" href="contact.html">Ask about this build</a>`;
 
     const media = p.holo
       ? `<canvas class="plate__holo" data-holo="${p.holo}"></canvas>
@@ -262,135 +131,20 @@
           ${media}
         </div>
         <div class="detail__info">
-          <p class="badge">${p.available ? "Available" : "Coming soon"}</p>
+          <p class="badge">In progress</p>
           <h1>${p.name}</h1>
           <p class="detail__tag">${p.tagline}</p>
-          <p class="detail__price">${p.available ? "Available to order" : "Made to order &middot; sold as a configured build"}</p>
-          <div class="detail__desc"><p>${p.description}</p></div>
+                    <div class="detail__desc"><p>${p.description}</p></div>
           <div class="detail__actions">${buyBtn}</div>
-          <span class="notice">${
-            p.available
-              ? "Checkout is a placeholder — get in touch to order."
-              : "Sold as a configured build — see pricing on the shop page."
-          }</span>
+          <span class="notice">On the bench &mdash; not for sale yet.</span>
           ${
             specs
               ? `<div class="specs"><dl>${specs}</dl></div>`
               : ""
           }
-          <p class="detail__included">Every build ships with <b>STL · STEP · program files</b> + a hardware package.</p>
+          <p class="detail__included">Kept with its <b>STL · STEP · program files</b> and build notes.</p>
         </div>
       </div>`;
-  }
-
-  /* ---------------- Order modal (build packages) ---------------- */
-  let currentOrder = null;
-
-  function openOrderModal(id) {
-    const pkg = (window.PACKAGES || []).find((p) => p.id === id);
-    if (!pkg) return;
-    currentOrder = pkg;
-    const title = document.getElementById("order-title");
-    const price = document.getElementById("order-price");
-    if (title) title.textContent = pkg.name;
-    if (price) price.textContent = window.formatPackagePrice(pkg);
-
-    const buyable = window.isBuyable && window.isBuyable(pkg);
-    const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
-    set("order-lead", pkg.leadTime || "Made to order");
-    set("order-ship", pkg.shipping || "Quoted per order");
-
-    const submit = document.getElementById("order-submit");
-    const note = document.getElementById("order-note");
-    const consentWrap = document.getElementById("order-consent-wrap");
-    const consent = document.getElementById("order-consent");
-    const qtyField = document.getElementById("order-qty-field");
-
-    if (submit) submit.textContent = buyable ? "Continue to secure checkout" : "Send order request";
-    if (note) {
-      note.innerHTML = buyable
-        ? 'Payment is handled by <b>Stripe</b> on their own secure page \u2014 card details never touch this site.'
-        : "No payment now \u2014 I'll confirm the details and follow up, usually within a day.";
-    }
-    // The consent tick only gates a real payment.
-    if (consentWrap) consentWrap.hidden = !buyable;
-    if (consent) consent.checked = false;
-    // Stripe controls quantity on its own page.
-    if (qtyField) qtyField.hidden = buyable;
-    document.getElementById("order-backdrop")?.classList.add("is-open");
-    const m = document.getElementById("order-modal");
-    m?.classList.add("is-open");
-    m?.setAttribute("aria-hidden", "false");
-    setTimeout(() => document.getElementById("order-name")?.focus(), 60);
-  }
-
-  function closeOrderModal() {
-    document.getElementById("order-backdrop")?.classList.remove("is-open");
-    const m = document.getElementById("order-modal");
-    m?.classList.remove("is-open");
-    m?.setAttribute("aria-hidden", "true");
-  }
-
-  // Buyable packages hand off to a Stripe-hosted Payment Link. Everything
-  // else (quote work, or a package with no link yet) falls back to an email
-  // enquiry so a button can never dead-end.
-  function submitOrder(e) {
-    e.preventDefault();
-    if (!currentOrder) return;
-    const val = (id) => (document.getElementById(id)?.value || "").trim();
-    const name = val("order-name");
-    const email = val("order-email");
-    const qty = val("order-qty") || "1";
-    const notes = val("order-notes");
-    if (!name || !email) {
-      showToast("Add your name and email to place the order.");
-      return;
-    }
-
-    const buyable = window.isBuyable && window.isBuyable(currentOrder);
-
-    if (buyable) {
-      if (!document.getElementById("order-consent")?.checked) {
-        showToast("Please confirm you've read the lead times and refund policy.");
-        return;
-      }
-      // Stripe collects payment, address and quantity on its own page.
-      // client_reference_id ties the Stripe payment back to a package id.
-      const url = new URL(currentOrder.paymentLink);
-      url.searchParams.set("prefilled_email", email);
-      url.searchParams.set("client_reference_id", currentOrder.id);
-      closeOrderModal();
-      window.location.assign(url.toString());
-      return;
-    }
-
-    const subject = `Order — ${currentOrder.name}`;
-    const body = [
-      `Order — ${currentOrder.name}`,
-      `Price: ${window.formatPackagePrice(currentOrder)}`,
-      "",
-      `Name: ${name}`,
-      `Email: ${email}`,
-      `Quantity: ${qty}`,
-      `Notes: ${notes || "—"}`,
-      "",
-      `Includes: ${(currentOrder.includes || []).join(", ")}`,
-    ].join("\n");
-    window.location.href =
-      `mailto:twade@builtbytyler.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    closeOrderModal();
-    showToast("Order ready in your email — just hit send.");
-  }
-
-  /* ---------------- Policy page lead times ---------------- */
-  // Lead times live in PACKAGES so the policy page can never drift
-  // out of sync with what the shop actually promises.
-  function renderPolicyLeadTimes() {
-    const host = document.getElementById("policy-leadtimes");
-    if (!host || !window.PACKAGES) return;
-    host.innerHTML = window.PACKAGES.map(
-      (p) => `<li><span class="k">${p.name}</span><span class="v">${p.leadTime || "Made to order"}</span></li>`
-    ).join("");
   }
 
   /* ---------------- Mobile nav ---------------- */
@@ -497,21 +251,17 @@
   }
 
   /* ---------------- Stripe return page (order-confirmed.html) ----------------
-     Stripe redirects here after payment. Software Payment Links carry
-     ?type=software; hardware links carry nothing. Both variants are in
-     the HTML, so with JavaScript off the page still says something true
-     (the hardware copy) rather than nothing at all. */
+     Stripe redirects here after payment. Software is the only thing that
+     can currently be paid for, so it is both the default in the HTML and
+     the assumption here: a payer who arrives without a parameter is a
+     software client, and telling them their drone is being built would be
+     flatly untrue. Hardware copy is kept, hidden, for when builds open —
+     it needs an explicit ?type=hardware to appear. */
   function initConfirmation() {
     const blocks = document.querySelectorAll("[data-confirm]");
     if (!blocks.length) return;
     const params = new URLSearchParams(window.location.search);
-    // Fall back to the client_reference_id the Payment Link sends back, so
-    // the page is still right if the ?type= parameter is ever dropped.
-    const ref = (params.get("client_reference_id") || "").toLowerCase();
-    const isSoftware =
-      params.get("type") === "software" ||
-      ["launch", "growth", "product"].includes(ref);
-    const want = isSoftware ? "software" : "hardware";
+    const want = params.get("type") === "hardware" ? "hardware" : "software";
     blocks.forEach((b) => { b.hidden = b.getAttribute("data-confirm") !== want; });
   }
 
@@ -698,29 +448,8 @@
   /* ---------------- Global click delegation ---------------- */
   function initDelegation() {
     document.addEventListener("click", (e) => {
-      const add = e.target.closest("[data-add]");
-      if (add) { addToCart(add.getAttribute("data-add")); return; }
-
-      const buy = e.target.closest("[data-buy]");
-      if (buy) { addToCart(buy.getAttribute("data-buy")); openDrawer(); return; }
-
-      const rm = e.target.closest("[data-remove]");
-      if (rm) { removeFromCart(rm.getAttribute("data-remove")); return; }
-
-      const order = e.target.closest("[data-order]");
-      if (order) { openOrderModal(order.getAttribute("data-order")); return; }
-      if (e.target.closest("#order-close") || e.target.id === "order-backdrop") { closeOrderModal(); return; }
-
-      if (e.target.closest("#cart-open")) { renderCartBody(); openDrawer(); return; }
-      if (e.target.closest("#cart-close") || e.target.id === "cart-backdrop") { closeDrawer(); return; }
-      if (e.target.closest("#checkout-btn")) { checkout(); return; }
     });
 
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape") { closeDrawer(); closeOrderModal(); }
-    });
-
-    document.getElementById("order-form")?.addEventListener("submit", submitOrder);
   }
 
   /* ---------------- Boot ---------------- */
@@ -729,8 +458,6 @@
     if (window.PRODUCTS) {
       renderGrid("featured-grid", window.PRODUCTS.filter((p) => p.featured));
       renderGrid("shop-grid", window.PRODUCTS);
-      renderPackages();
-    renderPolicyLeadTimes();
       renderDetail();
       // Bring the freshly-rendered holograms (home, shop, detail) to life.
       if (window.BBTHolograms) window.BBTHolograms.mount();
@@ -742,8 +469,6 @@
     initSoftwarePlans();
     initConfirmation();
     initDelegation();
-    updateCartBadge();
-    renderCartBody();
     // Reveal runs last so dynamically-rendered cards are observed.
     initReveal();
   }

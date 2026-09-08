@@ -18,13 +18,6 @@ const NAV_ITEMS = [
   { href: "contact.html", label: "Contact" },
 ];
 
-const CART_ICON = `
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"
-       stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-    <path d="M3 3h2l.4 2M7 13h10l3.5-7H6.4M7 13L5.4 5M7 13l-2 4h12"/>
-    <circle cx="9" cy="20" r="1.2"/><circle cx="17" cy="20" r="1.2"/>
-  </svg>`;
-
 function currentPage() {
   const path = window.location.pathname.split("/").pop();
   return path === "" ? "index.html" : path;
@@ -52,10 +45,6 @@ function renderNav() {
         <ul class="nav-links" id="nav-links">${links}</ul>
       </nav>
       <div class="nav-actions">
-        <button class="cart-btn" id="cart-open" aria-label="Open cart">
-          ${CART_ICON}
-          <span class="cart-count" id="cart-count">0</span>
-        </button>
         <button class="nav-toggle" id="nav-toggle" aria-label="Toggle menu" aria-expanded="false">
           <span></span><span></span><span></span>
         </button>
@@ -87,36 +76,6 @@ function renderFooter() {
     </div>`;
 }
 
-function renderCartDrawer() {
-  if (document.getElementById("cart-drawer")) return;
-  const wrap = document.createElement("div");
-  wrap.innerHTML = `
-    <div class="drawer-backdrop" id="cart-backdrop"></div>
-    <aside class="drawer" id="cart-drawer" aria-hidden="true" aria-label="Shopping cart">
-      <div class="drawer__head">
-        <h2>Cart</h2>
-        <button class="drawer__close" id="cart-close" aria-label="Close cart">&times;</button>
-      </div>
-      <div class="drawer__body" id="cart-body"></div>
-      <div class="drawer__foot">
-        <button class="btn btn--block" id="checkout-btn" disabled aria-disabled="true">
-          Checkout — coming soon
-        </button>
-      </div>
-    </aside>`;
-  document.body.appendChild(wrap);
-}
-
-function renderToast() {
-  if (document.getElementById("toast")) return;
-  const t = document.createElement("div");
-  t.className = "toast";
-  t.id = "toast";
-  t.setAttribute("role", "status");
-  t.setAttribute("aria-live", "polite");
-  document.body.appendChild(t);
-}
-
 /* Minimal instrument HUD — the scroll-progress bar and percentage
    readout. Driven by initHud() in main.js. */
 function renderHUD() {
@@ -129,41 +88,6 @@ function renderHUD() {
     <div class="hud__progress"><span id="hud-bar"></span></div>
     <div class="hud__readout"><span id="hud-pct">000</span>%</div>`;
   document.body.appendChild(hud);
-}
-
-/* Order modal — opened from the build packages (main.js handles logic). */
-function renderOrderModal() {
-  if (document.getElementById("order-modal")) return;
-  const wrap = document.createElement("div");
-  wrap.innerHTML = `
-    <div class="modal-backdrop" id="order-backdrop"></div>
-    <div class="order-modal" id="order-modal" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Place an order">
-      <button class="order-modal__close" id="order-close" aria-label="Close">&times;</button>
-      <p class="eyebrow">Place an order</p>
-      <h2 class="order-modal__title" id="order-title">Build</h2>
-      <p class="order-modal__price" id="order-price"></p>
-      <ul class="order-terms" id="order-terms">
-        <li><span>Lead time</span><b id="order-lead"></b></li>
-        <li><span>Shipping</span><b id="order-ship"></b></li>
-      </ul>
-      <form class="order-form" id="order-form" novalidate>
-        <label class="order-field"><span>Name</span>
-          <input type="text" id="order-name" name="name" autocomplete="name" required></label>
-        <label class="order-field"><span>Email</span>
-          <input type="email" id="order-email" name="email" autocomplete="email" required></label>
-        <label class="order-field" id="order-qty-field"><span>Quantity</span>
-          <input type="number" id="order-qty" name="qty" min="1" value="1"></label>
-        <label class="order-field"><span>Notes / options</span>
-          <textarea id="order-notes" name="notes" rows="3" placeholder="Finish, colour, timeline, anything specific…"></textarea></label>
-        <label class="order-consent" id="order-consent-wrap">
-          <input type="checkbox" id="order-consent">
-          <span>I've read the <a href="policies.html" target="_blank" rel="noopener">lead times, shipping and refund policy</a>.</span>
-        </label>
-        <button type="submit" class="btn btn--block" id="order-submit">Place order</button>
-        <p class="order-form__note" id="order-note"></p>
-      </form>
-    </div>`;
-  document.body.appendChild(wrap);
 }
 
 /* The measuring grid — six columns of hairlines behind every page.
@@ -184,10 +108,7 @@ function mountChrome() {
   renderRules();
   renderNav();
   renderFooter();
-  renderCartDrawer();
-  renderToast();
   renderHUD();
-  renderOrderModal();
 }
 
 if (document.readyState === "loading") {

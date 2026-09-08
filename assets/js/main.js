@@ -99,14 +99,20 @@
     const host = document.getElementById("product-detail");
     if (!host) return;
     const id = new URLSearchParams(window.location.search).get("id");
-    const p = id ? window.getProductById(id) : null;
 
+    /* No id at all is the bare /product URL, which is in the sitemap and
+       ships real static content in the HTML. Leaving it alone is the whole
+       point — overwriting it with "not found" is what made that URL an
+       empty page in the index. Only a BAD id is an error. */
+    if (!id) return;
+
+    const p = window.getProductById(id);
     if (!p) {
       host.innerHTML = `
         <div class="empty-state">
-          <h1>Product not found</h1>
-          <p>We couldn't find that item. It may have moved or sold out.</p>
-          <a class="btn" href="shop.html">Back to shop</a>
+          <h1>No such build</h1>
+          <p>That link doesn't match anything here. It may have been renamed.</p>
+          <a class="btn" href="shop.html">See the builds</a>
         </div>`;
       return;
     }

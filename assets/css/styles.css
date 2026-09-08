@@ -768,7 +768,7 @@ html.nav-open, html.nav-open body { overflow: hidden; }
   background: var(--band-ink);
 }
 .timeline .when { display: block; font-family: var(--font-mono); font-size: var(--fs-micro); letter-spacing: 0.18em; text-transform: uppercase; color: var(--band-accent); margin-bottom: 1rem; }
-.timeline h4 { font-size: 1.15rem; font-weight: 500; margin-bottom: 0.5rem; color: var(--band-ink); }
+.timeline h3 { font-size: 1.15rem; font-weight: 500; margin-bottom: 0.5rem; color: var(--band-ink); }
 .timeline p { color: var(--band-muted); font-size: var(--fs-small); margin: 0; }
 
 /* The tool ledger on the About page's band: three columns of mono facts. */
@@ -1058,6 +1058,7 @@ html.nav-open, html.nav-open body { overflow: hidden; }
 .next-steps b { display: block; font-family: var(--font-display); font-weight: 500; font-size: 1rem; }
 .next-steps span { color: var(--muted); font-size: var(--fs-small); }
 .contact-loc { margin-top: 1.5rem; font-family: var(--font-mono); font-size: var(--fs-micro); letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+.contact-area { font-size: var(--fs-small); color: var(--muted); line-height: 1.65; margin: 0 0 1rem; }
 #plan-notice {
   display: block; text-transform: none; letter-spacing: 0;
   font-family: var(--font-body); font-size: var(--fs-small); color: var(--muted);

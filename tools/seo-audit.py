@@ -170,7 +170,12 @@ def audit_page(path, raw, resp, indexable):
     # --- canonical --------------------------------------------------------
     can = re.search(r'<link\b[^>]*rel\s*=\s*["\']canonical["\'][^>]*>', doc, re.I)
     if not can:
-        err(P, "no canonical link")
+        # A canonical on a noindex page is not just unnecessary, it is a
+        # conflicting signal — it asks to consolidate to a URL that is
+        # simultaneously asking not to be indexed. So only require one
+        # where the page is meant to be found.
+        if indexable:
+            err(P, "no canonical link")
     else:
         href = re.search(r'href\s*=\s*["\'](.*?)["\']', can.group(0), re.I)
         href = href.group(1) if href else ""

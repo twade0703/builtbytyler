@@ -17,9 +17,9 @@ returning visitor keeps the old file for a year, not an afternoon.
 
 Bump VERSION on any deploy that changes CSS or JS.
 """
-import io, os, re, glob
+import hashlib, io, json, os, re, glob, sys
 
-VERSION = "21"
+VERSION = "22"
 os.chdir(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 ASSETS = [
@@ -73,3 +73,54 @@ for src, dep in MODULE_IMPORTS:
         print("  stamped", dep, "in", src)
 
 print("versioned", changed, "files at v=" + VERSION)
+
+# ---------------------------------------------------------------- the guard
+#
+# Bumping VERSION is a manual step, and forgetting it is now expensive rather
+# than merely untidy: with `immutable` on assets/*, a URL that does not change
+# is a URL that never refetches. This has already happened once — starfield.js
+# was edited and shipped under an unchanged v=21, so the edge kept serving the
+# previous file behind that exact URL for every visitor while the unstamped
+# path returned the new one. That is invisible unless you fetch the stamped URL
+# specifically, which is why it survived a "verified live" check.
+#
+# So the script records what each version's bytes were, and refuses to let the
+# contents of an already-recorded version change underneath it.
+LEDGER = os.path.join("tools", "asset-hashes.json")
+TRACKED = ASSETS + [dep for _s, dep in MODULE_IMPORTS]
+
+
+def sha(path):
+    return hashlib.sha256(io.open(path, "rb").read()).hexdigest()[:16]
+
+
+now = {}
+for a in ASSETS:
+    if os.path.exists(a):
+        now[a] = sha(a)
+for src, dep in MODULE_IMPORTS:
+    p = os.path.normpath(os.path.join(os.path.dirname(src), dep.split("?")[0]))
+    if os.path.exists(p):
+        now[p.replace(os.sep, "/")] = sha(p)
+
+ledger = {}
+if os.path.exists(LEDGER):
+    ledger = json.load(io.open(LEDGER, encoding="utf-8"))
+
+was = ledger.get(VERSION)
+if was and was != now:
+    drifted = sorted(k for k in now if was.get(k) != now[k])
+    print("", file=sys.stderr)
+    print("ERROR: these files changed but VERSION is still %s:" % VERSION, file=sys.stderr)
+    for d in drifted:
+        print("         %s  %s -> %s" % (d, was.get(d, "(new)"), now[d]), file=sys.stderr)
+    print("", file=sys.stderr)
+    print("       Their URLs are cached `immutable`, so shipping this would serve", file=sys.stderr)
+    print("       the OLD bytes to every returning visitor. Bump VERSION and", file=sys.stderr)
+    print("       re-run.", file=sys.stderr)
+    sys.exit(1)
+
+ledger[VERSION] = now
+io.open(LEDGER, "w", encoding="utf-8", newline="\n").write(
+    json.dumps(ledger, indent=1, sort_keys=True) + "\n")
+print("recorded %d asset hashes for v=%s" % (len(now), VERSION))

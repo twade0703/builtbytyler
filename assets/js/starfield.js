@@ -27,7 +27,7 @@
 // field died the moment DNS moved to Cloudflare. Serving it from our own
 // origin removes the inline map, removes unpkg from the CSP entirely, and
 // takes the largest third-party fetch off the critical path.
-import * as THREE from "../vendor/three.module.js?v=21";
+import * as THREE from "../vendor/three.module.js?v=22";
 
 const CONFIG = {
   bg: 0x04070c, // deep blue-black (clear colour + fog colour)

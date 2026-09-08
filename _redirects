@@ -1,21 +1,29 @@
 # Cloudflare Pages redirects.
 #
-# www -> apex is NOT handled here. Tested against the live site on 2026-09-07:
-# Cloudflare Pages matches _redirects on the PATH only, so a source with a
-# hostname in it is silently ignored — www.builtbytyler.com still answered 200
-# with its own copy of the page rather than a 301.
+# www -> apex is NOT handled here, and cannot be. Cloudflare Pages matches
+# _redirects on the PATH only, so a source with a hostname in it is silently
+# ignored — a rule written here does nothing at all, which is the worst kind
+# of not working.
 #
-#   curl -sI https://www.builtbytyler.com/ | head -1    # HTTP/1.1 200 OK
+# It is instead a Redirect Rule on the zone, created 2026-09-07 and verified
+# live the same day:
 #
-# What holds the line in the meantime is the <link rel="canonical"> now in
-# every page head, which www serves too, pointing at the apex. Google honours
-# that and consolidates the two hosts. A 301 is still the stronger signal, and
-# it has to be made in the dashboard:
-#
-#   Cloudflare > builtbytyler.com > Rules > Redirect Rules > Create
-#     If  hostname equals  www.builtbytyler.com
-#     Then  dynamic redirect  301  to  concat("https://builtbytyler.com", http.request.uri.path)
+#   Cloudflare > builtbytyler.com > Rules > Redirect Rules
+#     Name    Redirect www to apex (301)
+#     Match   wildcard  https://www.builtbytyler.com/*
+#     Then    301 to    https://builtbytyler.com/${1}
 #     Preserve query string: on
 #
-# This file is kept because path redirects (an old URL moving, say) do work
+#   https://www.builtbytyler.com/shop            -> 301 https://builtbytyler.com/shop
+#   https://www.builtbytyler.com/software?utm=x  -> 301 ...software?utm=x   (query kept)
+#   http://www.builtbytyler.com/about            -> 200 apex in two hops
+#
+# The two hops on plain http are expected and fine: "Always Use HTTPS" runs
+# first and upgrades http://www -> https://www, and this rule then takes it
+# to the apex. Matching http here as well would need a custom filter
+# expression, and the ordering between that and Always Use HTTPS is not
+# guaranteed — a chain of two is not worth trading for a rule that might
+# not fire.
+#
+# This file is kept because PATH redirects (an old URL moving, say) do work
 # here and belong in it.

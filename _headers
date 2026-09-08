@@ -17,21 +17,31 @@
   Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self' https://checkout.stripe.com https://buy.stripe.com; script-src 'self' https://js.stripe.com https://static.cloudflareinsights.com; script-src-attr 'none'; frame-src https://js.stripe.com https://checkout.stripe.com https://hooks.stripe.com; connect-src 'self' https://api.stripe.com https://checkout.stripe.com https://cloudflareinsights.com; img-src 'self' data: blob: https://*.stripe.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; media-src 'self'; worker-src 'self' blob:; manifest-src 'self'; upgrade-insecure-requests
 
 # Code and styles are cache-busted by tools/version-assets.py, which stamps
-# ?v=N on every reference at deploy time. A stamped URL is a new URL, so the
-# bytes behind it never change and can be cached permanently — this is the
-# single biggest repeat-visit win available, and it costs nothing.
+# ?v=N on every reference at deploy time, so a returning visitor never pairs
+# new HTML with an old stylesheet.
 #
-# THE TRADE: this is only safe while the stamp is actually bumped. Ship a
-# JavaScript change without running version-assets.py and returning visitors
-# keep the old file for a year. Bump VERSION, or this rule will hurt.
+# A WEEK, NOT A YEAR, AND THE REASON MATTERS. A query string does not change
+# the FILE PATH, so during a deploy the previous deployment will happily
+# answer a request for products.js?v=23 with the old bytes — and whatever the
+# edge caches at that moment is what it keeps. That happened on the v23 ship:
+# a check fired seconds after the push, the edge stored the pre-deploy file
+# under the new URL, and every visitor got the old catalogue. Under a
+# one-year immutable rule that is a year-long bug caused by a race lasting
+# seconds. Real content-hashed filenames do not have this problem, because
+# the old deployment 404s the new name instead of serving stale bytes.
+#
+# Seven days keeps effectively all of the benefit — a returning visitor
+# inside a week still skips the download, and anyone returning after months
+# pays for one fetch — while bounding that failure to something that heals
+# itself. Do not raise this without moving to hashed filenames first.
 /assets/js/*
-  Cache-Control: public, max-age=31536000, immutable
+  Cache-Control: public, max-age=604800, immutable
 
 /assets/css/*
-  Cache-Control: public, max-age=31536000, immutable
+  Cache-Control: public, max-age=604800, immutable
 
 /assets/vendor/*
-  Cache-Control: public, max-age=31536000, immutable
+  Cache-Control: public, max-age=604800, immutable
 
 # Images are NOT stamped — the icons and the headshot are referenced by a
 # bare path — so they get a long cache rather than a permanent one. A month

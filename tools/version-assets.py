@@ -9,17 +9,21 @@ rendered new markup against them — which is exactly what happened on the
 first deploy of this rebuild: new HTML, four-hour-old CSS, and the hero index
 rendered as a bulleted list.
 
-_headers now sets `max-age=31536000, immutable` on assets/js, assets/css and
-assets/vendor, precisely BECAUSE this script makes every URL unique. That is
-the trade: the cache is permanent, so the stamp is the only thing that
-invalidates it. Ship a CSS or JS change without bumping VERSION and a
-returning visitor keeps the old file for a year, not an afternoon.
+_headers now caches assets/js, assets/css and assets/vendor for seven days
+`immutable`, precisely BECAUSE this script makes every URL unique. That is
+the trade: within that week the stamp is the only thing that invalidates the
+cache. Ship a CSS or JS change without bumping VERSION and a returning
+visitor keeps the old file for a week, not an afternoon.
+
+Seven and not a year because a query string does not change the file path:
+during a deploy the previous deployment answers the new ?v= URL with the old
+bytes, and the edge keeps whatever it saw. _headers has the full account.
 
 Bump VERSION on any deploy that changes CSS or JS.
 """
 import hashlib, io, json, os, re, glob, sys
 
-VERSION = "23"
+VERSION = "24"
 os.chdir(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 ASSETS = [

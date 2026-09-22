@@ -200,13 +200,23 @@ def main():
     # 04 Legal/proposed/PACKAGES.md is approved and published, name it as the thing it
     # actually is - a sheet that arrives with the quote - and say how to get it.
     md = md.replace("`PACKAGES.md`", "the packages sheet")
+    # Once packages.html exists it ships in the same bundle as this page, so the sheet is
+    # a real page on the day this one is served: say so, and link it. Before that (the
+    # branch below) it is described as coming with the quote, which was the only true
+    # thing to say. Tyler approved his own PACKAGES.md for publication 2026-09-21.
+    packages_live = os.path.exists(os.path.join(os.path.dirname(OUT), "packages.html"))
     md = md.replace(
         "**Client-facing. This is the whole agreement for a website package.**",
-        "**This is the whole agreement for a website build and its monthly care "
-        "plan. Read it before you pay. The packages sheet it refers to comes with "
-        "your quote — ask for it first if you would rather read both together.**")
+        ("**This is the whole agreement for a website build and its monthly care "
+         "plan. Read it before you pay, together with the packages sheet it refers to.**")
+        if packages_live else
+        ("**This is the whole agreement for a website build and its monthly care "
+         "plan. Read it before you pay. The packages sheet it refers to comes with "
+         "your quote — ask for it first if you would rather read both together.**"))
 
     body = render(md)
+    if packages_live:
+        body = body.replace("packages sheet", '<a href="packages.html">packages sheet</a>')
 
     # Splice into the existing page rather than rebuilding it.
     #

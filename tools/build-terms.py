@@ -214,11 +214,11 @@ def main():
          "plan. Read it before you pay. The packages sheet it refers to comes with "
          "your quote — ask for it first if you would rather read both together.**"))
 
-    # The signature block is for the signed PDF, not the web page: online, paying
-    # is the acceptance ("Paying the first invoice does the same thing"). Drop the
-    # blank lines to sign on, from the company line to the closing rule, so the
-    # page stays short. TERMS.md itself keeps them for yespack's PDF.
-    sig_a = md.find("BuiltByTyler LLC, a California limited liability company")
+    # The "Agreed" section and its signature block are for the signed PDF Tyler
+    # sends clients, not the web page (his call, 2026-09-26). Drop everything from
+    # that section's opening rule to the closing rule, so the page ends on the
+    # agreement itself. TERMS.md keeps it all for yespack's PDF.
+    sig_a = md.find("---\n\n## Agreed")
     sig_b = md.rfind("\n---\n")
     if sig_a != -1 and sig_b > sig_a:
         md = md[:sig_a] + md[sig_b + 1:]

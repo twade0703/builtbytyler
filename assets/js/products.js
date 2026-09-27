@@ -17,6 +17,7 @@
      holo        hologram model: "arm" | "drone" | "evtol"
                  (see hologram.js;
                  omit for a clean placeholder panel)
+     status      the line under the name, e.g. "In testing" (defaults to "In progress")
      featured    show on the home page
      available   true = buyable now, false = sold via a build package
      description paragraph for the detail page
@@ -44,41 +45,26 @@ const PRODUCTS = [
   },
   {
     id: "fpv-drones",
-    name: "Quad FPV Drones",
-    tagline: "Race, freestyle and long-range quads",
+    name: "3\" Mini FPV Quad",
+    tagline: "3D-printed ducted mini quad",
     holo: "drone",
+    status: "In testing",
     featured: true,
     available: false,
     description:
-      "Custom high-speed FPV quadcopters designed for racing, freestyle and long range — " +
-      "lightweight carbon frames, high-output power systems and digital FPV, built and " +
-      "bench-tuned by hand. Built to order in 3\", 5\" or 7\": 3\" for tight indoor and " +
-      "park flying, 5\" as the all-round racing and freestyle standard, 7\" for long-range " +
-      "cruising and endurance.",
+      "The i4: a 3\" ducted mini quad with a 3D-printed airframe in carbon-fibre PLA or PLA Aero, " +
+      "printed with a structural mesh infill. The frame is one piece and built to take a " +
+      "crash: wide arms run straight under each motor, the ducts are braced to each other, " +
+      "and a thicker bumper band takes the hit. It comes with the STEP and STL files for " +
+      "every part, and an STM32 flight controller running Betaflight, programmed and " +
+      "bound to a remote.",
     specs: [
-      { label: "Sizes", value: "3\" · 5\" · 7\"" },
-      { label: "Class", value: "Race / freestyle / long range" },
-      { label: "Power", value: "High-KV brushless" },
-      { label: "Video", value: "Digital FPV" },
-      { label: "Status", value: "In progress" },
-    ],
-  },
-  {
-    id: "tilt-rotor",
-    name: "Tilt-Rotor Drone",
-    tagline: "VTOL aircraft that lifts like a helicopter and flies like a plane",
-    holo: "evtol",
-    featured: true,
-    available: false,
-    description:
-      "A custom tilt-rotor VTOL aircraft. It lifts off vertically on its proprotors, then " +
-      "tilts them forward and flies on the wing for efficient cruise — the transition is " +
-      "the hard part, and it is the part that was designed, built and tuned here end to end.",
-    specs: [
-      { label: "Config", value: "Tilt-rotor VTOL" },
-      { label: "Flight", value: "Vertical lift · wing-borne cruise" },
-      { label: "Airframe", value: "Custom-built" },
-      { label: "Status", value: "In progress" },
+      { label: "Airframe", value: "3D-printed PLA-CF or PLA Aero" },
+      { label: "Frame", value: "One piece · braced ducts · crash bumper" },
+      { label: "Files", value: "STEP + STL included" },
+      { label: "Flight controller", value: "STM32 · Betaflight" },
+      { label: "Radio", value: "Bound to a remote · 5.8 GHz video" },
+      { label: "Status", value: "In testing" },
     ],
   },
 ];
@@ -125,21 +111,14 @@ const SOFTWARE_PLANS = [
     paymentLink: "https://buy.stripe.com/4gMdRa1w2dl3glc6oSgIo01",
   },
   {
-    id: "growth",
-    name: "Growth",
-    setup: 3000,
-    monthly: 200,
-        // Charges $3,200 today (build + first month), then $200/month.
-    paymentLink: "https://buy.stripe.com/fZu14o6Qm5SBed4aF8gIo02",
-  },
-  {
     id: "product",
     name: "Product",
-    setup: 6000,
+    setup: null,
     monthly: null,
-    // Consultation only, deliberately. $6,000 is a FLOOR, not a price:
-    // the work is scoped on a call before anything is quoted, so there
-    // is nothing honest to charge for up front. Leaving paymentLink
+    // Consultation only, deliberately, and no number on the page: the work
+    // is scoped on a call before anything is quoted, so there is nothing
+    // honest to charge for up front (the "From $6,000" floor came off on
+    // 2026-09-26, and the Growth tier with it). Leaving paymentLink
     // empty keeps this tier on the enquiry route no matter what.
     //
     // The Stripe link that briefly existed for this tier has been
@@ -170,7 +149,7 @@ function getPlanById(id) {
 function formatPlanPrice(plan) {
   if (!plan) return "";
   const money = (n) => "$" + Number(n).toLocaleString("en-US");
-  if (plan.consultOnly) return `from ${money(plan.setup)}, by consultation`;
+  if (plan.consultOnly) return "by consultation";
   if (plan.monthly == null) return money(plan.setup);
   return `${money(plan.setup)} build + ${money(plan.monthly)}/mo`;
 }

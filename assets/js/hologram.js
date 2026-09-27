@@ -989,99 +989,238 @@
     return m;
   }
 
-  // Quad FPV freestyle drone — a sleek faceted dart body with a stacked flight
-  // controller, a strapped LiPo + XT60 up top, an FPV camera in the nose, two
-  // bulb-tipped antennas, bell motors on a true-X arm set, live tri-blade props
-  // and a blinking tail strobe.
+  /* i4 — the 3" ducted mini quad actually on the bench (a cinewhoop).
+     Modelled from Tyler's CAD render: four slim printed ducts, each a smooth
+     upper band over a ribbed lower band with two small feet; a motor held in
+     the middle of each duct by three struts, one of which is the arm back to
+     the body; tri-blade props inside the ducts; a body that is a chamfered
+     rectangle with a bevelled top, three vent slots and a round button; "I4"
+     on both flanks; a boxed camera in the nose; and a single 5.8 GHz antenna
+     out the back with the small cylindrical tip that makes it look like a
+     capacitor.
+
+     It flies: no projector pad under it, and model.bob() lifts and settles it
+     so it reads as hovering rather than parked.
+
+     Ducts are closed surfaces (outer wall, inner wall, lips) so the near
+     wall hides the lower half of a prop behind it — which is what makes a
+     prop read as INSIDE a duct rather than floating over one. Keep the walls
+     thin and short: thick tall ducts read as bulky cells, not a duct. */
   function buildDrone() {
     const parts = [];
+    const SEG = 40;
+    const D = 0.40;                           // duct centre offset in x and z
+    const RO = 0.325, RI = 0.302;             // duct outer / inner radius
+    const Y0 = -0.035, YM = 0.012, Y1 = 0.055; // duct bottom, band split, top lip
 
-    // ---- sleek dart body: top + bottom plates joined by side posts ----
-    const fpW = 0.30, fpD = 0.92;        // footprint (x, z) — narrow and long, like a racer
-    const yBot = -0.04, yTop = 0.10;     // bottom / top plate heights
-    // sleek faceted dart body (top view, XZ): narrow nose, wide waist, tapered tail
-    const plate = [
-      [fpW * 0.26, fpD * 0.5], [fpW * 0.5, fpD * 0.12], [fpW * 0.5, -fpD * 0.2], [fpW * 0.26, -fpD * 0.5],
-      [-fpW * 0.26, -fpD * 0.5], [-fpW * 0.5, -fpD * 0.2], [-fpW * 0.5, fpD * 0.12], [-fpW * 0.26, fpD * 0.5],
-    ];
-    const loopAt = (yy) => ({
-      v: plate.map(([x, z]) => [x, yy, z]),
-      e: plate.map((_, k) => [k, (k + 1) % plate.length]),
-    });
-    parts.push(loopAt(yBot)); // bottom plate
-    parts.push(loopAt(yTop)); // top plate
-    plate.forEach(([x, z]) => parts.push({ v: [[x, yBot, z], [x, yTop, z]], e: [[0, 1]] })); // side posts
-    parts.push(makeBox(0, 0.0, 0, 0.17, 0.05, 0.17));              // FC / ESC stack
-    // the four standoffs the stack is bolted through
-    [[-1, -1], [1, -1], [1, 1], [-1, 1]].forEach(([a, b]) =>
-      parts.push(tubeAlong([a * 0.065, yBot, b * 0.065], [a * 0.065, yTop, b * 0.065], 0.012, 6)));
-    parts.push(makeBox(0, 0.05, 0, 0.17, 0.03, 0.17));
-    // LiPo battery strapped on top, wired to the FC via an XT60 plug
-    parts.push(makeBox(0, yTop + 0.085, 0, 0.24, 0.11, 0.66));     // battery
-    [-0.18, 0.18].forEach((sz) =>                                  // two hold-down straps over it
-      parts.push(makeBox(0, yTop + 0.085, sz, 0.28, 0.13, 0.025)));
-    parts.push(makeBox(0, yTop + 0.04, 0.26, 0.05, 0.05, 0.06));   // XT60 plug
-    parts.push({ v: [[0, yTop + 0.04, 0.26], [0, yTop - 0.03, 0.18], [0, 0.04, 0.1]], e: [[0, 1], [1, 2]] }); // battery lead → FC
-    parts.push(makeRing(0, yTop + 0.01, -fpD * 0.5 + 0.06, 0.03, 8, "y")); // tail strobe bezel
-
-    // ---- FPV camera set INTO the front of the body; only the lens shows on
-    //      the front face (no tall pod sticking up above the frame) ----
-    const camZ = fpD * 0.5;                                        // front face of the body
-    parts.push(makeBox(0, 0.02, camZ - 0.07, 0.16, 0.12, 0.14));   // camera body, nested in the nose
-    parts.push(makeRing(0, 0.03, camZ + 0.005, 0.055, 12, "z"));   // lens bezel on the front face
-    parts.push(makeRing(0, 0.03, camZ + 0.025, 0.03, 10, "z"));    // lens aperture
-    parts.push({ v: [[0, 0.03, camZ + 0.005], [0, 0.03, camZ + 0.025]], e: [[0, 1]] }); // short barrel
-
-    // ---- two VTX antennas out the back — thicker rods with bulb tips ----
-    const tailZ = -fpD * 0.5;
-    [-0.09, 0.09].forEach((ax2) => {
-      const tip = [ax2 * 1.8, 0.42, tailZ];
-      parts.push(segBox([ax2, yTop, tailZ], tip, 0.022));           // thick rod
-      parts.push(makeRing(tip[0], tip[1], tip[2], 0.04, 10, "y"));  // bulb (crossed rings)
-      parts.push(makeRing(tip[0], tip[1], tip[2], 0.04, 10, "x"));
-    });
-
-    // ---- four flat carbon arms (true X) + bell motors + tri-blade props ----
-    const motors = [[0.62, 0.58], [-0.62, 0.58], [-0.62, -0.58], [0.62, -0.58]];
-    // Thicker arms. A race quad's arms are the heaviest carbon on the airframe
-    // because they are what breaks, and drawing them thin made it look fragile.
-    const ay = -0.02, aw = 0.062, at = 0.020; // arm height, half-width, half-thickness
-    const spinners = [];
-    for (const [mx, mz] of motors) {
-      const ax = mx * 0.26, az = mz * 0.26;   // inner (frame) end of the arm
-      const dx = mx - ax, dz = mz - az;
-      const len = Math.hypot(dx, dz) || 1;
-      const px = (-dz / len) * aw, pz = (dx / len) * aw; // perpendicular, in XZ
-      const ring = (yy) => [
-        [ax + px, yy, az + pz], [ax - px, yy, az - pz],
-        [mx - px, yy, mz - pz], [mx + px, yy, mz + pz],
-      ];
-      parts.push({ // flat carbon arm (a thin slab in the XZ plane)
-        v: [...ring(ay + at), ...ring(ay - at)],
-        e: [[0, 1], [1, 2], [2, 3], [3, 0], [4, 5], [5, 6], [6, 7], [7, 4], [0, 4], [1, 5], [2, 6], [3, 7]],
-      });
-      parts.push(makeCylinderY(mx, 0.03, mz, 0.115, 0.10, 12)); // bell motor can
-      parts.push(makeRing(mx, -0.012, mz, 0.075, 10, "y"));      // arm-end motor mount
-      // the four bolts each motor sits on
-      for (let b = 0; b < 4; b++) {
-        const ba = (b / 4) * Math.PI * 2 + 0.6;
-        parts.push(makeRing(mx + Math.cos(ba) * 0.058, -0.006, mz + Math.sin(ba) * 0.058, 0.011, 5, "y"));
+    // A duct wall: top and bottom rings with side faces and NO vertical edges,
+    // so the upper band reads smooth; only the ribs below carry verticals.
+    const wall = (cx, cz, r, y0, y1) => {
+      const m = makeCylinderY(cx, (y0 + y1) / 2, cz, r, y1 - y0, SEG, true);
+      m.e = m.e.filter(([i, j]) => j - i !== SEG);
+      return m;
+    };
+    // The flat ring joining two radii at one height (the duct's lip).
+    const annulus = (cx, cz, r0, r1, y) => {
+      const a = makeRing(cx, y, cz, r0, SEG, "y"), b = makeRing(cx, y, cz, r1, SEG, "y");
+      const m = merge([a, b]);
+      for (let i = 0; i < SEG; i++) {
+        const j = (i + 1) % SEG;
+        m.f.push([i, j, SEG + j, SEG + i]);
       }
-      parts.push(makeRing(mx, 0.075, mz, 0.11, 12, "y"));       // motor top
-      parts.push(makeRing(mx, 0.095, mz, 0.04, 8, "y"));        // prop hub / nut
-      spinners.push({ cx: mx, cy: 0.11, cz: mz, r: 0.34, blades: 3, speed: 9 });
-    }
+      return m;
+    };
 
-    parts.push(makeBase(-0.44, 1.1));
+    // ---- the body: a chamfered rectangle, longer than it is wide ----
+    const BW = 0.15, BL = 0.23, CH = 0.055;   // half-width (x), half-length (z), corner chamfer
+    const outline = (w, l, c, y) => [
+      [w, y, l - c], [w - c, y, l], [-w + c, y, l], [-w, y, l - c],
+      [-w, y, -l + c], [-w + c, y, -l], [w - c, y, -l], [w, y, -l + c],
+    ];
+
+    /* Built to survive a crash. Three things make a printed whoop frame
+       tough, and all three are drawn:
+         1. One-piece arms: each arm is a single wide, thick beam from the
+            body's corner straight through the duct wall to under the motor,
+            not a thin strut that meets a separate duct.
+         2. The ducts are tied to each other by low bridges where they come
+            closest, so the four ducts and the body form one closed ring —
+            a hit on one duct spreads through the frame instead of levering
+            one arm off.
+         3. A bumper band: the ribbed lower band stands proud of the duct and
+            is the thickest wall, because it is what meets the floor. */
+    const RB = RO + 0.015;                    // bumper band radius
+    const ducts = [[D, D], [-D, D], [-D, -D], [D, -D]];
+    const spinners = [];
+    for (const [cx, cz] of ducts) {
+      parts.push(wall(cx, cz, RO, YM, Y1));                    // upper band (smooth)
+      parts.push(wall(cx, cz, RB, Y0, YM));                    // bumper band (proud)
+      parts.push(wall(cx, cz, RI, Y0, Y1));                    // inner wall
+      parts.push(annulus(cx, cz, RI, RO, Y1));                 // top lip
+      parts.push(annulus(cx, cz, RO, RB, YM));                 // the step onto the bumper
+      parts.push(annulus(cx, cz, RI, RB, Y0));                 // bottom rim
+      // vertical ribs on the bumper — the printed vent pattern
+      const ribs = { v: [], e: [] };
+      for (let k = 0; k < 48; k++) {
+        const a = (k / 48) * Math.PI * 2, c = Math.cos(a) * (RB + 0.003), s = Math.sin(a) * (RB + 0.003);
+        const n = ribs.v.length;
+        ribs.v.push([cx + c, Y0 + 0.008, cz + s], [cx + c, YM - 0.006, cz + s]);
+        ribs.e.push([n, n + 1]);
+      }
+      parts.push(ribs);
+      // two small feet under the outer side of the duct
+      const out = Math.atan2(cz, cx);
+      [-0.55, 0.55].forEach((da) => {
+        const a = out + da;
+        parts.push(makeBox(cx + Math.cos(a) * (RB - 0.014), Y0 - 0.014, cz + Math.sin(a) * (RB - 0.014), 0.034, 0.028, 0.034));
+      });
+
+      // motor on a round mount
+      const my = -0.02;
+      parts.push(makeCylinderY(cx, my, cz, 0.05, 0.03, 14));          // mount boss
+      parts.push(makeCylinderY(cx, my + 0.04, cz, 0.052, 0.05, 14));  // bell
+      parts.push(makeRing(cx, my + 0.066, cz, 0.018, 8, "y"));        // prop nut
+      const inboard = Math.atan2(-cz, -cx);
+      // the arm: one wide beam from the body's corner to under the motor
+      const corner = [Math.sign(cx) * (BW - CH * 0.5), my, Math.sign(cz) * (BL - CH * 0.5)];
+      const hub = [cx + Math.cos(inboard) * 0.03, my, cz + Math.sin(inboard) * 0.03];
+      parts.push(segBoxXZ(corner, hub, 0.062, 0.03));
+      // two outboard struts, heavier than before, closing the motor into the duct
+      [2.1, -2.1].forEach((da) => {
+        const a = inboard + da;
+        const p0 = [cx + Math.cos(a) * 0.045, my, cz + Math.sin(a) * 0.045];
+        const p1 = [cx + Math.cos(a) * RI, my, cz + Math.sin(a) * RI];
+        parts.push(segBoxXZ(p0, p1, 0.032, 0.024));
+      });
+      // gussets where the arm meets the inside of the duct wall, both sides
+      const tx = -Math.sin(inboard), tz = Math.cos(inboard);       // tangent to the wall
+      const wx = cx + Math.cos(inboard) * RI, wz = cz + Math.sin(inboard) * RI;
+      [1, -1].forEach((sg) => {
+        const armEdge = [wx + tx * sg * 0.031, wz + tz * sg * 0.031];
+        const alongWall = [wx + tx * sg * 0.1 - Math.cos(inboard) * 0.012, wz + tz * sg * 0.1 - Math.sin(inboard) * 0.012];
+        const alongArm = [armEdge[0] - Math.cos(inboard) * 0.07, armEdge[1] - Math.sin(inboard) * 0.07];
+        parts.push(plate([armEdge, alongWall, alongArm], "xz", my, 0.024));
+      });
+      // vertical stiffeners inside the wall where each strut lands
+      [0, 2.1, -2.1].forEach((da) => {
+        const a = inboard + da, rr = RI - 0.008;
+        parts.push(makeBox(cx + Math.cos(a) * rr, (Y0 + Y1) / 2, cz + Math.sin(a) * rr, 0.018, Y1 - Y0 - 0.006, 0.018));
+      });
+      spinners.push({ cx, cy: my + 0.08, cz, r: 0.275, blades: 3, speed: 9 });
+    }
+    // low bridges tying each duct to its neighbours, at bumper height — kept
+    // low at the front so they never sit in the camera's view
+    const gap = D - RB, bh = 0.03, by = Y0 + bh / 2;
+    [[0, D], [0, -D]].forEach(([x, z]) => parts.push(makeBox(x, by, z, gap * 2 + 0.03, bh, 0.05)));
+    [[D, 0], [-D, 0]].forEach(([x, z]) => parts.push(makeBox(x, by, z, 0.05, bh, gap * 2 + 0.03)));
+    // and a second tie at the lip on the back and both sides (not the front:
+    // nothing may cross the camera's view), so each pair of ducts is boxed
+    const ty = Y1 - 0.012;
+    parts.push(makeBox(0, ty, -D, gap * 2 + 0.03, 0.022, 0.04));
+    [[D, 0], [-D, 0]].forEach(([x, z]) => parts.push(makeBox(x, ty, z, 0.04, 0.022, gap * 2 + 0.03)));
+
+    // body shell: straight sides, then a bevel to a smaller flat top
+    const rings = [
+      outline(BW, BL, CH, -0.05),
+      outline(BW, BL, CH, 0.045),
+      outline(BW - 0.03, BL - 0.035, CH * 0.8, 0.095),
+      outline(BW - 0.055, BL - 0.07, CH * 0.6, 0.11),
+    ];
+    const body = { v: [].concat(...rings), e: [], f: [] };
+    for (let r = 0; r < rings.length; r++) {
+      for (let i = 0; i < 8; i++) {
+        const j = (i + 1) % 8;
+        body.e.push([r * 8 + i, r * 8 + j]);
+        if (r < rings.length - 1) {
+          body.e.push([r * 8 + i, (r + 1) * 8 + i]);
+          body.f.push([r * 8 + i, r * 8 + j, (r + 1) * 8 + j, (r + 1) * 8 + i]);
+        }
+      }
+    }
+    body.f.push([24, 25, 26, 27, 28, 29, 30, 31]);           // flat top
+    body.f.push([7, 6, 5, 4, 3, 2, 1, 0]);                   // underside
+    parts.push(body);
+    // three vent slots across the top, and the round button behind them
+    [0.045, 0.01, -0.025].forEach((sz) => {
+      const y = 0.112, hw = 0.05, hd = 0.008;
+      parts.push({ v: [[-hw, y, sz - hd], [hw, y, sz - hd], [hw, y, sz + hd], [-hw, y, sz + hd]],
+                   e: [[0, 1], [1, 2], [2, 3], [3, 0]] });
+    });
+    parts.push(makeRing(0, 0.112, -0.09, 0.014, 10, "y"));
+
+    // "I4" on both flanks, as on the CAD. Seen from +x, screen-right is -z;
+    // from -x it is +z — so each side runs its own way and neither reads mirrored.
+    const glyphs = (side) => {
+      const x = side * (BW + 0.003), dir = -side;             // z step toward the reader's right
+      const y0 = -0.028, y1 = 0.028, z0 = side * 0.07;       // start near the nose
+      const P = (u, yy) => [x, yy, z0 + dir * u];
+      const g = { v: [], e: [] };
+      const seg = (a, b) => { const n = g.v.length; g.v.push(a, b); g.e.push([n, n + 1]); };
+      seg(P(0, y0), P(0, y1));                                // I
+      seg(P(0.075, y0), P(0.075, y1));                        // 4: the stem
+      seg(P(0.075, y1), P(0.03, y0 + 0.02));                  // 4: the diagonal
+      seg(P(0.03, y0 + 0.02), P(0.09, y0 + 0.02));            // 4: the bar
+      return g;
+    };
+    parts.push(glyphs(1), glyphs(-1));
+
+    // ---- camera in the nose: side plates, a boxed body, a lens barrel ----
+    const cz0 = BL + 0.035;
+    [-0.05, 0.05].forEach((sx) => parts.push(makeBox(sx, 0.0, cz0 - 0.015, 0.01, 0.07, 0.06)));
+    parts.push(makeBox(0, 0.0, cz0, 0.085, 0.07, 0.065));
+    parts.push(tubeAlong([0, 0.0, cz0 + 0.032], [0, 0.0, cz0 + 0.066], 0.026, 12));
+    parts.push(makeRing(0, 0.0, cz0 + 0.067, 0.015, 10, "z"));
+
+    // ---- the 5.8 GHz antenna out the back: one prong, capacitor-like tip ----
+    const aBase = [0, 0.05, -BL - 0.005], aTip = [0, 0.21, -BL - 0.12];
+    parts.push(tubeAlong([0, 0.015, -BL + 0.01], [0, 0.06, -BL - 0.01], 0.018, 8)); // SMA boot
+    parts.push(tubeAlong(aBase, aTip, 0.007, 6));                                   // the prong
+    const dir = V.norm(V.sub(aTip, aBase));
+    parts.push(tubeAlong(aTip, V.add(aTip, V.mul(dir, 0.05)), 0.019, 10));          // the tip
+
     const m = merge(parts);
     m.spinners = spinners;
-    // blinking tail strobe — a double-flash beacon (animates while hovered)
+    m.zoom = 0.62;   // pulled well back: a small quad sits small in its frame, with air round it
+    /* It hangs perfectly still. Nothing moves until it is hovered; then it
+       turns like a product on a turntable — one eye height, one slow even
+       lap — and the breakout below pops up a second in. */
+    m.spinRate = 0.26;
+    // the breakout: a section through the arm where it roots into the duct —
+    // the joint that takes the load in a crash — showing the infill
+    m.callout = {
+      anchors: ducts.map(([cx, cz]) => {
+        const a = Math.atan2(-cz, -cx);                // the inboard side of each duct
+        return [cx + Math.cos(a) * RO, -0.02, cz + Math.sin(a) * RO];
+      }),
+      label: "STRESS-OPTIMIZED INFILL",
+      sub: "DENSER AT HIGH STRESS CONCENTRATIONS",
+      every: 9,
+      hold: 4.5,
+    };
+    // the button on the body blinks while hovered — the arming LED
     m.dynamic = function (time) {
-      const tb = (time * 1.4) % 1;
-      const lit = tb < 0.1 || (tb > 0.18 && tb < 0.28);
-      return { segments: [], dots: [[0, yTop + 0.03, -fpD * 0.5 + 0.06, lit ? 3.4 : 1.0, lit ? 1 : 0]] };
+      const tb = (time * 1.2) % 1;
+      const lit = tb < 0.12 || (tb > 0.2 && tb < 0.3);
+      return { segments: [], dots: [[0, 0.116, -0.09, lit ? 3.0 : 0.9, lit ? 1 : 0]] };
     };
     return m;
+  }
+
+  // A rectangular strut in the XZ plane between two points at one height:
+  // width across, thickness vertical. Printed struts are flat, not square.
+  function segBoxXZ(p0, p1, w, t) {
+    const dx = p1[0] - p0[0], dz = p1[2] - p0[2];
+    const L = Math.hypot(dx, dz) || 1;
+    const px = (-dz / L) * w / 2, pz = (dx / L) * w / 2;
+    const y = p0[1];
+    const q = (yy) => [
+      [p0[0] + px, yy, p0[2] + pz], [p0[0] - px, yy, p0[2] - pz],
+      [p1[0] - px, yy, p1[2] - pz], [p1[0] + px, yy, p1[2] + pz],
+    ];
+    const v = [...q(y + t / 2), ...q(y - t / 2)];
+    const e = [[0, 1], [1, 2], [2, 3], [3, 0], [4, 5], [5, 6], [6, 7], [7, 4], [0, 4], [1, 5], [2, 6], [3, 7]];
+    const f = [[0, 1, 2, 3], [7, 6, 5, 4], [0, 4, 5, 1], [1, 5, 6, 2], [2, 6, 7, 3], [3, 7, 4, 0]];
+    return { v, e, f };
   }
 
   const MODELS = { evtol: buildEvtol, arm: buildArm, drone: buildDrone };
@@ -1115,6 +1254,7 @@
     let hovered = false;
     let deploy = reduce ? 1 : 0;     // 0 = parked/collapsed, 1 = deployed (deploy models)
     let hoverT = 0;                  // grows while hovered (arm's search-then-lock timing)
+    let calloutAnchor = -1;          // which anchor an open callout is locked to (-1 = none yet)
     const tilt = -0.42;              // look slightly down on the model
     const viewerDist = 3.4;
 
@@ -1165,11 +1305,14 @@
        factor compresses hard with distance, so sorting on it drops far
        geometry into too few buckets and surfaces start swapping order as the
        model turns. */
+    /* A model that flies carries model.bob(time): a height it hovers at,
+       applied to every point it draws. Set once per frame in render(). */
+    let bobY = 0;
     function project(x, y, z, ca, sa) {
       // rotate about Y
       const X = x * ca + z * sa;
       const Z = -x * sa + z * ca;
-      const Y = y;
+      const Y = y + bobY;
       // tilt about X
       const Y2 = Y * cosT - Z * sinT;
       const Z2 = Y * sinT + Z * cosT;
@@ -1198,7 +1341,8 @@
         for (let i = 0; i < pts.length; i++) {
           const q = pts[i];
           const X = q[0] * ca + q[2] * sa, Z = -q[0] * sa + q[2] * ca;
-          const Y2 = q[1] * cosT - Z * sinT, Z2 = q[1] * sinT + Z * cosT;
+          const qy = q[1] + (model.bob ? model.bob(0) + 0.03 : 0);
+          const Y2 = qy * cosT - Z * sinT, Z2 = qy * sinT + Z * cosT;
           const f = viewerDist / (viewerDist + Z2);
           const px = Math.abs(X * f), py = Math.abs(Y2 * f);
           if (px > mr) mr = px;
@@ -1313,6 +1457,7 @@
     function render() {
       ctx.clearRect(0, 0, w, h);
       const ca = Math.cos(angY), sa = Math.sin(angY);
+      bobY = model.bob ? model.bob(reduce ? 0 : t) : 0;
 
       // A slow, shallow flicker. Anything stronger reads as a broken screen
       // rather than a projection.
@@ -1337,7 +1482,7 @@
       // ---- 0. floor pool ----
       // Every model stands on a base ring at y≈-1. A soft pool of light under
       // it stops the object floating in a void, and costs one gradient fill.
-      const floor = project(0, -0.98, 0, ca, sa);
+      const floor = project(0, -0.98 - bobY, 0, ca, sa);   // the floor does not hover
       const fr = scale * 1.15;
       const pool = ctx.createRadialGradient(floor[0], floor[1], 0, floor[0], floor[1], fr);
       pool.addColorStop(0, "rgba(" + rgb + "," + (0.11 * flicker).toFixed(3) + ")");
@@ -1602,6 +1747,147 @@
           }
         }
       }
+
+      // ---- 5. breakout: a magnified section through the part ----
+      if (model.callout && !reduce) drawCallout(ca, sa);
+    }
+
+    /* A breakout callout, like a detail view on a drawing: a leader runs from
+       the nearest anchor on the model (chosen once per opening) to a circle
+       that always sits top-right, and the circle shows a section through
+       that part: its skins, and an infill meshed finer and heavier toward
+       the stress concentrations. It
+       is a drawing, not an animation. It pops up a second after the hover
+       starts, holds, closes, and comes back while the hover lasts. */
+    function drawCallout(ca, sa) {
+      const co = model.callout;
+      const hs = hoverT / T_RATE - 1.0;                         // seconds since hover, less a beat
+      if (hs < 0) { calloutAnchor = -1; return; }
+      const ph = hs % co.every;
+      const open = ph < 0.9 ? V.ss(ph / 0.9) : ph < co.hold + 0.9 ? 1
+                 : ph < co.hold + 1.7 ? 1 - V.ss((ph - co.hold - 0.9) / 0.8) : 0;
+      if (open <= 0.001) { calloutAnchor = -1; return; }
+
+      // Pick the anchor nearest the viewer ONCE, when the callout opens, and
+      // hold it: re-picking every frame made the leader jump between ducts
+      // as the model turned.
+      const proj = co.anchors.map((a) => project(a[0], a[1], a[2], ca, sa));
+      if (calloutAnchor < 0) {
+        calloutAnchor = 0;
+        proj.forEach((p, i) => { if (p[3] > proj[calloutAnchor][3]) calloutAnchor = i; });
+      }
+      const best = proj[calloutAnchor];
+
+      // The lens always sits top-right. It never swaps sides.
+      const R = Math.min(w, h) * 0.18;
+      const cxI = w - R - 18, cyI = R + 26;
+      const r = R * open;
+      if (r < 4) return;                                        // too small to draw; arc() rejects r < 0
+      const col = (a) => "rgba(" + cNear.join(",") + "," + a.toFixed(3) + ")";
+
+      ctx.save();
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      // leader, and a ring on the part where the section is taken
+      ctx.strokeStyle = col(0.75 * open);
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.arc(best[0], best[1], 5 + 3 * open, 0, Math.PI * 2);
+      ctx.stroke();
+      const dx = best[0] - cxI, dy = best[1] - cyI, dl = Math.hypot(dx, dy) || 1;
+      ctx.setLineDash([3, 4]);
+      ctx.beginPath();
+      ctx.moveTo(best[0] - dx / dl * (8 + 3 * open), best[1] - dy / dl * (8 + 3 * open));
+      ctx.lineTo(cxI + dx / dl * r, cyI + dy / dl * r);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // the lens
+      ctx.fillStyle = "rgba(2,8,14," + (0.88 * open).toFixed(3) + ")";
+      ctx.beginPath(); ctx.arc(cxI, cyI, r, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = col(0.9 * open); ctx.lineWidth = 1.2; ctx.stroke();
+      ctx.beginPath(); ctx.arc(cxI, cyI, r + 5, -0.3, 0.9); ctx.stroke();
+
+      /* Inside: a section through the arm where it roots into the duct wall.
+         The wall runs down the left, the arm leaves it to the right, and the
+         two inside corners are filleted. The infill is a variable mesh: its
+         cells shrink and its walls thicken toward the fillets, where the
+         stress concentrates in a crash, and open out and thin away from them. */
+      ctx.save();
+      ctx.beginPath(); ctx.arc(cxI, cyI, r - 1, 0, Math.PI * 2); ctx.clip();
+      const X = (u) => cxI + u * r, Y = (u) => cyI + u * r;
+      const W0 = -0.78, W1 = -0.26, A0 = -0.22, A1 = 0.3, F = 0.3;  // wall x, arm y, fillet radius (in r)
+      const outline = () => {
+        ctx.beginPath();
+        ctx.moveTo(X(W0), Y(-1.1));
+        ctx.lineTo(X(W1), Y(-1.1));
+        ctx.lineTo(X(W1), Y(A0 - F));
+        ctx.quadraticCurveTo(X(W1), Y(A0), X(W1 + F), Y(A0));
+        ctx.lineTo(X(1.1), Y(A0));
+        ctx.lineTo(X(1.1), Y(A1));
+        ctx.lineTo(X(W1 + F), Y(A1));
+        ctx.quadraticCurveTo(X(W1), Y(A1), X(W1), Y(A1 + F));
+        ctx.lineTo(X(W1), Y(1.1));
+        ctx.lineTo(X(W0), Y(1.1));
+        ctx.closePath();
+      };
+      // the part, faintly filled, then its infill clipped to it
+      outline();
+      ctx.fillStyle = "rgba(" + rgb + "," + (0.07 * open).toFixed(3) + ")";
+      ctx.fill();
+      ctx.save();
+      outline(); ctx.clip();
+      const S = [[W1 + F * 0.3, A0 - F * 0.3], [W1 + F * 0.3, A1 + F * 0.3]]; // the two fillets
+      const near = (u, v) => Math.min(Math.hypot(u - S[0][0], v - S[0][1]), Math.hypot(u - S[1][0], v - S[1][1]));
+      /* The infill as a refined grid, the way a stress analysis meshes a
+         part: big square cells where nothing is happening, and each cell
+         split into four again and again as it closes on a fillet, where the
+         stress concentrates. The smaller the cell, the heavier its walls.
+         Worked out once, in lens units, and reused every frame. */
+      if (!co.cells) {
+        const cells = [];
+        const split = (x, y, s) => {
+          const d = near(x + s / 2, y + s / 2);
+          if (s > 0.035 && d < s * 2.1) {
+            const h2 = s / 2;
+            split(x, y, h2); split(x + h2, y, h2); split(x, y + h2, h2); split(x + h2, y + h2, h2);
+          } else cells.push([x, y, s]);
+        };
+        const G = 0.275;                                                     // the coarsest cell
+        for (let y = -1.1; y < 1.1; y += G) for (let x = -1.1; x < 1.1; x += G) split(x, y, G);
+        co.cells = cells;
+      }
+      // four weights of wall, by cell size: [largest cell, line width, alpha, fill]
+      const tiers = [[0.04, 2.2, 1, 0.22], [0.075, 1.6, 0.9, 0.12], [0.15, 1.1, 0.75, 0.05], [9, 0.8, 0.5, 0]];
+      tiers.forEach((tr, ti) => {
+        const lo = ti ? tiers[ti - 1][0] : 0;
+        ctx.beginPath();
+        for (const [x, y, s] of co.cells) {
+          if (s <= lo || s > tr[0]) continue;
+          ctx.rect(X(x), Y(y), s * r, s * r);
+        }
+        if (tr[3]) { ctx.fillStyle = "rgba(" + rgb + "," + (tr[3] * open).toFixed(3) + ")"; ctx.fill(); }
+        ctx.lineWidth = tr[1];
+        ctx.strokeStyle = "rgba(" + rgb + "," + (tr[2] * open).toFixed(3) + ")";
+        ctx.stroke();
+      });
+      ctx.restore();
+      // the skins over the top
+      outline();
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = col(0.95 * open);
+      ctx.stroke();
+      ctx.restore();
+
+      // label
+      ctx.globalAlpha = open;
+      ctx.fillStyle = col(0.95);
+      ctx.font = "500 10px 'JetBrains Mono', monospace";
+      ctx.textAlign = "center";
+      ctx.fillText(co.label, cxI, cyI + r + 16);
+      ctx.fillStyle = "rgba(" + rgb + ",0.7)";
+      ctx.fillText(co.sub, cxI, cyI + r + 29);
+      ctx.restore();
     }
 
     /* Run at the display's rate, and advance by elapsed time.
@@ -1625,7 +1911,7 @@
       const dt = lastTs ? Math.min(0.05, (ts - lastTs) / 1000) : 1 / 60;
       lastTs = ts;
       t += T_RATE * dt;
-      angY += SPIN_RATE * dt;
+      angY += (model.spinRate || SPIN_RATE) * dt;
       if (model.deploys) {
         const target = hovered ? 1 : 0;
         deploy += (target - deploy) * Math.min(1, 3.6 * dt); // ease, per second

@@ -28,8 +28,8 @@
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
-  <link rel="stylesheet" href="assets/css/styles.css?v=24">
-  <link rel="stylesheet" href="assets/css/motion.css?v=24">
+  <link rel="stylesheet" href="assets/css/styles.css?v=25">
+  <link rel="stylesheet" href="assets/css/motion.css?v=25">
 
 <!-- Structured data. Every fact here is one this site already states in prose:
        the entity, the city and the email come off contact.html. Nothing is
@@ -118,7 +118,7 @@
         </div>
 
         <!-- Filled in by main.js when arriving from a software.html pricing
-             tier (contact.html?plan=launch|growth|product). -->
+             tier (contact.html?plan=launch|product). -->
         <p class="notice" id="plan-notice" hidden></p>
 
         <!-- Two routes: hardware or software. -->
@@ -141,7 +141,7 @@
               <path d="M12 3 20 7.5v9L12 21 4 16.5v-9z"/><path d="M12 12v9M12 12l8-4.5M12 12 4 7.5"/>
             </svg>
             <h2>Something built</h2>
-            <p>A robotic arm, an FPV quad, a tilt-rotor, or a one-off engineering build
+            <p>A robotic arm, an FPV quad, or a one-off engineering build
               scoped to whatever you are actually trying to do.</p>
             <span class="route__meta">Quoted per project &middot; scoped in writing first</span>
             <span class="route__go">Start a build enquiry &rarr;</span>
@@ -236,14 +236,14 @@
     </div>
   </footer>
 
-  <script src="assets/js/products.js?v=24"></script>
-  <script src="assets/js/components.js?v=24"></script>
-  <script src="assets/js/main.js?v=24"></script>
+  <script src="assets/js/products.js?v=25"></script>
+  <script src="assets/js/components.js?v=25"></script>
+  <script src="assets/js/main.js?v=25"></script>
   <!-- ?v=3 busts the module cache. three.js is vendored at assets/vendor/,
        so the star field no longer needs an inline importmap (which the CSP
        blocks) or a third-party fetch from unpkg. A returning visitor still
        holding an older starfield.js would pair it with HTML that no longer
        ships that map, so the version query has to move whenever this does. -->
-  <script type="module" src="assets/js/starfield.js?v=24"></script>
+  <script type="module" src="assets/js/starfield.js?v=25"></script>
 </body>
 </html>

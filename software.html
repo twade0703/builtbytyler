@@ -28,8 +28,8 @@
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
-  <link rel="stylesheet" href="assets/css/styles.css?v=24">
-  <link rel="stylesheet" href="assets/css/motion.css?v=24">
+  <link rel="stylesheet" href="assets/css/styles.css?v=25">
+  <link rel="stylesheet" href="assets/css/motion.css?v=25">
 
 <!-- Structured data. Every fact here is one this site already states in prose:
        the entity, the city and the email come off contact.html. Nothing is
@@ -87,7 +87,7 @@
         "name": "Do I own the site, or am I renting it?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "You own it. The domain is registered in your name, the code is yours, and the care plan is a service you can cancel. Nothing is held hostage."
+          "text": "You own it. The domain is registered in your name and the code is yours. I host it and pay for the hosting and the domain myself, so there is nothing else for you to set up or pay for. If you ever leave, you take the whole thing with you."
         }
       },
       {
@@ -95,7 +95,7 @@
         "name": "Why is there a monthly fee at all?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Because a site that is never touched again quietly rots: dependencies go out of date, security headers drift, forms break when a provider changes an API, and content goes stale. The plan covers hosting, backups, updates and small changes. If you would rather host it yourself, you can — the build price is the same."
+          "text": "Because a site that is never touched again quietly rots: dependencies go out of date, security headers drift, forms break when a provider changes an API, and content goes stale. The plan covers hosting, the domain, backups, updates and small changes."
         }
       },
       {
@@ -197,43 +197,8 @@
         },
         {
           "@type": "Offer",
-          "name": "Growth",
-          "description": "A business that wants the site to do work. Everything in Launch plus unlimited pages, a blog or case-study system, booking, scheduling or payments, CRM, calendar and email integrations, and a quarterly performance and SEO review.",
-          "priceCurrency": "USD",
-          "price": "3000",
-          "priceSpecification": [
-            {
-              "@type": "PriceSpecification",
-              "price": "3000",
-              "priceCurrency": "USD",
-              "valueAddedTaxIncluded": false,
-              "description": "One-off build price, from"
-            },
-            {
-              "@type": "UnitPriceSpecification",
-              "price": "200",
-              "priceCurrency": "USD",
-              "referenceQuantity": {
-                "@type": "QuantitativeValue",
-                "value": 1,
-                "unitCode": "MON"
-              },
-              "description": "Care plan, monthly, cancel any time"
-            }
-          ],
-          "availability": "https://schema.org/InStock",
-          "url": "https://builtbytyler.com/software"
-        },
-        {
-          "@type": "Offer",
           "name": "Product",
           "description": "Custom software for your own operation, or a product you intend to sell. Discovery and a written technical scope, fixed-price first release, staging environment and test coverage, repository and docs handed over.",
-          "priceSpecification": {
-            "@type": "PriceSpecification",
-            "minPrice": "6000",
-            "priceCurrency": "USD",
-            "description": "From $6,000, by consultation"
-          },
           "url": "https://builtbytyler.com/software"
         }
       ]
@@ -273,20 +238,29 @@
          that one carries an index, this one carries numbers.
          =============================================================== -->
     <section class="section opener" data-sec="top">
-      <div class="container opener__grid" data-enter>
-        <div>
-          <p class="kicker">Software &amp; web <b>—</b> for small businesses</p>
-          <h1 class="display" data-split>Software that earns its place on the <em>invoice</em>.</h1>
-          <p class="opener__lead">I design and build the software side of a business — the website
-            people judge you by, the web app that replaces the spreadsheet, and the automation
-            that stops someone re-typing the same thing twice. One engineer, start to finish,
-            no handoffs and no account manager in between &mdash; which is why a site that an
-            agency quotes in months is live here in <em>days</em>.</p>
-          <div class="opener__cta">
-            <a class="btn" href="#pricing">See what it costs</a>
-            <a class="btn btn--ghost" href="#method">How it works</a>
+      <div class="container opener__stack" data-enter>
+        <div class="opener__head">
+          <div>
+            <p class="kicker">Software &amp; web <b>—</b> for businesses</p>
+            <h1 class="display" data-split>Elegant and modern <em>software</em>.</h1>
+          </div>
+          <div class="opener__aside">
+            <p class="opener__lead">Websites, web apps and automation for your business.
+              One engineer, me, start to finish, and live in days.</p>
+            <div class="opener__cta">
+              <a class="btn" href="#pricing">See what it costs</a>
+              <a class="btn btn--ghost" href="#method">How it works</a>
+            </div>
           </div>
         </div>
+        <!-- The markets demo: a working piece of software, not a screenshot.
+             Source lives in showcase/tracker/ (fetch.py refreshes its data and
+             is not shipped); demos/markets/ is the published copy. It is the
+             one page this site lets itself frame: see /demos/* in _headers. -->
+        <figure class="opener__demo">
+          <iframe src="demos/markets/?embed" title="Markets demo: a live tracker built here"></iframe>
+          <figcaption>Built here &mdash; a live markets tracker. Click in to take over.</figcaption>
+        </figure>
       </div>
     </section>
 
@@ -300,9 +274,6 @@
         <div class="idx idx--split" data-reveal>
           <span class="idx__n">01</span>
           <p class="idx__lab">What I build</p>
-          <h2 class="idx__h">Four things done properly, instead of everything done thinly.</h2>
-          <p class="idx__p">A short list is a promise. Anything not on it, I will tell you who to
-            call rather than learn it on your budget.</p>
         </div>
 
         <ol class="index">
@@ -419,7 +390,7 @@
             and current. No hourly rates, no surprise invoices, no twelve-month lock-in.</p>
         </div>
 
-        <div class="tier-grid">
+        <div class="tier-grid tier-grid--two">
           <article class="tier" data-plan="launch" data-reveal data-reveal-i="1">
             <div>
               <h3 class="tier__name">Launch</h3>
@@ -434,24 +405,7 @@
               <li>Hosting, SSL, backups, analytics</li>
               <li>Small changes every month</li>
             </ul>
-            <a class="btn btn--ghost btn--block" data-plan-cta="launch" href="contact.html?plan=launch">Start with Launch</a>
-          </article>
-
-          <article class="tier tier--feature" data-plan="growth" data-reveal data-reveal-i="2">
-            <div>
-              <h3 class="tier__name">Growth</h3>
-              <p class="tier__for">A business that wants the site to do work.</p>
-            </div>
-            <p class="tier__price">$3,000<small>+ $200/mo care plan</small></p>
-            <ul class="tier__list">
-              <li>Everything in Launch</li>
-              <li>Unlimited pages plus a blog or case-study system</li>
-              <li>Booking, scheduling or payments built in</li>
-              <li>CRM, calendar and email integrations</li>
-              <li>Custom photography direction &amp; brand pass</li>
-              <li>Quarterly performance and SEO review</li>
-            </ul>
-            <a class="btn btn--block" data-plan-cta="growth" href="contact.html?plan=growth">Start with Growth</a>
+            <a class="btn btn--block" data-plan-cta="launch" href="contact.html?plan=launch">Start with Launch</a>
           </article>
 
           <article class="tier" data-plan="product" data-reveal data-reveal-i="3">
@@ -459,7 +413,7 @@
               <h3 class="tier__name">Product</h3>
               <p class="tier__for">Custom software for your own operation, or a product you intend to sell.</p>
             </div>
-            <p class="tier__price">From $6,000<small>By consultation</small></p>
+            <p class="tier__price">By consultation</p>
             <ul class="tier__list">
               <li>A consultation before anything is quoted</li>
               <li>Discovery and a written technical scope</li>
@@ -469,24 +423,10 @@
               <li>Repository, deployment and docs handed over</li>
               <li>Retainer or hand-off — your call</li>
             </ul>
-            <a class="btn btn--ghost btn--block" data-plan-cta="product" href="contact.html?plan=product">Book a consult</a>
+            <a class="btn btn--ghost btn--block" data-plan-cta="product" href="contact.html?plan=product">Book a call</a>
           </article>
         </div>
 
-        <p class="pricing-note">Launch is <b>$550 today</b> — the $500 build plus your
-          first month — then $50 a month. Growth is <b>$3,200 today</b> — the $3,000
-          build plus your first month — then $200 a month. The monthly keeps running
-          until you stop it. No minimum term and no cancellation fee: email
-          <a href="mailto:twade@builtbytyler.com">twade@builtbytyler.com</a> and it stops,
-          and your site stays up to the end of the month you have paid for.</p>
-
-        <p class="pricing-note" id="pricing-note">Every build includes the source code and the
-          domain in your name. If you leave, you take the whole thing with you. The whole
-          agreement is on the <a href="terms.html">website terms</a> page &mdash; read it
-          before you pay. If anything in it is not what you understood you were buying,
-          tell me before you pay and I will fix the document. The
-          <a href="policies.html">lead times, shipping and refunds</a> page covers the
-          hardware I build.</p>
       </div>
     </section>
 
@@ -504,20 +444,16 @@
           <div class="faq" data-reveal>
             <details>
               <summary>Do I own the site, or am I renting it?</summary>
-              <p>You own it. The domain is registered in your name, the code is yours, and the care
-                plan is a service you can cancel. Nothing is held hostage — that is the single
-                biggest difference between this and the template subscriptions that dominate the
-                small-business market.</p>
+              <p>You own it. The domain is registered in your name and the code is yours. I host
+                it and pay for the hosting and the domain myself, so there is nothing else for you
+                to set up or pay for. If you ever leave, you take the whole thing with you.</p>
             </details>
             <details>
               <summary>Why is there a monthly fee at all?</summary>
               <p>Because a site that is never touched again quietly rots: dependencies go out of
                 date, security headers drift, forms break when a provider changes an API, and
-                content goes stale. The plan covers hosting, backups, updates and small changes.
-                It does not cover watching the site overnight — nothing does, and I would
-                rather say so than let you find out. You tell me it is down and I am on it
-                right away. If you would rather host it yourself and take that on, you
-                can — the build price is the same.</p>
+                content goes stale. The plan covers hosting, the domain, backups, updates and
+                small changes. You tell me it is down and I am on it right away.</p>
             </details>
             <details>
               <summary>Two or three days? Really?</summary>
@@ -572,8 +508,9 @@
           <span class="close__n">06</span>
           <h2>Tell me what is <em>slowing you down</em>.</h2>
           <div class="close__side">
-            <p>Twenty minutes, no pitch deck, and a straight answer on whether this is worth
-              building. If it is not, I will say so and you have lost twenty minutes.</p>
+            <p>I can help. Tell me what is slowing you down, what is costing your business
+              customers, or what you want to make better &mdash; and I will tell you what it
+              would look like to build. That is what the call is for.</p>
             <div class="close__actions">
               <a class="btn" href="mailto:twade@builtbytyler.com?subject=Software%20enquiry%20%E2%80%94%20BuiltByTyler">Book a call</a>
               <a class="btn btn--ghost" href="contact.html">Other ways to reach me</a>
@@ -617,15 +554,15 @@
        HTML, but main.js CREATES those canvases for the build plates. Removing
        it blanks every hologram. If the 64 KB is ever worth reclaiming, the fix
        is to load it on demand when a plate scrolls into view. -->
-  <script defer src="assets/js/products.js?v=24"></script>
-  <script defer src="assets/js/components.js?v=24"></script>
-  <script defer src="assets/js/hologram.js?v=24"></script>
-  <script defer src="assets/js/main.js?v=24"></script>
+  <script defer src="assets/js/products.js?v=25"></script>
+  <script defer src="assets/js/components.js?v=25"></script>
+  <script defer src="assets/js/hologram.js?v=25"></script>
+  <script defer src="assets/js/main.js?v=25"></script>
   <!-- ?v=3 busts the module cache. three.js is vendored at assets/vendor/,
        so the star field no longer needs an inline importmap (which the CSP
        blocks) or a third-party fetch from unpkg. A returning visitor still
        holding an older starfield.js would pair it with HTML that no longer
        ships that map, so the version query has to move whenever this does. -->
-  <script type="module" src="assets/js/starfield.js?v=24"></script>
+  <script type="module" src="assets/js/starfield.js?v=25"></script>
 </body>
 </html>

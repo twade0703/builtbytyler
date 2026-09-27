@@ -1,0 +1,39 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><title>holo step</title>
+<style>body{margin:0;background:#04070C;color:#8fb;font:12px monospace;padding:8px}
+.c{position:relative;width:760px;height:570px;background:radial-gradient(115% 95% at 50% 58%,#06223a,#010305);border:1px solid #234}
+canvas{position:absolute;inset:0;width:100%;height:100%}</style></head><body>
+<div class="c plate__media"><canvas id="cv"></canvas></div>
+<div id="out"></div>
+<script>
+/* Render a hologram at an exact moment, independent of the real clock.
+   ?m=<model>  ?s=<seconds of hover>  ?a=<start angle>
+
+   The browser pane used to check these pauses requestAnimationFrame whenever
+   it is not the visible window, and the loop also skips frames while
+   document.hidden — so "wait and look" cannot inspect anything time-based,
+   like the drone's breakout callout. This page installs its own frame clock
+   BEFORE hologram.js loads, hovers the panel, and steps the loop in 50 ms
+   frames to the requested second. The frame on screen is that moment. */
+const q = new URLSearchParams(location.search);
+const cv = document.getElementById("cv");
+cv.setAttribute("data-holo", q.get("m") || "drone");
+if (q.has("a")) cv.setAttribute("data-holo-angle", q.get("a"));
+let queue = [];
+window.requestAnimationFrame = (cb) => { queue.push(cb); return queue.length; };
+window.cancelAnimationFrame = () => {};
+Object.defineProperty(document, "hidden", { get: () => false });
+</script>
+<script src="../assets/js/hologram.js"></script>
+<script>
+window.BBTHolograms.mount();
+const panel = document.querySelector(".plate__media");
+panel.dispatchEvent(new Event("pointerenter"));
+const secs = parseFloat(q.get("s") || "2.5");
+let ts = 1000;
+for (let i = 0; i < Math.round(secs / 0.05); i++) {
+  const run = queue; queue = [];
+  run.forEach((cb) => cb(ts));
+  ts += 50;
+}
+document.getElementById("out").textContent = (q.get("m") || "drone") + " at " + secs + " s of hover";
+</script></body></html>

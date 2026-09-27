@@ -38,7 +38,7 @@
   function plateHTML(p, index, span) {
     const idx = String((index || 0) + 1).padStart(2, "0");
     const href = `product.html?id=${p.id}`;
-    const status = "In progress";
+    const status = p.status || "In progress";
     const media = p.holo
       ? `<canvas class="plate__holo" data-holo="${p.holo}"></canvas>
          <span class="plate__hud">3D <em>·</em> Wireframe</span>`
@@ -63,27 +63,9 @@
      difference between "a portfolio" and "a row of tiles". */
   const SPANS = ["plate--lead", "plate--half", "", "", "", "plate--half", "plate--half"];
 
-  /* Which build the homepage shows this week.
-
-     Anchored to a fixed Monday in UTC rather than to "now / one week", so
-     every visitor sees the same build no matter their timezone, and it turns
-     over on the same day for all of them. A rotation that depends on the
-     reader's clock is not a rotation, it is a coin toss. */
-  function weeklyPick(list) {
-    if (!list.length) return list;
-    const WEEK = 7 * 24 * 60 * 60 * 1000;
-    const EPOCH = Date.UTC(2026, 0, 5);          // Monday, 5 January 2026
-    const n = Math.floor((Date.now() - EPOCH) / WEEK);
-    return [list[((n % list.length) + list.length) % list.length]];
-  }
-
   function renderGrid(targetId, list) {
     const grid = document.getElementById(targetId);
     if (!grid) return;
-    if (grid.getAttribute("data-rotate") === "weekly") {
-      grid.innerHTML = weeklyPick(list).map((p) => plateHTML(p, 0, "plate--solo")).join("");
-      return;
-    }
     if (!list.length) {
       grid.innerHTML = `<p class="plate-empty">No builds listed yet — check back soon.</p>`;
       return;
@@ -137,7 +119,7 @@
           ${media}
         </div>
         <div class="detail__info">
-          <p class="badge">In progress</p>
+          <p class="badge">${p.status || "In progress"}</p>
           <h1>${p.name}</h1>
           <p class="detail__tag">${p.tagline}</p>
                     <div class="detail__desc"><p>${p.description}</p></div>
@@ -338,7 +320,7 @@
     const el = tier && tier.querySelector(".tier__price");
     if (!el) return;
     const shown = el.textContent.replace(/[\s,]/g, "");
-    const setupOk = shown.includes("$" + plan.setup);
+    const setupOk = plan.setup == null || shown.includes("$" + plan.setup);
     const monthlyOk = plan.monthly == null || shown.includes("$" + plan.monthly);
     if (!setupOk || !monthlyOk) {
       console.warn(

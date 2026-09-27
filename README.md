@@ -252,7 +252,8 @@ Prices live in the markup of `software.html` (`#pricing`), in the four stat
 tiles near the top of that page, and in the `PLANS` map in `main.js`, which
 carries the tier across to `contact.html?plan=…`. **Change all three.**
 
-Current: Launch $500 + $50/mo · Growth $3,000 + $200/mo · Product $6,000.
+Current: Launch $500 + $50/mo · Product by consultation. The Growth tier was
+withdrawn on 2026-09-26; its features will come back as Launch add-ons.
 
 These are deliberately below the rates in `00 Framework/BENCHMARK.md`. The
 model here is volume — a large number of small retainers run largely
@@ -261,7 +262,7 @@ research describes. Launch is expected to rise to $1,000 + $50/mo.
 
 ## Payments — software plans
 
-The three tiers are wired to live Stripe Payment Links. `SOFTWARE_PLANS` in
+Launch is wired to a live Stripe Payment Link. `SOFTWARE_PLANS` in
 `assets/js/products.js` is the only place a link lives; `main.js` turns a tier
 whose plan carries a real `buy.stripe.com` link into a direct checkout and
 leaves the rest as enquiry links, so a missing or mistyped link degrades to
@@ -270,10 +271,9 @@ the enquiry flow instead of dead-ending.
 | Tier | Charged today | Then | Stripe line items |
 |---|---|---|---|
 | Launch | $550 | $50/mo | Launch build (one-off) + Website Care Plan (monthly) |
-| Growth | $3,200 | $200/mo | Growth build (one-off) + Growth care plan (monthly) |
 
-Product is **consultation only** and deliberately has no link. Its $6,000 is a
-floor, not a price, and the tier reads "From $6,000 / By consultation". A
+Product is **consultation only** and deliberately has no link or number; the
+tier reads "By consultation" and its button is "Book a call". A
 `consultOnly: true` plan is skipped by the checkout wiring even if someone
 pastes a link into it. The link that briefly existed for it is deactivated in
 Stripe.

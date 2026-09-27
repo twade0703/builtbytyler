@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Markets Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#000; --pan:#0C0C0E; --pan2:#141416; --pan3:#1D1D21;
+  --tx:#FFFFFF; --mu:#C4C4CA; --dim:#8E8E96;
+  --hair:rgba(255,255,255,.12); --hair2:rgba(255,255,255,.06);
+  --ok:#00C805; --bad:#FF5000; --ok-rgb:0,200,5; --bad-rgb:255,80,0;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+  --sans:"Public Sans",system-ui,-apple-system,sans-serif;
+  --e:cubic-bezier(.22,1,.36,1);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--tx);font-family:var(--sans);-webkit-font-smoothing:antialiased;overflow:hidden}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+html.embed,html.embed body{background:transparent}
+/* a colour-scheme that differs from the host page makes Chrome paint an opaque backdrop behind the iframe */
+html.embed{color-scheme:normal}
+/* inside an iframe the page edge would crop a wide glow into a visible box, so keep the shadow inside the 16px margin */
+html.embed .win{box-shadow:0 0 0 1px rgba(255,255,255,.03),0 10px 16px rgba(0,0,0,.5)}
+.up{color:var(--ok)} .dn{color:var(--bad)} .fl{color:var(--mu)}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+/* the frame is a fixed 1280x800 picture, scaled to whatever it is dropped into, like a video */
+.fit{position:fixed;inset:0;overflow:hidden}
+.stage{position:absolute;left:50%;top:50%;width:1280px;height:800px;transform-origin:center}
+.win{width:100%;height:100%;border:1px solid var(--hair);border-radius:14px;overflow:hidden;background:var(--bg);
+  box-shadow:0 50px 140px rgba(0,0,0,.95),0 0 0 1px rgba(255,255,255,.03),0 0 120px rgba(0,200,5,.05);display:flex;flex-direction:column}
+.win.shake{animation:shake .4s}
+@keyframes shake{20%,60%{transform:translateX(-7px)}40%,80%{transform:translateX(7px)}}
+.bar{height:36px;flex:none;display:flex;align-items:center;gap:8px;padding:0 14px;background:linear-gradient(#1b1b1e,#131315);
+  border-bottom:1px solid var(--hair2);position:relative;user-select:none}
+.lights{display:flex;gap:8px}
+.dot{width:12px;height:12px;border-radius:50%;position:relative;cursor:default}
+.dot.r{background:#FF5F57;cursor:pointer}.dot.y{background:#FEBC2E}.dot.g{background:#28C840}
+.dot::after{content:"";position:absolute;inset:0;border-radius:50%;box-shadow:inset 0 0 0 .5px rgba(0,0,0,.35)}
+.dot.r:hover::before{content:"×";position:absolute;inset:0;display:grid;place-items:center;font:700 10px/1 var(--sans);color:rgba(0,0,0,.6)}
+.bar .ttl{position:absolute;left:50%;transform:translateX(-50%);font-size:12.5px;color:var(--mu)}
+
+.app{flex:1;min-height:0;padding:18px 20px 14px;display:grid;grid-template-rows:76px minmax(0,1fr) 78px;gap:14px}
+
+/* ---------- top strip: indices + counts */
+.top{display:grid;grid-template-columns:repeat(5,minmax(0,1fr)) auto;gap:8px}
+.ix{background:var(--pan);border:1px solid var(--hair);border-radius:8px;padding:9px 12px;text-align:left;position:relative;overflow:hidden;
+  transition:border-color .3s,transform .3s var(--e)}
+.ix:hover{border-color:rgba(255,255,255,.4);background:var(--pan2);transform:translateY(-2px)}
+.ix.on{border-color:var(--ok)}
+.ix small{display:block;font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--mu)}
+.ix b{display:block;font-family:var(--mono);font-size:18px;font-weight:600;margin-top:4px;letter-spacing:-.01em}
+.ix em{font-style:normal;font-family:var(--mono);font-size:12.5px;font-weight:500}
+.ix svg{position:absolute;right:10px;bottom:10px;width:44px;height:22px;overflow:visible}
+.kp{display:flex;gap:8px}
+.kpi{min-width:88px;background:var(--pan);border:1px solid var(--hair);border-radius:8px;padding:9px 12px}
+.kpi small{display:block;font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--mu)}
+.kpi b{display:flex;align-items:center;gap:7px;font-family:var(--mono);font-size:22px;font-weight:600;margin-top:4px}
+.kpi.t b{font-size:16.5px;margin-top:7px}
+.pulse{width:7px;height:7px;border-radius:50%;background:var(--ok);animation:pulse 1.8s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(var(--ok-rgb),.55)}70%{box-shadow:0 0 0 8px rgba(var(--ok-rgb),0)}100%{box-shadow:0 0 0 0 rgba(var(--ok-rgb),0)}}
+
+/* ---------- middle: the deck + the list */
+.mid{display:grid;grid-template-columns:minmax(0,1fr) 336px;gap:14px;min-height:0}
+.deck{position:relative;min-height:0}
+.card,.ghost{position:absolute;inset:0 0 20px 0;background:var(--pan);border:1px solid var(--hair);border-radius:12px;
+  transition:transform .8s var(--e),opacity .8s var(--e),filter .8s var(--e),border-color .6s}
+.deck.fast .card{transition-duration:.46s}
+.ghost{transform:translateY(20px) scale(.93);opacity:.35;z-index:1}
+.card.back{transform:translateY(10px) scale(.965);opacity:.7;z-index:2;filter:brightness(.55)}
+.card.front{transform:none;opacity:1;z-index:3;filter:none}
+.card.out{transform:translateX(-90px) rotate(-3.5deg) scale(.94);opacity:0;filter:blur(8px);z-index:4}
+.card.nt{transition:none}
+.c-in{position:absolute;inset:0;display:flex;flex-direction:column;padding:18px 22px 16px;transition:opacity .5s var(--e)}
+.card.back .c-in{opacity:0}
+.card.glow{border-color:rgba(var(--ok-rgb),.6)}
+
+.c-hd{display:flex;justify-content:space-between;align-items:flex-start;gap:16px}
+.c-sym{font-family:var(--mono);font-size:12.5px;letter-spacing:.1em;color:var(--mu);text-transform:uppercase}
+.c-sym b{color:var(--tx);font-size:16px;letter-spacing:.02em;margin-right:8px}
+.c-px{font-family:var(--mono);font-size:46px;font-weight:600;letter-spacing:-.03em;line-height:1.05;margin-top:6px}
+.c-chg{font-family:var(--mono);font-size:14.5px;margin-top:4px;font-weight:500}
+.c-chg span{color:var(--mu)}
+.seg{display:inline-flex;border:1px solid rgba(255,255,255,.22);border-radius:7px;overflow:hidden;background:var(--pan2)}
+.seg button{font-family:var(--mono);font-size:12px;font-weight:500;letter-spacing:.06em;padding:7px 14px;color:var(--mu);transition:background .25s,color .25s}
+.seg button+button{border-left:1px solid var(--hair2)}
+.seg button:hover{color:var(--tx);background:#26262b}
+.seg button.on{background:var(--ok);color:#000;font-weight:700}
+.legend{display:flex;gap:16px;font-family:var(--mono);font-size:12.5px;color:var(--mu);margin-top:10px}
+.legend i{display:inline-block;width:14px;height:2px;vertical-align:middle;margin-right:6px}
+.c-ch{position:relative;flex:1;min-height:0;margin:10px 0 12px;cursor:crosshair}
+.c-ch canvas{position:absolute;inset:0;width:100%;height:100%}
+.tip{position:absolute;pointer-events:none;background:rgba(12,12,14,.94);border:1px solid var(--hair);border-radius:6px;padding:7px 10px;
+  font-family:var(--mono);font-size:12.5px;line-height:1.55;white-space:nowrap;opacity:0;transition:opacity .15s;z-index:3;backdrop-filter:blur(6px)}
+.tip.show{opacity:1}
+.tip span{color:var(--mu)}
+
+.c-sig{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.c-sig.six{grid-template-columns:repeat(6,minmax(0,1fr))}
+.sg{background:var(--pan2);border:1px solid var(--hair2);border-radius:8px;padding:9px 11px;transition:border-color .5s,box-shadow .5s}
+.card.glow .sg{border-color:rgba(var(--ok-rgb),.35);box-shadow:0 0 24px rgba(var(--ok-rgb),.07)}
+.sg small{display:block;font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--mu)}
+.sg b{display:block;font-family:var(--mono);font-size:18px;font-weight:600;margin:4px 0 6px}
+.sg b span{font-size:12px;font-weight:400;color:var(--mu);margin-left:4px}
+.meter{position:relative;height:4px;border-radius:2px;background:var(--pan3);overflow:hidden}
+.meter i{position:absolute;left:0;top:0;bottom:0;width:0;border-radius:2px;transition:width 1.3s var(--e)}
+.meter.rsi{background:linear-gradient(90deg,rgba(var(--bad-rgb),.35) 0 30%,var(--pan3) 30% 70%,rgba(var(--ok-rgb),.35) 70%);overflow:visible}
+.meter u{position:absolute;top:-4px;width:2px;height:12px;background:#fff;border-radius:1px;left:0;transition:left 1.3s var(--e)}
+
+/* watchlist */
+.list{background:var(--pan);border:1px solid var(--hair);border-radius:12px;padding:12px 8px 8px;display:flex;flex-direction:column;min-height:0;margin-bottom:20px}
+.list h3{margin:0 8px 8px;font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--mu);font-weight:400;display:flex;justify-content:space-between}
+.rows{flex:1;display:flex;flex-direction:column;gap:2px;min-height:0}
+.row{flex:1;display:grid;grid-template-columns:minmax(0,1fr) 66px 100px;align-items:center;gap:10px;padding:0 10px;border-radius:8px;text-align:left;
+  position:relative;transition:background .4s var(--e)}
+.row:hover{background:var(--pan3)}
+.row.on{background:rgba(var(--ok-rgb),.08)}
+.row.on::before{content:"";position:absolute;left:0;top:22%;bottom:22%;width:2px;border-radius:2px;background:var(--ok)}
+.row b{display:block;font-family:var(--mono);font-size:14.5px}
+.row small{display:block;font-size:12px;color:var(--mu);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .p{text-align:right}
+.row .p b{font-weight:600;font-size:14.5px;font-variant-numeric:tabular-nums}
+.pill{display:inline-block;margin-top:3px;font-family:var(--mono);font-size:12px;font-weight:500;padding:1px 6px;border-radius:4px;transition:background .6s,color .6s}
+.pill.up{background:rgba(var(--ok-rgb),.14)} .pill.dn{background:rgba(var(--bad-rgb),.16)}
+
+/* ---------- caption bar */
+.cap{display:flex;align-items:center;justify-content:space-between;gap:24px;border-top:1px solid var(--hair2);padding-top:14px}
+.cap h2{margin:0;font-size:31px;font-weight:600;letter-spacing:-.025em;line-height:1.1;min-height:30px}
+.cap p{margin:5px 0 0;font-size:16.5px;color:var(--mu);min-height:18px}
+.w{display:inline-block;white-space:pre;animation:rise .9s var(--e) both}
+@keyframes rise{from{opacity:0;transform:translateY(14px);filter:blur(8px)}to{opacity:1;transform:none;filter:none}}
+.ctl{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+.dots{display:flex;align-items:center;gap:7px}
+.dots button[data-i]{width:24px;height:5px;border-radius:3px;background:#2a2a30;position:relative}
+.dots button[data-i]::after{content:"";position:absolute;inset:-9px -3px}
+.dots button[data-i]:hover{background:#2c2c31}
+.dots button i{position:absolute;inset:0;border-radius:3px;background:var(--ok);transform-origin:left;transform:scaleX(0)}
+.dots button.done i{transform:scaleX(1);opacity:.45}
+.play{font-family:var(--mono);font-size:13px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--tx);margin-left:12px;display:flex;align-items:center;gap:8px;
+  padding:10px 18px;border:1px solid rgba(255,255,255,.35);border-radius:999px;background:var(--pan2);transition:background .2s,color .2s,border-color .2s,transform .2s var(--e)}
+.play:hover{background:var(--ok);border-color:var(--ok);color:#000;transform:translateY(-1px)}
+.src{font-family:var(--mono);font-size:11px;color:var(--dim)}
+/* technicals: indicator chips + the calculation readout */
+.tools{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+.chips{display:flex;gap:5px}
+.chips button{display:flex;align-items:center;gap:7px;font-family:var(--mono);font-size:11.5px;font-weight:500;letter-spacing:.03em;padding:6px 11px;border:1px solid rgba(255,255,255,.22);background:var(--pan2);
+  border-radius:999px;color:var(--mu);transition:color .3s,border-color .3s,background .3s}
+.chips button i{width:10px;height:3px;border-radius:1px;background:var(--c);opacity:.5;transition:opacity .3s}
+.chips button:hover{color:var(--tx);border-color:rgba(255,255,255,.5);background:#26262b}
+.chips button.on{color:var(--tx);border-color:var(--c);background:#1f1f24}
+.chips button.on i{opacity:1}
+.hud{position:absolute;left:0;top:24px;padding:6px 26px 6px 10px;border-left:2px solid var(--ok);pointer-events:none;
+  background:linear-gradient(90deg,rgba(12,12,14,.92),rgba(12,12,14,.6) 70%,rgba(12,12,14,0));
+  font-family:var(--mono);font-size:12px;line-height:1.6;color:#F0F0F3;opacity:0;transition:opacity .6s var(--e);z-index:2}
+.hud.show{opacity:1}
+.hud div{white-space:nowrap;animation:fly .38s var(--e) both}
+.hud div span{color:#9A9AA2;margin-right:10px}
+.hud div b{font-weight:500;color:var(--k,#fff)}
+.hud div:nth-child(2){opacity:.72}.hud div:nth-child(3){opacity:.52}.hud div:nth-child(4){opacity:.38}
+.hud div:nth-child(5){opacity:.26}.hud div:nth-child(6){opacity:.17}.hud div:nth-child(7){opacity:.1}
+@keyframes fly{from{opacity:0;transform:translateX(28px);filter:blur(5px)}}
+@media (prefers-reduced-motion:reduce){.w{animation:none}.card,.meter i,.meter u{transition-duration:.01s}}
+</style>
+</head>
+<body>
+<div class="fit"><div class="stage" id="stage">
+  <div class="win" id="win">
+    <div class="bar">
+      <div class="lights"><button class="dot r" id="lr" aria-label="Close"></button><span class="dot y"></span><span class="dot g"></span></div>
+      <div class="ttl">Markets</div>
+    </div>
+    <div class="app" id="app">
+      <div class="top">
+        <div id="ixs" style="display:contents"></div>
+        <div class="kp">
+          <div class="kpi"><small>Tracked</small><b class="num" id="kTr">13</b></div>
+          <div class="kpi"><small>Up today</small><b class="num up" id="kUp">0</b></div>
+          <div class="kpi"><small>Down today</small><b class="num dn" id="kDn">0</b></div>
+          <div class="kpi t"><small>Session</small><b class="num"><span class="pulse"></span><span id="kT">9:30 AM</span></b></div>
+        </div>
+      </div>
+
+      <div class="mid">
+        <div class="deck" id="deck">
+          <div class="ghost"></div>
+          <div class="card back" id="cA"><div class="c-in"></div></div>
+          <div class="card front" id="cB"><div class="c-in"></div></div>
+        </div>
+        <div class="list"><h3><span>Watchlist</span><span>today</span></h3><div class="rows" id="rows"></div></div>
+      </div>
+
+      <div class="cap">
+        <div><h2 id="capH"></h2><p id="capP"></p></div>
+        <div class="ctl">
+          <div class="dots" id="dots"><button class="play" id="play"></button></div>
+          <div class="src" id="src"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div></div>
+
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

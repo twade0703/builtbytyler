@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>The Builds &middot; BuiltByTyler</title>
-  <meta name="description" content="Robotic arms, FPV drones, tilt-rotor VTOL aircraft and custom engineering builds, designed and built by hand by Tyler Wade in Monterey, California.">
+  <meta name="description" content="Robotic arms, FPV drones and custom engineering builds, designed and built by hand by Tyler Wade in Monterey, California.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500&family=Instrument+Sans:wght@400;500&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -21,15 +21,15 @@
   <meta property="og:locale" content="en_US">
   <meta property="og:url" content="https://builtbytyler.com/shop">
   <meta property="og:title" content="The Builds · BuiltByTyler">
-  <meta property="og:description" content="Robotic arms, FPV drones, tilt-rotor VTOL aircraft and custom engineering builds, designed and built by hand by Tyler Wade in Monterey, California.">
+  <meta property="og:description" content="Robotic arms, FPV drones and custom engineering builds, designed and built by hand by Tyler Wade in Monterey, California.">
   <meta name="twitter:title" content="The Builds · BuiltByTyler">
-  <meta name="twitter:description" content="Robotic arms, FPV drones, tilt-rotor VTOL aircraft and custom engineering builds, designed and built by hand by Tyler Wade in Monterey, California.">
+  <meta name="twitter:description" content="Robotic arms, FPV drones and custom engineering builds, designed and built by hand by Tyler Wade in Monterey, California.">
   <meta property="og:image" content="https://builtbytyler.com/assets/img/og-image.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
-  <link rel="stylesheet" href="assets/css/styles.css?v=24">
-  <link rel="stylesheet" href="assets/css/motion.css?v=24">
+  <link rel="stylesheet" href="assets/css/styles.css?v=25">
+  <link rel="stylesheet" href="assets/css/motion.css?v=25">
 
 <!-- Structured data. Every fact here is one this site already states in prose:
        the entity, the city and the email come off contact.html. Nothing is
@@ -110,19 +110,14 @@
         <div>
           <p class="kicker">The workshop <b>—</b> in progress</p>
           <h1 class="display" data-split>Machines that had to <em>work</em>.</h1>
-          <p class="opener__lead">A few of the things on the bench. Each one designed,
-            prototyped and made by hand &mdash; the airframe and the flight code, the rails
-            and the control loop. <b>None of these are for sale yet;</b> they are here because
-            they are what the software side is built by.</p>
+          <p class="opener__lead">What is on the bench right now.</p>
           <div class="opener__cta">
             <a class="btn" href="software.html">Software &amp; web</a>
             <a class="btn btn--ghost" href="contact.html">Ask about a build</a>
           </div>
         </div>
         <ul class="facts" data-reveal="right">
-          <li><b>3</b><span>On the bench</span></li>
-          <li><b>0</b><span>Bought in and rebadged</span></li>
-          <li><b>CAD</b><span>Firmware and parts list, kept</span></li>
+          <li><b>2</b><span>On the bench</span></li>
           <li><b>Soon</b><span>Not for sale yet</span></li>
         </ul>
       </div>
@@ -139,9 +134,9 @@
         <div class="idx" data-reveal>
           <span class="idx__n">01</span>
           <p class="idx__lab">The collection</p>
-          <h2 class="idx__h">Three builds. Hover one to bring it to life.</h2>
+          <h2 class="idx__h">Two builds. Hover one to bring it to life.</h2>
         </div>
-        <div class="plates" id="shop-grid" data-spans="plate--solo,plate--half,plate--half"></div>
+        <div class="plates" id="shop-grid" data-spans="plate--half,plate--half"></div>
       </div>
     </section>
 
@@ -156,9 +151,9 @@
         <span class="band__n">02</span>
         <h2 class="band__h">Every build keeps <em>how it was made</em>.</h2>
         <div class="band__text">
-          <p>A finished build that you cannot repair, modify or reprint is a dead end. So each
-            one is kept with the files it was made from, the code it runs and the parts that
-            went into it &mdash; which is the same habit the client work runs on.</p>
+          <p>Every build comes with everything it took to make it: the files it was designed
+            from, the code it runs and the parts that went into it. Break a part and you can
+            print a new one; want it to do something else and you can change it.</p>
           <p>Modify it, print a spare, fork the firmware. It is yours.</p>
         </div>
         <ul class="band__row">
@@ -240,15 +235,15 @@
        HTML, but main.js CREATES those canvases for the build plates. Removing
        it blanks every hologram. If the 64 KB is ever worth reclaiming, the fix
        is to load it on demand when a plate scrolls into view. -->
-  <script defer src="assets/js/products.js?v=24"></script>
-  <script defer src="assets/js/components.js?v=24"></script>
-  <script defer src="assets/js/hologram.js?v=24"></script>
-  <script defer src="assets/js/main.js?v=24"></script>
+  <script defer src="assets/js/products.js?v=25"></script>
+  <script defer src="assets/js/components.js?v=25"></script>
+  <script defer src="assets/js/hologram.js?v=25"></script>
+  <script defer src="assets/js/main.js?v=25"></script>
   <!-- ?v=3 busts the module cache. three.js is vendored at assets/vendor/,
        so the star field no longer needs an inline importmap (which the CSP
        blocks) or a third-party fetch from unpkg. A returning visitor still
        holding an older starfield.js would pair it with HTML that no longer
        ships that map, so the version query has to move whenever this does. -->
-  <script type="module" src="assets/js/starfield.js?v=24"></script>
+  <script type="module" src="assets/js/starfield.js?v=25"></script>
 </body>
 </html>

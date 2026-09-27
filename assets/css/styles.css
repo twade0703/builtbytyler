@@ -391,33 +391,22 @@ html.nav-open, html.nav-open body { overflow: hidden; }
   0%   { filter: drop-shadow(0 0 6px rgba(95, 230, 255, .95)) drop-shadow(0 0 18px rgba(95, 230, 255, .55)); }
   100% { filter: drop-shadow(0 0 3px rgba(95, 230, 255, .35)); }
 }
-/* The wave. A pulse starts at one point and spreads along the lines like a
-   ripple: green from bottom-left to top-right, then 7 s later red, the other
-   way. The trading engine's up and down colours. svg.py cuts each stroke into
-   pieces drawn in the direction the wave travels and sets, per piece, --w
-   (when the eased front reaches it) and --run (how far its dash travels in
-   7 s at the speed that lands it at the far end when the front does). The
-   dash is 110 units long with a gap longer than any run, so exactly one
-   pulse is ever on a line. Each colour repeats every
-   14 s and the two are offset by 7 s. */
-.portrait .pt-wave path {
-  stroke: currentColor;
+/* The wave (assets/js/portrait.js): one straight front crosses the face every
+   7 s, rippling the lines and lighting them green on the way up, red on the
+   way back. The lit copy of each line is stroked with a gradient the script
+   slides along with the front, so colour exists only where the front is. */
+.portrait .pt-hot path {
+  stroke: url(#pt-hot-grad);
   stroke-width: 4.8;
-  stroke-dasharray: 110 60000;
-  stroke-dashoffset: 110;
-  animation: pt-run 14s linear calc(var(--start) + var(--w, 0s)) infinite;
+  stroke-dasharray: none;
+  stroke-dashoffset: 0;
+  animation: none;
 }
-.portrait .pt-wave .hp { stroke-width: 5.8; }
-.portrait .pt-wave--up   { --start: 4s;  color: #2BD98A; filter: drop-shadow(0 0 5px rgba(43, 217, 138, .7)); }
-.portrait .pt-wave--down { --start: 11s; color: #FF5C5C; filter: drop-shadow(0 0 5px rgba(255, 92, 92, .7)); }
-@keyframes pt-run {
-  0%   { stroke-dashoffset: 110; }
-  50%  { stroke-dashoffset: var(--run); }
-  100% { stroke-dashoffset: var(--run); }
-}
+.portrait .pt-hot .hp { stroke-width: 5.8; }
+.portrait .pt-hot { filter: drop-shadow(0 0 6px var(--hot, #2BD98A)); }
 @media (prefers-reduced-motion: reduce) {
   .portrait, .portrait path { animation: none; stroke-dashoffset: 0; }
-  .portrait .pt-wave { display: none; }
+  .portrait .pt-hot { display: none; }
 }
 
 .scroll-cue {
@@ -915,17 +904,16 @@ html.nav-open, html.nav-open body { overflow: hidden; }
 
 /* The software demo in the Software page opener. The demo page draws a
    fixed 1280x800 window plus 16px of air, and scales to its frame. */
-/* Software opener: words on top, the working software large underneath and
-   set off to the right, so the page reads on a diagonal from the headline
-   down into the demo. The demo is the point; the words stay short. */
-.opener__stack { display: flex; flex-direction: column; gap: clamp(1.75rem, 3.5vw, 2.75rem); }
-.opener__head { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 0.8fr); gap: clamp(1.5rem, 4vw, 4rem); align-items: end; }
-.opener__stack .display { font-size: clamp(2.2rem, 4.4vw, 3.8rem); margin-bottom: 0; }
-.opener__aside .opener__lead { font-size: clamp(0.98rem, 1.2vw, 1.1rem); }
-.opener__aside .opener__cta { margin-top: 1.25rem; }
-.opener__demo { margin: 0 0 0 auto; width: min(100%, 1120px); }
-@media (min-width: 961px) { .opener__demo { width: 88%; } }
-@media (max-width: 960px) { .opener__head { grid-template-columns: 1fr; } }
+/* Software opener: a centred stack. Label, a one-line headline, one line of
+   text and the two buttons, then the working software centred and wide
+   underneath. The demo is the point; the words stay short. */
+.opener__stack { display: flex; flex-direction: column; align-items: center; gap: clamp(2rem, 4vw, 3rem); }
+.opener__head { text-align: center; max-width: 46rem; }
+.opener__head .kicker { justify-content: center; }
+.opener__stack .display { font-size: clamp(2.3rem, 5vw, 4.2rem); margin: 0 0 1.1rem; }
+.opener__head .opener__lead { margin: 0 auto; max-width: 44ch; font-size: clamp(1rem, 1.3vw, 1.12rem); }
+.opener__head .opener__cta { justify-content: center; margin-top: 1.6rem; }
+.opener__demo { margin: 0 auto; width: min(100%, 1060px); }
 .opener__demo iframe { display: block; width: 100%; aspect-ratio: 1312 / 832; border: 0; background: transparent; }
 .opener__demo figcaption {
   margin-top: 0.6rem;
@@ -937,12 +925,18 @@ html.nav-open, html.nav-open body { overflow: hidden; }
   text-align: center;
 }
 
-/* The second software showcase (software.html #front-desk): the opener's
-   layout mirrored, demo left and set off the other way, words right. */
+/* The second software showcase (software.html #front-desk): heading and
+   paragraph side by side on a hairline, then the demo centred at the same
+   width as the one in the opener. */
 .showcase { padding-top: clamp(2rem, 5vw, 4rem); }
-.showcase__grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(220px, 270px); gap: clamp(1.5rem, 3.5vw, 3.5rem); align-items: center; }
-.showcase__demo { margin: 0; width: 100%; }
-@media (min-width: 961px) { .showcase__demo { margin-left: -6%; width: 106%; } }
+.showcase__head {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(1.5rem, 4vw, 4rem);
+  align-items: end; max-width: 1060px; margin: 0 auto clamp(1.75rem, 3vw, 2.5rem);
+  padding-top: 1.25rem; border-top: 1px solid var(--hairline-strong);
+}
+.showcase__head h2 { font-size: var(--fs-h2); margin: 0.75rem 0 0; }
+.showcase__head > p { color: var(--muted); max-width: 46ch; }
+.showcase__demo { margin: 0 auto; width: min(100%, 1060px); }
 .showcase__demo iframe { display: block; width: 100%; aspect-ratio: 1312 / 832; border: 0; background: transparent; }
 .showcase__demo figcaption, .opener__demo figcaption {
   margin-top: 0.6rem;
@@ -953,9 +947,13 @@ html.nav-open, html.nav-open body { overflow: hidden; }
   color: var(--muted);
   text-align: center;
 }
-.showcase__text h2 { font-size: var(--fs-h2); margin: 0.75rem 0 1rem; }
-.showcase__text p:not(.kicker) { color: var(--muted); max-width: 40ch; }
-@media (max-width: 960px) { .showcase__grid { grid-template-columns: 1fr; } .showcase__text { order: -1; } }
+@media (max-width: 760px) { .showcase__head { grid-template-columns: 1fr; } }
+
+/* Software, 02 How it runs: one short paragraph and the timeline, so the band
+   does not need the full band padding; it read as empty space. */
+#method.band { padding-block: clamp(3rem, 6vw, 5rem); }
+#method .band__lab { margin-bottom: clamp(1.5rem, 3vw, 2.25rem); }
+#method .timeline { margin-top: clamp(2rem, 3.5vw, 2.75rem); }
 
 /* A hairline row of items inside a band (what every build includes).
    grid-column: 1 / -1 is load-bearing, not tidiness: .band__grid is laid out

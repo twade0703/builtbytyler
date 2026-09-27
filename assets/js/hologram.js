@@ -1106,7 +1106,11 @@
         const a = inboard + da, rr = RI - 0.008;
         parts.push(makeBox(cx + Math.cos(a) * rr, (Y0 + Y1) / 2, cz + Math.sin(a) * rr, 0.018, Y1 - Y0 - 0.006, 0.018));
       });
-      spinners.push({ cx, cy: my + 0.08, cz, r: 0.275, blades: 3, speed: 9 });
+      // Props in: each diagonal pair turns the same way and the two pairs
+      // turn opposite, so the front blades sweep inward toward the camera
+      // and the yaw torques cancel. All four the same way would spin it.
+      const dir = Math.sign(cx) * Math.sign(cz);
+      spinners.push({ cx, cy: my + 0.08, cz, r: 0.275, blades: 3, speed: 9 * dir, dir });
     }
     // low bridges tying each duct to its neighbours, at bumper height — kept
     // low at the front so they never sit in the camera's view
@@ -1185,6 +1189,14 @@
        turns like a product on a turntable — one eye height, one slow even
        lap — and the breakout below pops up a second in. */
     m.spinRate = 0.26;
+    // a quick push in on the hover so you can see what it is, then back out
+    m.hoverZoom = (s) => {
+      if (s <= 0) return 1;
+      if (s < 0.55) return 1 + 0.38 * V.ss(s / 0.55);
+      if (s < 1.5) return 1.38;
+      if (s < 2.3) return 1.38 - 0.38 * V.ss((s - 1.5) / 0.8);
+      return 1;
+    };
     // the breakout: a section through the arm where it roots into the duct —
     // the joint that takes the load in a crash — showing the infill
     m.callout = {
@@ -1308,6 +1320,7 @@
     /* A model that flies carries model.bob(time): a height it hovers at,
        applied to every point it draws. Set once per frame in render(). */
     let bobY = 0;
+    let zoomMul = 1;                 // model.hoverZoom: a camera push-in on hover
     function project(x, y, z, ca, sa) {
       // rotate about Y
       const X = x * ca + z * sa;
@@ -1317,7 +1330,7 @@
       const Y2 = Y * cosT - Z * sinT;
       const Z2 = Y * sinT + Z * cosT;
       const f = viewerDist / (viewerDist + Z2); // perspective foreshortening
-      return [cx + X * f * scale, cy - Y2 * f * scale, f, -Z2];
+      return [cx + X * f * scale * zoomMul, cy - Y2 * f * scale * zoomMul, f, -Z2];
     }
 
     /* How far this model reaches, in projected units at scale 1. Sampled
@@ -1458,6 +1471,7 @@
       ctx.clearRect(0, 0, w, h);
       const ca = Math.cos(angY), sa = Math.sin(angY);
       bobY = model.bob ? model.bob(reduce ? 0 : t) : 0;
+      zoomMul = model.hoverZoom && !reduce ? model.hoverZoom(hoverT / T_RATE) : 1;
 
       // A slow, shallow flicker. Anything stronger reads as a broken screen
       // rather than a projection.
@@ -1621,7 +1635,7 @@
             const cb = Math.cos(ba), sb = Math.sin(ba);
             prev = null; first = null;
             for (let k = 0; k < BLADE.length; k++) {
-              const u = BLADE[k][0], vv = BLADE[k][1];
+              const u = BLADE[k][0], vv = BLADE[k][1] * (sp.dir || 1);   // a reversed prop is a mirrored blade
               const x = sp.cx + (u * cb - vv * sb) * sp.r;
               const z = sp.cz + (u * sb + vv * cb) * sp.r;
               const p = project(x, sp.cy + vv * 0.16 * sp.r, z, ca, sa);
@@ -1761,7 +1775,7 @@
        starts, holds, closes, and comes back while the hover lasts. */
     function drawCallout(ca, sa) {
       const co = model.callout;
-      const hs = hoverT / T_RATE - 1.0;                         // seconds since hover, less a beat
+      const hs = hoverT / T_RATE - (model.hoverZoom ? 2.4 : 1.0);  // after the push-in settles
       if (hs < 0) { calloutAnchor = -1; return; }
       const ph = hs % co.every;
       const open = ph < 0.9 ? V.ss(ph / 0.9) : ph < co.hold + 0.9 ? 1
@@ -1848,17 +1862,17 @@
         const cells = [];
         const split = (x, y, s) => {
           const d = near(x + s / 2, y + s / 2);
-          if (s > 0.035 && d < s * 2.1) {
+          if (s > 0.022 && d < s * 2.4) {
             const h2 = s / 2;
             split(x, y, h2); split(x + h2, y, h2); split(x, y + h2, h2); split(x + h2, y + h2, h2);
           } else cells.push([x, y, s]);
         };
-        const G = 0.275;                                                     // the coarsest cell
+        const G = 0.14;                                                      // the coarsest cell
         for (let y = -1.1; y < 1.1; y += G) for (let x = -1.1; x < 1.1; x += G) split(x, y, G);
         co.cells = cells;
       }
       // four weights of wall, by cell size: [largest cell, line width, alpha, fill]
-      const tiers = [[0.04, 2.2, 1, 0.22], [0.075, 1.6, 0.9, 0.12], [0.15, 1.1, 0.75, 0.05], [9, 0.8, 0.5, 0]];
+      const tiers = [[0.03, 2.0, 1, 0.24], [0.06, 1.5, 0.9, 0.14], [0.1, 1.1, 0.8, 0.07], [9, 0.9, 0.65, 0.03]];
       tiers.forEach((tr, ti) => {
         const lo = ti ? tiers[ti - 1][0] : 0;
         ctx.beginPath();

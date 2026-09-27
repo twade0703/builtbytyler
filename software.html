@@ -28,8 +28,8 @@
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
-  <link rel="stylesheet" href="assets/css/styles.css?v=27">
-  <link rel="stylesheet" href="assets/css/motion.css?v=27">
+  <link rel="stylesheet" href="assets/css/styles.css?v=28">
+  <link rel="stylesheet" href="assets/css/motion.css?v=28">
 
 <!-- Structured data. Every fact here is one this site already states in prose:
        the entity, the city and the email come off contact.html. Nothing is
@@ -100,7 +100,7 @@
         "name": "Two or three days? Really?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Really. Underneath every site is the same framework I wrote and reuse, so the layout system, the motion, the performance work, the security headers and the deployment are already built and tested. What is left is your words, your photos and your structure. There is also nobody to hand anything to — most of a three-month timeline is queueing."
+          "text": "Yes. There is no queue and nobody to hand it to, so it gets built as soon as we have talked. Bigger builds, like a booking system or a portal, are scoped on their own and I will tell you the timeline before you pay anything."
         }
       },
       {
@@ -121,18 +121,10 @@
       },
       {
         "@type": "Question",
-        "name": "You are one person. What happens if you disappear?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Everything is handed over: the repository, the deployment configuration and written documentation are yours from launch. Any competent developer can pick it up, because it is standard code rather than a proprietary system only I can operate."
-        }
-      },
-      {
-        "@type": "Question",
         "name": "What do you need from me to start?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Twenty minutes on a call, whatever you already have in the way of logos, photos and copy, and one person who can make decisions."
+          "text": "Send me an email, or buy the Launch plan. As soon as the payment goes through I get a notification and I call you to go over what you want built, the style and the format. You can usually see the first version the next day."
         }
       }
     ]
@@ -228,17 +220,13 @@
     <section class="section opener" data-sec="top">
       <div class="container opener__stack" data-enter>
         <div class="opener__head">
-          <div>
-            <p class="kicker">Software &amp; web <b>—</b> for businesses</p>
-            <h1 class="display" data-split>Elegant and modern <em>software</em>.</h1>
-          </div>
-          <div class="opener__aside">
-            <p class="opener__lead">Websites, web apps and automation for your business.
-              One engineer, me, start to finish, and live in days.</p>
-            <div class="opener__cta">
-              <a class="btn" href="#pricing">See what it costs</a>
-              <a class="btn btn--ghost" href="#method">How it works</a>
-            </div>
+          <p class="kicker">Software &amp; web <b>—</b> for businesses</p>
+          <h1 class="display" data-split>Elegant and modern <em>software</em>.</h1>
+          <p class="opener__lead">Websites, web apps and automation for your business.
+            One engineer, me, start to finish, and live in days.</p>
+          <div class="opener__cta">
+            <a class="btn" href="#pricing">See what it costs</a>
+            <a class="btn btn--ghost" href="#method">How it works</a>
           </div>
         </div>
         <!-- The markets demo: a working piece of software, not a screenshot.
@@ -254,26 +242,26 @@
 
     <!-- ===============================================================
          SHOWCASE 2 · THE FRONT DESK — a second working piece of software,
-         under the markets demo. It mirrors the opener: the software on the
-         left this time, set off the other way, and the words on the right,
-         so the two demos read as a zig-zag down the page rather than a
-         stack. Source: showcase/agent/ (index.html + app.js, no data, no
+         under the markets demo: a heading and one paragraph side by side,
+         then the demo centred and wide, the same width as the one above. Source: showcase/agent/ (index.html + app.js, no data, no
          network calls); demos/front-desk/ is the published copy and is
          framed under the same /demos/* rule in _headers.
          =============================================================== -->
     <section class="section showcase" id="front-desk" data-sec="front-desk">
-      <div class="container showcase__grid">
+      <div class="container">
+        <div class="showcase__head" data-reveal>
+          <div>
+            <p class="kicker">Also built here</p>
+            <h2>An AI front desk.</h2>
+          </div>
+          <p>It answers the calls a business misses, on the first ring, asks the right
+            questions, books the job into the calendar and tells the team. Every missed call
+            becomes a booked job instead of a lost one.</p>
+        </div>
         <figure class="showcase__demo" data-reveal>
           <iframe src="demos/front-desk/?embed" title="Front Desk demo: an AI assistant that answers calls and books jobs" loading="lazy"></iframe>
           <figcaption>Example business &mdash; simulated calls and texts. Click in to try a call.</figcaption>
         </figure>
-        <div class="showcase__text" data-reveal>
-          <p class="kicker">Also built here</p>
-          <h2>An AI front desk.</h2>
-          <p>It answers the calls a business misses, on the first ring, asks the right
-            questions, books the job into the calendar and tells the team. Every missed
-            call becomes a booked job instead of a lost one.</p>
-        </div>
       </div>
     </section>
 
@@ -348,12 +336,8 @@
         <h2 class="band__h">Live in days, not <em>months</em>.</h2>
         <div class="band__text">
           <p>Most of what makes a website take three months is other people: a queue, a
-            designer waiting on a developer, a developer waiting on a project manager, and a
-            round of revisions in between each one. None of that exists here. You talk to the
-            person building it, and he starts the same day.</p>
-          <p>You get a live link the day the build starts and you watch it fill in, so nothing
-            lands as a surprise at the end. Four stages, and you can stop at any of them &mdash;
-            nothing begins until a written scope with a fixed price is in front of you.</p>
+            designer waiting on a developer, a round of revisions between each one. None of
+            that exists here. You talk to the person building it: me.</p>
         </div>
         <ol class="timeline">
           <li>
@@ -398,7 +382,7 @@
         <div class="idx idx--split" data-reveal>
           <span class="idx__n">03</span>
           <p class="idx__lab">Pricing</p>
-          <h2 class="idx__h">Published, so you know before the call.</h2>
+          <h2 class="idx__h">Simple pricing, up front.</h2>
           <p class="idx__p">Fixed price per build, and a monthly plan that keeps it fast, patched
             and current. No hourly rates, no surprise invoices, no twelve-month lock-in.</p>
         </div>
@@ -470,17 +454,9 @@
             </details>
             <details>
               <summary>Two or three days? Really?</summary>
-              <p>Really, and here is why it is not a trick. I am not starting from a blank
-                page: underneath every site is the same framework I wrote and reuse, so the
-                slow, invisible parts — the layout system, the motion, the performance work,
-                the security headers, the deployment — are already built and already tested.
-                What is left is your words, your photos and your structure, and that is a
-                couple of days of work, not a couple of months. There is also nobody to hand
-                anything to. Most of a three-month timeline is queueing.</p>
-              <p>The honest caveat: that clock is mine, not yours. If I am waiting on
-                photographs or on the one person who can approve the copy, it takes as long as
-                that takes. Bigger builds — a booking system, a portal, a product — are scoped
-                on their own timeline and I will tell you what it is before you pay anything.</p>
+              <p>Yes. There is no queue and nobody to hand it to, so it gets built as soon as we
+                have talked. Bigger builds, like a booking system or a portal, are scoped on their
+                own and I will tell you the timeline before you pay anything.</p>
             </details>
             <details>
               <summary>Can you work with the site I already have?</summary>
@@ -495,17 +471,10 @@
                 in your accounts, under your ownership, with access I can be removed from.</p>
             </details>
             <details>
-              <summary>You are one person. What happens if you disappear?</summary>
-              <p>A fair question and the reason everything is handed over: the repository, the
-                deployment configuration and written documentation are yours from launch. Any
-                competent developer can pick it up, because it is standard code rather than a
-                proprietary system only I can operate.</p>
-            </details>
-            <details>
               <summary>What do you need from me to start?</summary>
-              <p>Twenty minutes on a call, whatever you already have in the way of logos, photos and copy,
-                and one person who can make decisions. That is genuinely it — the writing and the
-                structure are my job, not homework I hand back to you.</p>
+              <p>Send me an email, or buy the Launch plan. As soon as the payment goes through
+                I get a notification and I call you to go over what you want built, the style and
+                the format. You can usually see the first version the next day.</p>
             </details>
           </div>
         </div>
@@ -567,15 +536,15 @@
        HTML, but main.js CREATES those canvases for the build plates. Removing
        it blanks every hologram. If the 64 KB is ever worth reclaiming, the fix
        is to load it on demand when a plate scrolls into view. -->
-  <script defer src="assets/js/products.js?v=27"></script>
-  <script defer src="assets/js/components.js?v=27"></script>
-  <script defer src="assets/js/hologram.js?v=27"></script>
-  <script defer src="assets/js/main.js?v=27"></script>
+  <script defer src="assets/js/products.js?v=28"></script>
+  <script defer src="assets/js/components.js?v=28"></script>
+  <script defer src="assets/js/hologram.js?v=28"></script>
+  <script defer src="assets/js/main.js?v=28"></script>
   <!-- ?v=3 busts the module cache. three.js is vendored at assets/vendor/,
        so the star field no longer needs an inline importmap (which the CSP
        blocks) or a third-party fetch from unpkg. A returning visitor still
        holding an older starfield.js would pair it with HTML that no longer
        ships that map, so the version query has to move whenever this does. -->
-  <script type="module" src="assets/js/starfield.js?v=27"></script>
+  <script type="module" src="assets/js/starfield.js?v=28"></script>
 </body>
 </html>

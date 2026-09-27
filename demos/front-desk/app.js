@@ -12,7 +12,7 @@ function fit(){SC=Math.min((innerWidth-32)/1280,(innerHeight-32)/800,1.25);stage
 addEventListener("resize",()=>{fit();sizeWave()});fit();
 
 /* ---------- the business, its week and the tools it's wired to */
-const BIZ="Your Plumbing & Air",TECH="Luis",LINK="yourplumbingair.example";
+const BIZ="Acme Home Services",TECH="Luis",LINK="acmehomeservices.example";
 const DAYS=[["MON",28],["TUE",29],["WED",30],["THU",1],["FRI",2]],DNAME=["Today","Tue","Wed","Thu","Fri"],H0=8,H1=18;
 const CONN=["Google Calendar","Slack","Teams","Jobber","QuickBooks"];
 const BASE=[[0,8,10,"Drain clean","Patel"],[0,10,12,"Water heater install","Ruiz"],[0,13,15,"Estimate","Chen"],

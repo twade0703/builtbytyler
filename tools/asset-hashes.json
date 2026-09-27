@@ -58,5 +58,16 @@
   "assets/js/products.js": "88a8c33d295209f9",
   "assets/js/starfield.js": "3aa9ea5d757d3343",
   "assets/vendor/three.module.js": "c6eacae1ec5fd832"
+ },
+ "28": {
+  "assets/css/motion.css": "2c63c69f1ded39ee",
+  "assets/css/styles.css": "fda2e7ea3cedadd8",
+  "assets/js/components.js": "9939334dcd82a73f",
+  "assets/js/hologram.js": "64ba6e9f7720549c",
+  "assets/js/main.js": "f90e4282192f0c4f",
+  "assets/js/portrait.js": "036836c40bf74d9e",
+  "assets/js/products.js": "88a8c33d295209f9",
+  "assets/js/starfield.js": "1115441dab4b11ef",
+  "assets/vendor/three.module.js": "c6eacae1ec5fd832"
  }
 }

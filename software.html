@@ -28,8 +28,8 @@
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
-  <link rel="stylesheet" href="assets/css/styles.css?v=26">
-  <link rel="stylesheet" href="assets/css/motion.css?v=26">
+  <link rel="stylesheet" href="assets/css/styles.css?v=27">
+  <link rel="stylesheet" href="assets/css/motion.css?v=27">
 
 <!-- Structured data. Every fact here is one this site already states in prose:
        the entity, the city and the email come off contact.html. Nothing is
@@ -249,6 +249,31 @@
           <iframe src="demos/markets/?embed" title="Markets demo: a live tracker built here"></iframe>
           <figcaption>Built here &mdash; a live markets tracker. Click in to take over.</figcaption>
         </figure>
+      </div>
+    </section>
+
+    <!-- ===============================================================
+         SHOWCASE 2 · THE FRONT DESK — a second working piece of software,
+         under the markets demo. It mirrors the opener: the software on the
+         left this time, set off the other way, and the words on the right,
+         so the two demos read as a zig-zag down the page rather than a
+         stack. Source: showcase/agent/ (index.html + app.js, no data, no
+         network calls); demos/front-desk/ is the published copy and is
+         framed under the same /demos/* rule in _headers.
+         =============================================================== -->
+    <section class="section showcase" id="front-desk" data-sec="front-desk">
+      <div class="container showcase__grid">
+        <figure class="showcase__demo" data-reveal>
+          <iframe src="demos/front-desk/?embed" title="Front Desk demo: an AI assistant that answers calls and books jobs" loading="lazy"></iframe>
+          <figcaption>Example business &mdash; simulated calls and texts. Click in to try a call.</figcaption>
+        </figure>
+        <div class="showcase__text" data-reveal>
+          <p class="kicker">Also built here</p>
+          <h2>An AI front desk.</h2>
+          <p>It answers the calls a business misses, on the first ring, asks the right
+            questions, books the job into the calendar and tells the team. Every missed
+            call becomes a booked job instead of a lost one.</p>
+        </div>
       </div>
     </section>
 
@@ -542,15 +567,15 @@
        HTML, but main.js CREATES those canvases for the build plates. Removing
        it blanks every hologram. If the 64 KB is ever worth reclaiming, the fix
        is to load it on demand when a plate scrolls into view. -->
-  <script defer src="assets/js/products.js?v=26"></script>
-  <script defer src="assets/js/components.js?v=26"></script>
-  <script defer src="assets/js/hologram.js?v=26"></script>
-  <script defer src="assets/js/main.js?v=26"></script>
+  <script defer src="assets/js/products.js?v=27"></script>
+  <script defer src="assets/js/components.js?v=27"></script>
+  <script defer src="assets/js/hologram.js?v=27"></script>
+  <script defer src="assets/js/main.js?v=27"></script>
   <!-- ?v=3 busts the module cache. three.js is vendored at assets/vendor/,
        so the star field no longer needs an inline importmap (which the CSP
        blocks) or a third-party fetch from unpkg. A returning visitor still
        holding an older starfield.js would pair it with HTML that no longer
        ships that map, so the version query has to move whenever this does. -->
-  <script type="module" src="assets/js/starfield.js?v=26"></script>
+  <script type="module" src="assets/js/starfield.js?v=27"></script>
 </body>
 </html>

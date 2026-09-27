@@ -214,6 +214,15 @@ def main():
          "plan. Read it before you pay. The packages sheet it refers to comes with "
          "your quote — ask for it first if you would rather read both together.**"))
 
+    # The signature block is for the signed PDF, not the web page: online, paying
+    # is the acceptance ("Paying the first invoice does the same thing"). Drop the
+    # blank lines to sign on, from the company line to the closing rule, so the
+    # page stays short. TERMS.md itself keeps them for yespack's PDF.
+    sig_a = md.find("BuiltByTyler LLC, a California limited liability company")
+    sig_b = md.rfind("\n---\n")
+    if sig_a != -1 and sig_b > sig_a:
+        md = md[:sig_a] + md[sig_b + 1:]
+
     body = render(md)
     if packages_live:
         body = body.replace("packages sheet", '<a href="packages.html">packages sheet</a>')

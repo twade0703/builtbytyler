@@ -31,11 +31,24 @@
   <link rel="stylesheet" href="assets/css/styles.css?v=24">
   <link rel="stylesheet" href="assets/css/motion.css?v=24">
   <style>
-    /* A line to sign on. The one rule this page needs that the site stylesheet
-       does not already carry. Inline styles are allowed by the CSP in _headers. */
+    /* A line to sign on (used only if the signature block is ever rendered). */
     .sig-line { display:inline-block; min-width:15rem; max-width:100%;
                 border-bottom:1px solid currentColor; opacity:.5;
                 vertical-align:baseline; }
+    /* Compact reading: the agreement is here to be checkable, not to fill the
+       screen. Small type, tight rhythm, section heads as small labels.
+       Inline styles are allowed by the CSP in _headers. */
+    main > .section { padding-block: clamp(2.5rem, 5vw, 4rem); }
+    .policy { max-width: 62ch; font-size: .9rem; line-height: 1.55; }
+    .policy h1 { font-size: clamp(1.6rem, 3vw, 2.1rem); margin-bottom: .35rem; }
+    .policy h2 { font-family: var(--font-mono); font-size: var(--fs-micro); font-weight: 500;
+                 letter-spacing: .14em; text-transform: uppercase; color: var(--ink);
+                 margin: 1.5rem 0 .5rem; padding-top: .8rem; }
+    .policy p { margin: 0 0 .55rem; }
+    .policy ul { margin: 0 0 .55rem; }
+    .policy li { margin-bottom: .3rem; }
+    .policy hr { margin: 1.5rem 0 .5rem; }
+    .policy b { font-weight: 500; }  /* the font ships 400/500; a faux 700 smears at this size */
   </style>
 
   <script type="application/ld+json">
@@ -109,17 +122,6 @@
         <hr>
         <h2>Agreed</h2>
         <p>Signing means you have read this page and you agree to it. Paying the first invoice does the same thing.</p>
-        <p>BuiltByTyler LLC, a California limited liability company</p>
-        <p><span class="sig-line"></span><br>Signature of Tyler Wade, CEO</p>
-        <p><span class="sig-line"></span><br>Date</p>
-        <p><b>Client</b></p>
-        <p><span class="sig-line"></span><br>Full legal name of your business</p>
-        <p><i>The name on your licence, your Secretary of State filing, or your DBA. Not the trading name on the truck, if those are different.</i></p>
-        <p>What it is: Sole proprietor / Partnership / LLC / Corporation (circle one)</p>
-        <p><span class="sig-line"></span><br>Signature</p>
-        <p><span class="sig-line"></span><br>Date</p>
-        <p><span class="sig-line"></span><br>Print name</p>
-        <p><span class="sig-line"></span><br>Title</p>
         <hr>
         <p><i>BuiltByTyler LLC · Monterey, California · <a href="mailto:twade@builtbytyler.com">twade@builtbytyler.com</a></i></p>
       </div>

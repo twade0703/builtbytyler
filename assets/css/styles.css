@@ -955,6 +955,12 @@ html.nav-open, html.nav-open body { overflow: hidden; }
 #method .band__lab { margin-bottom: clamp(1.5rem, 3vw, 2.25rem); }
 #method .timeline { margin-top: clamp(2rem, 3.5vw, 2.75rem); }
 
+/* Builds opener: the plates sit under the centred head the way the demo does
+   on the Software page, full container width. */
+.opener__plates { width: 100%; margin-top: 0.5rem; }
+/* A closing line that does not need to shout (Builds page). */
+.close.close--quiet h2 { font-size: var(--fs-h2); font-weight: 400; max-width: 20ch; }
+
 /* A hairline row of items inside a band (what every build includes).
    grid-column: 1 / -1 is load-bearing, not tidiness: .band__grid is laid out
    with grid-template-areas, and a child with no area named lands in the

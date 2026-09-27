@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Websites &amp; Software for Small Business &middot; Monterey</title>
-  <meta name="description" content="Websites, web apps and custom software for businesses in Monterey County. Built by hand rather than from a template, and maintained after launch.">
+  <title>Websites &amp; Software for Businesses &middot; Built by Tyler</title>
+  <meta name="description" content="Websites, web apps and custom software for businesses anywhere in the US. Built by hand rather than from a template, and maintained after launch.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500&family=Instrument+Sans:wght@400;500&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -20,16 +20,16 @@
   <meta property="og:site_name" content="Built by Tyler">
   <meta property="og:locale" content="en_US">
   <meta property="og:url" content="https://builtbytyler.com/software">
-  <meta property="og:title" content="Websites & Software for Small Business · Monterey">
-  <meta property="og:description" content="Websites, web apps and custom software for businesses in Monterey County. Built by hand rather than from a template, and maintained after launch.">
-  <meta name="twitter:title" content="Websites & Software for Small Business · Monterey">
-  <meta name="twitter:description" content="Websites, web apps and custom software for businesses in Monterey County. Built by hand rather than from a template, and maintained after launch.">
+  <meta property="og:title" content="Websites & Software for Businesses · Built by Tyler">
+  <meta property="og:description" content="Websites, web apps and custom software for businesses anywhere in the US. Built by hand rather than from a template, and maintained after launch.">
+  <meta name="twitter:title" content="Websites & Software for Businesses · Built by Tyler">
+  <meta name="twitter:description" content="Websites, web apps and custom software for businesses anywhere in the US. Built by hand rather than from a template, and maintained after launch.">
   <meta property="og:image" content="https://builtbytyler.com/assets/img/og-image.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
-  <link rel="stylesheet" href="assets/css/styles.css?v=25">
-  <link rel="stylesheet" href="assets/css/motion.css?v=25">
+  <link rel="stylesheet" href="assets/css/styles.css?v=26">
+  <link rel="stylesheet" href="assets/css/motion.css?v=26">
 
 <!-- Structured data. Every fact here is one this site already states in prose:
        the entity, the city and the email come off contact.html. Nothing is
@@ -51,7 +51,7 @@
     "url": "https://builtbytyler.com/",
     "email": "twade@builtbytyler.com",
     "telephone": "+12817398942",
-    "description": "A one-person studio in Monterey, California building websites and software for small businesses and trades, plus mechanical products — robotics, drones and custom builds.",
+    "description": "A one-person studio in Monterey, California building websites and software for businesses and trades across the United States, plus mechanical products — robotics, drones and custom builds.",
     "founder": { "@type": "Person", "name": "Tyler Wade" },
     "address": {
       "@type": "PostalAddress",
@@ -59,10 +59,7 @@
       "addressRegion": "CA",
       "addressCountry": "US"
     },
-    "areaServed": [
-      { "@type": "AdministrativeArea", "name": "Monterey, California" },
-      { "@type": "AdministrativeArea", "name": "San Francisco Bay Area, California" }
-    ],
+    "areaServed": { "@type": "Country", "name": "United States" },
     "knowsAbout": [
       "website design for contractors",
       "local SEO for trades businesses",
@@ -152,16 +149,7 @@
     "provider": {
       "@id": "https://builtbytyler.com/#business"
     },
-    "areaServed": [
-      {
-        "@type": "AdministrativeArea",
-        "name": "Monterey County, California"
-      },
-      {
-        "@type": "AdministrativeArea",
-        "name": "San Francisco Bay Area, California"
-      }
-    ],
+    "areaServed": { "@type": "Country", "name": "United States" },
     "hasOfferCatalog": {
       "@type": "OfferCatalog",
       "name": "Website build tiers",
@@ -554,15 +542,15 @@
        HTML, but main.js CREATES those canvases for the build plates. Removing
        it blanks every hologram. If the 64 KB is ever worth reclaiming, the fix
        is to load it on demand when a plate scrolls into view. -->
-  <script defer src="assets/js/products.js?v=25"></script>
-  <script defer src="assets/js/components.js?v=25"></script>
-  <script defer src="assets/js/hologram.js?v=25"></script>
-  <script defer src="assets/js/main.js?v=25"></script>
+  <script defer src="assets/js/products.js?v=26"></script>
+  <script defer src="assets/js/components.js?v=26"></script>
+  <script defer src="assets/js/hologram.js?v=26"></script>
+  <script defer src="assets/js/main.js?v=26"></script>
   <!-- ?v=3 busts the module cache. three.js is vendored at assets/vendor/,
        so the star field no longer needs an inline importmap (which the CSP
        blocks) or a third-party fetch from unpkg. A returning visitor still
        holding an older starfield.js would pair it with HTML that no longer
        ships that map, so the version query has to move whenever this does. -->
-  <script type="module" src="assets/js/starfield.js?v=25"></script>
+  <script type="module" src="assets/js/starfield.js?v=26"></script>
 </body>
 </html>

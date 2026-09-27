@@ -394,15 +394,16 @@ html.nav-open, html.nav-open body { overflow: hidden; }
 /* The wave. A pulse starts at one point and spreads along the lines like a
    ripple: green from bottom-left to top-right, then 7 s later red, the other
    way. The trading engine's up and down colours. svg.py cuts each stroke into
-   pieces drawn in the direction the wave travels and sets --w, when the wave
-   reaches each one; --run on the group is how far the dash travels in 7 s at
-   the wave's one speed. The dash is 110 units long with a gap longer than any
-   piece, so exactly one pulse is ever on a line. Each colour repeats every
+   pieces drawn in the direction the wave travels and sets, per piece, --w
+   (when the eased front reaches it) and --run (how far its dash travels in
+   7 s at the speed that lands it at the far end when the front does). The
+   dash is 110 units long with a gap longer than any run, so exactly one
+   pulse is ever on a line. Each colour repeats every
    14 s and the two are offset by 7 s. */
 .portrait .pt-wave path {
   stroke: currentColor;
   stroke-width: 4.8;
-  stroke-dasharray: 110 20000;
+  stroke-dasharray: 110 60000;
   stroke-dashoffset: 110;
   animation: pt-run 14s linear calc(var(--start) + var(--w, 0s)) infinite;
 }

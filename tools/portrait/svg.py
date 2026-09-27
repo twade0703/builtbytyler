@@ -14,8 +14,10 @@
 # along one, so it prefers the lines). Each stroke is then cut into pieces on
 # which that arrival time only rises, and each piece becomes a path drawn in
 # the direction the wave travels, with --w = when the wave reaches its start.
-# The pulse itself is one dash moving at the same constant speed on every
-# piece (CSS "The wave"), so the front stays coherent across the whole face.
+# The front is eased (sine in-out over SPAN seconds): gentle start, fast
+# through the middle, settling at the far side. Each piece gets its own start
+# (--w) and its own dash speed (--run), so its pulse arrives at its far end
+# exactly when the front does, and the whole face moves as one wave.
 import numpy as np, io, heapq, strokes
 S=strokes.S
 
@@ -78,9 +80,19 @@ def arrival(seed):
             if d0+w<dist[b]: dist[b]=d0+w; heapq.heappush(h,(d0+w,b))
     return dist
 
-def pieces(dist, span):
-    """Cut every stroke where arrival stops rising; return (start_s, d, is_hp).
-    span is the speed in user units per second: start_s = arrival distance / speed."""
+SPAN=2.8                                          # seconds for one wave to cross the face
+
+def when(frac):
+    """Eased time for a front that has covered frac of the way: sine
+    ease-in-out, so the wave leaves gently, runs fast through the middle of
+    the face and settles at the far side. Inverse of (1 - cos(pi t)) / 2."""
+    frac=min(max(frac,0.0),1.0)
+    return SPAN*np.arccos(1-2*frac)/np.pi
+
+def pieces(dist):
+    """Cut every stroke where arrival stops rising. Return (start_s, speed, d, is_hp):
+    each piece starts when the eased front reaches it and runs at the speed that
+    gets its pulse to its far end when the front does."""
     res=[]; far=np.nanmax(dist[np.isfinite(dist)])
     for k in keys:
         a=np.array([dist[idx[(k,i)]] for i in range(len(polys[k]))])
@@ -89,31 +101,30 @@ def pieces(dist, span):
         for i in range(1,len(a)-1):
             if (a[i]-a[i-1])*(a[i+1]-a[i])<0: cut.append(i)
         cut.append(len(a)-1)
-        for s,e in zip(cut,cut[1:]):
-            seg=list(range(s,e+1))
+        for s0,e in zip(cut,cut[1:]):
+            seg=list(range(s0,e+1))
             if a[seg[-1]]<a[seg[0]]: seg=seg[::-1]
             if len(seg)<2: continue
             pts=polys[k][seg]
+            L=float(np.sum(np.linalg.norm(np.diff(pts,axis=0),axis=1)))
+            t0=when(a[seg[0]]/far); t1=when(a[seg[-1]]/far)
+            v=L/max(t1-t0,0.06)
             d='M'+' L'.join(f'{x:.0f} {y:.0f}' for x,y in pts[::2].tolist()+[pts[-1].tolist()])
-            res.append((a[seg[0]]/span, d, k.startswith('hp')))
+            res.append((t0, v, d, k.startswith('hp')))
     return sorted(res)
 
 def extreme(score):
     return int(np.argmax([score(n[2]) for n in nodes]))
 
-SPAN=4.2                                          # seconds for the wave to cross the face
 green=arrival(extreme(lambda p: p[1]-p[0]))       # bottom-left-most point
 red  =arrival(extreme(lambda p: p[0]-p[1]))       # top-right-most point
-far_g=np.max(green[np.isfinite(green)]); far_r=np.max(red[np.isfinite(red)])
 def layer(dist, name):
     rows=[]
-    for w,d,hp in pieces(dist,speed):
+    for w,v,d,hp in pieces(dist):
         cls=' class="hp"' if hp else ''
-        rows.append(f'<path{cls} d="{d}" style="--w:{w:.2f}s"/>')
+        # --run: how far this piece's dash travels in 7 s at its own speed
+        rows.append(f'<path{cls} d="{d}" style="--w:{w:.2f}s;--run:{-v*7:.0f}"/>')
     return rows
-# one speed for both colours, in user units per second, so the CSS dash moves
-# the same distance per second on every piece
-speed=max(far_g,far_r)/SPAN
 g_rows=layer(green,'g'); r_rows=layer(red,'r')
 
 I='            '
@@ -123,9 +134,9 @@ svg=('<svg class="portrait" viewBox="0 20 820 1000" role="img" aria-label="A lin
  f'{I}  <mask id="pt-mask" maskUnits="userSpaceOnUse" x="0" y="20" width="820" height="1000"><rect x="0" y="20" width="820" height="1000" fill="url(#pt-fade)"/></mask>\n'
  f'{I}</defs>\n'
  f'{I}<g mask="url(#pt-mask)">\n{I}  '+f'\n{I}  '.join(out)+'\n'
- f'{I}  <g class="pt-wave pt-wave--up" style="--run:{-speed*7:.0f}" aria-hidden="true">\n{I}    '+f'\n{I}    '.join(g_rows)+f'\n{I}  </g>\n'
- f'{I}  <g class="pt-wave pt-wave--down" style="--run:{-speed*7:.0f}" aria-hidden="true">\n{I}    '+f'\n{I}    '.join(r_rows)+f'\n{I}  </g>\n'
+ f'{I}  <g class="pt-wave pt-wave--up" aria-hidden="true">\n{I}    '+f'\n{I}    '.join(g_rows)+f'\n{I}  </g>\n'
+ f'{I}  <g class="pt-wave pt-wave--down" aria-hidden="true">\n{I}    '+f'\n{I}    '.join(r_rows)+f'\n{I}  </g>\n'
  f'{I}</g>\n          </svg>')
 io.open('portrait.svg.html','w',encoding='utf-8').write(svg)
-print(len(out),'strokes;',len(g_rows),'green pieces,',len(r_rows),'red pieces; speed',round(speed),'u/s; unreached',
+print(len(out),'strokes;',len(g_rows),'green pieces,',len(r_rows),'red pieces; span',SPAN,'s eased; unreached',
       int(np.sum(~np.isfinite(green))),int(np.sum(~np.isfinite(red))))

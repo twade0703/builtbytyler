@@ -1235,12 +1235,135 @@
     return { v, e, f };
   }
 
-  const MODELS = { evtol: buildEvtol, arm: buildArm, drone: buildDrone };
+  /* The smart home: a cutaway room, the demo moment of the local-AI house.
+     Hover it and the arrival sequence runs the way the product does: the
+     front door swings open, the lights come on in stages (entry, hallway,
+     living room, three pendants one after another), then the voice puck on
+     the coffee table answers with rings of sound. The mini PC on the shelf
+     is the brain; its LED blinks while it thinks. Everything is local, so
+     nothing in the drawing leaves the room.
+
+     Static geometry is the shell and furniture. The door, the light cones and
+     the rings are live, driven by how long the model has been hovered, so
+     the sequence always plays from the start and resets when the pointer
+     leaves. */
+  function buildHome() {
+    const parts = [];
+    const FY = -0.52, H = 0.86, TOP = FY + H;          // floor level, wall height
+    const X0 = -0.92, X1 = 0.92, Z0 = -0.66, Z1 = 0.62;  // room footprint
+
+    // floor slab and a skirting line round the open sides
+    parts.push(makeBox(0, FY - 0.03, 0, X1 - X0 + 0.06, 0.06, Z1 - Z0 + 0.06));
+
+    // back wall with a window
+    const WT = 0.05;
+    parts.push(makeBox(0, FY + H / 2, Z0, X1 - X0, H, WT));
+    parts.push({ v: [[0.12, FY + 0.40, Z0 + 0.03], [0.62, FY + 0.40, Z0 + 0.03], [0.62, FY + 0.74, Z0 + 0.03], [0.12, FY + 0.74, Z0 + 0.03]],
+                 e: [[0, 1], [1, 2], [2, 3], [3, 0]] });
+    parts.push({ v: [[0.37, FY + 0.40, Z0 + 0.03], [0.37, FY + 0.74, Z0 + 0.03], [0.12, FY + 0.57, Z0 + 0.03], [0.62, FY + 0.57, Z0 + 0.03]],
+                 e: [[0, 1], [2, 3]] });
+
+    // left wall, with the front door opening in it
+    const DZ0 = 0.02, DZ1 = 0.34, DH = 0.66;            // door opening along z, and its height
+    parts.push(makeBox(X0, FY + H / 2, (Z0 + DZ0) / 2, WT, H, DZ0 - Z0));
+    parts.push(makeBox(X0, FY + H / 2, (DZ1 + Z1) / 2, WT, H, Z1 - DZ1));
+    parts.push(makeBox(X0, FY + DH + (H - DH) / 2, (DZ0 + DZ1) / 2, WT, H - DH, DZ1 - DZ0));
+
+    // a ceiling beam the pendants hang from
+    parts.push(makeBox(-0.05, TOP - 0.02, -0.12, 1.5, 0.035, 0.035));
+
+    // sofa against the back wall, coffee table, rug outline
+    parts.push(makeBox(0.28, FY + 0.10, Z0 + 0.20, 0.78, 0.20, 0.26));    // seat
+    parts.push(makeBox(0.28, FY + 0.26, Z0 + 0.09, 0.78, 0.22, 0.07));   // back
+    [-1, 1].forEach((s) => parts.push(makeBox(0.28 + s * 0.40, FY + 0.16, Z0 + 0.20, 0.06, 0.24, 0.26)));
+    parts.push(makeBox(0.30, FY + 0.12, 0.08, 0.46, 0.03, 0.26));        // table top
+    [[-1, -1], [1, -1], [1, 1], [-1, 1]].forEach(([a, b]) =>
+      parts.push(makeBox(0.30 + a * 0.20, FY + 0.055, 0.08 + b * 0.10, 0.025, 0.11, 0.025)));
+    parts.push({ v: [[-0.12, FY + 0.003, -0.18], [0.72, FY + 0.003, -0.18], [0.72, FY + 0.003, 0.38], [-0.12, FY + 0.003, 0.38]],
+                 e: [[0, 1], [1, 2], [2, 3], [3, 0]] });
+
+    // the voice puck on the table
+    parts.push(makeCylinderY(0.30, FY + 0.155, 0.08, 0.05, 0.035, 16));
+    parts.push(makeRing(0.30, FY + 0.175, 0.08, 0.03, 12, "y"));
+
+    // the brain: a mini PC on a wall shelf, and the thermostat by the door
+    parts.push(makeBox(-0.55, FY + 0.44, Z0 + 0.09, 0.40, 0.025, 0.14)); // shelf
+    parts.push(makeBox(-0.62, FY + 0.49, Z0 + 0.09, 0.16, 0.07, 0.12));  // mini PC
+    parts.push(makeBox(-0.42, FY + 0.47, Z0 + 0.08, 0.04, 0.04, 0.04));  // router
+    parts.push(makeBox(X0 + 0.03, FY + 0.46, -0.20, 0.015, 0.09, 0.07)); // thermostat
+    parts.push(makeRing(X0 + 0.04, FY + 0.46, -0.20, 0.022, 10, "x"));
+
+    // pendants: cord and shade, off until the sequence reaches them
+    const LAMPS = [[-0.62, 0.18], [-0.10, -0.12], [0.44, -0.08]];   // entry, hallway, living
+    LAMPS.forEach(([x, z]) => {
+      parts.push({ v: [[x, TOP - 0.02, z], [x, TOP - 0.20, z]], e: [[0, 1]] });
+      parts.push(makeLoftY([{ y: TOP - 0.20, r: 0.02, cx: x, cz: z }, { y: TOP - 0.29, r: 0.085, cx: x, cz: z }], 12));
+    });
+
+    parts.push(makeBase(FY - 0.08, 1.2));
+    const m = merge(parts);
+    m.spinners = [];
+    m.spinRate = 0.18;
+    m.angle = 2.4;   // rest looking into the open corner: door, lights and puck all in view
+
+    const ss = (a, b, s) => V.ss((s - a) / (b - a));
+    m.dynamic = function (time, deploy, spin, hoverT) {
+      const s = (hoverT == null ? 99 : hoverT) / 0.72;   // seconds of hover (T_RATE)
+      const segs = [], faces = [], dots = [];
+      const P = pen(segs, faces);
+
+      // the door swings in on its hinge at the far side of the opening
+      const open = ss(0.2, 1.3, s) * 1.35;               // radians
+      const hx = X0, hz = DZ1, w = DZ1 - DZ0;
+      const tr = (x, y, z) => {                          // rotate about the hinge's vertical axis
+        const dx = x - hx, dz = z - hz, c = Math.cos(open), sn = Math.sin(open);
+        return [hx + dx * c + dz * sn, y, hz - dx * sn + dz * c];
+      };
+      P.box(hx, FY + DH / 2, hz - w / 2, 0.025, DH - 0.01, w - 0.01, 1.1, tr);
+      const knob = tr(hx + 0.02, FY + 0.33, hz - w + 0.04);
+      dots.push([knob[0], knob[1], knob[2], 1.4, 0]);
+
+      // the lights come on in stages: entry, hallway, living room
+      [1.6, 2.3, 3.0].forEach((t0, i) => {
+        const on = ss(t0, t0 + 0.35, s);
+        const [x, z] = LAMPS[i], y = TOP - 0.29;
+        dots.push([x, y - 0.01, z, 1.2 + on * 2.6, on > 0.5 ? 1 : 0]);
+        if (on > 0.02) {
+          // a cone of light to the floor, and the pool it makes
+          const n = 10, rf = 0.18 + 0.12 * on;
+          for (let k = 0; k < n; k++) {
+            const a = (k / n) * Math.PI * 2;
+            P.line([x + Math.cos(a) * 0.08, y, z + Math.sin(a) * 0.08],
+                   [x + Math.cos(a) * rf, FY + 0.005, z + Math.sin(a) * rf], 0.6 + 0.4 * on);
+          }
+          P.ring(x, FY + 0.006, z, rf, 24, "y", 0.9);
+        }
+      });
+
+      // the house answers: rings of sound off the puck, once the room is lit
+      if (s > 3.6) {
+        for (let k = 0; k < 3; k++) {
+          const ph = ((s - 3.6) * 0.9 + k / 3) % 1;
+          P.ring(0.30, FY + 0.18 + ph * 0.05, 0.08, 0.06 + ph * 0.34, 28, "y", 1.1 * (1 - ph));
+        }
+        dots.push([0.30, FY + 0.18, 0.08, 2.4, 1]);
+      }
+
+      // the brain's LED: blinks while it is thinking
+      const think = s > 3.4 && (s * 3) % 1 < 0.5;
+      dots.push([-0.54, FY + 0.49, Z0 + 0.155, think ? 2.2 : 0.9, think ? 1 : 0]);
+      return { segments: segs, faces, dots };
+    };
+    return m;
+  }
+
+  const MODELS = { evtol: buildEvtol, arm: buildArm, drone: buildDrone, home: buildHome };
   // Per-model holographic tint (rgb triplets) — cyan family to match the UI.
   const TINTS = {
     evtol: [86, 200, 255],
     arm: [80, 196, 255],
     drone: [110, 214, 255],
+    home: [96, 206, 255],
   };
 
   /* ---------------- a single hologram instance ---------------- */
@@ -1262,6 +1385,7 @@
     const angAttr = parseFloat(canvas.getAttribute("data-holo-angle"));
     let raf = 0, t = 0;
     let angY = Number.isFinite(angAttr) ? angAttr
+             : model.angle != null ? model.angle
              : type === "arm" ? -0.6 : 0.4;
     let hovered = false;
     let deploy = reduce ? 1 : 0;     // 0 = parked/collapsed, 1 = deployed (deploy models)

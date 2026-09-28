@@ -1,4 +1,6 @@
-/* Markets demo: the director, the replay clock, the charts. Data comes from data.js (fetch.py). */
+/* Markets demo: the director, the replay clock, the charts. Data comes from data.js (fetch.py).
+   v4: one fixed frame. There is no camera; the quant read-outs, the correlation map, the
+   calculation feed and the what-if control live in the rail, not on top of the chart. */
 (()=>{
 "use strict";
 /* ?embed: transparent page, so the window sits on whatever section hosts it */
@@ -14,7 +16,7 @@ const SHORT={GSPC:"S&P 500",IXIC:"NASDAQ",DJI:"DOW",RUT:"RUSSELL 2000","BTC-USD"
 /* ---------- fit the 1280x800 frame to the viewport */
 const stage=$("stage");let SC=1;
 function fit(){SC=Math.min((innerWidth-32)/1280,(innerHeight-32)/800,1.25);stage.style.transform=`translate(-50%,-50%) scale(${SC})`;}
-let CAMZ=1;  /* the camera's zoom, so canvases render sharp when it pushes in */
+const CAMZ=1;  /* there is no camera any more; kept so the canvas maths reads the same */
 addEventListener("resize",()=>{fit();sizeAll()});fit();
 
 /* ---------- the replay clock: the real Sep 25 session, 5-minute bars, played back smoothly */
@@ -108,31 +110,42 @@ function drawMC(c,x,now,o){const LIFE=4200;if(!c._mc||c._mc.steps!==o.steps)c._m
   for(const k of ["p5","p50","p95"])m.q[k]=m.q[k].map((v,i)=>v+(m.tq[k][i]-v)*.03);m.q.pup+=(m.tq.pup-m.q.pup)*.03;
   const X=i=>o.x0+(o.x1-o.x0)*i/o.steps,a=o.a??1;
   x.save();x.beginPath();x.rect(o.x0,o.top,o.x1-o.x0+2,o.bot-o.top);x.clip();
-  const g=x.createLinearGradient(o.x0,0,o.x1,0);g.addColorStop(0,"rgba(107,179,255,0)");g.addColorStop(1,`rgba(107,179,255,${.06*a})`);x.fillStyle=g;x.fillRect(o.x0,o.top,o.x1-o.x0,o.bot-o.top);
-  x.lineWidth=1;
+    x.lineWidth=1;
   for(const pa of m.paths){let age=(now-pa.born)/LIFE;if(age>=1){pa.p=mcPath(o.steps,sg);pa.born=now;pa.col=PAL[(Math.random()*PAL.length)|0];age=0}
     const grow=clamp(age/.5,0,1),fade=age<.75?1:1-(age-.75)/.25,n=grow*o.steps,k=Math.floor(n);
     x.beginPath();for(let i=0;i<=k;i++){const yy=o.Y(o.S*pa.p[i]);i?x.lineTo(X(i),yy):x.moveTo(X(i),yy)}
     if(k<o.steps){const f=n-k;x.lineTo(X(k+f),o.Y(o.S*(pa.p[k]+(pa.p[k+1]-pa.p[k])*f)))}
     x.strokeStyle=pa.col;x.globalAlpha=.24*fade*a;x.stroke()}
   x.globalAlpha=a;x.beginPath();m.q.p95.forEach((v,i)=>i?x.lineTo(X(i),o.Y(o.S*v)):x.moveTo(X(i),o.Y(o.S*v)));
-  for(let i=o.steps;i>=0;i--)x.lineTo(X(i),o.Y(o.S*m.q.p5[i]));x.closePath();x.fillStyle="rgba(107,179,255,.07)";x.fill();
+  for(let i=o.steps;i>=0;i--)x.lineTo(X(i),o.Y(o.S*m.q.p5[i]));x.closePath();x.fillStyle="rgba(107,179,255,.04)";x.fill();
   for(const [k,cl] of [["p95","rgba(107,179,255,.75)"],["p5","rgba(107,179,255,.75)"],["p50","rgba(255,214,10,.9)"]]){x.beginPath();
     m.q[k].forEach((v,i)=>i?x.lineTo(X(i),o.Y(o.S*v)):x.moveTo(X(i),o.Y(o.S*v)));x.strokeStyle=cl;x.lineWidth=1.2;x.stroke()}
   x.fillStyle="rgba(168,168,173,.85)";x.font="10px JetBrains Mono";x.textAlign="right";x.textBaseline="top";x.fillText(`MC · 500 sims · no drift · ${o.label}`,o.x1-4,o.top+4);
   x.restore();x.globalAlpha=1;return m}
 function statRows(sym,S,m){const q=quant(sym),c=daily(sym).slice(-20),z=(S-mean(c))/sdv(c);
   return[["σ20 ann.",(q.sig20*100).toFixed(1)+"%"],["Sharpe 1Y rf4%",q.sharpe.toFixed(2)],["β vs S&P",q.beta.toFixed(2)],["z-score 20d",fs(z,2),z>=0?"#00C805":"#FF7A3D"],
-    ["VaR 95% 1d",(q.var95*100).toFixed(1)+"%","#FF7A3D"],["Max DD 1Y",(q.mdd*100).toFixed(1)+"%"],["P>spot · 0 drift",Math.round(m.q.pup*100)+"%","#FFFFFF"]]}
-function drawStats(x,x1,top,rows,a){const x0=x1-150;x.save();x.globalAlpha=a;x.fillStyle="rgba(10,10,12,.32)";x.beginPath();x.roundRect(x0,top-6,150,rows.length*15+26,8);x.fill();
-  x.font="10.5px JetBrains Mono";x.textBaseline="top";x.textAlign="left";x.fillStyle="#00C805";x.fillText("● QUANT · LIVE",x0+8,top);
-  rows.forEach(([l,v,cl],i)=>{const y=top+17+i*15;x.textAlign="left";x.fillStyle="rgba(168,168,173,.85)";x.fillText(l,x0+8,y);x.textAlign="right";x.fillStyle=cl||"#FFFFFF";x.fillText(v,x1-8,y)});
-  x.restore()}
-function drawCorr(x,x0,y0,a){const{syms,m}=CM,cs=14;x.save();x.globalAlpha=a;x.font="9.5px JetBrains Mono";x.textBaseline="middle";
-  x.fillStyle="rgba(168,168,173,.85)";x.textAlign="left";x.fillText("ρ · 1Y daily returns",x0,y0-9);
-  syms.forEach((s,i)=>{x.textAlign="right";x.fillStyle="rgba(168,168,173,.75)";x.fillText(s,x0+32,y0+i*cs+cs/2);
-    syms.forEach((_,j)=>{const r=m[i][j];x.fillStyle=r>=0?`rgba(0,200,5,${.1+.5*Math.abs(r)})`:`rgba(255,80,0,${.1+.5*Math.abs(r)})`;x.fillRect(x0+36+j*cs,y0+i*cs,cs-2,cs-2)})});
-  x.restore()}
+    ["VaR 95% 1d",(q.var95*100).toFixed(1)+"%","#FF7A3D"],["Max DD 1Y",(q.mdd*100).toFixed(1)+"%"],["P > spot · no drift",m&&m.q?Math.round(m.q.pup*100)+"%":"—","#FFFFFF"]]}
+/* the rail's read-outs: the same numbers, written as text four times a second */
+const QKEYS=["σ20 annualised","Sharpe 1Y · rf 4%","β vs S&P 500","z-score 20d","VaR 95% 1d","Max drawdown 1Y","P > spot · no drift"];
+$("qRows").innerHTML=QKEYS.map(l=>`<div><dt>${l}</dt><dd>—</dd></div>`).join("");
+const qDD=[...$("qRows").querySelectorAll("dd")];let qAt=0;
+const activeSym=v=>!v?null:v.kind==="compare"?v.pair[0]:v.kind==="option"?OPT.sym:v.sym;
+function updateQuant(now){if(now-qAt<250)return;qAt=now;const v=front._v,sym=activeSym(v);if(!sym)return;
+  const mc=v.kind==="stock"&&front._mc&&front._mc.q?front._mc:null;
+  statRows(sym,px(sym),mc).forEach(([,val,cl],i)=>{const d=qDD[i];if(d.textContent!==val)d.textContent=val;d.style.color=cl&&cl!=="#FFFFFF"?cl:""})}
+/* the correlation map, drawn once per symbol: the grid, and who the symbol on screen moves with */
+function drawCorrRail(){const cv=$("corr"),d=(devicePixelRatio||1)*SC,W=282,H=86;cv.width=Math.round(W*d);cv.height=Math.round(H*d);
+  const x=cv.getContext("2d");x.setTransform(d,0,0,d,0,0);x.clearRect(0,0,W,H);
+  const{syms,m}=CM,cs=14,x0=40,on=syms.indexOf(activeSym(front._v));
+  x.font="10px JetBrains Mono";x.textBaseline="middle";
+  syms.forEach((sy,i)=>{x.textAlign="right";x.fillStyle=i===on?"#5FE6FF":"rgba(156,166,178,.8)";x.fillText(sy,x0-8,i*cs+cs/2+1);
+    syms.forEach((_,j)=>{const r=m[i][j],hot=on<0||i===on||j===on;x.globalAlpha=hot?1:.35;
+      x.fillStyle=r>=0?`rgba(0,200,5,${.12+.78*Math.abs(r)})`:`rgba(255,80,0,${.12+.78*Math.abs(r)})`;x.fillRect(x0+j*cs,i*cs,cs-2,cs-2)});x.globalAlpha=1});
+  const pairs=[];syms.forEach((a,i)=>syms.forEach((b,j)=>{if(j>i&&(on<0||i===on||j===on))pairs.push([on===j?b:a,on===j?a:b,m[i][j]])}));
+  pairs.sort((p,q)=>Math.abs(q[2])-Math.abs(p[2]));const lx=x0+6*cs+20;
+  x.textAlign="left";x.fillStyle="rgba(95,104,115,1)";x.fillText(on<0?"strongest pairs":"moves most with",lx,8);
+  pairs.slice(0,4).forEach(([a,b,r],k)=>{const y=27+k*17;x.fillStyle="rgba(241,245,248,.92)";x.textAlign="left";x.fillText(on<0?`${a} · ${b}`:b,lx,y);
+    x.textAlign="right";x.fillStyle=r>=0?"#00C805":"#FF5000";x.fillText(r.toFixed(2),W-2,y)})}
 function emaA(a,k){const al=2/(k+1),r=[];let e=a[0];a.forEach((v,i)=>{e=i?v*al+e*(1-al):v;r.push(e)});return r}
 
 /* ---------- canvas helpers */
@@ -142,7 +155,7 @@ function emaA(a,k){const al=2/(k+1),r=[];let e=a[0];a.forEach((v,i)=>{e=i?v*al+e
 const _box=new WeakMap(),_ro="ResizeObserver"in window?new ResizeObserver(es=>es.forEach(e=>_box.set(e.target,{w:e.target.clientWidth,h:e.target.clientHeight}))):null;
 function boxOf(r){let b=_ro&&_box.get(r);if(!b){b={w:r.clientWidth,h:r.clientHeight};if(_ro){_box.set(r,b);_ro.observe(r)}}return b}
 function sizeCanvas(cv){const{w,h}=boxOf(cv.parentElement),d=(devicePixelRatio||1)*SC*CAMZ;
-  if(cv.width!==Math.round(w*d)){cv.width=Math.round(w*d);cv.height=Math.round(h*d)}
+  if(cv.width!==Math.round(w*d)||cv.height!==Math.round(h*d)){cv.width=Math.round(w*d);cv.height=Math.round(h*d)}
   const x=cv.getContext("2d");x.setTransform(d,0,0,d,0,0);return{x,w,h}}
 function niceStep(r){const p=Math.pow(10,Math.floor(Math.log10(r))),f=r/p;return(f<1.5?1:f<3?2:f<7?5:10)*p}
 function yAxis(x,w,Y,lo,hi,padR,fmt=fp){const st=niceStep((hi-lo)/4);x.font="11.5px JetBrains Mono";x.textBaseline="middle";x.textAlign="left";
@@ -181,11 +194,11 @@ function ik(c,k,now,dur=1800){const o=c._ind[k];if(!o.t)return{r:0,a:0};const p=
 function morph(c,k,now,dur=1400){const o=c._ind[k];if(!o.t)return 0;const p=now-o.t;return o.on?lin(p/dur):1-lin(p/600)}
 function feed(c,now,html,key){if(now-(c._ft||0)<140||!c._hud||key===c._fk)return;c._ft=now;c._fk=key;  /* one line per bar, never the same bar twice */
   const d=document.createElement("div");d.innerHTML=html;d.style.transform="translateY(-19px)";d.style.opacity="0";
-  c._hud.prepend(d);while(c._hud.children.length>6)c._hud.lastChild.remove();c._hud.classList.add("show");
-  requestAnimationFrame(()=>[...c._hud.children].forEach((e,i)=>{e.style.transform=`translateY(${i*19}px)`;e.style.opacity=String(Math.max(.12,1-i*.17))}));
-  clearTimeout(c._hudT);c._hudT=setTimeout(()=>c._hud&&c._hud.classList.remove("show"),1600)}
+  c._hud.prepend(d);while(c._hud.children.length>4)c._hud.lastChild.remove();c._hud.classList.add("show");$("eng").classList.add("feed");
+  requestAnimationFrame(()=>[...c._hud.children].forEach((e,i)=>{e.style.transform=`translateY(${i*19}px)`;e.style.opacity=String(Math.max(.2,1-i*.24))}));
+  clearTimeout(feed.t);feed.t=setTimeout(()=>{$("hud").classList.remove("show");$("eng").classList.remove("feed")},1500)}
 const cards=[$("cA"),$("cB")];let front=$("cB"),swapT=null;
-function sizeAll(){cards.forEach(c=>c._cv&&sizeCanvas(c._cv))}
+function sizeAll(){cards.forEach(c=>c._cv&&sizeCanvas(c._cv));drawCorrRail()}
 
 function stockCard(c,v){const s=ALL[v.sym],isIdx=IDX.includes(v.sym),g=sig(v.sym);
   c.querySelector(".c-in").innerHTML=`
@@ -193,7 +206,7 @@ function stockCard(c,v){const s=ALL[v.sym],isIdx=IDX.includes(v.sym),g=sig(v.sym
     <div class="c-px" data-l="px"></div><div class="c-chg"><b data-l="chg"></b> <span data-l="per"></span></div></div>
     <div class="tools"><div class="seg">${Object.keys(WIN).map(w=>`<button data-w="${w}" class="${w===v.win?"on":""}">${w}</button>`).join("")}</div>
     ${v.win==="1D"?"":`<div class="chips">${IND.map(k=>`<button data-i="${k}" style="--c:${INDN[k][1]}"><i></i>${INDN[k][0]}</button>`).join("")}</div>`}</div></div>
-  <div class="c-ch"><canvas></canvas><div class="hud"></div><div class="tip"></div></div>
+  <div class="c-ch"><canvas></canvas><div class="tip"></div></div>
   <div class="c-sig">
     <div class="sg"><small>RSI 14</small><b class="${g.rsi>70?"up":g.rsi<30?"dn":""}">${g.rsi.toFixed(0)}<span>${g.rsi>70?"hot":g.rsi<30?"washed out":"balanced"}</span></b><div class="meter rsi"><u data-to="${g.rsi}"></u></div></div>
     <div class="sg"><small>52-week range</small><b>${Math.round(g.rng*100)}%<span>of the way up</span></b><div class="meter"><i data-to="${g.rng*100}" style="background:#fff"></i></div></div>
@@ -212,7 +225,7 @@ function compareCard(c,v){const[a,b]=v.pair;
     <div class="c-px"><span data-l="ra"></span></div>
     <div class="legend"><span><i style="background:var(--ok)"></i>${NAMES[a]} <b data-l="la"></b></span><span><i style="background:#fff"></i>${NAMES[b]} <b data-l="lb"></b></span></div></div>
     <div class="seg"><button class="on">1Y</button></div></div>
-  <div class="c-ch"><canvas></canvas><div class="hud"></div><div class="tip"></div></div>
+  <div class="c-ch"><canvas></canvas><div class="tip"></div></div>
   <div class="c-sig">
     ${[a,b].map(s=>`<div class="sg"><small>${NAMES[s]} · today</small><b data-l="t${s}"></b><div class="meter"><i data-to="${clamp(Math.abs(dayPct(s))*40,3,100)}" style="background:${dayPct(s)>=0?"var(--ok)":"var(--bad)"}"></i></div></div>`).join("")}
     ${[a,b].map(s=>{const g=sig(s);return`<div class="sg"><small>${NAMES[s]} · RSI</small><b>${g.rsi.toFixed(0)}<span>${g.trend.toLowerCase()}</span></b><div class="meter rsi"><u data-to="${g.rsi}"></u></div></div>`}).join("")}
@@ -227,7 +240,7 @@ function optionCard(c){const o=OPT;
   <div class="c-hd"><div><div class="c-sym"><b>${o.sym} $${o.K} Call</b>Expires ${o.expTxt} · ${o.q} contracts</div>
     <div class="c-px" data-l="pl"></div><div class="c-chg"><b data-l="plp"></b> <span>since ${fdate(o.opened).replace(/, \d{4}/,"")} · example position</span></div></div>
     <div class="seg"><button class="on">P/L</button></div></div>
-  <div class="c-ch"><canvas></canvas><div class="hud"></div><div class="tip"></div></div>
+  <div class="c-ch"><canvas></canvas><div class="tip"></div></div>
   <div class="c-sig six">
     <div class="sg"><small>Cost</small><b>$${NF().format(Math.round(o.cost))}</b></div>
     <div class="sg"><small>Value now</small><b data-l="val"></b></div>
@@ -249,16 +262,16 @@ function render(c,v){if(!c._v||c._v.sym!==v.sym)c._mc=null;c._v=v;c._vm=1;c._k=v
   c._ind=Object.fromEntries(IND.map(k=>[k,{on:0,t:0}]));
   ({stock:stockCard,compare:compareCard,option:optionCard})[v.kind](c,v);
   c._cv=c.querySelector("canvas");c._tip=c.querySelector(".tip");sizeCanvas(c._cv);
-  c._hud=c.querySelector(".hud");
+  c._hud=$("hud");c._hud.innerHTML="";c._hud.classList.remove("show");$("eng").classList.remove("feed");
+  $("wi").value=100;$("wb").textContent="×1.0";$("qt").classList.toggle("nomc",v.kind!=="stock");
+  const qs=activeSym(v);$("qSym").textContent=IDX.includes(qs)?SHORT[qs]:qs;
   c.querySelectorAll(".seg [data-w]").forEach(b=>b.onclick=()=>{userTook();show({...c._v,win:b.dataset.w})});
   c.querySelectorAll(".chips [data-i]").forEach(b=>b.onclick=()=>{userTook();const k=b.dataset.i;setInd(c,k,!c._ind[k].on)});
   const box=c.querySelector(".c-ch");
   const daily=()=>c._v.kind==="stock"&&c._v.win!=="1D";box.classList.toggle("pan",daily());
-  if(c._v.kind==="stock"){box.insertAdjacentHTML("beforeend",`<label class="whatif" title="Scale the volatility the Monte Carlo uses">What-if σ <input type="range" min="50" max="250" value="100"><b>×1.0</b></label>`);
-    const wi=box.querySelector(".whatif input"),wb=box.querySelector(".whatif b");wi.oninput=()=>{userTook();c._vm=wi.value/100;wb.textContent="×"+c._vm.toFixed(1)}}
   box.onwheel=e=>{if(!daily())return;e.preventDefault();userTook();const N=ALL[c._v.sym].c.length;
     c._k=clamp(Math.round((c._k||WLEN(c._v.sym,c._v.win))*(e.deltaY>0?1.14:1/1.14)),20,N);c._pan=clamp(c._pan||0,0,N-c._k)};
-  box.onpointerdown=e=>{if(!daily()||e.target.closest(".whatif"))return;c._drag={x:e.clientX,p:c._pan||0};try{box.setPointerCapture(e.pointerId)}catch(_){}box.style.cursor="grabbing"};
+  box.onpointerdown=e=>{if(!daily())return;c._drag={x:e.clientX,p:c._pan||0};try{box.setPointerCapture(e.pointerId)}catch(_){}box.style.cursor="grabbing"};
   box.onpointerup=()=>{c._drag=null;box.style.cursor=""};
   box.onpointermove=e=>{const r=box.getBoundingClientRect();c._hover=(e.clientX-r.left)/r.width;
     if(c._drag){const N=ALL[c._v.sym].c.length;c._pan=clamp(c._drag.p+Math.round((e.clientX-c._drag.x)/r.width*c._k),0,N-c._k);userTook()}};
@@ -271,27 +284,17 @@ function arm(c){c._t0=performance.now();c.querySelectorAll(".meter i,.meter u").
   setTimeout(()=>c.querySelectorAll(".meter u").forEach(m=>m.style.left=m.dataset.to+"%"),60)}
 
 function same(a,b){return a&&b&&JSON.stringify(a)===JSON.stringify(b)}
-/* ---------- the camera: positions come from layout, so a move is one continuous transform */
+/* ---------- there is no camera. The frame holds still; a scene can light the rail's quant block instead. */
 const CAM=$("cam");
-function rel(el){const c=CAM.getBoundingClientRect(),r=el.getBoundingClientRect(),s=c.width/CAM.offsetWidth;return{x:(r.left-c.left)/s,y:(r.top-c.top)/s,w:r.width/s,h:r.height/s}}
-let camMode="wide";
-function camera(mode){camMode=mode;const W=CAM.offsetWidth,H=CAM.offsetHeight;let z=1,tx=0,ty=0;
-  if(mode!=="wide"){let r=mode==="card"?rel(front):rel(front.querySelector(".c-ch"));if(mode==="quant")r={x:r.x+r.w*.55,y:r.y,w:r.w*.45,h:r.h};
-    z=Math.min(W/(r.w+48),H/(r.h+48),mode==="quant"?1.85:1.55);tx=clamp(W/2-z*(r.x+r.w/2),W-W*z,0);ty=clamp(H/2-z*(r.y+r.h/2),H-H*z,0)}
-  CAM.style.transform=`translate(${tx}px,${ty}px) scale(${z})`;CAMZ=z;CAM.classList.toggle("focus",mode!=="wide");CAM.classList.toggle("focus-q",mode==="quant")}
-/* a symbol's own sparkline lifts out of the watchlist and lands in the chart, where its line then grows */
-function fly(src,dst){if(!src||!dst)return;const a=rel(src),b=rel(dst),g=src.cloneNode(true);g.setAttribute("preserveAspectRatio","none");g.classList.add("flyer");
-  g.querySelectorAll("polyline").forEach(p=>{p.setAttribute("vector-effect","non-scaling-stroke");p.setAttribute("stroke-width","2.4")});
-  Object.assign(g.style,{left:a.x+"px",top:a.y+"px",width:a.w+"px",height:a.h+"px"});CAM.appendChild(g);void g.getBoundingClientRect();
-  Object.assign(g.style,{left:(b.x+8)+"px",top:(b.y+b.h*.15)+"px",width:(b.w*.72)+"px",height:(b.h*.55)+"px",opacity:"0"});setTimeout(()=>g.remove(),950)}
+function camera(mode){$("qt").classList.toggle("hot",mode==="quant")}
+$("wi").oninput=()=>{userTook();front._vm=$("wi").value/100;$("wb").textContent="×"+front._vm.toFixed(1)};
 function show(v){const c=front,old=c._v;if(same(old,v))return;
   /* same stock, another daily window: the chart just zooms there */
   if(old&&old.kind==="stock"&&v.kind==="stock"&&old.sym===v.sym&&old.win!=="1D"&&v.win!=="1D"){c._v=v;c._k=WLEN(v.sym,v.win);c._pan=0;
     c.querySelectorAll(".seg [data-w]").forEach(b=>b.classList.toggle("on",b.dataset.w===v.win));const p=c.querySelector('[data-l="per"]');if(p)p.textContent=PER[v.win];syncList();return}
   let snap=null;if(c._cv){snap=document.createElement("canvas");snap.width=c._cv.width;snap.height=c._cv.height;snap.getContext("2d").drawImage(c._cv,0,0)}
-  const src=old&&old.sym===v.sym?null:v.kind==="stock"?(document.querySelector(`.row[data-s="${v.sym}"] svg`)||(ixEl[v.sym]&&ixEl[v.sym].querySelector("svg"))):v.kind==="compare"?ixEl[v.pair[0]].querySelector("svg"):null;
-  render(c,v);c.classList.remove("glow");arm(c);if(src){fly(src,c.querySelector(".c-ch"));c._t0=performance.now()+700}
-  if(snap){c._ghost=snap;c._ghostT=performance.now()}syncList();if(camMode!=="wide")requestAnimationFrame(()=>camera(camMode))}
+  render(c,v);c.classList.remove("glow");arm(c);
+  if(snap){c._ghost=snap;c._ghostT=performance.now()}syncList();drawCorrRail()}
 
 /* ---------- drawing, every frame */
 function drawCard(c,now){if(!c._v||!c._cv)return;if(c._k){c._kd+=(c._k-c._kd)*.1;c._pd+=((c._pan||0)-(c._pd||0))*.18}drawCardInner(c,now);
@@ -326,19 +329,19 @@ function drawCardInner(c,now){const{x,w,h}=sizeCanvas(c._cv),v=c._v;
   if(v.kind==="stock"&&v.win==="1D"){const n=series.length,fa=c._t0?lin((now-c._t0-1200)/900):0,ema=emaA(series,9),mu=[],up=[],dn=[];let s1=0,s2=0;
     series.forEach((p,i)=>{s1+=p;s2+=p*p;const m=s1/(i+1),sd=Math.sqrt(Math.max(s2/(i+1)-m*m,0));mu.push(m);up.push(m+2*sd);dn.push(m-2*sd)});
     const P=a=>a.slice(0,pts.length).map((p,i)=>[X(i),Y(p)]);x.save();x.globalAlpha=.9;
-    const U=P(up),Dn=P(dn);if(U.length>1){x.beginPath();U.forEach(([a,b],i)=>i?x.lineTo(a,b):x.moveTo(a,b));for(let i=Dn.length-1;i>=0;i--)x.lineTo(Dn[i][0],Dn[i][1]);x.closePath();x.fillStyle="rgba(107,179,255,.07)";x.fill();
+    const U=P(up),Dn=P(dn);if(U.length>1){x.beginPath();U.forEach(([a,b],i)=>i?x.lineTo(a,b):x.moveTo(a,b));for(let i=Dn.length-1;i>=0;i--)x.lineTo(Dn[i][0],Dn[i][1]);x.closePath();x.fillStyle="rgba(107,179,255,.04)";x.fill();
       line(x,U,"rgba(107,179,255,.55)",1,0);line(x,Dn,"rgba(107,179,255,.55)",1,0);line(x,P(mu),"rgba(255,214,10,.85)",1.3,0);line(x,P(ema),"rgba(179,140,255,.95)",1.4,0)}
     x.restore();
     const li=n-1;x.font="11.5px JetBrains Mono";x.textBaseline="top";x.textAlign="left";let lx=4;
     [[`EMA 9  ${fp(ema[li])}`,"#B38CFF"],[`Mean  ${fp(mu[li])}`,"#FFD60A"],[`±2σ  ${fp(dn[li])}–${fp(up[li])}`,"#6BB3FF"]].forEach(([t,cl])=>{x.fillStyle=cl;x.fillText(t,lx,top+2);lx+=x.measureText(t).width+18});
     if(rev>=1){const q=quant(v.sym),left=sl-1-(n-1),steps=Math.max(4,Math.min(36,left)),per=Math.max(1,left/steps);
-      const m=drawMC(c,x,now,{x0:X(n-1),x1:w-padR,Y,S:series[n-1],steps,sig:q.sigI*Math.sqrt(per),top,bot:top+ph,a:fa,label:"to close"});
-      drawStats(x,w-padR-4,top+30,statRows(v.sym,series[n-1],m),.95*fa);drawCorr(x,8,top+ph-100,.8*fa)}}
+      drawMC(c,x,now,{x0:X(n-1),x1:w-padR,Y,S:series[n-1],steps,sig:q.sigI*Math.sqrt(per),top,bot:top+ph,a:fa,label:"to close"});
+      }}
   if(v.kind==="compare"){const A="#00C805";const p2=second.slice(0,upTo+1).map((p,i)=>[X(i),Y(p)]);
     area(x,pts,"0,200,5",top+ph,top);line(x,p2,"rgba(255,255,255,.85)",1.5,8);line(x,pts,A,1.8,14);
     const e=pts[pts.length-1];endDot(x,e[0],e[1],A,"0,200,5",now);const e2=p2[p2.length-1];x.beginPath();x.arc(e2[0],e2[1],3.5,0,7);x.fillStyle="#fff";x.fill()}
   else{area(x,pts,rgb,top+ph,top);line(x,pts,col);const e=pts[pts.length-1];endDot(x,e[0],e[1],col,rgb,now);
-    if(rev>=1){const ly=Y(endV);x.fillStyle=col;x.beginPath();x.roundRect(w-padR+3,ly-10,padR-4,20,4);x.fill();
+    if(rev>=1){const ly=Y(endV);x.fillStyle=col;x.beginPath();x.roundRect(w-padR+3,ly-10,padR-4,20,2);x.fill();
       x.fillStyle="#000";x.font="600 12px JetBrains Mono";x.textBaseline="middle";x.textAlign="left";x.fillText(fp(endV),w-padR+8,ly)}}
   /* crosshair */
   if(c._hover!=null&&rev>=1){const i=clamp(Math.round(c._hover*(w)/(w-padR)*(sl-1)),0,series.length-1),hx=X(i),hy=Y(series[i]);
@@ -377,7 +380,7 @@ function drawOption(c,x,w,h,rev,now){const o=OPT,padR=80,padB=24,top=10,ph=h-pad
     x.strokeStyle="rgba(255,255,255,.35)";x.beginPath();x.moveTo(a+.5,top);x.lineTo(a+.5,top+ph);x.stroke();
     endDot(x,a,b,col,pl>=0?"0,200,5":"255,80,0",now);
     const lab=what?`If ${o.sym} is $${fp(S)}`:`${o.sym} now $${fp(S)}`;x.font="600 12.5px JetBrains Mono";const tw=x.measureText(lab).width+18;
-    const lx=a+12+tw>w-padR?a-12-tw:a+12;x.fillStyle="rgba(12,12,14,.92)";x.strokeStyle="rgba(255,255,255,.14)";x.beginPath();x.roundRect(lx,clamp(b-38,top,top+ph-44),tw,40,6);x.fill();x.stroke();
+    const lx=a+12+tw>w-padR?a-12-tw:a+12;x.fillStyle="rgba(12,12,14,.92)";x.strokeStyle="rgba(255,255,255,.14)";x.beginPath();x.roundRect(lx,clamp(b-38,top,top+ph-44),tw,40,2);x.fill();x.stroke();
     x.fillStyle="#fff";x.textAlign="left";x.textBaseline="middle";x.fillText(lab,lx+9,clamp(b-38,top,top+ph-44)+13);
     x.fillStyle=col;x.fillText(fm(pl),lx+9,clamp(b-38,top,top+ph-44)+28)}
 }
@@ -425,13 +428,12 @@ function drawTech(c,x,w,h,rev,now){const v=c._v,T=tech(v.sym),N=T.c.length,k=cla
         p=clamp((now-(c._crossT||(c._crossT=now)))/700,0,1)*Math.min(s50.a,s200.a),lab=(gold?"Golden cross · ":"Death cross · ")+fdate(T.t[g]).replace(/, \d{4}/,"");
       x.globalAlpha=p;x.beginPath();x.arc(a,b,5+6*(1-p),0,7);x.strokeStyle=gold?"#FFD60A":"#FF5000";x.lineWidth=1.5;x.stroke();x.lineWidth=1;
       x.font="600 12px JetBrains Mono";const tw=x.measureText(lab).width+16,lx=clamp(a-tw/2,0,Xw-tw),ly=b+14;
-      x.fillStyle="rgba(12,12,14,.9)";x.strokeStyle="rgba(255,214,10,.4)";x.beginPath();x.roundRect(lx,ly,tw,20,10);x.fill();x.stroke();
+      x.fillStyle="rgba(6,9,13,.92)";x.strokeStyle="rgba(255,214,10,.45)";x.beginPath();x.roundRect(lx,ly,tw,20,2);x.fill();x.stroke();
       x.fillStyle=gold?"#FFD60A":"#FF5000";x.textAlign="left";x.textBaseline="middle";x.fillText(lab,lx+8,ly+10);x.globalAlpha=1}
     else c._crossT=null}
   x.restore();
-  if(rev>=1&&pan===0){const fa=lin((now-c._t0-1600)/900),q=quant(v.sym),m=drawMC(c,x,now,{x0:X(k-1),x1:Xw,Y,S:endV,steps:20,sig:q.sigD,top,bot:top+mainH,a:fa,label:"20d"});
-    drawStats(x,Xw-4,top+30,statRows(v.sym,endV,m),.95*fa)}
-  if(rev>=1){const ly=Y(endV);x.fillStyle=col;x.beginPath();x.roundRect(w-padR+3,ly-10,padR-4,20,4);x.fill();
+  if(rev>=1&&pan===0){const fa=lin((now-c._t0-1600)/900),q=quant(v.sym);drawMC(c,x,now,{x0:X(k-1),x1:Xw,Y,S:endV,steps:20,sig:q.sigD,top,bot:top+mainH,a:fa,label:"20d"})}
+  if(rev>=1){const ly=Y(endV);x.fillStyle=col;x.beginPath();x.roundRect(w-padR+3,ly-10,padR-4,20,2);x.fill();
     x.fillStyle="#000";x.font="600 12px JetBrains Mono";x.textBaseline="middle";x.textAlign="left";x.fillText(fp(endV),w-padR+8,ly);
     if(ck<.5){x.globalAlpha=1-ck*2;endDot(x,X(k-1),ly,col,rgb,now);x.globalAlpha=1}}
   /* MACD pane slides up from under the price */
@@ -453,11 +455,11 @@ function drawTech(c,x,w,h,rev,now){const v=c._v,T=tech(v.sym),N=T.c.length,k=cla
   const drawing=IND.filter(q=>c._ind[q].on&&(q==="candle"?ck<1:ik(c,q,now).r<1)&&c._ind[q].t);
   if(drawing.length&&rev>=1){c._fc=(c._fc||0)+1;const q=drawing[c._fc%drawing.length],r=q==="candle"?ck:ik(c,q,now).r,g=off+Math.floor(r*(k-1));
     const d=`<span>${DF({month:"short",day:"numeric",timeZone:"UTC"}).format(new Date(T.t[g]*1000))}</span>`;
-    const html={candle:()=>`${d}O ${fp(T.o[g])}  H ${fp(T.h[g])}  L ${fp(T.l[g])}  C <b style="--k:${T.c[g]>=T.o[g]?"#00C805":"#FF5000"}">${fp(T.c[g])}</b>`,
-      bb:()=>T.bb.mid[g]==null?"":`${d}μ20 ${fp(T.bb.mid[g])}  σ ${T.bb.sd[g].toFixed(2)}  ±2σ <b style="--k:#D2D2DC">${fp(T.bb.up[g])} / ${fp(T.bb.dn[g])}</b>`,
+    const html={candle:()=>`${d}O ${fp(T.o[g])} H ${fp(T.h[g])} L ${fp(T.l[g])} C <b style="--k:${T.c[g]>=T.o[g]?"#00C805":"#FF5000"}">${fp(T.c[g])}</b>`,
+      bb:()=>T.bb.mid[g]==null?"":`${d}μ20 ${fp(T.bb.mid[g])} σ ${T.bb.sd[g].toFixed(2)} ±2σ <b style="--k:#D2D2DC">${fp(T.bb.up[g])}/${fp(T.bb.dn[g])}</b>`,
       s50:()=>T.s50[g]==null?"":`${d}Σ close[50] ÷ 50 = <b style="--k:#FFD60A">${fp(T.s50[g])}</b>`,
       s200:()=>T.s200[g]==null?"":`${d}Σ close[200] ÷ 200 = <b style="--k:#6BB3FF">${fp(T.s200[g])}</b>`,
-      macd:()=>`${d}EMA12 ${fp(T.md.e12[g])} − EMA26 ${fp(T.md.e26[g])} = <b>${T.md.m[g].toFixed(2)}</b>  sig ${T.md.sg[g].toFixed(2)}`}[q]();
+      macd:()=>`${d}EMA12 ${fp(T.md.e12[g])} − EMA26 ${fp(T.md.e26[g])} = <b>${T.md.m[g].toFixed(2)}</b>`}[q]();
     if(html)feed(c,now,html,q+g)}
   /* crosshair */
   if(c._hover!=null&&rev>=1){const hx=X(hi_),hy=Y(T.c[gh]);
@@ -498,42 +500,43 @@ live($("kDn"),()=>STOCKS.concat(IDX).filter(s=>dayPct(s)<0).length,x=>Math.round
 /* ---------- the director: one continuous shot list; the first touch hands over the controls */
 const N1={kind:"stock",sym:"NVDA",win:"1D"};
 const SC_=[
- {d:3000,v:N1,cam:"wide",h:"Your own trading desk.",p:"Custom trading software, built to your spec."},
- {d:3400,v:N1,cam:"card",h:"The math runs live.",p:"Volatility, correlation and a Monte Carlo, computing as you watch."},
- {d:3200,v:N1,cam:"quant"},
- {d:2600,v:{kind:"stock",sym:"AAPL",win:"1Y"},ind:["bb"],cam:"wide",h:"Any stock you want.",p:"Pick one and it flies straight into the chart."},
- {d:2400,v:{kind:"stock",sym:"TSLA",win:"1Y"},ind:["s50","s200"],cam:"wide"},
- {d:3200,v:{kind:"stock",sym:"AMD",win:"1Y"},ind:["candle","bb","s50","s200"],cam:"card"},
- {d:3600,v:{kind:"compare",pair:["GSPC","IXIC"]},cam:"wide",h:"Any index you want.",p:"The S&P 500 against the Nasdaq."},
- {d:3000,v:{kind:"stock",sym:"BTC-USD",win:"1Y"},ind:["s50","s200"],cam:"card",h:"Crypto, too.",p:"Bitcoin, around the clock."},
- {d:2600,v:{kind:"stock",sym:"MSFT",win:"1Y"},ind:["candle"],cam:"chart",h:"Every technical, drawn for you.",p:""},
- {d:2600,v:{kind:"stock",sym:"MSFT",win:"6M"},ind:["candle","bb"],cam:"chart"},
- {d:2800,v:{kind:"stock",sym:"MSFT",win:"6M"},ind:["candle","bb","s50","s200"],cam:"chart"},
- {d:3200,v:{kind:"stock",sym:"MSFT",win:"6M"},ind:["candle","bb","s50","s200","macd"],cam:"quant"},
- {d:5200,v:{kind:"option",sym:"NVDA"},sweep:1,cam:"card",h:"Track your option calls.",p:"Cost, value, breakeven, and what happens if it runs."},
- {d:4000,v:{kind:"stock",sym:"PLTR",win:"6M"},glow:1,ind:["candle","bb","s50","s200","macd"],cam:"wide",h:"Know where it leans.",p:"Every signal, measured for you."},
- {d:4600,v:{kind:"stock",sym:"META",win:"1D"},cam:"wide",h:"Built to your spec.",p:"Scroll the chart, drag it, toggle anything. It's yours to play with."},
+ {d:4600,v:N1,h:"Your own trading desk.",p:"Custom trading software, built to your spec."},
+ {d:4600,v:N1,cam:"quant",h:"The math runs live.",p:"Volatility, risk and a Monte Carlo, computing as you watch."},
+ {d:3400,v:{kind:"stock",sym:"AAPL",win:"1Y"},ind:["bb"],h:"Any stock you want.",p:"Pick one from the list. The whole desk follows."},
+ {d:3400,v:{kind:"stock",sym:"TSLA",win:"1Y"},ind:["s50","s200"]},
+ {d:3600,v:{kind:"stock",sym:"AMD",win:"1Y"},ind:["candle","bb","s50","s200"]},
+ {d:4200,v:{kind:"compare",pair:["GSPC","IXIC"]},h:"Any index you want.",p:"The S&P 500 against the Nasdaq."},
+ {d:3800,v:{kind:"stock",sym:"BTC-USD",win:"1Y"},ind:["s50","s200"],h:"Crypto, too.",p:"Bitcoin, around the clock."},
+ {d:3000,v:{kind:"stock",sym:"MSFT",win:"6M"},ind:["candle"],h:"Every technical, drawn for you.",p:"Candles, bands, averages and MACD, with the working shown."},
+ {d:3000,v:{kind:"stock",sym:"MSFT",win:"6M"},ind:["candle","bb"]},
+ {d:3200,v:{kind:"stock",sym:"MSFT",win:"6M"},ind:["candle","bb","s50","s200"]},
+ {d:3600,v:{kind:"stock",sym:"MSFT",win:"6M"},ind:["candle","bb","s50","s200","macd"]},
+ {d:5600,v:{kind:"option",sym:"NVDA"},sweep:1,h:"Track your option calls.",p:"Cost, value, breakeven, and what happens if it runs."},
+ {d:4400,v:{kind:"stock",sym:"PLTR",win:"6M"},glow:1,ind:["candle","bb","s50","s200","macd"],h:"Know where it leans.",p:"Every signal, measured for you."},
+ {d:4800,v:{kind:"stock",sym:"META",win:"1D"},h:"Built to your spec.",p:"Scroll the chart, drag it, toggle anything. It's yours to play with."},
 ];
 const TOT=SC_.reduce((x,s)=>x+s.d,0),START=SC_.map((_,i)=>SC_.slice(0,i).reduce((x,s)=>x+s.d,0));
 const st={i:-1,el:0,auto:true,idle:0};
-const CHAP=[["Desk",0],["Stocks",3],["Indices",6],["Crypto",7],["Technicals",8],["Options",12],["Signals",13]];
-$("dots").innerHTML=CHAP.map(([n,i],k)=>`<button data-c="${k}" style="left:${START[i]/TOT*100}%">${n}</button>`).join("");
+const CHAP=[["Desk",0],["Stocks",2],["Indices",5],["Crypto",6],["Technicals",7],["Options",11],["Signals",12]];
+const CS=CHAP.map(([,i])=>START[i]).concat([TOT]);
+const tlPos=t=>{let k=0;while(k<CHAP.length-1&&CS[k+1]<=t)k++;return(k+(t-CS[k])/(CS[k+1]-CS[k]))/CHAP.length};
+const tlTime=f=>{const u=clamp(f,0,.9999)*CHAP.length,k=Math.floor(u);return CS[k]+(u-k)*(CS[k+1]-CS[k])};
+$("dots").innerHTML=CHAP.map(([n],k)=>`<button data-c="${k}" style="left:${k/CHAP.length*100}%">${n}</button>`).join("");
 const chapEls=[...$("dots").querySelectorAll("[data-c]")];
 chapEls.forEach(b=>b.onclick=e=>{e.stopPropagation();go(CHAP[+b.dataset.c][1])});
-function progress(){const t=(START[st.i]||0)+Math.min(st.el,SC_[st.i]?SC_[st.i].d:0);$("tlFill").style.width=(t/TOT*100)+"%";
+function progress(){const t=(START[st.i]||0)+Math.min(st.el,SC_[st.i]?SC_[st.i].d:0);$("tlFill").style.width=(tlPos(t)*100)+"%";
   const k=CHAP.reduce((a,[,i],j)=>st.i>=i?j:a,0);chapEls.forEach((e,j)=>e.classList.toggle("on",j===k))}
 /* drag the timeline to scrub through the movie */
 const tl=$("tl");let scrub=false;
-function scrubTo(e){const r=tl.getBoundingClientRect(),t=clamp((e.clientX-r.left)/r.width,0,.999)*TOT;let i=0;while(i<SC_.length-1&&START[i+1]<=t)i++;
+function scrubTo(e){const r=tl.getBoundingClientRect(),t=tlTime((e.clientX-r.left)/r.width);let i=0;while(i<SC_.length-1&&START[i+1]<=t)i++;
   if(i!==st.i)go(i);st.el=t-START[i];progress()}
 tl.onpointerdown=e=>{scrub=true;try{tl.setPointerCapture(e.pointerId)}catch(_){}scrubTo(e)};tl.onpointermove=e=>{if(scrub)scrubTo(e)};tl.onpointerup=()=>{scrub=false};
 function words(el,txt){el.innerHTML=txt.split(/(\s+)/).map((w,i)=>w.trim()?`<span class="w" style="animation-delay:${i*40}ms">${w}</span>`:w).join("")}
-let lowT;
-function caption(h,p){if(!h)return;words($("capH"),h);$("capP").textContent=p||"";$("lower").classList.add("show");clearTimeout(lowT);lowT=setTimeout(()=>$("lower").classList.remove("show"),3800)}
+function caption(h,p){if(!h||caption.h===h)return;caption.h=h;words($("capH"),h);$("capP").textContent=p||""}
 function go(i){st.i=(i+SC_.length)%SC_.length;st.el=0;const s=SC_[st.i],was=front._v&&front._v.sym;
   if(st.i===0){clock=shown=REPLAY_MS*OPEN_AT}  /* each loop opens mid-morning, so the first chart already has a shape */
   show(s.v);const flew=front._v.sym!==was;camera(st.auto?s.cam:"wide");caption(s.h,s.p);
-  if(s.ind){const c=front;setTimeout(()=>{if(front===c&&SC_[st.i]===s)IND.forEach(k=>setInd(c,k,s.ind.includes(k)))},flew?900:0)}
+  if(s.ind){const c=front;setTimeout(()=>{if(front===c&&SC_[st.i]===s)IND.forEach(k=>setInd(c,k,s.ind.includes(k)))},flew?500:0)}
   if(s.sweep)setTimeout(()=>{if(front._v.kind==="option")front._sweep=performance.now()},800);
   if(s.glow)setTimeout(()=>{if(SC_[st.i]===s)front.classList.add("glow")},900);
   progress()}
@@ -541,9 +544,8 @@ function setPlay(){$("play").innerHTML=st.auto?"❚❚&nbsp;Pause":"▶&nbsp;Pla
 $("play").onclick=()=>{st.auto=!st.auto;setPlay();if(st.auto)go(st.i+1);else camera("wide")};
 /* the first touch hands over the controls; step away and the movie carries on from where you are */
 function userTook(){if(st.auto){st.auto=false;setPlay();camera("wide");caption("You're driving.","Scroll the chart, drag it, flip indicators, move the what-if. It resumes when you stop.")}st.idle=0}
-CAM.addEventListener("pointerdown",e=>{if(!e.target.closest(".row,.ix,.seg,.chips,.whatif"))userTook()},true);
+CAM.addEventListener("pointerdown",e=>{if(!e.target.closest(".row,.seg,.chips,.whatif"))userTook()},true);
 $("app").addEventListener("pointermove",()=>{st.idle=0});
-$("lr").onclick=()=>{const w=$("win");w.classList.remove("shake");void w.offsetWidth;w.classList.add("shake")};
 $("src").textContent=`Public market data · ${fdate(ALL.NVDA.t[ALL.NVDA.t.length-1])} session replay · option modeled`;
 
 /* ---------- one loop drives everything */
@@ -569,7 +571,7 @@ function frame(now){const dt=Math.min(now-last,100);last=now;
   if(!st.auto){st.idle+=dt;if(st.idle>7000){st.auto=true;setPlay();go(st.i+1)}}
   tickLive();if(_w){const k=$("kT"),t=sessionTime();if(k.textContent!==t)k.textContent=t}
   if(now-sparkT>200){ixSparks();sparkT=now}
-  drawCard(front,now);
+  drawCard(front,now);updateQuant(now);
   gate()}
 setPlay();
 (document.fonts?document.fonts.ready:Promise.resolve()).then(()=>{sizeAll();go(0);gate()});

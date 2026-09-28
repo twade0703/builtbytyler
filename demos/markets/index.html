@@ -6,242 +6,239 @@
 <title>Markets Demo</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
+/* One instrument, one fixed frame.
+   The first three versions of this were a grid of rounded, bordered cards
+   under a camera that pushed in, racked focus and pulled back. Tyler: "you're
+   moving around the app too much, it's too hard to see what is going on", and
+   the boxes read as generated. So:
+   - the camera is gone. Nothing zooms, pans or blurs; things change in place.
+   - there are no cards. It is one surface divided by hairlines.
+   - nothing floats over the chart. The quant read-outs, the correlation map,
+     the calculation feed and the what-if control are docked in the rail; the
+     caption has its own place in the bottom bar.
+   - colour means something. Green and orange are market direction and nothing
+     else; cyan is the instrument itself (selection, progress, focus). */
 :root{
-  --bg:#000; --pan:#0C0C0E; --pan2:#141416; --pan3:#1D1D21;
-  --tx:#FFFFFF; --mu:#C4C4CA; --dim:#8E8E96;
-  --hair:rgba(255,255,255,.12); --hair2:rgba(255,255,255,.06);
+  --bg:#05070A; --ink:#F1F5F8; --mu:#9CA6B2; --dim:#5F6873;
+  --hair:rgba(255,255,255,.10); --hair2:rgba(255,255,255,.055);
+  --ui:#5FE6FF; --ui-rgb:95,230,255;
   --ok:#00C805; --bad:#FF5000; --ok-rgb:0,200,5; --bad-rgb:255,80,0;
   --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
-  --sans:"Public Sans",system-ui,-apple-system,sans-serif;
+  --sans:"Bricolage Grotesque",system-ui,-apple-system,sans-serif;
   --e:cubic-bezier(.4,0,.2,1);
   color-scheme:dark;
 }
 *{box-sizing:border-box}
-html,body{margin:0;height:100%;background:var(--bg);color:var(--tx);font-family:var(--sans);-webkit-font-smoothing:antialiased;overflow:hidden}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased;overflow:hidden}
 button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
 html.embed,html.embed body{background:transparent}
 /* a colour-scheme that differs from the host page makes Chrome paint an opaque backdrop behind the iframe */
 html.embed{color-scheme:normal}
-/* inside an iframe the page edge would crop a wide glow into a visible box, so keep the shadow inside the 16px margin */
-html.embed .win{box-shadow:0 0 0 1px rgba(255,255,255,.03),0 10px 16px rgba(0,0,0,.5)}
 .up{color:var(--ok)} .dn{color:var(--bad)} .fl{color:var(--mu)}
-.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+h3{margin:0;font:500 11px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--dim)}
 
 /* the frame is a fixed 1280x800 picture, scaled to whatever it is dropped into, like a video */
 .fit{position:fixed;inset:0;overflow:hidden}
 .stage{position:absolute;left:50%;top:50%;width:1280px;height:800px;transform-origin:center}
-.win{width:100%;height:100%;border:1px solid var(--hair);border-radius:14px;overflow:hidden;background:var(--bg);
-  box-shadow:0 50px 140px rgba(0,0,0,.95),0 0 0 1px rgba(255,255,255,.03),0 0 120px rgba(0,200,5,.05);display:flex;flex-direction:column}
-.win.shake{animation:shake .4s}
-@keyframes shake{20%,60%{transform:translateX(-7px)}40%,80%{transform:translateX(7px)}}
-.bar{height:36px;flex:none;display:flex;align-items:center;gap:8px;padding:0 14px;background:linear-gradient(#1b1b1e,#131315);
-  border-bottom:1px solid var(--hair2);position:relative;user-select:none}
-.lights{display:flex;gap:8px}
-.dot{width:12px;height:12px;border-radius:50%;position:relative;cursor:default}
-.dot.r{background:#FF5F57;cursor:pointer}.dot.y{background:#FEBC2E}.dot.g{background:#28C840}
-.dot::after{content:"";position:absolute;inset:0;border-radius:50%;box-shadow:inset 0 0 0 .5px rgba(0,0,0,.35)}
-.dot.r:hover::before{content:"×";position:absolute;inset:0;display:grid;place-items:center;font:700 10px/1 var(--sans);color:rgba(0,0,0,.6)}
-.bar .ttl{position:absolute;left:50%;transform:translateX(-50%);font-size:12.5px;color:var(--mu)}
+.win{position:relative;width:100%;height:100%;border:1px solid var(--hair);border-radius:6px;overflow:hidden;
+  background:
+    radial-gradient(900px 420px at 34% 46%,rgba(var(--ui-rgb),.045),transparent 70%),
+    linear-gradient(180deg,#080B10,#040507);
+  box-shadow:0 40px 120px rgba(0,0,0,.9)}
+html.embed .win{box-shadow:0 10px 16px rgba(0,0,0,.5)}
+/* corner brackets: the frame is an instrument, not a window */
+.win::before,.win::after{content:"";position:absolute;width:18px;height:18px;border:1px solid rgba(var(--ui-rgb),.7);pointer-events:none;z-index:5}
+.win::before{left:-1px;top:-1px;border-right:0;border-bottom:0;border-top-left-radius:6px}
+.win::after{right:-1px;bottom:-1px;border-left:0;border-top:0;border-bottom-right-radius:6px}
 
-.app{flex:1;min-height:0;padding:16px 20px 10px;display:grid;grid-template-rows:minmax(0,1fr) 44px;gap:10px;position:relative;overflow:hidden}
-/* one living workspace under a camera: it pushes in, racks across and pulls back instead of cutting */
-/* the frame the camera moves inside: nothing it zooms can spill onto the controls */
-.camwrap{min-height:0;position:relative;overflow:hidden;border-radius:10px}
-.cam{display:grid;grid-template-rows:76px minmax(0,1fr);gap:14px;height:100%;min-height:0;position:relative;transform-origin:0 0;transition:transform 1.9s cubic-bezier(.45,0,.2,1);will-change:transform}
-.cam .top,.cam .list,.cam .c-hd,.cam .c-sig{transition:filter 1.2s var(--e)}
-.cam.focus .top,.cam.focus .list{filter:blur(2.5px) brightness(.5)}
-.cam.focus-q .c-hd,.cam.focus-q .c-sig{filter:blur(2px) brightness(.55)}
-.c-in>.c-hd,.c-in>.c-sig{animation:fadeUp .7s var(--e) both}
-@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-.flyer{position:absolute;z-index:30;pointer-events:none;overflow:visible;filter:drop-shadow(0 0 7px rgba(0,200,5,.8));
-  transition:left .85s cubic-bezier(.45,0,.2,1),top .85s cubic-bezier(.45,0,.2,1),width .85s cubic-bezier(.45,0,.2,1),height .85s cubic-bezier(.45,0,.2,1),opacity .85s cubic-bezier(.8,0,1,1)}
-/* a lower third that follows the action, then gets out of the way */
-.lower{position:absolute;left:28px;bottom:66px;z-index:20;max-width:600px;padding:14px 20px 15px;border-radius:14px;background:rgba(8,8,10,.78);
-  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--hair);opacity:0;transform:translateY(12px);transition:opacity .7s var(--e),transform .7s var(--e);pointer-events:none}
-.lower.show{opacity:1;transform:none}
-.lower h2{margin:0;font-size:27px;font-weight:600;letter-spacing:-.025em;line-height:1.15}
-.lower p{margin:5px 0 0;font-size:15.5px;color:var(--mu)}
-.lower p:empty{display:none}
-/* the movie's timeline: drag it to scrub, click a chapter to jump */
-.ctlbar{display:flex;align-items:center;gap:18px}
-.ctlbar .play{margin:0;flex:none}
-.tl{position:relative;flex:1;height:44px;cursor:pointer;touch-action:none}
-.tl-bar{position:absolute;left:0;right:0;bottom:9px;height:4px;border-radius:2px;background:#232327}
-.tl-bar i{position:absolute;left:0;top:0;bottom:0;width:0;border-radius:2px;background:var(--ok);box-shadow:0 0 10px rgba(0,200,5,.6)}
-.tl-bar i::after{content:"";position:absolute;right:-6px;top:-4px;width:12px;height:12px;border-radius:50%;background:#fff;box-shadow:0 0 0 3px rgba(0,200,5,.35)}
-.tl-marks button{position:absolute;top:2px;font-family:var(--mono);font-size:11.5px;font-weight:500;color:var(--mu);padding:2px 0;white-space:nowrap;transition:color .2s}
-.tl-marks button::after{content:"";position:absolute;left:0;top:25px;width:1px;height:12px;background:rgba(255,255,255,.25)}
-.tl-marks button:hover,.tl-marks button.on{color:#fff}
-.ctlbar .src{flex:none;max-width:220px;text-align:right;line-height:1.35}
-/* what-if: drag it and the Monte Carlo re-runs */
-.whatif{position:absolute;right:8px;bottom:30px;z-index:4;display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;color:var(--mu);
-  background:rgba(10,10,12,.82);border:1px solid rgba(255,255,255,.2);border-radius:999px;padding:5px 12px;cursor:default}
-.whatif:hover{border-color:rgba(0,200,5,.7)}
-.whatif input{width:92px;accent-color:#00C805;cursor:pointer}
-.whatif b{color:#fff;min-width:32px;font-weight:600}
-.c-ch.pan{cursor:grab}
+.app{height:100%;display:grid;grid-template-rows:38px 58px minmax(0,1fr) 82px;position:relative}
 
-/* ---------- top strip: indices + counts */
-.top{display:grid;grid-template-columns:repeat(5,minmax(0,1fr)) auto;gap:8px}
-.ix{background:var(--pan);border:1px solid var(--hair);border-radius:8px;padding:9px 12px;text-align:left;position:relative;overflow:hidden;
-  transition:border-color .3s,transform .3s var(--e)}
-.ix:hover{border-color:rgba(255,255,255,.4);background:var(--pan2);transform:translateY(-2px)}
-.ix.on{border-color:var(--ok)}
-.ix small{display:block;font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--mu)}
-.ix b{display:block;font-family:var(--mono);font-size:18px;font-weight:600;margin-top:4px;letter-spacing:-.01em}
-.ix em{font-style:normal;font-family:var(--mono);font-size:12.5px;font-weight:500}
-.ix svg{position:absolute;right:10px;bottom:10px;width:44px;height:22px;overflow:visible}
-.kp{display:flex;gap:8px}
-.kpi{min-width:88px;background:var(--pan);border:1px solid var(--hair);border-radius:8px;padding:9px 12px}
-.kpi small{display:block;font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--mu)}
-.kpi b{display:flex;align-items:center;gap:7px;font-family:var(--mono);font-size:22px;font-weight:600;margin-top:4px}
-.kpi.t b{font-size:16.5px;margin-top:7px}
-.pulse{width:7px;height:7px;border-radius:50%;background:var(--ok)}
-@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(var(--ok-rgb),.55)}70%{box-shadow:0 0 0 8px rgba(var(--ok-rgb),0)}100%{box-shadow:0 0 0 0 rgba(var(--ok-rgb),0)}}
+/* ---------- status line */
+.hdr{display:flex;align-items:center;gap:28px;padding:0 22px;border-bottom:1px solid var(--hair2);font:400 11.5px/1 var(--mono);color:var(--mu);letter-spacing:.04em}
+.brand{display:flex;align-items:center;gap:10px;color:var(--ink);font-weight:600;letter-spacing:.22em}
+.brand i{width:7px;height:7px;background:var(--ui);box-shadow:0 0 10px rgba(var(--ui-rgb),.9)}
+.hdr .src{flex:1;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hdr .cnt{display:flex;gap:18px}
+.hdr b{font-weight:600;color:var(--ink)}
+.hdr .up b{color:var(--ok)} .hdr .dn b{color:var(--bad)}
+.sess b{display:inline-block;min-width:66px;text-align:right}
 
-/* ---------- middle: the deck + the list */
-.mid{display:grid;grid-template-columns:minmax(0,1fr) 336px;gap:14px;min-height:0}
+/* ---------- the tape: five markets on one line */
+.tape{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));border-bottom:1px solid var(--hair2)}
+.ix{position:relative;display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto;column-gap:12px;align-content:center;padding:0 22px;text-align:left;
+  transition:background .3s}
+.ix+.ix{border-left:1px solid var(--hair2)}
+.ix:hover{background:rgba(255,255,255,.03)}
+.ix small{grid-column:1/3;font:400 10.5px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin-bottom:7px}
+.ix b{font:500 17px/1 var(--mono);letter-spacing:-.01em;font-variant-numeric:tabular-nums}
+.ix em{font:500 12px/1 var(--mono);font-style:normal;align-self:end;padding-bottom:1px}
+.ix svg{position:absolute;right:20px;top:50%;width:46px;height:20px;margin-top:-10px;overflow:visible;opacity:.9}
+.ix::after{content:"";position:absolute;left:22px;right:22px;bottom:-1px;height:1px;background:var(--ui);transform:scaleX(0);transform-origin:left;transition:transform .6s var(--e)}
+.ix.on::after{transform:scaleX(1)}
+
+/* ---------- the chart and the rail */
+.cam{min-height:0;position:relative}
+.mid{display:grid;grid-template-columns:minmax(0,1fr) 322px;height:100%;min-height:0}
 .deck{position:relative;min-height:0}
-.card,.ghost{position:absolute;inset:0 0 20px 0;background:var(--pan);border:1px solid var(--hair);border-radius:12px;
-  transition:transform .9s var(--e),opacity .9s var(--e),filter .9s var(--e),border-color .6s}
-.ghost{transform:translateY(20px) scale(.93);opacity:.35;z-index:1}
-.card.back{transform:translateY(10px) scale(.965);opacity:.7;z-index:2;filter:brightness(.55)}
-.card.front{transform:none;opacity:1;z-index:3;filter:none}
-.card.out{transform:translateX(-90px) rotate(-3.5deg) scale(.94);opacity:0;filter:blur(8px);z-index:4}
-.card.nt{transition:none}
-.c-in{position:absolute;inset:0;display:flex;flex-direction:column;padding:18px 22px 16px;transition:opacity .5s var(--e)}
-.card.back .c-in{opacity:0}
-.card.glow{border-color:rgba(var(--ok-rgb),.6)}
+.card{position:absolute;inset:0}
+.card.back{display:none}
+.c-in{position:absolute;inset:0;display:flex;flex-direction:column;padding:20px 8px 0 24px}
 
-.c-hd{display:flex;justify-content:space-between;align-items:flex-start;gap:16px}
-.c-sym{font-family:var(--mono);font-size:12.5px;letter-spacing:.1em;color:var(--mu);text-transform:uppercase}
-.c-sym b{color:var(--tx);font-size:16px;letter-spacing:.02em;margin-right:8px}
-.c-px{font-family:var(--mono);font-size:46px;font-weight:600;letter-spacing:-.03em;line-height:1.05;margin-top:6px}
-.c-chg{font-family:var(--mono);font-size:14.5px;margin-top:4px;font-weight:500}
-.c-chg span{color:var(--mu)}
-.seg{display:inline-flex;border:1px solid rgba(255,255,255,.22);border-radius:7px;overflow:hidden;background:var(--pan2)}
-.seg button{font-family:var(--mono);font-size:12px;font-weight:500;letter-spacing:.06em;padding:7px 14px;color:var(--mu);transition:background .25s,color .25s}
-.seg button+button{border-left:1px solid var(--hair2)}
-.seg button:hover{color:var(--tx);background:#26262b}
-.seg button.on{background:var(--ok);color:#000;font-weight:700}
-.legend{display:flex;gap:16px;font-family:var(--mono);font-size:12.5px;color:var(--mu);margin-top:10px}
-.legend i{display:inline-block;width:14px;height:2px;vertical-align:middle;margin-right:6px}
-.c-ch{position:relative;flex:1;min-height:0;margin:10px 0 12px;cursor:crosshair}
+.c-hd{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;padding-right:16px}
+.c-sym{font:400 12.5px/1 var(--mono);letter-spacing:.08em;color:var(--mu);text-transform:uppercase}
+.c-sym b{color:var(--ink);font-size:15px;font-weight:600;letter-spacing:.06em;margin-right:10px}
+.c-px{font:500 60px/1 var(--mono);letter-spacing:-.045em;margin-top:12px;font-variant-numeric:tabular-nums}
+.c-chg{font:500 14px/1 var(--mono);margin-top:10px}
+.c-chg span{color:var(--dim);font-weight:400}
+.legend{display:flex;gap:18px;font:400 12.5px/1 var(--mono);color:var(--mu);margin-top:12px}
+.legend i{display:inline-block;width:14px;height:2px;vertical-align:middle;margin-right:7px}
+.tools{display:flex;flex-direction:column;align-items:flex-end;gap:14px;padding-top:2px}
+/* range and indicators are words with a mark under them, not pills */
+.seg{display:inline-flex;gap:4px}
+.seg button{position:relative;font:500 12px/1 var(--mono);letter-spacing:.08em;padding:6px 10px 9px;color:var(--dim);transition:color .25s}
+.seg button:hover{color:var(--ink)}
+.seg button.on{color:var(--ink)}
+.seg button::after{content:"";position:absolute;left:10px;right:10px;bottom:0;height:2px;background:var(--ui);transform:scaleX(0);transition:transform .35s var(--e)}
+.seg button.on::after{transform:scaleX(1)}
+.chips{display:flex;gap:16px}
+.chips button{display:flex;align-items:center;gap:7px;font:400 11.5px/1 var(--mono);letter-spacing:.03em;color:var(--dim);padding:3px 0;transition:color .3s}
+.chips button i{width:9px;height:9px;border:1px solid var(--c);transition:background .3s,box-shadow .3s}
+.chips button:hover{color:var(--ink)}
+.chips button.on{color:var(--ink)}
+.chips button.on i{background:var(--c);box-shadow:0 0 8px var(--c)}
+
+.c-ch{position:relative;flex:1;min-height:0;margin:14px 0 0;cursor:crosshair}
+.c-ch.pan{cursor:grab}
 .c-ch canvas{position:absolute;inset:0;width:100%;height:100%}
-.tip{position:absolute;pointer-events:none;background:rgba(12,12,14,.94);border:1px solid var(--hair);border-radius:6px;padding:7px 10px;
-  font-family:var(--mono);font-size:12.5px;line-height:1.55;white-space:nowrap;opacity:0;transition:opacity .15s;z-index:3;backdrop-filter:blur(6px)}
+.tip{position:absolute;pointer-events:none;background:rgba(6,9,13,.94);border:1px solid var(--hair);border-left:2px solid var(--ui);padding:7px 10px;
+  font:400 12.5px/1.55 var(--mono);white-space:nowrap;opacity:0;transition:opacity .15s;z-index:3}
 .tip.show{opacity:1}
 .tip span{color:var(--mu)}
 
-.c-sig{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+/* the read-outs under the chart: one ruled line, not four boxes */
+.c-sig{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-top:1px solid var(--hair2);margin:10px 16px 0 -24px;padding-left:24px}
 .c-sig.six{grid-template-columns:repeat(6,minmax(0,1fr))}
-.sg{background:var(--pan2);border:1px solid var(--hair2);border-radius:8px;padding:9px 11px;transition:border-color .5s,box-shadow .5s}
-.card.glow .sg{border-color:rgba(var(--ok-rgb),.35);box-shadow:0 0 24px rgba(var(--ok-rgb),.07)}
-.sg small{display:block;font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--mu)}
-.sg b{display:block;font-family:var(--mono);font-size:18px;font-weight:600;margin:4px 0 6px}
-.sg b span{font-size:12px;font-weight:400;color:var(--mu);margin-left:4px}
-.meter{position:relative;height:4px;border-radius:2px;background:var(--pan3);overflow:hidden}
-.meter i{position:absolute;left:0;top:0;bottom:0;width:0;border-radius:2px;transition:width 1.3s var(--e)}
-.meter.rsi{background:linear-gradient(90deg,rgba(var(--bad-rgb),.35) 0 30%,var(--pan3) 30% 70%,rgba(var(--ok-rgb),.35) 70%);overflow:visible}
-.meter u{position:absolute;top:-4px;width:2px;height:12px;background:#fff;border-radius:1px;left:0;transition:left 1.3s var(--e)}
+.sg{padding:12px 16px 13px 0}
+.sg+.sg{border-left:1px solid var(--hair2);padding-left:16px}
+.sg small{display:block;font:400 10.5px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+.sg b{display:block;font:500 17px/1 var(--mono);margin:9px 0 9px;font-variant-numeric:tabular-nums}
+.sg b span{font-size:11.5px;font-weight:400;color:var(--mu);margin-left:6px}
+.meter{position:relative;height:2px;background:rgba(255,255,255,.09)}
+.meter i{position:absolute;left:0;top:0;bottom:0;width:0;transition:width 1.3s var(--e)}
+.meter.rsi{background:linear-gradient(90deg,rgba(var(--bad-rgb),.55) 0 30%,rgba(255,255,255,.09) 30% 70%,rgba(var(--ok-rgb),.55) 70%)}
+.meter u{position:absolute;top:-4px;width:2px;height:10px;background:#fff;left:0;transition:left 1.3s var(--e)}
+.card.glow .sg b{text-shadow:0 0 18px rgba(var(--ui-rgb),.55)}
 
-/* watchlist */
-.list{background:var(--pan);border:1px solid var(--hair);border-radius:12px;padding:12px 8px 8px;display:flex;flex-direction:column;min-height:0;margin-bottom:20px}
-.list h3{margin:0 8px 8px;font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--mu);font-weight:400;display:flex;justify-content:space-between}
-.rows{flex:1;display:flex;flex-direction:column;gap:2px;min-height:0}
-.row{flex:1;display:grid;grid-template-columns:minmax(0,1fr) 66px 100px;align-items:center;gap:10px;padding:0 10px;border-radius:8px;text-align:left;
-  position:relative;transition:background .4s var(--e)}
-.row:hover{background:var(--pan3)}
-.row.on{background:rgba(var(--ok-rgb),.08)}
-.row.on::before{content:"";position:absolute;left:0;top:22%;bottom:22%;width:2px;border-radius:2px;background:var(--ok)}
-.row b{display:block;font-family:var(--mono);font-size:14.5px}
-.row small{display:block;font-size:12px;color:var(--mu);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.row .p{text-align:right}
-.row .p b{font-weight:600;font-size:14.5px;font-variant-numeric:tabular-nums}
-.pill{display:inline-block;margin-top:3px;font-family:var(--mono);font-size:12px;font-weight:500;padding:1px 6px;border-radius:4px;transition:background .6s,color .6s}
-.pill.up{background:rgba(var(--ok-rgb),.14)} .pill.dn{background:rgba(var(--bad-rgb),.16)}
+/* ---------- the rail: what is tracked, what the engine is computing */
+.rail{border-left:1px solid var(--hair2);display:grid;grid-template-rows:minmax(0,1fr) auto auto;min-height:0}
+.rail section{padding:16px 20px 0}
+.rail section+section{border-top:1px solid var(--hair2)}
+.rail h3{display:flex;justify-content:space-between;align-items:center;height:14px;margin-bottom:8px}
+.rail h3 span{color:var(--dim);letter-spacing:.1em}
+.list{display:flex;flex-direction:column;min-height:0;padding-bottom:6px!important}
+.rows{flex:1;display:flex;flex-direction:column;min-height:0}
+.row{flex:1;display:grid;grid-template-columns:minmax(0,1fr) 52px auto;align-items:center;gap:12px;text-align:left;position:relative;margin:0 -20px;padding:0 20px;
+  transition:background .4s var(--e)}
+.row>div:first-child{display:flex;align-items:baseline;gap:9px;min-width:0}
+.row svg{width:52px;height:20px;overflow:visible}
+.row+.row{border-top:1px solid var(--hair2)}
+.row:hover{background:rgba(255,255,255,.035)}
+.row.on{background:linear-gradient(90deg,rgba(var(--ui-rgb),.10),transparent 70%)}
+.row.on::before{content:"";position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--ui);box-shadow:0 0 10px rgba(var(--ui-rgb),.8)}
+.row b{display:block;font:500 13.5px/1 var(--mono);letter-spacing:.02em}
+.row small{font-size:11.5px;line-height:1.2;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .p{display:flex;align-items:baseline;justify-content:flex-end;gap:10px}
+.row .p b{font-variant-numeric:tabular-nums;min-width:50px;text-align:right}
+.pill{font:500 11.5px/1 var(--mono);min-width:50px;text-align:right;font-variant-numeric:tabular-nums}
 
-/* ---------- caption bar */
-.cap{display:flex;align-items:center;justify-content:space-between;gap:24px;border-top:1px solid var(--hair2);padding-top:14px}
-.cap h2{margin:0;font-size:31px;font-weight:600;letter-spacing:-.025em;line-height:1.1;min-height:30px}
-.cap p{margin:5px 0 0;font-size:16.5px;color:var(--mu);min-height:18px}
-.w{display:inline-block;white-space:pre;animation:rise .9s var(--e) both}
-@keyframes rise{from{opacity:0;transform:translateY(14px);filter:blur(8px)}to{opacity:1;transform:none;filter:none}}
-.ctl{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
-.dots{display:flex;align-items:center;gap:6px}
-.dots button[data-c]{position:relative;overflow:hidden;font-family:var(--mono);font-size:12px;font-weight:500;padding:8px 13px;border-radius:999px;
-  border:1px solid rgba(255,255,255,.2);background:var(--pan2);color:var(--mu);transition:color .2s,border-color .2s,background .2s}
-.dots button[data-c]:hover{color:var(--tx);border-color:rgba(255,255,255,.5)}
-.dots button[data-c].on{color:var(--tx);border-color:rgba(var(--ok-rgb),.7)}
-.dots button[data-c] u{position:absolute;left:0;bottom:0;height:2px;width:0;background:var(--ok)}
-.play{font-family:var(--mono);font-size:13px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--tx);margin-left:12px;display:flex;align-items:center;gap:8px;
-  padding:10px 18px;border:1px solid rgba(255,255,255,.35);border-radius:999px;background:var(--pan2);transition:background .2s,color .2s,border-color .2s,transform .2s var(--e)}
-.play:hover{background:var(--ok);border-color:var(--ok);color:#000;transform:translateY(-1px)}
-.src{font-family:var(--mono);font-size:11px;color:var(--dim)}
-/* technicals: indicator chips + the calculation readout */
-.tools{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
-.chips{display:flex;gap:5px}
-.chips button{display:flex;align-items:center;gap:7px;font-family:var(--mono);font-size:11.5px;font-weight:500;letter-spacing:.03em;padding:6px 11px;border:1px solid rgba(255,255,255,.22);background:var(--pan2);
-  border-radius:999px;color:var(--mu);transition:color .3s,border-color .3s,background .3s}
-.chips button i{width:10px;height:3px;border-radius:1px;background:var(--c);opacity:.5;transition:opacity .3s}
-.chips button:hover{color:var(--tx);border-color:rgba(255,255,255,.5);background:#26262b}
-.chips button.on{color:var(--tx);border-color:var(--c);background:#1f1f24}
-.chips button.on i{opacity:1}
-.hud{position:absolute;left:0;top:24px;padding:6px 26px 6px 10px;border-left:2px solid var(--ok);pointer-events:none;
-  background:linear-gradient(90deg,rgba(12,12,14,.92),rgba(12,12,14,.6) 70%,rgba(12,12,14,0));
-  font-family:var(--mono);font-size:12px;line-height:1.6;color:#F0F0F3;opacity:0;transition:opacity .6s var(--e);z-index:2}
+.qt{padding-bottom:12px!important;transition:background .8s var(--e)}
+.qt.hot{background:linear-gradient(180deg,rgba(var(--ui-rgb),.09),transparent)}
+.qt h3 em{font-style:normal;color:var(--ink);letter-spacing:.06em}
+.qt dl{margin:0}
+.qt dl div{display:flex;justify-content:space-between;align-items:baseline;height:20px;font:400 12px/1 var(--mono)}
+.qt dt{color:var(--mu)}
+.qt dd{margin:0;color:var(--ink);font-weight:500;font-variant-numeric:tabular-nums}
+.whatif{display:flex;align-items:center;gap:9px;margin-top:9px;padding-top:10px;border-top:1px solid var(--hair2);font:400 11px/1 var(--mono);color:var(--mu);white-space:nowrap}
+.whatif input{flex:1;min-width:0;height:14px;margin:0;accent-color:var(--ui);cursor:pointer}
+.whatif b{color:var(--ink);font-weight:500;min-width:30px;text-align:right}
+.qt.nomc .whatif{opacity:.28;pointer-events:none}
+
+.eng{position:relative;height:136px;padding-bottom:0!important}
+.eng h3 span.b{display:none}
+.eng.feed h3 span.a{display:none}
+.eng.feed h3 span.b{display:inline;color:var(--ui)}
+.eng canvas{display:block;width:282px;height:86px;transition:opacity .45s var(--e)}
+.eng.feed canvas{opacity:0}
+/* the calculation behind whatever is drawing, one line per bar */
+.hud{position:absolute;left:20px;right:12px;top:40px;height:84px;overflow:hidden;pointer-events:none;font:400 10.5px/1 var(--mono);color:var(--ink);opacity:0;transition:opacity .45s var(--e)}
 .hud.show{opacity:1}
-.hud{height:128px;width:460px}
-.hud div{position:absolute;left:10px;top:6px;white-space:nowrap;transition:transform .45s var(--e),opacity .45s var(--e)}
-.hud div span{color:#9A9AA2;margin-right:10px}
+.hud div{position:absolute;left:0;top:2px;white-space:nowrap;transition:transform .45s var(--e),opacity .45s var(--e)}
+.hud div span{color:var(--dim);margin-right:9px}
 .hud div b{font-weight:500;color:var(--k,#fff)}
-.hud div:nth-child(2){opacity:.72}.hud div:nth-child(3){opacity:.52}.hud div:nth-child(4){opacity:.38}
-.hud div:nth-child(5){opacity:.26}.hud div:nth-child(6){opacity:.17}.hud div:nth-child(7){opacity:.1}
-@keyframes fly{from{opacity:0;transform:translateX(28px);filter:blur(5px)}}
-@media (prefers-reduced-motion:reduce){.w{animation:none}.card,.meter i,.meter u{transition-duration:.01s}}
+
+/* ---------- the bottom bar: what you are looking at, and where in the reel */
+.ctlbar{display:grid;grid-template-columns:432px minmax(0,1fr) auto;align-items:center;gap:30px;padding:0 22px 0 24px;border-top:1px solid var(--hair)}
+.cap h2{margin:0;font:400 27px/1.1 var(--sans);letter-spacing:-.03em;white-space:nowrap}
+.cap p{margin:7px 0 0;font:400 14px/1.2 var(--sans);color:var(--mu);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-height:17px}
+.w{display:inline-block;white-space:pre;animation:rise .7s var(--e) both}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.tl{position:relative;height:46px;cursor:pointer;touch-action:none}
+.tl-bar{position:absolute;left:0;right:0;bottom:10px;height:1px;background:rgba(255,255,255,.16)}
+.tl-bar i{position:absolute;left:0;top:-.5px;height:2px;width:0;background:var(--ui);box-shadow:0 0 10px rgba(var(--ui-rgb),.7)}
+.tl-bar i::after{content:"";position:absolute;right:-3px;top:-3px;width:8px;height:8px;background:var(--ui);transform:rotate(45deg)}
+.tl-marks button{position:absolute;top:4px;font:400 11px/1 var(--mono);letter-spacing:.06em;color:var(--dim);padding:2px 0;white-space:nowrap;transition:color .2s}
+.tl-marks button::after{content:"";position:absolute;left:0;top:27px;width:1px;height:9px;background:rgba(255,255,255,.28)}
+.tl-marks button:hover,.tl-marks button.on{color:var(--ink)}
+.play{display:flex;align-items:center;gap:9px;font:500 11.5px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--mu);padding:11px 16px;border:1px solid var(--hair);border-radius:2px;
+  transition:color .2s,border-color .2s}
+.play:hover{color:var(--ink);border-color:rgba(var(--ui-rgb),.8)}
+@media (prefers-reduced-motion:reduce){.w{animation:none}.meter i,.meter u{transition-duration:.01s}}
 </style>
 </head>
 <body>
 <div class="fit"><div class="stage" id="stage">
   <div class="win" id="win">
-    <div class="bar">
-      <div class="lights"><button class="dot r" id="lr" aria-label="Close"></button><span class="dot y"></span><span class="dot g"></span></div>
-      <div class="ttl">Markets</div>
-    </div>
     <div class="app" id="app">
-      <div class="camwrap"><div class="cam" id="cam">
-      <div class="top">
-        <div id="ixs" style="display:contents"></div>
-        <div class="kp">
-          <div class="kpi"><small>Tracked</small><b class="num" id="kTr">13</b></div>
-          <div class="kpi"><small>Up today</small><b class="num up" id="kUp">0</b></div>
-          <div class="kpi"><small>Down today</small><b class="num dn" id="kDn">0</b></div>
-          <div class="kpi t"><small>Session</small><b class="num"><span class="pulse"></span><span id="kT">9:30 AM</span></b></div>
-        </div>
-      </div>
+      <header class="hdr">
+        <div class="brand"><i></i>MARKETS</div>
+        <div class="src" id="src"></div>
+        <div class="sess">Session <b id="kT">9:30 AM</b></div>
+        <div class="cnt"><span><b id="kTr">13</b> tracked</span><span class="up"><b id="kUp">0</b> up</span><span class="dn"><b id="kDn">0</b> down</span></div>
+      </header>
+      <div class="tape" id="ixs"></div>
 
-      <div class="mid">
+      <div class="cam" id="cam"><div class="mid">
         <div class="deck" id="deck">
-          <div class="card back" id="cA" style="display:none"><div class="c-in"></div></div>
+          <div class="card back" id="cA"><div class="c-in"></div></div>
           <div class="card front" id="cB"><div class="c-in"></div></div>
         </div>
-        <div class="list"><h3><span>Watchlist</span><span>today</span></h3><div class="rows" id="rows"></div></div>
-      </div>
-
+        <aside class="rail">
+          <section class="list"><h3>Watchlist<span>today</span></h3><div class="rows" id="rows"></div></section>
+          <section class="qt" id="qt">
+            <h3>Quant <em id="qSym"></em><span>live</span></h3>
+            <dl id="qRows"></dl>
+            <label class="whatif" title="Scale the volatility the Monte Carlo uses">Monte Carlo σ <input type="range" id="wi" min="50" max="250" value="100"><b id="wb">×1.0</b></label>
+          </section>
+          <section class="eng" id="eng">
+            <h3><span class="a">Correlation · 1Y</span><span class="b">Computing</span></h3>
+            <div class="hud" id="hud"></div>
+            <canvas id="corr"></canvas>
+          </section>
+        </aside>
       </div></div>
-      <div class="ctlbar">
-        <button class="play" id="play"></button>
+
+      <footer class="ctlbar">
+        <div class="cap"><h2 id="capH"></h2><p id="capP"></p></div>
         <div class="tl" id="tl"><div class="tl-marks" id="dots"></div><div class="tl-bar"><i id="tlFill"></i></div></div>
-        <div class="src" id="src"></div>
-      </div>
-      <div class="lower" id="lower"><h2 id="capH"></h2><p id="capP"></p></div>
+        <button class="play" id="play"></button>
+      </footer>
     </div>
   </div>
 </div></div>
 
 <script src="data.js?v=996b2c0a"></script>
-<script src="app.js?v=9b2a7760"></script>
+<script src="app.js?v=dba61802"></script>
 </body>
 </html>

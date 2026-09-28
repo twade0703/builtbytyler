@@ -329,7 +329,6 @@ const tabEls=[...$("tabs").querySelectorAll("[data-s]")];tabEls.forEach(b=>b.onc
 function setPlay(){$("play").innerHTML=st.paused?"▶&nbsp;Play":"❚❚&nbsp;Pause"}
 $("play").onclick=()=>{st.paused=!st.paused;if(!st.paused&&st.hold){st.hold=false;focus(storyFocus)}setPlay()};
 document.addEventListener("pointermove",()=>{st.idle=0});
-$("lr").onclick=()=>{const w=$("win");w.classList.remove("shake");void w.offsetWidth;w.classList.add("shake")};
 
 /* ---------- one loop */
 let last=performance.now();

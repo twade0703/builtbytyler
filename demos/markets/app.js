@@ -14,6 +14,7 @@ const SHORT={GSPC:"S&P 500",IXIC:"NASDAQ",DJI:"DOW",RUT:"RUSSELL 2000","BTC-USD"
 /* ---------- fit the 1280x800 frame to the viewport */
 const stage=$("stage");let SC=1;
 function fit(){SC=Math.min((innerWidth-32)/1280,(innerHeight-32)/800,1.25);stage.style.transform=`translate(-50%,-50%) scale(${SC})`;}
+let CAMZ=1;  /* the camera's zoom, so canvases render sharp when it pushes in */
 addEventListener("resize",()=>{fit();sizeAll()});fit();
 
 /* ---------- the replay clock: the real Sep 25 session, 5-minute bars, played back smoothly */
@@ -46,7 +47,9 @@ function tickLive(){for(const[el,o]of LIVE){if(!el.isConnected){LIVE.delete(el);
   if(o.signEl!==undefined){const s=o.signEl||el,k=cls(o.cur);if(o.k!==k){s.classList.remove("up","dn","fl");s.classList.add(k);o.k=k}}}}
 
 /* ---------- measures */
-function rsi(c,n=14){let g=0,l=0;for(let i=c.length-n;i<c.length;i++){const d=c[i]-c[i-1];d>0?g+=d:l-=d}return l?100-100/(1+g/l):100}
+/* Wilder's RSI: seed with a simple average, then smooth ((prev*13)+now)/14, as trading platforms compute it */
+function rsi(c,n=14){let g=0,l=0;for(let i=1;i<=n;i++){const d=c[i]-c[i-1];d>0?g+=d:l-=d}g/=n;l/=n;
+  for(let i=n+1;i<c.length;i++){const d=c[i]-c[i-1];g=(g*(n-1)+Math.max(d,0))/n;l=(l*(n-1)+Math.max(-d,0))/n}return l?100-100/(1+g/l):100}
 function fit63(c){const y=c.slice(-63).map(Math.log),n=y.length;let sx=0,sy=0,sxx=0,sxy=0,syy=0;
   y.forEach((v,i)=>{sx+=i;sy+=v;sxx+=i*i;sxy+=i*v;syy+=v*v});
   const b=(n*sxy-sx*sy)/(n*sxx-sx*sx),r=(n*sxy-sx*sy)/Math.sqrt((n*sxx-sx*sx)*(n*syy-sy*sy));return{b,r2:r*r}}
@@ -77,7 +80,7 @@ function quant(sym){if(QC[sym])return QC[sym];const s=ALL[sym],r=RET(sym),n=YR(s
   const mx=mean(xs),my=mean(ys);let cv=0,vx=0;xs.forEach((x,i)=>{cv+=(x-mx)*(ys[i]-my);vx+=(x-mx)**2});
   const srt=r1.slice().sort((a,b)=>a-b);let pk=-Infinity,dd=0;s.c.slice(-n).forEach(p=>{pk=Math.max(pk,p);dd=Math.min(dd,p/pk-1)});
   const ir=s.ic.slice(1).map((p,i)=>Math.log(p/s.ic[i]));
-  return QC[sym]={sig20:sdv(r.slice(-20))*Math.sqrt(n),sigD:sdv(r.slice(-60)),sharpe:mean(r1)/sdv(r1)*Math.sqrt(n),beta:vx?cv/vx:1,
+  return QC[sym]={sig20:sdv(r.slice(-20))*Math.sqrt(n),sigD:sdv(r.slice(-60)),sharpe:(mean(r1)-.04/n)/sdv(r1)*Math.sqrt(n),beta:vx?cv/vx:1,
     var95:Math.exp(srt[Math.floor(srt.length*.05)])-1,mdd:dd,sigI:Math.max(sdv(ir),.0008)}}
 /* correlation of daily returns across the watchlist, for the faint heatmap */
 const CM=(()=>{const syms=["NVDA","AAPL","TSLA","MSFT","AMD","META"],R=syms.map(s=>RET(s).slice(-252));
@@ -88,14 +91,15 @@ function mcRun(steps,sig){const N=500,cols=Array.from({length:steps+1},()=>[]);f
   cols.forEach(a=>a.sort((x,y)=>x-y));const q=f=>cols.map(a=>a[Math.floor(a.length*f)]);return{p5:q(.05),p50:q(.5),p95:q(.95),pup:cols[steps].filter(v=>v>1).length/N}}
 /* 42 paths, each born, drawn out, held and faded on its own clock, so the fan flows and never resets at once */
 function drawMC(c,x,now,o){const LIFE=4200;if(!c._mc||c._mc.steps!==o.steps)c._mc={steps:o.steps,paths:[],q:null,tq:null,qt:0};const m=c._mc;
-  while(m.paths.length<42)m.paths.push({p:mcPath(o.steps,o.sig),born:now-Math.random()*LIFE,col:PAL[m.paths.length%PAL.length]});
-  if(!m.tq||now-m.qt>LIFE){m.tq=mcRun(o.steps,o.sig);m.qt=now;if(!m.q)m.q=JSON.parse(JSON.stringify(m.tq))}
+  const vm=c._vm||1,sg=o.sig*vm;if(m.vm!==vm){m.vm=vm;m.paths=[];m.tq=null}
+  while(m.paths.length<42)m.paths.push({p:mcPath(o.steps,sg),born:now-Math.random()*LIFE,col:PAL[m.paths.length%PAL.length]});
+  if(!m.tq||now-m.qt>LIFE){m.tq=mcRun(o.steps,sg);m.qt=now;if(!m.q)m.q=JSON.parse(JSON.stringify(m.tq))}
   for(const k of ["p5","p50","p95"])m.q[k]=m.q[k].map((v,i)=>v+(m.tq[k][i]-v)*.03);m.q.pup+=(m.tq.pup-m.q.pup)*.03;
   const X=i=>o.x0+(o.x1-o.x0)*i/o.steps,a=o.a??1;
   x.save();x.beginPath();x.rect(o.x0,o.top,o.x1-o.x0+2,o.bot-o.top);x.clip();
   const g=x.createLinearGradient(o.x0,0,o.x1,0);g.addColorStop(0,"rgba(107,179,255,0)");g.addColorStop(1,`rgba(107,179,255,${.06*a})`);x.fillStyle=g;x.fillRect(o.x0,o.top,o.x1-o.x0,o.bot-o.top);
   x.lineWidth=1;
-  for(const pa of m.paths){let age=(now-pa.born)/LIFE;if(age>=1){pa.p=mcPath(o.steps,o.sig);pa.born=now;pa.col=PAL[(Math.random()*PAL.length)|0];age=0}
+  for(const pa of m.paths){let age=(now-pa.born)/LIFE;if(age>=1){pa.p=mcPath(o.steps,sg);pa.born=now;pa.col=PAL[(Math.random()*PAL.length)|0];age=0}
     const grow=clamp(age/.5,0,1),fade=age<.75?1:1-(age-.75)/.25,n=grow*o.steps,k=Math.floor(n);
     x.beginPath();for(let i=0;i<=k;i++){const yy=o.Y(o.S*pa.p[i]);i?x.lineTo(X(i),yy):x.moveTo(X(i),yy)}
     if(k<o.steps){const f=n-k;x.lineTo(X(k+f),o.Y(o.S*(pa.p[k]+(pa.p[k+1]-pa.p[k])*f)))}
@@ -104,11 +108,11 @@ function drawMC(c,x,now,o){const LIFE=4200;if(!c._mc||c._mc.steps!==o.steps)c._m
   for(let i=o.steps;i>=0;i--)x.lineTo(X(i),o.Y(o.S*m.q.p5[i]));x.closePath();x.fillStyle="rgba(107,179,255,.07)";x.fill();
   for(const [k,cl] of [["p95","rgba(107,179,255,.75)"],["p5","rgba(107,179,255,.75)"],["p50","rgba(255,214,10,.9)"]]){x.beginPath();
     m.q[k].forEach((v,i)=>i?x.lineTo(X(i),o.Y(o.S*v)):x.moveTo(X(i),o.Y(o.S*v)));x.strokeStyle=cl;x.lineWidth=1.2;x.stroke()}
-  x.fillStyle="rgba(168,168,173,.8)";x.font="10px JetBrains Mono";x.textAlign="right";x.textBaseline="bottom";x.fillText(`MC · 500 sims · ${o.label}`,o.x1-4,o.bot-4);
+  x.fillStyle="rgba(168,168,173,.85)";x.font="10px JetBrains Mono";x.textAlign="right";x.textBaseline="top";x.fillText(`MC · 500 sims · no drift · ${o.label}`,o.x1-4,o.top+4);
   x.restore();x.globalAlpha=1;return m}
 function statRows(sym,S,m){const q=quant(sym),c=daily(sym).slice(-20),z=(S-mean(c))/sdv(c);
-  return[["σ20 ann.",(q.sig20*100).toFixed(1)+"%"],["Sharpe 1Y",q.sharpe.toFixed(2)],["β vs S&P",q.beta.toFixed(2)],["z-score 20d",fs(z,2),z>=0?"#00C805":"#FF7A3D"],
-    ["VaR 95% 1d",(q.var95*100).toFixed(1)+"%","#FF7A3D"],["Max DD 1Y",(q.mdd*100).toFixed(1)+"%"],["P(up) · MC",Math.round(m.q.pup*100)+"%",m.q.pup>=.5?"#00C805":"#FF7A3D"]]}
+  return[["σ20 ann.",(q.sig20*100).toFixed(1)+"%"],["Sharpe 1Y rf4%",q.sharpe.toFixed(2)],["β vs S&P",q.beta.toFixed(2)],["z-score 20d",fs(z,2),z>=0?"#00C805":"#FF7A3D"],
+    ["VaR 95% 1d",(q.var95*100).toFixed(1)+"%","#FF7A3D"],["Max DD 1Y",(q.mdd*100).toFixed(1)+"%"],["P>spot · 0 drift",Math.round(m.q.pup*100)+"%","#FFFFFF"]]}
 function drawStats(x,x1,top,rows,a){const x0=x1-150;x.save();x.globalAlpha=a;x.fillStyle="rgba(10,10,12,.32)";x.beginPath();x.roundRect(x0,top-6,150,rows.length*15+26,8);x.fill();
   x.font="10.5px JetBrains Mono";x.textBaseline="top";x.textAlign="left";x.fillStyle="#00C805";x.fillText("● QUANT · LIVE",x0+8,top);
   rows.forEach(([l,v,cl],i)=>{const y=top+17+i*15;x.textAlign="left";x.fillStyle="rgba(168,168,173,.85)";x.fillText(l,x0+8,y);x.textAlign="right";x.fillStyle=cl||"#FFFFFF";x.fillText(v,x1-8,y)});
@@ -121,7 +125,7 @@ function drawCorr(x,x0,y0,a){const{syms,m}=CM,cs=14;x.save();x.globalAlpha=a;x.f
 function emaA(a,k){const al=2/(k+1),r=[];let e=a[0];a.forEach((v,i)=>{e=i?v*al+e*(1-al):v;r.push(e)});return r}
 
 /* ---------- canvas helpers */
-function sizeCanvas(cv){const r=cv.parentElement,w=r.clientWidth,h=r.clientHeight,d=(devicePixelRatio||1)*SC;
+function sizeCanvas(cv){const r=cv.parentElement,w=r.clientWidth,h=r.clientHeight,d=(devicePixelRatio||1)*SC*CAMZ;
   if(cv.width!==Math.round(w*d)){cv.width=Math.round(w*d);cv.height=Math.round(h*d)}
   const x=cv.getContext("2d");x.setTransform(d,0,0,d,0,0);return{x,w,h}}
 function niceStep(r){const p=Math.pow(10,Math.floor(Math.log10(r))),f=r/p;return(f<1.5?1:f<3?2:f<7?5:10)*p}
@@ -224,19 +228,24 @@ function optionCard(c){const o=OPT;
   live(q("dl"),()=>optVal(S()).delta,x=>x.toFixed(2));
 }
 
-function render(c,v){if(!c._v||c._v.sym!==v.sym)c._mc=null;c._v=v;c._rev=0;c._t0=null;c._optS=null;c._sweep=null;c._hover=null;c._lo=null;
+const PER={"1D":"today","1M":"past month","6M":"past 6 months","1Y":"past year"};
+function render(c,v){if(!c._v||c._v.sym!==v.sym)c._mc=null;c._v=v;c._vm=1;c._k=v.kind==="stock"&&v.win!=="1D"?WLEN(v.sym,v.win):0;c._kd=c._k;c._pan=0;c._pd=0;c._rev=0;c._t0=null;c._optS=null;c._sweep=null;c._hover=null;c._lo=null;
   c._ind=Object.fromEntries(IND.map(k=>[k,{on:0,t:0}]));
   ({stock:stockCard,compare:compareCard,option:optionCard})[v.kind](c,v);
   c._cv=c.querySelector("canvas");c._tip=c.querySelector(".tip");sizeCanvas(c._cv);
   c._hud=c.querySelector(".hud");
-  c.querySelectorAll(".seg [data-w]").forEach(b=>b.onclick=()=>{userTook();if(b.dataset.w===c._v.win)return;
-    const snap=document.createElement("canvas");snap.width=c._cv.width;snap.height=c._cv.height;snap.getContext("2d").drawImage(c._cv,0,0);
-    const keep=c._ind,lo=c._lo,hi=c._hi;render(c,{...c._v,win:b.dataset.w});
-    c._t0=performance.now()-4000;c._ind=keep;c._lo=lo;c._hi=hi;c._ghost=snap;c._ghostT=performance.now();meters(c);
-    IND.forEach(k=>{const e=c.querySelector(`.chips [data-i="${k}"]`);if(e)e.classList.toggle("on",!!keep[k].on)})});
+  c.querySelectorAll(".seg [data-w]").forEach(b=>b.onclick=()=>{userTook();show({...c._v,win:b.dataset.w})});
   c.querySelectorAll(".chips [data-i]").forEach(b=>b.onclick=()=>{userTook();const k=b.dataset.i;setInd(c,k,!c._ind[k].on)});
   const box=c.querySelector(".c-ch");
-  box.onpointermove=e=>{const r=box.getBoundingClientRect();c._hover=(e.clientX-r.left)/r.width;};
+  const daily=()=>c._v.kind==="stock"&&c._v.win!=="1D";box.classList.toggle("pan",daily());
+  if(c._v.kind==="stock"){box.insertAdjacentHTML("beforeend",`<label class="whatif" title="Scale the volatility the Monte Carlo uses">What-if σ <input type="range" min="50" max="250" value="100"><b>×1.0</b></label>`);
+    const wi=box.querySelector(".whatif input"),wb=box.querySelector(".whatif b");wi.oninput=()=>{userTook();c._vm=wi.value/100;wb.textContent="×"+c._vm.toFixed(1)}}
+  box.onwheel=e=>{if(!daily())return;e.preventDefault();userTook();const N=ALL[c._v.sym].c.length;
+    c._k=clamp(Math.round((c._k||WLEN(c._v.sym,c._v.win))*(e.deltaY>0?1.14:1/1.14)),20,N);c._pan=clamp(c._pan||0,0,N-c._k)};
+  box.onpointerdown=e=>{if(!daily()||e.target.closest(".whatif"))return;c._drag={x:e.clientX,p:c._pan||0};try{box.setPointerCapture(e.pointerId)}catch(_){}box.style.cursor="grabbing"};
+  box.onpointerup=()=>{c._drag=null;box.style.cursor=""};
+  box.onpointermove=e=>{const r=box.getBoundingClientRect();c._hover=(e.clientX-r.left)/r.width;
+    if(c._drag){const N=ALL[c._v.sym].c.length;c._pan=clamp(c._drag.p+Math.round((e.clientX-c._drag.x)/r.width*c._k),0,N-c._k);userTook()}};
   box.onpointerleave=()=>{c._hover=null;c._tip.classList.remove("show")};
 }
 function meters(c){c.querySelectorAll(".meter i,.meter u").forEach(m=>{m.style.transition="none";if(m.tagName==="I")m.style.width=m.dataset.to+"%";else m.style.left=m.dataset.to+"%"})}
@@ -246,18 +255,30 @@ function arm(c){c._t0=performance.now();c.querySelectorAll(".meter i,.meter u").
   setTimeout(()=>c.querySelectorAll(".meter u").forEach(m=>m.style.left=m.dataset.to+"%"),60)}
 
 function same(a,b){return a&&b&&JSON.stringify(a)===JSON.stringify(b)}
-function show(v,fast){
-  if(same(front._v,v))return;
-  const next=cards.find(c=>c!==front),cur=front,deck=$("deck");
-  if(swapT){clearTimeout(swapT);swapT=null;cards.forEach(c=>{if(c.classList.contains("out")){c.classList.add("nt");c.classList.remove("out");c.classList.add("back");void c.offsetWidth;c.classList.remove("nt")}})}
-  render(next,v);
-  next.classList.remove("back");next.classList.add("front");cur.classList.remove("front","glow");cur.classList.add("out");
-  front=next;arm(next);syncList();
-  swapT=setTimeout(()=>{cur.classList.add("nt");cur.classList.remove("out");cur.classList.add("back");void cur.offsetWidth;cur.classList.remove("nt");swapT=null},900);
-}
+/* ---------- the camera: positions come from layout, so a move is one continuous transform */
+const CAM=$("cam");
+function rel(el){const c=CAM.getBoundingClientRect(),r=el.getBoundingClientRect(),s=c.width/CAM.offsetWidth;return{x:(r.left-c.left)/s,y:(r.top-c.top)/s,w:r.width/s,h:r.height/s}}
+let camMode="wide";
+function camera(mode){camMode=mode;const W=CAM.offsetWidth,H=CAM.offsetHeight;let z=1,tx=0,ty=0;
+  if(mode!=="wide"){let r=mode==="card"?rel(front):rel(front.querySelector(".c-ch"));if(mode==="quant")r={x:r.x+r.w*.55,y:r.y,w:r.w*.45,h:r.h};
+    z=Math.min(W/(r.w+48),H/(r.h+48),mode==="quant"?1.85:1.55);tx=clamp(W/2-z*(r.x+r.w/2),W-W*z,0);ty=clamp(H/2-z*(r.y+r.h/2),H-H*z,0)}
+  CAM.style.transform=`translate(${tx}px,${ty}px) scale(${z})`;CAMZ=z;CAM.classList.toggle("focus",mode!=="wide");CAM.classList.toggle("focus-q",mode==="quant")}
+/* a symbol's own sparkline lifts out of the watchlist and lands in the chart, where its line then grows */
+function fly(src,dst){if(!src||!dst)return;const a=rel(src),b=rel(dst),g=src.cloneNode(true);g.setAttribute("preserveAspectRatio","none");g.classList.add("flyer");
+  g.querySelectorAll("polyline").forEach(p=>{p.setAttribute("vector-effect","non-scaling-stroke");p.setAttribute("stroke-width","2.4")});
+  Object.assign(g.style,{left:a.x+"px",top:a.y+"px",width:a.w+"px",height:a.h+"px"});CAM.appendChild(g);void g.getBoundingClientRect();
+  Object.assign(g.style,{left:(b.x+8)+"px",top:(b.y+b.h*.15)+"px",width:(b.w*.72)+"px",height:(b.h*.55)+"px",opacity:"0"});setTimeout(()=>g.remove(),950)}
+function show(v){const c=front,old=c._v;if(same(old,v))return;
+  /* same stock, another daily window: the chart just zooms there */
+  if(old&&old.kind==="stock"&&v.kind==="stock"&&old.sym===v.sym&&old.win!=="1D"&&v.win!=="1D"){c._v=v;c._k=WLEN(v.sym,v.win);c._pan=0;
+    c.querySelectorAll(".seg [data-w]").forEach(b=>b.classList.toggle("on",b.dataset.w===v.win));const p=c.querySelector('[data-l="per"]');if(p)p.textContent=PER[v.win];syncList();return}
+  let snap=null;if(c._cv){snap=document.createElement("canvas");snap.width=c._cv.width;snap.height=c._cv.height;snap.getContext("2d").drawImage(c._cv,0,0)}
+  const src=old&&old.sym===v.sym?null:v.kind==="stock"?(document.querySelector(`.row[data-s="${v.sym}"] svg`)||(ixEl[v.sym]&&ixEl[v.sym].querySelector("svg"))):v.kind==="compare"?ixEl[v.pair[0]].querySelector("svg"):null;
+  render(c,v);c.classList.remove("glow");arm(c);if(src){fly(src,c.querySelector(".c-ch"));c._t0=performance.now()+700}
+  if(snap){c._ghost=snap;c._ghostT=performance.now()}syncList();if(camMode!=="wide")requestAnimationFrame(()=>camera(camMode))}
 
 /* ---------- drawing, every frame */
-function drawCard(c,now){if(!c._v||!c._cv)return;drawCardInner(c,now);
+function drawCard(c,now){if(!c._v||!c._cv)return;if(c._k){c._kd+=(c._k-c._kd)*.1;c._pd+=((c._pan||0)-(c._pd||0))*.18}drawCardInner(c,now);
   if(c._ghost){const p=(now-c._ghostT)/520;if(p>=1)c._ghost=null;else{const x=c._cv.getContext("2d");x.save();x.setTransform(1,0,0,1,0,0);x.globalAlpha=1-p;x.drawImage(c._ghost,0,0);x.restore()}}}
 function drawCardInner(c,now){const{x,w,h}=sizeCanvas(c._cv),v=c._v;
   const rev=c._t0?clamp((now-c._t0)/1600,0,1):0;
@@ -296,7 +317,7 @@ function drawCardInner(c,now){const{x,w,h}=sizeCanvas(c._cv),v=c._v;
     [[`EMA 9  ${fp(ema[li])}`,"#B38CFF"],[`Mean  ${fp(mu[li])}`,"#FFD60A"],[`±2σ  ${fp(dn[li])}–${fp(up[li])}`,"#6BB3FF"]].forEach(([t,cl])=>{x.fillStyle=cl;x.fillText(t,lx,top+2);lx+=x.measureText(t).width+18});
     if(rev>=1){const q=quant(v.sym),left=sl-1-(n-1),steps=Math.max(4,Math.min(36,left)),per=Math.max(1,left/steps);
       const m=drawMC(c,x,now,{x0:X(n-1),x1:w-padR,Y,S:series[n-1],steps,sig:q.sigI*Math.sqrt(per),top,bot:top+ph,a:fa,label:"to close"});
-      drawStats(x,w-padR-4,top+26,statRows(v.sym,series[n-1],m),.95*fa);drawCorr(x,8,top+ph-100,.8*fa)}}
+      drawStats(x,w-padR-4,top+30,statRows(v.sym,series[n-1],m),.95*fa);drawCorr(x,8,top+ph-100,.8*fa)}}
   if(v.kind==="compare"){const A="#00C805";const p2=second.slice(0,upTo+1).map((p,i)=>[X(i),Y(p)]);
     area(x,pts,"0,200,5",top+ph,top);line(x,p2,"rgba(255,255,255,.85)",1.5,8);line(x,pts,A,1.8,14);
     const e=pts[pts.length-1];endDot(x,e[0],e[1],A,"0,200,5",now);const e2=p2[p2.length-1];x.beginPath();x.arc(e2[0],e2[1],3.5,0,7);x.fillStyle="#fff";x.fill()}
@@ -346,23 +367,23 @@ function drawOption(c,x,w,h,rev,now){const o=OPT,padR=80,padB=24,top=10,ph=h-pad
 }
 
 /* ---------- a daily chart with its technicals: line or candles, bands, averages, MACD */
-function drawTech(c,x,w,h,rev,now){const v=c._v,T=tech(v.sym),N=T.c.length,k=Math.min(WLEN(v.sym,v.win),N),off=N-k;
+function drawTech(c,x,w,h,rev,now){const v=c._v,T=tech(v.sym),N=T.c.length,k=clamp(Math.round(c._kd||WLEN(v.sym,v.win)),12,N),pan=Math.round(c._pd||0),off=Math.max(0,N-k-pan);
   const padR=74,padB=24,top=8,ph=h-padB-top,Xw=w-padR,Xh=Xw*.74,X=i=>Xh*(i/(k-1));
   const ck=morph(c,"candle",now),mk=morph(c,"macd",now,900),bb=ik(c,"bb",now),s50=ik(c,"s50",now),s200=ik(c,"s200",now),md=ik(c,"macd",now);
   const mainH=ph*(1-.3*mk);
   /* the scale eases toward whatever is showing, so adding an average zooms the view instead of jumping it */
-  let lo=Infinity,hi=-Infinity;const acc=a=>{for(let i=off;i<N;i++){const y=a[i];if(y!=null){if(y<lo)lo=y;if(y>hi)hi=y}}};
+  let lo=Infinity,hi=-Infinity;const acc=a=>{for(let i=off;i<off+k;i++){const y=a[i];if(y!=null){if(y<lo)lo=y;if(y>hi)hi=y}}};
   if(ck>.01){acc(T.l);acc(T.h)}else acc(T.c);
   if(bb.a>.01){acc(T.bb.up);acc(T.bb.dn)}if(s50.a>.01)acc(T.s50);if(s200.a>.01)acc(T.s200);
-  if(c._mc&&c._mc.q){const e=T.c[N-1];lo=Math.min(lo,e*Math.min(...c._mc.q.p5));hi=Math.max(hi,e*Math.max(...c._mc.q.p95))}
+  if(pan===0&&c._mc&&c._mc.q){const e=T.c[off+k-1];lo=Math.min(lo,e*Math.min(...c._mc.q.p5));hi=Math.max(hi,e*Math.max(...c._mc.q.p95))}
   const pd=(hi-lo)*.07;lo-=pd;hi+=pd;
   if(c._lo==null){c._lo=lo;c._hi=hi}else{c._lo+=(lo-c._lo)*.09;c._hi+=(hi-c._hi)*.09}
   const L=c._lo,H=c._hi,Y=p=>top+(H-p)/(H-L)*mainH;
   yAxis(x,w,Y,L,H,padR);
-  const times=T.t.slice(off);
+  const times=T.t.slice(off,off+k);
   x.fillStyle="#9A9AA2";x.font="11.5px JetBrains Mono";x.textAlign="center";x.textBaseline="alphabetic";
   for(let j=0;j<4;j++){const i=Math.round((k-1)*j/3);x.fillText(new Date(times[i]*1000).toLocaleDateString("en-US",{month:"short",day:v.win==="1M"?"numeric":undefined,year:v.win==="1M"?undefined:"2-digit",timeZone:"UTC"}),clamp(X(i),26,Xw-26),h-5)}
-  const series=T.c.slice(off),base=series[0],endV=series[k-1],upw=endV>=base,col=upw?"#00C805":"#FF5000",rgb=upw?"0,200,5":"255,80,0";
+  const series=T.c.slice(off,off+k),base=series[0],endV=series[k-1],upw=endV>=base,col=upw?"#00C805":"#FF5000",rgb=upw?"0,200,5":"255,80,0";
   const pts=(arr,r)=>{const out=[],fi=r*(k-1);for(let i=0;i<=Math.floor(fi);i++){const y=arr[off+i];if(y!=null)out.push([X(i),Y(y)])}return out};
   x.save();x.beginPath();x.rect(0,0,Xh*rev+1,top+mainH+1);x.clip();
   /* Bollinger: the band fill first, then its edges and the dashed mean */
@@ -392,13 +413,13 @@ function drawTech(c,x,w,h,rev,now){const v=c._v,T=tech(v.sym),N=T.c.length,k=Mat
       x.fillStyle=gold?"#FFD60A":"#FF5000";x.textAlign="left";x.textBaseline="middle";x.fillText(lab,lx+8,ly+10);x.globalAlpha=1}
     else c._crossT=null}
   x.restore();
-  if(rev>=1){const fa=lin((now-c._t0-1600)/900),q=quant(v.sym),m=drawMC(c,x,now,{x0:X(k-1),x1:Xw,Y,S:endV,steps:20,sig:q.sigD,top,bot:top+mainH,a:fa,label:"20d"});
-    drawStats(x,Xw-4,top+26,statRows(v.sym,endV,m),.95*fa)}
+  if(rev>=1&&pan===0){const fa=lin((now-c._t0-1600)/900),q=quant(v.sym),m=drawMC(c,x,now,{x0:X(k-1),x1:Xw,Y,S:endV,steps:20,sig:q.sigD,top,bot:top+mainH,a:fa,label:"20d"});
+    drawStats(x,Xw-4,top+30,statRows(v.sym,endV,m),.95*fa)}
   if(rev>=1){const ly=Y(endV);x.fillStyle=col;x.beginPath();x.roundRect(w-padR+3,ly-10,padR-4,20,4);x.fill();
     x.fillStyle="#000";x.font="600 12px JetBrains Mono";x.textBaseline="middle";x.textAlign="left";x.fillText(fp(endV),w-padR+8,ly);
     if(ck<.5){x.globalAlpha=1-ck*2;endDot(x,X(k-1),ly,col,rgb,now);x.globalAlpha=1}}
   /* MACD pane slides up from under the price */
-  if(mk>.02){const pt=top+mainH+12,phm=top+ph-pt;if(phm>10){const M=T.md;let A=0;for(let i=off;i<N;i++)A=Math.max(A,Math.abs(M.m[i]),Math.abs(M.sg[i]));
+  if(mk>.02){const pt=top+mainH+12,phm=top+ph-pt;if(phm>10){const M=T.md;let A=0;for(let i=off;i<off+k;i++)A=Math.max(A,Math.abs(M.m[i]),Math.abs(M.sg[i]));
       const Ym=q=>pt+phm/2-q/A*phm/2*.88,y0=Ym(0),fi=Math.floor(md.r*(k-1)),bw=Math.max(1.2,Xw/k*.62);
       x.globalAlpha=mk;x.strokeStyle="rgba(255,255,255,.08)";x.beginPath();x.moveTo(0,pt-6.5);x.lineTo(Xw,pt-6.5);x.stroke();
       x.strokeStyle="rgba(255,255,255,.18)";x.beginPath();x.moveTo(0,y0+.5);x.lineTo(Xw,y0+.5);x.stroke();
@@ -458,47 +479,54 @@ function syncList(){const v=front._v||{};const on=v.kind==="stock"||v.kind==="op
 live($("kUp"),()=>STOCKS.concat(IDX).filter(s=>dayPct(s)>0).length,x=>Math.round(x));
 live($("kDn"),()=>STOCKS.concat(IDX).filter(s=>dayPct(s)<0).length,x=>Math.round(x));
 
-/* ---------- the director: scenes play like an ad until someone takes the wheel */
+/* ---------- the director: one continuous shot list; the first touch hands over the controls */
+const N1={kind:"stock",sym:"NVDA",win:"1D"};
 const SC_=[
- {h:"Your own trading desk.",p:"Custom software built to your spec, with the math running live.",d:5600,v:{kind:"stock",sym:"NVDA",win:"1D"}},
- {h:"Any stock you want.",p:"Apple.",d:2300,v:{kind:"stock",sym:"AAPL",win:"1Y"},ind:["bb"]},
- {h:"Any stock you want.",p:"Apple. Tesla.",d:2300,v:{kind:"stock",sym:"TSLA",win:"1Y"},ind:["s50","s200"]},
- {h:"Any stock you want.",p:"Apple. Tesla. Microsoft.",d:2300,v:{kind:"stock",sym:"MSFT",win:"1Y"},ind:["bb","s50"]},
- {h:"Any stock you want.",p:"Apple. Tesla. Microsoft. AMD.",d:3200,v:{kind:"stock",sym:"AMD",win:"1Y"},ind:["candle","bb","s50","s200"]},
- {h:"Any index you want.",p:"The S&P 500 against the Nasdaq, side by side.",d:3800,v:{kind:"compare",pair:["GSPC","IXIC"]}},
- {h:"Crypto, too.",p:"Bitcoin, around the clock.",d:3200,v:{kind:"stock",sym:"BTC-USD",win:"1Y"},ind:["s50","s200"]},
- {h:"Every technical, drawn for you.",p:"Candles.",d:2400,v:{kind:"stock",sym:"MSFT",win:"6M"},ind:["candle"]},
- {h:"Every technical, drawn for you.",p:"Candles. Bollinger Bands.",d:2400,v:{kind:"stock",sym:"MSFT",win:"6M"},ind:["candle","bb"]},
- {h:"Every technical, drawn for you.",p:"Candles. Bollinger Bands. The 50 and 200-day.",d:3000,v:{kind:"stock",sym:"MSFT",win:"6M"},ind:["candle","bb","s50","s200"]},
- {h:"Every technical, drawn for you.",p:"Candles. Bollinger Bands. The 50 and 200-day. MACD.",d:3600,v:{kind:"stock",sym:"MSFT",win:"6M"},ind:["candle","bb","s50","s200","macd"]},
- {h:"Track your option calls.",p:"Cost, value, breakeven, and what happens if it runs.",d:5800,v:{kind:"option",sym:"NVDA"},sweep:1},
- {h:"Know where it leans.",p:"RSI, trend, range and a live Monte Carlo, measured for you.",d:4600,v:{kind:"stock",sym:"PLTR",win:"6M"},glow:1,ind:["candle","bb","s50","s200","macd"]},
- {h:"Built to your spec.",p:"Trading software designed around the way you trade.",d:5200,v:{kind:"stock",sym:"META",win:"1D"}},
+ {d:3000,v:N1,cam:"wide",h:"Your own trading desk.",p:"Custom trading software, built to your spec."},
+ {d:3400,v:N1,cam:"card",h:"The math runs live.",p:"Volatility, correlation and a Monte Carlo, computing as you watch."},
+ {d:3200,v:N1,cam:"quant"},
+ {d:2600,v:{kind:"stock",sym:"AAPL",win:"1Y"},ind:["bb"],cam:"wide",h:"Any stock you want.",p:"Pick one and it flies straight into the chart."},
+ {d:2400,v:{kind:"stock",sym:"TSLA",win:"1Y"},ind:["s50","s200"],cam:"wide"},
+ {d:3200,v:{kind:"stock",sym:"AMD",win:"1Y"},ind:["candle","bb","s50","s200"],cam:"card"},
+ {d:3600,v:{kind:"compare",pair:["GSPC","IXIC"]},cam:"wide",h:"Any index you want.",p:"The S&P 500 against the Nasdaq."},
+ {d:3000,v:{kind:"stock",sym:"BTC-USD",win:"1Y"},ind:["s50","s200"],cam:"card",h:"Crypto, too.",p:"Bitcoin, around the clock."},
+ {d:2600,v:{kind:"stock",sym:"MSFT",win:"1Y"},ind:["candle"],cam:"chart",h:"Every technical, drawn for you.",p:""},
+ {d:2600,v:{kind:"stock",sym:"MSFT",win:"6M"},ind:["candle","bb"],cam:"chart"},
+ {d:2800,v:{kind:"stock",sym:"MSFT",win:"6M"},ind:["candle","bb","s50","s200"],cam:"chart"},
+ {d:3200,v:{kind:"stock",sym:"MSFT",win:"6M"},ind:["candle","bb","s50","s200","macd"],cam:"quant"},
+ {d:5200,v:{kind:"option",sym:"NVDA"},sweep:1,cam:"card",h:"Track your option calls.",p:"Cost, value, breakeven, and what happens if it runs."},
+ {d:4000,v:{kind:"stock",sym:"PLTR",win:"6M"},glow:1,ind:["candle","bb","s50","s200","macd"],cam:"wide",h:"Know where it leans.",p:"Every signal, measured for you."},
+ {d:4600,v:{kind:"stock",sym:"META",win:"1D"},cam:"wide",h:"Built to your spec.",p:"Scroll the chart, drag it, toggle anything. It's yours to play with."},
 ];
-const st={i:-1,el:0,auto:true,hov:false,idle:0};
-const CHAP=[["Stocks",0,5],["Indices",5,6],["Crypto",6,7],["Technicals",7,11],["Options",11,12],["Signals",12,14]];
-$("dots").insertAdjacentHTML("afterbegin",CHAP.map(([n,a],i)=>`<button data-c="${i}">${n}<u></u></button>`).join(""));
+const TOT=SC_.reduce((x,s)=>x+s.d,0),START=SC_.map((_,i)=>SC_.slice(0,i).reduce((x,s)=>x+s.d,0));
+const st={i:-1,el:0,auto:true,idle:0};
+const CHAP=[["Desk",0],["Stocks",3],["Indices",6],["Crypto",7],["Technicals",8],["Options",12],["Signals",13]];
+$("dots").innerHTML=CHAP.map(([n,i],k)=>`<button data-c="${k}" style="left:${START[i]/TOT*100}%">${n}</button>`).join("");
 const chapEls=[...$("dots").querySelectorAll("[data-c]")];
-chapEls.forEach(b=>b.onclick=()=>{st.auto=true;go(CHAP[+b.dataset.c][1]);setPlay()});
-function chapProgress(){const k=CHAP.findIndex(([,a,b])=>st.i>=a&&st.i<b);chapEls.forEach((e,j)=>e.classList.toggle("on",j===k));
-  if(k<0)return;const[,a,b]=CHAP[k],tot=SC_.slice(a,b).reduce((x,s)=>x+s.d,0),done=SC_.slice(a,st.i).reduce((x,s)=>x+s.d,0)+Math.min(st.el,SC_[st.i].d);
-  chapEls.forEach((e,j)=>e.querySelector("u").style.width=j===k?(done/tot*100)+"%":"0")}
-function words(el,txt,from){const keep=from&&txt.startsWith(from)?from:"";
-  el.innerHTML=(keep?`<span>${keep}</span>`:"")+txt.slice(keep.length).split(/(\s+)/).map((w,i)=>w.trim()?`<span class="w" style="animation-delay:${i*45}ms">${w}</span>`:w).join("")}
-let capH="",capP="";
-function caption(h,p){if(h!==capH)words($("capH"),h,"");words($("capP"),p,h===capH?capP:"");capH=h;capP=p}
-function go(i){st.i=(i+SC_.length)%SC_.length;st.el=0;const s=SC_[st.i];
-  const stay=same(front._v,s.v);show(s.v);caption(s.h,s.p);
-  if(s.ind){const c=front;setTimeout(()=>{if(front===c&&SC_[st.i]===s)IND.forEach(k=>setInd(c,k,s.ind.includes(k)))},stay?0:250)}
+chapEls.forEach(b=>b.onclick=e=>{e.stopPropagation();go(CHAP[+b.dataset.c][1])});
+function progress(){const t=(START[st.i]||0)+Math.min(st.el,SC_[st.i]?SC_[st.i].d:0);$("tlFill").style.width=(t/TOT*100)+"%";
+  const k=CHAP.reduce((a,[,i],j)=>st.i>=i?j:a,0);chapEls.forEach((e,j)=>e.classList.toggle("on",j===k))}
+/* drag the timeline to scrub through the movie */
+const tl=$("tl");let scrub=false;
+function scrubTo(e){const r=tl.getBoundingClientRect(),t=clamp((e.clientX-r.left)/r.width,0,.999)*TOT;let i=0;while(i<SC_.length-1&&START[i+1]<=t)i++;
+  if(i!==st.i)go(i);st.el=t-START[i];progress()}
+tl.onpointerdown=e=>{scrub=true;try{tl.setPointerCapture(e.pointerId)}catch(_){}scrubTo(e)};tl.onpointermove=e=>{if(scrub)scrubTo(e)};tl.onpointerup=()=>{scrub=false};
+function words(el,txt){el.innerHTML=txt.split(/(\s+)/).map((w,i)=>w.trim()?`<span class="w" style="animation-delay:${i*40}ms">${w}</span>`:w).join("")}
+let lowT;
+function caption(h,p){if(!h)return;words($("capH"),h);$("capP").textContent=p||"";$("lower").classList.add("show");clearTimeout(lowT);lowT=setTimeout(()=>$("lower").classList.remove("show"),3800)}
+function go(i){st.i=(i+SC_.length)%SC_.length;st.el=0;const s=SC_[st.i],was=front._v&&front._v.sym;
+  if(st.i===0){clock=shown=REPLAY_MS*OPEN_AT}  /* each loop opens mid-morning, so the first chart already has a shape */
+  show(s.v);const flew=front._v.sym!==was;camera(st.auto?s.cam:"wide");caption(s.h,s.p);
+  if(s.ind){const c=front;setTimeout(()=>{if(front===c&&SC_[st.i]===s)IND.forEach(k=>setInd(c,k,s.ind.includes(k)))},flew?900:0)}
   if(s.sweep)setTimeout(()=>{if(front._v.kind==="option")front._sweep=performance.now()},800);
   if(s.glow)setTimeout(()=>{if(SC_[st.i]===s)front.classList.add("glow")},900);
-  if(st.i===0){clock=shown=REPLAY_MS*OPEN_AT}  /* each loop opens mid-morning, so the first chart already has a shape */
-  chapProgress()}
+  progress()}
 function setPlay(){$("play").innerHTML=st.auto?"❚❚&nbsp;Pause":"▶&nbsp;Play"}
-$("play").onclick=()=>{st.auto=!st.auto;if(st.auto)go(st.i+1);setPlay()};
-function userTook(){if(st.auto){st.auto=false;setPlay();caption("Go ahead, click around.","It picks back up when you step away.")}st.idle=0}
+$("play").onclick=()=>{st.auto=!st.auto;setPlay();if(st.auto)go(st.i+1);else camera("wide")};
+/* the first touch hands over the controls; step away and the movie carries on from where you are */
+function userTook(){if(st.auto){st.auto=false;setPlay();camera("wide");caption("You're driving.","Scroll the chart, drag it, flip indicators, move the what-if. It resumes when you stop.")}st.idle=0}
+CAM.addEventListener("pointerdown",e=>{if(!e.target.closest(".row,.ix,.seg,.chips,.whatif"))userTook()},true);
 $("app").addEventListener("pointermove",()=>{st.idle=0});
-$("deck").addEventListener("pointerenter",()=>st.hov=true);$("deck").addEventListener("pointerleave",()=>st.hov=false);
 $("lr").onclick=()=>{const w=$("win");w.classList.remove("shake");void w.offsetWidth;w.classList.add("shake")};
 $("src").textContent=`Public market data · ${fdate(ALL.NVDA.t[ALL.NVDA.t.length-1])} session replay · option modeled`;
 
@@ -506,11 +534,11 @@ $("src").textContent=`Public market data · ${fdate(ALL.NVDA.t[ALL.NVDA.t.length
 let sparkT=0;
 function frame(now){const dt=Math.min(now-last,100);last=now;
   clock+=dt;if(clock>REPLAY_MS)clock=0;shown=clock;
-  if(st.auto&&!st.hov){st.el+=dt;const s=SC_[st.i];if(s){chapProgress();if(st.el>=s.d)go(st.i+1)}}
-  if(!st.auto){st.idle+=dt;if(st.idle>9000){st.auto=true;setPlay();go(st.i+1)}}
+  if(st.auto&&!scrub){st.el+=dt;const s=SC_[st.i];if(s){progress();if(st.el>=s.d)go(st.i+1)}}
+  if(!st.auto){st.idle+=dt;if(st.idle>7000){st.auto=true;setPlay();go(st.i+1)}}
   tickLive();$("kT").textContent=sessionTime();
   if(now-sparkT>200){ixSparks();sparkT=now}
-  cards.forEach(c=>{if(c.classList.contains("front")||c.classList.contains("out"))drawCard(c,now)});
+  drawCard(front,now);
   requestAnimationFrame(frame)}
 setPlay();
 (document.fonts?document.fonts.ready:Promise.resolve()).then(()=>{sizeAll();go(0);requestAnimationFrame(frame)});

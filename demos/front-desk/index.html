@@ -46,7 +46,9 @@ html.embed .win{box-shadow:0 0 0 1px rgba(255,255,255,.03),0 10px 16px rgba(0,0,
 .foot{display:flex;justify-content:space-between;font-size:11.5px;color:var(--dim);padding-top:2px}
 /* the workflow, as one quiet line of steps */
 .strip{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:11px 0}
-.sp{position:relative;display:flex;align-items:center;gap:9px;padding:0 8px 0 0;min-width:0;cursor:default}
+.sp{position:relative;display:flex;align-items:center;gap:9px;padding:4px 8px 4px 4px;margin:-4px 0;border-radius:10px;min-width:0;cursor:pointer;transition:background .2s}
+.sp:hover{background:var(--pan2)}
+.sp:hover b{color:#fff}
 .sp i{width:22px;height:22px;flex:none;border-radius:50%;border:1.5px solid #353a46;display:grid;place-items:center;font-style:normal;font-size:10.5px;font-weight:800;color:transparent;transition:all .5s var(--e)}
 .sp.active i{border-color:var(--ac);box-shadow:0 0 0 4px rgba(var(--ac-rgb),.18)}
 .sp.done i{background:var(--ac);border-color:var(--ac);color:#fff}
@@ -80,11 +82,20 @@ html.embed .win{box-shadow:0 0 0 1px rgba(255,255,255,.03),0 10px 16px rgba(0,0,
 .deck{position:relative;min-height:0;overflow:hidden;-webkit-mask-image:linear-gradient(90deg,transparent,#000 4%,#000 96%,transparent);mask-image:linear-gradient(90deg,transparent,#000 4%,#000 96%,transparent)}
 .track{position:absolute;left:0;top:0;bottom:14px;display:flex;align-items:stretch;transform-origin:0 50%;transition:transform 1.3s cubic-bezier(.45,0,.2,1);will-change:transform}
 .track.nt,.track.nt .card{transition:none}
+.track.fade{opacity:0;transition:opacity .45s var(--e)}
+.drift{position:absolute;inset:0;animation:drift 16s ease-in-out infinite alternate;transform-origin:50% 50%}
+@keyframes drift{from{transform:scale(1) translateX(0)}to{transform:scale(1.022) translateX(-10px)}}
+@media (prefers-reduced-motion:reduce){.drift{animation:none}}
 .card{position:relative;flex:none;height:100%;background:var(--pan);border:1px solid var(--line2);border-radius:16px;overflow:hidden;
-  opacity:.26;transform:scale(.955);filter:saturate(.5);pointer-events:none;transition:opacity 1s var(--e),transform 1s var(--e),filter 1s var(--e),border-color 1s var(--e),box-shadow 1s var(--e)}
-.card.on{opacity:1;transform:none;filter:none;pointer-events:auto;border-color:rgba(var(--ac-rgb),.4);box-shadow:0 0 0 1px rgba(var(--ac-rgb),.12),0 30px 80px rgba(0,0,0,.6)}
-#vCall{width:640px}#vHeard{width:340px}#vCal{width:780px}#vSms{width:640px}#vOwn{width:760px}
-.link{flex:none;width:70px;align-self:center;height:2px;position:relative;background:#252a35;transition:background .8s}
+  opacity:.26;transform:scale(.955);filter:saturate(.5);cursor:pointer;transition:opacity 1s var(--e),transform 1s var(--e),filter 1s var(--e),border-color 1s var(--e),box-shadow 1s var(--e)}
+.card:not(.on) *{pointer-events:none}
+.card:not(.on):hover{opacity:.55;filter:saturate(.8)}
+.card:not(.on)::after{content:"View this step";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);padding:9px 16px;border-radius:999px;
+  background:rgba(10,132,255,.9);color:#fff;font-size:14px;font-weight:600;opacity:0;transition:opacity .25s;pointer-events:none}
+.card:not(.on):hover::after{opacity:1}
+.card.on{opacity:1;transform:none;filter:none;cursor:auto;border-color:rgba(var(--ac-rgb),.4);box-shadow:0 0 0 1px rgba(var(--ac-rgb),.12),0 30px 80px rgba(0,0,0,.6)}
+#vCall{width:600px}#vHeard{width:320px}#vCal{width:780px}#vSms{width:640px}#vOwn{width:760px}
+.link{flex:none;width:52px;align-self:center;height:2px;position:relative;background:#252a35;transition:background .8s}
 .link::after{content:"";position:absolute;right:-1px;top:-4px;border:5px solid transparent;border-left:7px solid #252a35;border-right:0;transition:border-color .8s}
 .link.done{background:rgba(var(--ac-rgb),.55)}
 .link.done::after{border-left-color:rgba(var(--ac-rgb),.8)}
@@ -328,7 +339,7 @@ html.embed .win{box-shadow:0 0 0 1px rgba(255,255,255,.03),0 10px 16px rgba(0,0,
         <div class="tabs" id="tabs"><button class="play" id="play"></button></div>
       </div>
       <div class="strip" id="steps"></div>
-      <div class="deck" id="deck"><div class="track" id="track">
+      <div class="deck" id="deck"><div class="drift"><div class="track" id="track">
 
           <div class="card" id="vCall"><div class="pad">
             <div class="vh">
@@ -386,7 +397,7 @@ html.embed .win{box-shadow:0 0 0 1px rgba(255,255,255,.03),0 10px 16px rgba(0,0,
               <div class="ch-body"><div class="ch-in" id="chIn"></div></div>
             </div>
           </div></div></div>
-      </div></div>
+      </div></div></div>
 
       <div class="foot"><span>Acme Home Services · an example business</span><span>Simulated calls and texts · no real customer data</span></div>
     </div>

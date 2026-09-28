@@ -45,7 +45,43 @@ html.embed .win{box-shadow:0 0 0 1px rgba(255,255,255,.03),0 10px 16px rgba(0,0,
 .dot.r:hover::before{content:"×";position:absolute;inset:0;display:grid;place-items:center;font:700 10px/1 var(--sans);color:rgba(0,0,0,.6)}
 .bar .ttl{position:absolute;left:50%;transform:translateX(-50%);font-size:12.5px;color:var(--mu)}
 
-.app{flex:1;min-height:0;padding:18px 20px 14px;display:grid;grid-template-rows:76px minmax(0,1fr) 78px;gap:14px}
+.app{flex:1;min-height:0;padding:16px 20px 10px;display:grid;grid-template-rows:minmax(0,1fr) 44px;gap:10px;position:relative;overflow:hidden}
+/* one living workspace under a camera: it pushes in, racks across and pulls back instead of cutting */
+/* the frame the camera moves inside: nothing it zooms can spill onto the controls */
+.camwrap{min-height:0;position:relative;overflow:hidden;border-radius:10px}
+.cam{display:grid;grid-template-rows:76px minmax(0,1fr);gap:14px;height:100%;min-height:0;position:relative;transform-origin:0 0;transition:transform 1.9s cubic-bezier(.45,0,.2,1);will-change:transform}
+.cam .top,.cam .list,.cam .c-hd,.cam .c-sig{transition:filter 1.2s var(--e)}
+.cam.focus .top,.cam.focus .list{filter:blur(2.5px) brightness(.5)}
+.cam.focus-q .c-hd,.cam.focus-q .c-sig{filter:blur(2px) brightness(.55)}
+.c-in>.c-hd,.c-in>.c-sig{animation:fadeUp .7s var(--e) both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.flyer{position:absolute;z-index:30;pointer-events:none;overflow:visible;filter:drop-shadow(0 0 7px rgba(0,200,5,.8));
+  transition:left .85s cubic-bezier(.45,0,.2,1),top .85s cubic-bezier(.45,0,.2,1),width .85s cubic-bezier(.45,0,.2,1),height .85s cubic-bezier(.45,0,.2,1),opacity .85s cubic-bezier(.8,0,1,1)}
+/* a lower third that follows the action, then gets out of the way */
+.lower{position:absolute;left:28px;bottom:66px;z-index:20;max-width:600px;padding:14px 20px 15px;border-radius:14px;background:rgba(8,8,10,.78);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--hair);opacity:0;transform:translateY(12px);transition:opacity .7s var(--e),transform .7s var(--e);pointer-events:none}
+.lower.show{opacity:1;transform:none}
+.lower h2{margin:0;font-size:27px;font-weight:600;letter-spacing:-.025em;line-height:1.15}
+.lower p{margin:5px 0 0;font-size:15.5px;color:var(--mu)}
+.lower p:empty{display:none}
+/* the movie's timeline: drag it to scrub, click a chapter to jump */
+.ctlbar{display:flex;align-items:center;gap:18px}
+.ctlbar .play{margin:0;flex:none}
+.tl{position:relative;flex:1;height:44px;cursor:pointer;touch-action:none}
+.tl-bar{position:absolute;left:0;right:0;bottom:9px;height:4px;border-radius:2px;background:#232327}
+.tl-bar i{position:absolute;left:0;top:0;bottom:0;width:0;border-radius:2px;background:var(--ok);box-shadow:0 0 10px rgba(0,200,5,.6)}
+.tl-bar i::after{content:"";position:absolute;right:-6px;top:-4px;width:12px;height:12px;border-radius:50%;background:#fff;box-shadow:0 0 0 3px rgba(0,200,5,.35)}
+.tl-marks button{position:absolute;top:2px;font-family:var(--mono);font-size:11.5px;font-weight:500;color:var(--mu);padding:2px 0;white-space:nowrap;transition:color .2s}
+.tl-marks button::after{content:"";position:absolute;left:0;top:25px;width:1px;height:12px;background:rgba(255,255,255,.25)}
+.tl-marks button:hover,.tl-marks button.on{color:#fff}
+.ctlbar .src{flex:none;max-width:220px;text-align:right;line-height:1.35}
+/* what-if: drag it and the Monte Carlo re-runs */
+.whatif{position:absolute;right:8px;bottom:30px;z-index:4;display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;color:var(--mu);
+  background:rgba(10,10,12,.82);border:1px solid rgba(255,255,255,.2);border-radius:999px;padding:5px 12px;cursor:default}
+.whatif:hover{border-color:rgba(0,200,5,.7)}
+.whatif input{width:92px;accent-color:#00C805;cursor:pointer}
+.whatif b{color:#fff;min-width:32px;font-weight:600}
+.c-ch.pan{cursor:grab}
 
 /* ---------- top strip: indices + counts */
 .top{display:grid;grid-template-columns:repeat(5,minmax(0,1fr)) auto;gap:8px}
@@ -175,6 +211,7 @@ html.embed .win{box-shadow:0 0 0 1px rgba(255,255,255,.03),0 10px 16px rgba(0,0,
       <div class="ttl">Markets</div>
     </div>
     <div class="app" id="app">
+      <div class="camwrap"><div class="cam" id="cam">
       <div class="top">
         <div id="ixs" style="display:contents"></div>
         <div class="kp">
@@ -187,20 +224,19 @@ html.embed .win{box-shadow:0 0 0 1px rgba(255,255,255,.03),0 10px 16px rgba(0,0,
 
       <div class="mid">
         <div class="deck" id="deck">
-          <div class="ghost"></div>
-          <div class="card back" id="cA"><div class="c-in"></div></div>
+          <div class="card back" id="cA" style="display:none"><div class="c-in"></div></div>
           <div class="card front" id="cB"><div class="c-in"></div></div>
         </div>
         <div class="list"><h3><span>Watchlist</span><span>today</span></h3><div class="rows" id="rows"></div></div>
       </div>
 
-      <div class="cap">
-        <div><h2 id="capH"></h2><p id="capP"></p></div>
-        <div class="ctl">
-          <div class="dots" id="dots"><button class="play" id="play"></button></div>
-          <div class="src" id="src"></div>
-        </div>
+      </div></div>
+      <div class="ctlbar">
+        <button class="play" id="play"></button>
+        <div class="tl" id="tl"><div class="tl-marks" id="dots"></div><div class="tl-bar"><i id="tlFill"></i></div></div>
+        <div class="src" id="src"></div>
       </div>
+      <div class="lower" id="lower"><h2 id="capH"></h2><p id="capP"></p></div>
     </div>
   </div>
 </div></div>

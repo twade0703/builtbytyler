@@ -106,13 +106,15 @@ function lightTool(tool){if(!tool||!$("conn"))return;tool.split(" · ").forEach(
 /* ---------- views swap like a deck */
 /* ---------- the pipeline: stages laid left to right on one track, and a camera that pans along it */
 const TRACK=$("track"),STAGES=["vCall","vHeard","vCal","vSms","vOwn"];let focused=[];
-function buildTrack(ids,first){TRACK.classList.add("nt");TRACK.querySelectorAll(".link").forEach(l=>l.remove());
+function buildTrack(ids,first){if(TRACK.dataset.built){TRACK.classList.add("fade");setTimeout(()=>{layTrack(ids,first);TRACK.classList.remove("fade")},450)}else{TRACK.dataset.built=1;layTrack(ids,first)}}
+function layTrack(ids,first){TRACK.classList.add("nt");TRACK.querySelectorAll(".link").forEach(l=>l.remove());
   STAGES.forEach(id=>{$(id).style.display=ids.includes(id)?"":"none";$(id).classList.remove("on")});
   ids.forEach((id,i)=>{if(i){const l=document.createElement("div");l.className="link";l.dataset.to=id;l.innerHTML="<i></i>";TRACK.appendChild(l)}TRACK.appendChild($(id))});
   focused=[];focus(first||[ids[0]],true);void TRACK.offsetWidth;requestAnimationFrame(()=>TRACK.classList.remove("nt"))}
 function pulse(to){const lk=TRACK.querySelector(`.link[data-to="${to}"]`);if(!lk)return;lk.classList.remove("go");void lk.offsetWidth;lk.classList.add("go","done")}
 /* centre the camera on these stages; if they can't all fit, pull back until they do */
-function focus(ids,instant){const els=ids.map($),box=$("deck"),bw=box.clientWidth,bh=box.clientHeight;
+let storyFocus=[];
+function focus(ids,instant,byViewer){if(!byViewer)storyFocus=ids.slice();if(st.hold&&!byViewer)return;const els=ids.map($),box=$("deck"),bw=box.clientWidth,bh=box.clientHeight;
   const l=Math.min(...els.map(e=>e.offsetLeft)),r=Math.max(...els.map(e=>e.offsetLeft+e.offsetWidth));
   const s=Math.min(1,(bw-60)/(r-l)),x=bw/2-s*(l+r)/2,y=(1-s)*(bh-14)/2*0;
   if(instant)TRACK.classList.add("nt");TRACK.style.transform=`translate(${x}px,${y}px) scale(${s})`;
@@ -120,6 +122,8 @@ function focus(ids,instant){const els=ids.map($),box=$("deck"),bw=box.clientWidt
   else ids.forEach(id=>{if(!focused.includes(id))pulse(id)});
   STAGES.forEach(id=>$(id).classList.toggle("on",ids.includes(id)));focused=ids.slice()}
 const showView=id=>focus([id]);
+STAGES.forEach(id=>$(id).addEventListener("click",e=>{if($(id).classList.contains("on"))return;e.preventDefault();e.stopPropagation();
+  explore([id])},true));
 
 /* ---------- caption: words rise in; a shared prefix stays put */
 let capH="",capP="";
@@ -132,9 +136,13 @@ let stepEls={},stepOrder=[],stepTool={};
 /* short labels for the step strip; the full title and what it does sit in the hover tip */
 const SHORTS={answer:"Answer",understand:"Understand",triage:"Triage",calendar:"Check calendar",book:"Book",text:"Text customer",notify:"Tell you",log:"Log the job",
   missed:"Missed call",textback:"Text back",done:"Job done",wait:"Wait 2 hours",ask:"Ask for review",reply:"Read reply",d1:"Calls",d2:"Bookings",d3:"Recovered",d4:"Logged",d5:"Reviews"};
+const STAGE_OF={answer:["vCall","vHeard"],understand:["vCall","vHeard"],triage:["vCall","vHeard"],calendar:["vCal"],book:["vCal"],text:["vSms"],notify:["vOwn"],log:["vOwn"],
+  missed:["vCall"],textback:["vSms"],done:["vCal"],wait:["vCal"],ask:["vSms"],reply:["vSms"],d1:["vCall"],d2:["vCal"],d3:["vSms"],d4:["vHeard"],d5:["vOwn"]};
+/* the viewer takes the camera: it flies to the stage and holds there until they step away */
+function explore(ids){ids=ids.filter(id=>$(id).style.display!=="none");if(!ids.length)return;st.hold=true;st.idle=0;st.paused=true;setPlay();focus(ids,false,true)}
 function setSteps(key){stepEls={};stepTool={};stepOrder=STEPS[key].map(s=>s[0]);
-  $("steps").innerHTML=STEPS[key].map(([k,t,tip,tool])=>{stepTool[k]=tool;return`<div class="sp" data-k="${k}"><i>✓</i><div><b>${SHORTS[k]||t}</b>${tool?`<small>${tool}</small>`:""}</div><div class="tip"><b style="color:#fff">${t}</b><br>${tip}</div></div>`}).join("");
-  $("steps").querySelectorAll(".sp").forEach(e=>stepEls[e.dataset.k]=e)}
+  $("steps").innerHTML=STEPS[key].map(([k,t,tip,tool])=>{stepTool[k]=tool;return`<div class="sp" data-k="${k}"><i>✓</i><div><b>${SHORTS[k]||t}</b>${tool?`<small>${tool}</small>`:""}</div><div class="tip"><b style="color:#fff">${t}</b><br>${tip}<br><span style="color:var(--ac2)">Click to see this step</span></div></div>`}).join("");
+  $("steps").querySelectorAll(".sp").forEach(e=>{stepEls[e.dataset.k]=e;e.onclick=()=>explore(STAGE_OF[e.dataset.k]||[])})}
 const clk=()=>{const s=Math.max(0,st.E/1000);return`${Math.floor(s/60)}:${String(Math.floor(s%60)).padStart(2,"0")}`};
 function stepOn(k){const e=stepEls[k];if(e&&!e.classList.contains("done")){e.classList.add("active");lightTool(stepTool[k])}}
 function stepDone(k,detail){const e=stepEls[k];if(!e)return;e.classList.remove("active");e.classList.add("done");
@@ -215,7 +223,7 @@ function drawWave(now){if(!wx||!focused.includes("vCall"))return;const sp=st.spe
 
 /* ================= the stories ================= */
 function buildCall(S){const c=S.caller,[sd,ss,se]=S.slot,slot=slotTxt(sd,ss,se);
-  buildTrack(["vCall","vHeard","vCal","vSms","vOwn"],["vCall","vHeard"]);setSteps("call");resetCall(c);setStat("ringing",`Incoming call · ${S.clock}`);
+  buildTrack(["vCall","vHeard","vCal","vSms","vOwn"],["vCall","vHeard"]);setSteps("call");resetCall(c);renderCal([],S.now);$("gcSync").innerHTML=SYNC;setStat("ringing",`Incoming call · ${S.clock}`);
   caption("It answers every call.",S.ring);
   let t=1900;
   at(t,()=>{st.ring=false;$("cAv").classList.remove("ring");setStat("live","Assistant on the call");st.callT0=st.E;
@@ -250,7 +258,7 @@ function buildCall(S){const c=S.caller,[sd,ss,se]=S.slot,slot=slotTxt(sd,ss,se);
   return tO+7200}
 
 function buildMissed(){const c={name:"James Kim",first:"James",ini:"JK",phone:"(831) 555-0187"};
-  buildTrack(["vCall","vSms","vCal","vOwn"]);setSteps("missed");resetCall(c);setStat("ringing","Incoming call · 11:02 AM · you're on a job");
+  buildTrack(["vCall","vSms","vCal","vOwn"]);setSteps("missed");resetCall(c);renderCal([],11.05);$("gcSync").innerHTML=SYNC;setStat("ringing","Incoming call · 11:02 AM · you're on a job");
   caption("Rather answer yourself?","It covers every call you miss.");stepOn("missed");
   at(3400,()=>{st.ring=false;$("cAv").classList.remove("ring");setStat("missed","Missed call");stepDone("missed","Rang out at 11:02 AM");stepOn("textback")});
   const tS=4300;
@@ -319,7 +327,8 @@ const pillEls=[...$("pills").children];pillEls.forEach(b=>b.onclick=()=>{st.scri
 $("tabs").insertAdjacentHTML("afterbegin",STORIES.map((s,i)=>`<button data-s="${i}">${s.label}<u></u></button>`).join(""));
 const tabEls=[...$("tabs").querySelectorAll("[data-s]")];tabEls.forEach(b=>b.onclick=()=>{st.paused=false;setPlay();start(+b.dataset.s)});
 function setPlay(){$("play").innerHTML=st.paused?"▶&nbsp;Play":"❚❚&nbsp;Pause"}
-$("play").onclick=()=>{st.paused=!st.paused;setPlay()};
+$("play").onclick=()=>{st.paused=!st.paused;if(!st.paused&&st.hold){st.hold=false;focus(storyFocus)}setPlay()};
+document.addEventListener("pointermove",()=>{st.idle=0});
 $("lr").onclick=()=>{const w=$("win");w.classList.remove("shake");void w.offsetWidth;w.classList.add("shake")};
 
 /* ---------- one loop */
@@ -330,7 +339,8 @@ function step(dt){st.E+=dt;
     if(n!==t.n){t.n=n;t.el.textContent=t.w.slice(0,n).join(" ")}if(n===t.w.length&&!t.fin){t.fin=1;t.done&&t.done()}}
   const u=tabEls[st.si]&&tabEls[st.si].querySelector("u");if(u)u.style.width=Math.min(100,st.E/st.dur*100)+"%";
   if(st.E>=st.dur)next()}
-function frame(now){const dt=Math.min(now-last,100);last=now;if(!st.paused)step(dt);tickK();drawWave(now);requestAnimationFrame(frame)}
+function frame(now){const dt=Math.min(now-last,100);last=now;if(!st.paused)step(dt);
+  if(st.hold){st.idle+=dt;if(st.idle>6500){st.hold=false;st.paused=false;setPlay();focus(storyFocus)}}tickK();drawWave(now);requestAnimationFrame(frame)}
 /* for checking a moment without waiting for it: demoSeek(story, ms) */
 window.demoSeek=(i,ms)=>{start(i);for(let e=0;e<ms;e+=40)step(40)};
 setPlay();

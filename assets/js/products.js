@@ -91,8 +91,8 @@ const PRODUCTS = [
     ],
   },
   {
-    id: "beer-launcher",
-    name: "Beer Launcher",
+    id: "beverage-launcher",
+    name: "Beverage Launcher",
     tagline: "Press the button. A cold one comes to you.",
     holo: "launcher",
     status: "In design",

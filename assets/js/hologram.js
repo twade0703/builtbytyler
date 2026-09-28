@@ -1445,7 +1445,7 @@
     return m;
   }
 
-  /* The beer launcher. A machine you can follow end to end, and all of it
+  /* The beverage launcher. A machine you can follow end to end, and all of it
      gravity-fed:
 
        fridge    a mini fridge, six cans, up on a short stand. Inside, a

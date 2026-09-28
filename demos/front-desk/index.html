@@ -68,7 +68,6 @@ html.embed .win{box-shadow:0 0 0 1px rgba(255,255,255,.03),0 10px 16px rgba(0,0,
 .biz{display:flex;flex-direction:column;justify-content:space-between}
 .biz .row1{display:flex;align-items:center;justify-content:space-between}
 .biz b{font-size:17px;font-weight:700;letter-spacing:-.01em;margin:0}
-.on{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--ac2)}
 .pulse{width:7px;height:7px;border-radius:50%;background:var(--ac);animation:pulse 1.8s infinite}
 @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(var(--ac-rgb),.6)}70%{box-shadow:0 0 0 8px rgba(var(--ac-rgb),0)}100%{box-shadow:0 0 0 0 rgba(var(--ac-rgb),0)}}
 .conn{display:flex;gap:4px;flex-wrap:nowrap;overflow:hidden}
@@ -77,14 +76,28 @@ html.embed .win{box-shadow:0 0 0 1px rgba(255,255,255,.03),0 10px 16px rgba(0,0,
 
 /* ---------- middle */
 .mid{display:grid;grid-template-columns:minmax(0,1fr) 350px;gap:14px;min-height:0}
-.deck{position:relative;min-height:0}
-.card,.ghost{position:absolute;inset:0 0 16px 0;background:var(--pan);border:1px solid var(--line2);border-radius:16px;overflow:hidden;
-  transition:transform .8s var(--e),opacity .8s var(--e),filter .8s var(--e)}
-.ghost{transform:translateY(14px) scale(.96);opacity:.3;z-index:1}
-.card{transform:translateY(10px) scale(.965);opacity:0;z-index:2;filter:brightness(.55);pointer-events:none}
-.card.front{transform:none;opacity:1;z-index:3;filter:none;pointer-events:auto}
-.card.out{transform:translateX(-90px) rotate(-3.5deg) scale(.94);opacity:0;filter:blur(8px);z-index:4}
-.card.nt{transition:none}
+/* the pipeline: every stage on one track, a camera pans along it */
+.deck{position:relative;min-height:0;overflow:hidden;-webkit-mask-image:linear-gradient(90deg,transparent,#000 4%,#000 96%,transparent);mask-image:linear-gradient(90deg,transparent,#000 4%,#000 96%,transparent)}
+.track{position:absolute;left:0;top:0;bottom:14px;display:flex;align-items:stretch;transform-origin:0 50%;transition:transform 1.3s cubic-bezier(.45,0,.2,1);will-change:transform}
+.track.nt,.track.nt .card{transition:none}
+.card{position:relative;flex:none;height:100%;background:var(--pan);border:1px solid var(--line2);border-radius:16px;overflow:hidden;
+  opacity:.26;transform:scale(.955);filter:saturate(.5);pointer-events:none;transition:opacity 1s var(--e),transform 1s var(--e),filter 1s var(--e),border-color 1s var(--e),box-shadow 1s var(--e)}
+.card.on{opacity:1;transform:none;filter:none;pointer-events:auto;border-color:rgba(var(--ac-rgb),.4);box-shadow:0 0 0 1px rgba(var(--ac-rgb),.12),0 30px 80px rgba(0,0,0,.6)}
+#vCall{width:640px}#vHeard{width:340px}#vCal{width:780px}#vSms{width:640px}#vOwn{width:760px}
+.link{flex:none;width:70px;align-self:center;height:2px;position:relative;background:#252a35;transition:background .8s}
+.link::after{content:"";position:absolute;right:-1px;top:-4px;border:5px solid transparent;border-left:7px solid #252a35;border-right:0;transition:border-color .8s}
+.link.done{background:rgba(var(--ac-rgb),.55)}
+.link.done::after{border-left-color:rgba(var(--ac-rgb),.8)}
+.link i{position:absolute;top:-4px;left:0;width:10px;height:10px;border-radius:50%;background:#fff;box-shadow:0 0 12px 3px var(--ac);opacity:0}
+.link.go i{animation:pk 1.1s cubic-bezier(.45,0,.2,1) forwards}
+@keyframes pk{0%{left:-4px;opacity:0}12%{opacity:1}88%{opacity:1}100%{left:calc(100% - 6px);opacity:0}}
+/* the job ticket the call fills in */
+.tk{display:flex;flex-direction:column;height:100%}
+.tk-hd{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px}
+.tk-hd b{font-size:15px;font-weight:600}
+.tk .fld{grid-template-columns:78px minmax(0,1fr);padding:10px 8px;border-bottom:1px solid var(--line)}
+.tk .fld small{font-size:12.5px}
+.tk .fld b{font-size:16px}
 .pad{position:absolute;inset:0;padding:20px 24px;display:flex;flex-direction:column;min-height:0}
 
 /* call view */
@@ -97,7 +110,7 @@ html.embed .win{box-shadow:0 0 0 1px rgba(255,255,255,.03),0 10px 16px rgba(0,0,
 @keyframes ring{from{transform:scale(1);opacity:.85}to{transform:scale(1.7);opacity:0}}
 .caller h3{margin:0;font-size:22px;font-weight:600;letter-spacing:-.02em}
 .caller p{margin:2px 0 0;font-size:14px;color:var(--mu)}
-.status{display:inline-flex;align-items:center;gap:8px;margin-top:8px;font-size:12.5px;font-weight:600;padding:5px 12px;border-radius:999px;background:var(--pan3);color:var(--mu);transition:color .4s,background .4s}
+.status{display:inline-flex;align-items:center;gap:8px;white-space:nowrap;margin-top:8px;font-size:12.5px;font-weight:600;padding:5px 12px;border-radius:999px;background:var(--pan3);color:var(--mu);transition:color .4s,background .4s}
 .status i{width:7px;height:7px;border-radius:50%;background:currentColor}
 .status.live{color:#fff;background:rgba(var(--ac-rgb),.22)}
 .status.live i{background:var(--ac);box-shadow:0 0 8px var(--ac)}
@@ -113,7 +126,8 @@ html.embed .win{box-shadow:0 0 0 1px rgba(255,255,255,.03),0 10px 16px rgba(0,0,
 .pills button.on{color:#000;background:#fff;border-color:#fff;font-weight:600}
 .wave{height:62px;margin:14px 0 12px;position:relative}
 .wave canvas{position:absolute;inset:0;width:100%;height:100%}
-.callgrid{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:22px}
+.callgrid{flex:1;min-height:0;display:flex;flex-direction:column}
+.callgrid .tx{flex:1}
 .tx{position:relative;min-height:0;overflow:hidden;-webkit-mask-image:linear-gradient(transparent,#000 22%);mask-image:linear-gradient(transparent,#000 22%)}
 .tx-in{position:absolute;left:0;right:0;bottom:0;display:flex;flex-direction:column;gap:10px;padding-bottom:2px}
 .msg{max-width:86%;animation:rise .5s var(--e) both}
@@ -167,7 +181,7 @@ html.embed .win{box-shadow:0 0 0 1px rgba(255,255,255,.03),0 10px 16px rgba(0,0,
 .now::before{content:"";position:absolute;left:-6px;top:-5px;width:12px;height:12px;border-radius:50%;background:#EA4335}
 
 /* ---------- iPhone 15 Pro */
-.scene{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;gap:56px}
+.scene{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;gap:34px}
 .iph{position:relative;width:224px;height:452px;border-radius:46px;padding:3px;flex:none;
   background:linear-gradient(145deg,#8d9096 0%,#3b3d42 22%,#6f7278 48%,#2c2e33 74%,#80838a 100%);
   box-shadow:0 40px 90px rgba(0,0,0,.85),0 0 0 1px rgba(0,0,0,.6)}
@@ -219,7 +233,7 @@ html.embed .win{box-shadow:0 0 0 1px rgba(255,255,255,.03),0 10px 16px rgba(0,0,
 .lk-foot i{width:40px;height:40px;border-radius:50%;background:rgba(0,0,0,.35);backdrop-filter:blur(8px);display:grid;place-items:center;font-style:normal}
 .lk-foot svg{width:16px;height:16px}
 
-.side{width:340px;display:flex;flex-direction:column;gap:12px}
+.side{width:300px;display:flex;flex-direction:column;gap:12px}
 .side h3{margin:0;font-size:30px;font-weight:600;letter-spacing:-.025em;line-height:1.2}
 .side p{margin:0;font-size:16px;color:var(--mu);line-height:1.5}
 .chk{display:flex;flex-direction:column;gap:9px;margin-top:6px}
@@ -229,7 +243,7 @@ html.embed .win{box-shadow:0 0 0 1px rgba(255,255,255,.03),0 10px 16px rgba(0,0,
 .chk div.on i{background:var(--ac);border-color:var(--ac);color:#fff}
 
 /* team chat (Slack / Teams) */
-.chat{width:440px;height:420px;border-radius:14px;background:#15161b;border:1px solid var(--line2);box-shadow:0 30px 70px rgba(0,0,0,.7);display:flex;flex-direction:column;overflow:hidden}
+.chat{width:430px;height:420px;border-radius:14px;background:#15161b;border:1px solid var(--line2);box-shadow:0 30px 70px rgba(0,0,0,.7);display:flex;flex-direction:column;overflow:hidden}
 .ch-hd{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--line)}
 .ch-hd b{font-size:15px;font-weight:700}
 .ch-hd small{font-size:12px;color:var(--mu)}
@@ -314,8 +328,7 @@ html.embed .win{box-shadow:0 0 0 1px rgba(255,255,255,.03),0 10px 16px rgba(0,0,
         <div class="tabs" id="tabs"><button class="play" id="play"></button></div>
       </div>
       <div class="strip" id="steps"></div>
-      <div class="deck" id="deck">
-          <div class="ghost"></div>
+      <div class="deck" id="deck"><div class="track" id="track">
 
           <div class="card" id="vCall"><div class="pad">
             <div class="vh">
@@ -326,9 +339,13 @@ html.embed .win{box-shadow:0 0 0 1px rgba(255,255,255,.03),0 10px 16px rgba(0,0,
             <div class="wave"><canvas id="wv"></canvas></div>
             <div class="callgrid">
               <div class="tx"><div class="tx-in" id="tx"></div></div>
-              <div class="heard"><h4>What it heard</h4><div id="fields"></div></div>
             </div>
           </div></div>
+
+          <div class="card" id="vHeard"><div class="pad"><div class="tk">
+            <div class="tk-hd"><span class="lab">What it heard</span><b id="tkNo">New job</b></div>
+            <div id="fields"></div>
+          </div></div></div>
 
           <div class="card" id="vCal"><div class="pad"><div class="gc">
             <div class="gc-top"><span class="gbtn">Today</span><span class="chev">‹</span><span class="chev">›</span><h4>Sep – Oct 2026</h4>
@@ -369,7 +386,7 @@ html.embed .win{box-shadow:0 0 0 1px rgba(255,255,255,.03),0 10px 16px rgba(0,0,
               <div class="ch-body"><div class="ch-in" id="chIn"></div></div>
             </div>
           </div></div></div>
-        </div>
+      </div></div>
 
       <div class="foot"><span>Acme Home Services · an example business</span><span>Simulated calls and texts · no real customer data</span></div>
     </div>

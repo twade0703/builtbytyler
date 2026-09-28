@@ -157,7 +157,8 @@ html.embed .win{box-shadow:0 0 0 1px rgba(255,255,255,.03),0 10px 16px rgba(0,0,
   background:linear-gradient(90deg,rgba(12,12,14,.92),rgba(12,12,14,.6) 70%,rgba(12,12,14,0));
   font-family:var(--mono);font-size:12px;line-height:1.6;color:#F0F0F3;opacity:0;transition:opacity .6s var(--e);z-index:2}
 .hud.show{opacity:1}
-.hud div{white-space:nowrap;animation:fly .38s var(--e) both}
+.hud{height:128px;width:460px}
+.hud div{position:absolute;left:10px;top:6px;white-space:nowrap;transition:transform .45s var(--e),opacity .45s var(--e)}
 .hud div span{color:#9A9AA2;margin-right:10px}
 .hud div b{font-weight:500;color:var(--k,#fff)}
 .hud div:nth-child(2){opacity:.72}.hud div:nth-child(3){opacity:.52}.hud div:nth-child(4){opacity:.38}

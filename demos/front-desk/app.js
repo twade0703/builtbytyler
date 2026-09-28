@@ -104,10 +104,22 @@ function lightTool(tool){if(!tool||!$("conn"))return;tool.split(" · ").forEach(
   e.classList.add("lit");clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove("lit"),2200)})}
 
 /* ---------- views swap like a deck */
-let front=null;
-function showView(id){const el=$(id);if(front===el)return;
-  if(front){const f=front;f.classList.remove("front");f.classList.add("out");setTimeout(()=>{f.classList.add("nt");f.classList.remove("out");void f.offsetWidth;f.classList.remove("nt")},820)}
-  el.classList.remove("out");el.classList.add("front");front=el}
+/* ---------- the pipeline: stages laid left to right on one track, and a camera that pans along it */
+const TRACK=$("track"),STAGES=["vCall","vHeard","vCal","vSms","vOwn"];let focused=[];
+function buildTrack(ids,first){TRACK.classList.add("nt");TRACK.querySelectorAll(".link").forEach(l=>l.remove());
+  STAGES.forEach(id=>{$(id).style.display=ids.includes(id)?"":"none";$(id).classList.remove("on")});
+  ids.forEach((id,i)=>{if(i){const l=document.createElement("div");l.className="link";l.dataset.to=id;l.innerHTML="<i></i>";TRACK.appendChild(l)}TRACK.appendChild($(id))});
+  focused=[];focus(first||[ids[0]],true);void TRACK.offsetWidth;requestAnimationFrame(()=>TRACK.classList.remove("nt"))}
+function pulse(to){const lk=TRACK.querySelector(`.link[data-to="${to}"]`);if(!lk)return;lk.classList.remove("go");void lk.offsetWidth;lk.classList.add("go","done")}
+/* centre the camera on these stages; if they can't all fit, pull back until they do */
+function focus(ids,instant){const els=ids.map($),box=$("deck"),bw=box.clientWidth,bh=box.clientHeight;
+  const l=Math.min(...els.map(e=>e.offsetLeft)),r=Math.max(...els.map(e=>e.offsetLeft+e.offsetWidth));
+  const s=Math.min(1,(bw-60)/(r-l)),x=bw/2-s*(l+r)/2,y=(1-s)*(bh-14)/2*0;
+  if(instant)TRACK.classList.add("nt");TRACK.style.transform=`translate(${x}px,${y}px) scale(${s})`;
+  if(instant){void TRACK.offsetWidth;TRACK.classList.remove("nt")}
+  else ids.forEach(id=>{if(!focused.includes(id))pulse(id)});
+  STAGES.forEach(id=>$(id).classList.toggle("on",ids.includes(id)));focused=ids.slice()}
+const showView=id=>focus([id]);
 
 /* ---------- caption: words rise in; a shared prefix stays put */
 let capH="",capP="";
@@ -130,11 +142,11 @@ function stepDone(k,detail){const e=stepEls[k];if(!e)return;e.classList.remove("
 
 /* ---------- call view */
 const FIELDS=[["name","Name"],["phone","Phone"],["addr","Address"],["issue","Issue"],["urg","Urgency"],["slot","Booked"]];
-function resetCall(c){const a=$("cAv");a.textContent="?";a.className="av ring";$("cName").textContent="New caller";$("cPhone").textContent=c.phone;
+function resetCall(c){$("tkNo").textContent="New job";const a=$("cAv");a.textContent="?";a.className="av ring";$("cName").textContent="New caller";$("cPhone").textContent=c.phone;
   $("tx").innerHTML="";$("fields").innerHTML=FIELDS.map(([k,l])=>`<div class="fld" data-f="${k}"><small>${l}</small><b></b></div>`).join("");
   st.callT0=null;st.callEnded=false;st.ring=true}
 function setStat(cls,txt){$("cStat").className="status "+cls;$("cStatT").textContent=txt}
-function field(k,v){const r=$("fields").querySelector(`[data-f="${k}"]`);if(!r)return;
+function field(k,v){const r=$("fields").querySelector(`[data-f="${k}"]`);if(!r)return;pulse("vHeard");
   r.classList.add("hit");typeIn(r.querySelector("b"),v,st.E,380);setTimeout(()=>r.classList.remove("hit"),60)}
 function bubble(who,label){const d=document.createElement("div");d.className="msg "+(who==="ai"?"ai":"c");d.innerHTML=`<small>${label}</small><p></p>`;
   $("tx").appendChild(d);while($("tx").children.length>7)$("tx").firstChild.remove();return d.querySelector("p")}
@@ -190,7 +202,7 @@ const SYNC=`<i>✓</i>Synced with Google Calendar`;
 /* ---------- waveform: who is talking */
 const wv=$("wv");let wx,ww,wh,bars=new Array(72).fill(0);
 function sizeWave(){const r=wv.parentElement,d=(devicePixelRatio||1)*SC;ww=r.clientWidth;wh=r.clientHeight;wv.width=Math.round(ww*d);wv.height=Math.round(wh*d);wx=wv.getContext("2d");wx.setTransform(d,0,0,d,0,0)}
-function drawWave(now){if(!wx||!front||front.id!=="vCall")return;const sp=st.speak.find(s=>st.E>=s[0]&&st.E<=s[1]),who=sp&&sp[2];
+function drawWave(now){if(!wx||!focused.includes("vCall"))return;const sp=st.speak.find(s=>st.E>=s[0]&&st.E<=s[1]),who=sp&&sp[2];
   wx.clearRect(0,0,ww,wh);const n=bars.length,bw=ww/n,mid=wh/2;
   for(let i=0;i<n;i++){let a=.05;
     if(who&&!st.paused)a=.18+.82*Math.abs(Math.sin(i*.9+now/70)*Math.sin(i*.37+now/130))*(0.55+0.45*Math.sin(i/n*Math.PI));
@@ -203,7 +215,7 @@ function drawWave(now){if(!wx||!front||front.id!=="vCall")return;const sp=st.spe
 
 /* ================= the stories ================= */
 function buildCall(S){const c=S.caller,[sd,ss,se]=S.slot,slot=slotTxt(sd,ss,se);
-  showView("vCall");setSteps("call");resetCall(c);setStat("ringing",`Incoming call · ${S.clock}`);
+  buildTrack(["vCall","vHeard","vCal","vSms","vOwn"],["vCall","vHeard"]);setSteps("call");resetCall(c);setStat("ringing",`Incoming call · ${S.clock}`);
   caption("It answers every call.",S.ring);
   let t=1900;
   at(t,()=>{st.ring=false;$("cAv").classList.remove("ring");setStat("live","Assistant on the call");st.callT0=st.E;
@@ -234,11 +246,11 @@ function buildCall(S){const c=S.caller,[sd,ss,se]=S.slot,slot=slotTxt(sd,ss,se);
   at(tO+1500,()=>post(`New job booked for <b>${slot}</b>. Details below.`,
     [["Customer",c.name],["Address",S.addr],["Issue",S.issue],["Urgency",S.urg]],[`Assign to ${TECH}`,"Listen to call"]));
   at(tO+2300,()=>stepDone("notify","Phone + team chat"));
-  at(tO+3000,()=>stepOn("log"));at(tO+3800,()=>{const n=st.jobNo++;stepDone("log",`Job #${n} created`);note("Job logged",`#${n} · ${S.job} · est. $${S.value.toLocaleString("en-US")}`)});
+  at(tO+3000,()=>stepOn("log"));at(tO+3800,()=>{const n=st.jobNo++;stepDone("log",`Job #${n} created`);$("tkNo").textContent=`Job #${n}`;note("Job logged",`#${n} · ${S.job} · est. $${S.value.toLocaleString("en-US")}`)});
   return tO+7200}
 
 function buildMissed(){const c={name:"James Kim",first:"James",ini:"JK",phone:"(831) 555-0187"};
-  showView("vCall");setSteps("missed");resetCall(c);setStat("ringing","Incoming call · 11:02 AM · you're on a job");
+  buildTrack(["vCall","vSms","vCal","vOwn"]);setSteps("missed");resetCall(c);setStat("ringing","Incoming call · 11:02 AM · you're on a job");
   caption("Rather answer yourself?","It covers every call you miss.");stepOn("missed");
   at(3400,()=>{st.ring=false;$("cAv").classList.remove("ring");setStat("missed","Missed call");stepDone("missed","Rang out at 11:02 AM");stepOn("textback")});
   const tS=4300;
@@ -265,7 +277,7 @@ function buildMissed(){const c={name:"James Kim",first:"James",ini:"JK",phone:"(
   return tO+5600}
 
 function buildReview(S){const c=S.caller,[sd,ss,se]=S.slot;
-  renderCal([{d:sd,s:ss,e:se,t:S.job,w:c.name,cls:"done",cur:1}],null);$("gcSync").innerHTML=`<i>✓</i>${TECH} marked it complete`;showView("vCal");
+  renderCal([{d:sd,s:ss,e:se,t:S.job,w:c.name,cls:"done",cur:1}],null);$("gcSync").innerHTML=`<i>✓</i>${TECH} marked it complete`;buildTrack(["vCal","vSms","vOwn"]);
   setSteps("review");stepOn("done");
   caption("After the job, it asks for the review.","Every customer, every time, without you remembering.");
   at(900,()=>stepDone("done",`${TECH} marked it complete`));at(1400,()=>stepOn("wait"));at(3000,()=>stepDone("wait","Waited 2 hours"));
@@ -282,7 +294,9 @@ function buildReview(S){const c=S.caller,[sd,ss,se]=S.slot;
   at(tO+1400,()=>{post(`New 5-star review from ${c.first} ${c.name.split(" ")[1][0]}. for <b>${S.job}</b>.`,[["Tech",TECH],["Review",`“${S.review}”`]],["Say thanks"]);stepDone("notify","Review on your phone")});
   return tO+5200}
 
-function buildDay(){resetOwner("7:30");chatMode("teams");showView("vOwn");setSteps("day");
+function buildDay(){resetOwner("7:30");chatMode("teams");buildTrack(STAGES,["vCal"]);setSteps("day");
+  /* the finale pulls back to show the whole pipeline, then settles on your phone */
+  at(200,()=>focus(STAGES));at(3600,()=>focus(["vOwn"]));
   caption("Software that works while you do.","Built around your business. We'll build yours.");
   const det=["6 answered · 0 unanswered","4 booked · $5,850","1 turned into a job","4 jobs · 4 customers","3 asked · 1 new 5-star"];
   STEPS.day.forEach(([k],i)=>{at(300+i*380,()=>stepOn(k));at(680+i*380,()=>stepDone(k,det[i]))});

@@ -18,9 +18,11 @@ addEventListener("resize",()=>{fit();sizeAll()});fit();
 
 /* ---------- the replay clock: the real Sep 25 session, 5-minute bars, played back smoothly */
 /* 8 minutes per session, and the screen only takes a new quote every 2.4s: small, infrequent moves, still at rest */
-const REPLAY_MS=480000,OPEN_AT=.42,TICK_MS=2400;let clock=REPLAY_MS*OPEN_AT,shown=clock,tickAt=0,last=performance.now();
+/* one continuous clock; prices glide through the session on a smooth curve, never in steps */
+const REPLAY_MS=240000,OPEN_AT=.42;let clock=REPLAY_MS*OPEN_AT,shown=clock,last=performance.now();
 const frac=()=>Math.min(shown/REPLAY_MS,1);
-function interp(a,f){const x=f*(a.length-1),i=Math.floor(x),j=Math.min(i+1,a.length-1);return lerp(a[i],a[j],x-i)}
+function interp(a,f){const x=f*(a.length-1),i=Math.floor(x),t=x-i,g=k=>a[Math.max(0,Math.min(a.length-1,k))],p0=g(i-1),p1=g(i),p2=g(i+1),p3=g(i+2);
+  return p1+.5*t*(p2-p0+t*(2*p0-5*p1+4*p2-p3+t*(3*(p1-p2)+p3-p0)))}  /* Catmull-Rom: smooth speed through every bar */
 const px=sym=>interp(ALL[sym].ic,frac());
 const prev=sym=>ALL[sym].prev;
 const dayPct=sym=>(px(sym)/prev(sym)-1)*100;
@@ -64,6 +66,60 @@ const OPT=(()=>{const sym="NVDA",s=ALL[sym],n=s.c.length,asof=s.t[n-1],exp=Date.
 const optVal=S=>bs(S,OPT.K,OPT.Tn,OPT.sg);
 const optPL=S=>optVal(S).v*100*OPT.q-OPT.cost;
 
+/* ---------- the quant layer: statistics and Monte Carlo that run behind every stock chart */
+const mean=a=>a.reduce((x,y)=>x+y,0)/a.length, sdv=a=>{const m=mean(a);return Math.sqrt(a.reduce((x,y)=>x+(y-m)**2,0)/(a.length-1))};
+const gauss=()=>{let u=0,v=0;while(!u)u=Math.random();while(!v)v=Math.random();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v)};
+const RET=sym=>{const c=ALL[sym].c,r=[];for(let i=1;i<c.length;i++)r.push(Math.log(c[i]/c[i-1]));return r};
+const YR=sym=>sym==="BTC-USD"?365:252, QC={};
+function quant(sym){if(QC[sym])return QC[sym];const s=ALL[sym],r=RET(sym),n=YR(sym),r1=r.slice(-n);
+  const day=t=>Math.floor(t/86400),G=ALL.GSPC,gi=new Map(G.t.map((t,i)=>[day(t),i]));const xs=[],ys=[];
+  for(let i=s.t.length-n;i<s.t.length;i++){const j=gi.get(day(s.t[i]));if(j>0&&i>0){xs.push(Math.log(G.c[j]/G.c[j-1]));ys.push(Math.log(s.c[i]/s.c[i-1]))}}
+  const mx=mean(xs),my=mean(ys);let cv=0,vx=0;xs.forEach((x,i)=>{cv+=(x-mx)*(ys[i]-my);vx+=(x-mx)**2});
+  const srt=r1.slice().sort((a,b)=>a-b);let pk=-Infinity,dd=0;s.c.slice(-n).forEach(p=>{pk=Math.max(pk,p);dd=Math.min(dd,p/pk-1)});
+  const ir=s.ic.slice(1).map((p,i)=>Math.log(p/s.ic[i]));
+  return QC[sym]={sig20:sdv(r.slice(-20))*Math.sqrt(n),sigD:sdv(r.slice(-60)),sharpe:mean(r1)/sdv(r1)*Math.sqrt(n),beta:vx?cv/vx:1,
+    var95:Math.exp(srt[Math.floor(srt.length*.05)])-1,mdd:dd,sigI:Math.max(sdv(ir),.0008)}}
+/* correlation of daily returns across the watchlist, for the faint heatmap */
+const CM=(()=>{const syms=["NVDA","AAPL","TSLA","MSFT","AMD","META"],R=syms.map(s=>RET(s).slice(-252));
+  return{syms,m:R.map(x=>R.map(y=>{const mx=mean(x),my=mean(y);let c=0,a=0,b=0;x.forEach((v,i)=>{c+=(v-mx)*(y[i]-my);a+=(v-mx)**2;b+=(y[i]-my)**2});return c/Math.sqrt(a*b)}))}})();
+const PAL=["#00C805","#6BB3FF","#FFD60A","#B38CFF","#FF7A3D","#3DDBD9"];
+function mcPath(steps,sig){const p=[1];let v=1;for(let i=0;i<steps;i++){v*=Math.exp(sig*gauss()-sig*sig/2);p.push(v)}return p}
+function mcRun(steps,sig){const N=500,cols=Array.from({length:steps+1},()=>[]);for(let k=0;k<N;k++)mcPath(steps,sig).forEach((v,i)=>cols[i].push(v));
+  cols.forEach(a=>a.sort((x,y)=>x-y));const q=f=>cols.map(a=>a[Math.floor(a.length*f)]);return{p5:q(.05),p50:q(.5),p95:q(.95),pup:cols[steps].filter(v=>v>1).length/N}}
+/* 42 paths, each born, drawn out, held and faded on its own clock, so the fan flows and never resets at once */
+function drawMC(c,x,now,o){const LIFE=4200;if(!c._mc||c._mc.steps!==o.steps)c._mc={steps:o.steps,paths:[],q:null,tq:null,qt:0};const m=c._mc;
+  while(m.paths.length<42)m.paths.push({p:mcPath(o.steps,o.sig),born:now-Math.random()*LIFE,col:PAL[m.paths.length%PAL.length]});
+  if(!m.tq||now-m.qt>LIFE){m.tq=mcRun(o.steps,o.sig);m.qt=now;if(!m.q)m.q=JSON.parse(JSON.stringify(m.tq))}
+  for(const k of ["p5","p50","p95"])m.q[k]=m.q[k].map((v,i)=>v+(m.tq[k][i]-v)*.03);m.q.pup+=(m.tq.pup-m.q.pup)*.03;
+  const X=i=>o.x0+(o.x1-o.x0)*i/o.steps,a=o.a??1;
+  x.save();x.beginPath();x.rect(o.x0,o.top,o.x1-o.x0+2,o.bot-o.top);x.clip();
+  const g=x.createLinearGradient(o.x0,0,o.x1,0);g.addColorStop(0,"rgba(107,179,255,0)");g.addColorStop(1,`rgba(107,179,255,${.06*a})`);x.fillStyle=g;x.fillRect(o.x0,o.top,o.x1-o.x0,o.bot-o.top);
+  x.lineWidth=1;
+  for(const pa of m.paths){let age=(now-pa.born)/LIFE;if(age>=1){pa.p=mcPath(o.steps,o.sig);pa.born=now;pa.col=PAL[(Math.random()*PAL.length)|0];age=0}
+    const grow=clamp(age/.5,0,1),fade=age<.75?1:1-(age-.75)/.25,n=grow*o.steps,k=Math.floor(n);
+    x.beginPath();for(let i=0;i<=k;i++){const yy=o.Y(o.S*pa.p[i]);i?x.lineTo(X(i),yy):x.moveTo(X(i),yy)}
+    if(k<o.steps){const f=n-k;x.lineTo(X(k+f),o.Y(o.S*(pa.p[k]+(pa.p[k+1]-pa.p[k])*f)))}
+    x.strokeStyle=pa.col;x.globalAlpha=.24*fade*a;x.stroke()}
+  x.globalAlpha=a;x.beginPath();m.q.p95.forEach((v,i)=>i?x.lineTo(X(i),o.Y(o.S*v)):x.moveTo(X(i),o.Y(o.S*v)));
+  for(let i=o.steps;i>=0;i--)x.lineTo(X(i),o.Y(o.S*m.q.p5[i]));x.closePath();x.fillStyle="rgba(107,179,255,.07)";x.fill();
+  for(const [k,cl] of [["p95","rgba(107,179,255,.75)"],["p5","rgba(107,179,255,.75)"],["p50","rgba(255,214,10,.9)"]]){x.beginPath();
+    m.q[k].forEach((v,i)=>i?x.lineTo(X(i),o.Y(o.S*v)):x.moveTo(X(i),o.Y(o.S*v)));x.strokeStyle=cl;x.lineWidth=1.2;x.stroke()}
+  x.fillStyle="rgba(168,168,173,.8)";x.font="10px JetBrains Mono";x.textAlign="right";x.textBaseline="bottom";x.fillText(`MC · 500 sims · ${o.label}`,o.x1-4,o.bot-4);
+  x.restore();x.globalAlpha=1;return m}
+function statRows(sym,S,m){const q=quant(sym),c=daily(sym).slice(-20),z=(S-mean(c))/sdv(c);
+  return[["σ20 ann.",(q.sig20*100).toFixed(1)+"%"],["Sharpe 1Y",q.sharpe.toFixed(2)],["β vs S&P",q.beta.toFixed(2)],["z-score 20d",fs(z,2),z>=0?"#00C805":"#FF7A3D"],
+    ["VaR 95% 1d",(q.var95*100).toFixed(1)+"%","#FF7A3D"],["Max DD 1Y",(q.mdd*100).toFixed(1)+"%"],["P(up) · MC",Math.round(m.q.pup*100)+"%",m.q.pup>=.5?"#00C805":"#FF7A3D"]]}
+function drawStats(x,x1,top,rows,a){const x0=x1-150;x.save();x.globalAlpha=a;x.fillStyle="rgba(10,10,12,.32)";x.beginPath();x.roundRect(x0,top-6,150,rows.length*15+26,8);x.fill();
+  x.font="10.5px JetBrains Mono";x.textBaseline="top";x.textAlign="left";x.fillStyle="#00C805";x.fillText("● QUANT · LIVE",x0+8,top);
+  rows.forEach(([l,v,cl],i)=>{const y=top+17+i*15;x.textAlign="left";x.fillStyle="rgba(168,168,173,.85)";x.fillText(l,x0+8,y);x.textAlign="right";x.fillStyle=cl||"#FFFFFF";x.fillText(v,x1-8,y)});
+  x.restore()}
+function drawCorr(x,x0,y0,a){const{syms,m}=CM,cs=14;x.save();x.globalAlpha=a;x.font="9.5px JetBrains Mono";x.textBaseline="middle";
+  x.fillStyle="rgba(168,168,173,.85)";x.textAlign="left";x.fillText("ρ · 1Y daily returns",x0,y0-9);
+  syms.forEach((s,i)=>{x.textAlign="right";x.fillStyle="rgba(168,168,173,.75)";x.fillText(s,x0+32,y0+i*cs+cs/2);
+    syms.forEach((_,j)=>{const r=m[i][j];x.fillStyle=r>=0?`rgba(0,200,5,${.1+.5*Math.abs(r)})`:`rgba(255,80,0,${.1+.5*Math.abs(r)})`;x.fillRect(x0+36+j*cs,y0+i*cs,cs-2,cs-2)})});
+  x.restore()}
+function emaA(a,k){const al=2/(k+1),r=[];let e=a[0];a.forEach((v,i)=>{e=i?v*al+e*(1-al):v;r.push(e)});return r}
+
 /* ---------- canvas helpers */
 function sizeCanvas(cv){const r=cv.parentElement,w=r.clientWidth,h=r.clientHeight,d=(devicePixelRatio||1)*SC;
   if(cv.width!==Math.round(w*d)){cv.width=Math.round(w*d);cv.height=Math.round(h*d)}
@@ -103,9 +159,10 @@ function setInd(c,k,on){const o=c._ind[k];if(!!o.on===!!on)return;o.on=on?1:0;o.
 const lin=t=>clamp(t,0,1);
 function ik(c,k,now,dur=1800){const o=c._ind[k];if(!o.t)return{r:0,a:0};const p=now-o.t;return o.on?{r:lin(p/dur),a:1}:{r:1,a:1-lin(p/450)}}
 function morph(c,k,now,dur=1400){const o=c._ind[k];if(!o.t)return 0;const p=now-o.t;return o.on?lin(p/dur):1-lin(p/600)}
-function feed(c,now,html,key){if(now-(c._ft||0)<90||!c._hud||key===c._fk)return;c._ft=now;c._fk=key;  /* one line per bar, never the same bar twice */
-  const d=document.createElement("div");d.innerHTML=html;
+function feed(c,now,html,key){if(now-(c._ft||0)<140||!c._hud||key===c._fk)return;c._ft=now;c._fk=key;  /* one line per bar, never the same bar twice */
+  const d=document.createElement("div");d.innerHTML=html;d.style.transform="translateY(-19px)";d.style.opacity="0";
   c._hud.prepend(d);while(c._hud.children.length>6)c._hud.lastChild.remove();c._hud.classList.add("show");
+  requestAnimationFrame(()=>[...c._hud.children].forEach((e,i)=>{e.style.transform=`translateY(${i*19}px)`;e.style.opacity=String(Math.max(.12,1-i*.17))}));
   clearTimeout(c._hudT);c._hudT=setTimeout(()=>c._hud&&c._hud.classList.remove("show"),1600)}
 const cards=[$("cA"),$("cB")];let front=$("cB"),swapT=null;
 function sizeAll(){cards.forEach(c=>c._cv&&sizeCanvas(c._cv))}
@@ -167,18 +224,22 @@ function optionCard(c){const o=OPT;
   live(q("dl"),()=>optVal(S()).delta,x=>x.toFixed(2));
 }
 
-function render(c,v){c._v=v;c._rev=0;c._t0=null;c._optS=null;c._sweep=null;c._hover=null;c._lo=null;
+function render(c,v){if(!c._v||c._v.sym!==v.sym)c._mc=null;c._v=v;c._rev=0;c._t0=null;c._optS=null;c._sweep=null;c._hover=null;c._lo=null;
   c._ind=Object.fromEntries(IND.map(k=>[k,{on:0,t:0}]));
   ({stock:stockCard,compare:compareCard,option:optionCard})[v.kind](c,v);
   c._cv=c.querySelector("canvas");c._tip=c.querySelector(".tip");sizeCanvas(c._cv);
   c._hud=c.querySelector(".hud");
-  c.querySelectorAll(".seg [data-w]").forEach(b=>b.onclick=()=>{userTook();const keep=IND.filter(k=>c._ind[k].on);
-    render(c,{...c._v,win:b.dataset.w});arm(c);keep.forEach(k=>setInd(c,k,1))});
+  c.querySelectorAll(".seg [data-w]").forEach(b=>b.onclick=()=>{userTook();if(b.dataset.w===c._v.win)return;
+    const snap=document.createElement("canvas");snap.width=c._cv.width;snap.height=c._cv.height;snap.getContext("2d").drawImage(c._cv,0,0);
+    const keep=c._ind,lo=c._lo,hi=c._hi;render(c,{...c._v,win:b.dataset.w});
+    c._t0=performance.now()-4000;c._ind=keep;c._lo=lo;c._hi=hi;c._ghost=snap;c._ghostT=performance.now();meters(c);
+    IND.forEach(k=>{const e=c.querySelector(`.chips [data-i="${k}"]`);if(e)e.classList.toggle("on",!!keep[k].on)})});
   c.querySelectorAll(".chips [data-i]").forEach(b=>b.onclick=()=>{userTook();const k=b.dataset.i;setInd(c,k,!c._ind[k].on)});
   const box=c.querySelector(".c-ch");
   box.onpointermove=e=>{const r=box.getBoundingClientRect();c._hover=(e.clientX-r.left)/r.width;};
   box.onpointerleave=()=>{c._hover=null;c._tip.classList.remove("show")};
 }
+function meters(c){c.querySelectorAll(".meter i,.meter u").forEach(m=>{m.style.transition="none";if(m.tagName==="I")m.style.width=m.dataset.to+"%";else m.style.left=m.dataset.to+"%"})}
 function arm(c){c._t0=performance.now();c.querySelectorAll(".meter i,.meter u").forEach(m=>{m.style.transition="none";m.tagName==="I"?m.style.width="0":m.style.left="0";
   void m.offsetWidth;m.style.transition="";});
   setTimeout(()=>c.querySelectorAll(".meter i").forEach(m=>m.style.width=m.dataset.to+"%"),60);
@@ -196,7 +257,9 @@ function show(v,fast){
 }
 
 /* ---------- drawing, every frame */
-function drawCard(c,now){if(!c._v||!c._cv)return;const{x,w,h}=sizeCanvas(c._cv),v=c._v;
+function drawCard(c,now){if(!c._v||!c._cv)return;drawCardInner(c,now);
+  if(c._ghost){const p=(now-c._ghostT)/520;if(p>=1)c._ghost=null;else{const x=c._cv.getContext("2d");x.save();x.setTransform(1,0,0,1,0,0);x.globalAlpha=1-p;x.drawImage(c._ghost,0,0);x.restore()}}}
+function drawCardInner(c,now){const{x,w,h}=sizeCanvas(c._cv),v=c._v;
   const rev=c._t0?clamp((now-c._t0)/1600,0,1):0;
   x.clearRect(0,0,w,h);
   if(v.kind==="option")return drawOption(c,x,w,h,rev,now);
@@ -222,6 +285,18 @@ function drawCard(c,now){if(!c._v||!c._cv)return;const{x,w,h}=sizeCanvas(c._cv),
   const upTo=Math.max(1,Math.floor(rev*(series.length-1)));
   const pts=series.slice(0,upTo+1).map((p,i)=>[X(i),Y(p)]);
   if(rev<1&&upTo<series.length-1){const f=rev*(series.length-1)-upTo,a=series[upTo],b=series[upTo+1];pts.push([X(upTo+f),Y(lerp(a,b,f))])}
+  /* page one: intraday overlays, the live quant panel, the correlation map and a Monte Carlo fan into the rest of the session */
+  if(v.kind==="stock"&&v.win==="1D"){const n=series.length,fa=c._t0?lin((now-c._t0-1200)/900):0,ema=emaA(series,9),mu=[],up=[],dn=[];let s1=0,s2=0;
+    series.forEach((p,i)=>{s1+=p;s2+=p*p;const m=s1/(i+1),sd=Math.sqrt(Math.max(s2/(i+1)-m*m,0));mu.push(m);up.push(m+2*sd);dn.push(m-2*sd)});
+    const P=a=>a.slice(0,pts.length).map((p,i)=>[X(i),Y(p)]);x.save();x.globalAlpha=.9;
+    const U=P(up),Dn=P(dn);if(U.length>1){x.beginPath();U.forEach(([a,b],i)=>i?x.lineTo(a,b):x.moveTo(a,b));for(let i=Dn.length-1;i>=0;i--)x.lineTo(Dn[i][0],Dn[i][1]);x.closePath();x.fillStyle="rgba(107,179,255,.07)";x.fill();
+      line(x,U,"rgba(107,179,255,.55)",1,0);line(x,Dn,"rgba(107,179,255,.55)",1,0);line(x,P(mu),"rgba(255,214,10,.85)",1.3,0);line(x,P(ema),"rgba(179,140,255,.95)",1.4,0)}
+    x.restore();
+    const li=n-1;x.font="11.5px JetBrains Mono";x.textBaseline="top";x.textAlign="left";let lx=4;
+    [[`EMA 9  ${fp(ema[li])}`,"#B38CFF"],[`Mean  ${fp(mu[li])}`,"#FFD60A"],[`±2σ  ${fp(dn[li])}–${fp(up[li])}`,"#6BB3FF"]].forEach(([t,cl])=>{x.fillStyle=cl;x.fillText(t,lx,top+2);lx+=x.measureText(t).width+18});
+    if(rev>=1){const q=quant(v.sym),left=sl-1-(n-1),steps=Math.max(4,Math.min(36,left)),per=Math.max(1,left/steps);
+      const m=drawMC(c,x,now,{x0:X(n-1),x1:w-padR,Y,S:series[n-1],steps,sig:q.sigI*Math.sqrt(per),top,bot:top+ph,a:fa,label:"to close"});
+      drawStats(x,w-padR-4,top+26,statRows(v.sym,series[n-1],m),.95*fa);drawCorr(x,8,top+ph-100,.8*fa)}}
   if(v.kind==="compare"){const A="#00C805";const p2=second.slice(0,upTo+1).map((p,i)=>[X(i),Y(p)]);
     area(x,pts,"0,200,5",top+ph,top);line(x,p2,"rgba(255,255,255,.85)",1.5,8);line(x,pts,A,1.8,14);
     const e=pts[pts.length-1];endDot(x,e[0],e[1],A,"0,200,5",now);const e2=p2[p2.length-1];x.beginPath();x.arc(e2[0],e2[1],3.5,0,7);x.fillStyle="#fff";x.fill()}
@@ -259,7 +334,7 @@ function drawOption(c,x,w,h,rev,now){const o=OPT,padR=80,padB=24,top=10,ph=h-pad
   /* the marker: live price, a what-if sweep during the scene, or wherever the pointer is */
   let S=S0,what=false;
   if(c._hover!=null){S=lerp(lo,hi,clamp(c._hover*w/(w-padR),0,1));what=true}
-  else if(c._sweep){const t=(now-c._sweep)/7000;if(t<1){const u=t<.4?t/.4:t<.6?1:(1-t)/.4;S=S0*(1+.14*u);what=t>.06&&t<.94}else c._sweep=null}
+  else if(c._sweep){const t=(now-c._sweep)/4600;if(t<1){const u=t<.4?t/.4:t<.6?1:(1-t)/.4;S=S0*(1+.14*u);what=t>.06&&t<.94}else c._sweep=null}
   c._optS=Math.abs(S-S0)<.005?null:S;
   if(rev>=1){const a=X(S),pl=optPL(S),b=Y(pl),col=pl>=0?"#00C805":"#FF5000";
     x.strokeStyle="rgba(255,255,255,.35)";x.beginPath();x.moveTo(a+.5,top);x.lineTo(a+.5,top+ph);x.stroke();
@@ -272,13 +347,14 @@ function drawOption(c,x,w,h,rev,now){const o=OPT,padR=80,padB=24,top=10,ph=h-pad
 
 /* ---------- a daily chart with its technicals: line or candles, bands, averages, MACD */
 function drawTech(c,x,w,h,rev,now){const v=c._v,T=tech(v.sym),N=T.c.length,k=Math.min(WLEN(v.sym,v.win),N),off=N-k;
-  const padR=74,padB=24,top=8,ph=h-padB-top,Xw=w-padR,X=i=>Xw*(i/(k-1));
+  const padR=74,padB=24,top=8,ph=h-padB-top,Xw=w-padR,Xh=Xw*.74,X=i=>Xh*(i/(k-1));
   const ck=morph(c,"candle",now),mk=morph(c,"macd",now,900),bb=ik(c,"bb",now),s50=ik(c,"s50",now),s200=ik(c,"s200",now),md=ik(c,"macd",now);
   const mainH=ph*(1-.3*mk);
   /* the scale eases toward whatever is showing, so adding an average zooms the view instead of jumping it */
   let lo=Infinity,hi=-Infinity;const acc=a=>{for(let i=off;i<N;i++){const y=a[i];if(y!=null){if(y<lo)lo=y;if(y>hi)hi=y}}};
   if(ck>.01){acc(T.l);acc(T.h)}else acc(T.c);
   if(bb.a>.01){acc(T.bb.up);acc(T.bb.dn)}if(s50.a>.01)acc(T.s50);if(s200.a>.01)acc(T.s200);
+  if(c._mc&&c._mc.q){const e=T.c[N-1];lo=Math.min(lo,e*Math.min(...c._mc.q.p5));hi=Math.max(hi,e*Math.max(...c._mc.q.p95))}
   const pd=(hi-lo)*.07;lo-=pd;hi+=pd;
   if(c._lo==null){c._lo=lo;c._hi=hi}else{c._lo+=(lo-c._lo)*.09;c._hi+=(hi-c._hi)*.09}
   const L=c._lo,H=c._hi,Y=p=>top+(H-p)/(H-L)*mainH;
@@ -288,7 +364,7 @@ function drawTech(c,x,w,h,rev,now){const v=c._v,T=tech(v.sym),N=T.c.length,k=Mat
   for(let j=0;j<4;j++){const i=Math.round((k-1)*j/3);x.fillText(new Date(times[i]*1000).toLocaleDateString("en-US",{month:"short",day:v.win==="1M"?"numeric":undefined,year:v.win==="1M"?undefined:"2-digit",timeZone:"UTC"}),clamp(X(i),26,Xw-26),h-5)}
   const series=T.c.slice(off),base=series[0],endV=series[k-1],upw=endV>=base,col=upw?"#00C805":"#FF5000",rgb=upw?"0,200,5":"255,80,0";
   const pts=(arr,r)=>{const out=[],fi=r*(k-1);for(let i=0;i<=Math.floor(fi);i++){const y=arr[off+i];if(y!=null)out.push([X(i),Y(y)])}return out};
-  x.save();x.beginPath();x.rect(0,0,Xw*rev+1,top+mainH+1);x.clip();
+  x.save();x.beginPath();x.rect(0,0,Xh*rev+1,top+mainH+1);x.clip();
   /* Bollinger: the band fill first, then its edges and the dashed mean */
   if(bb.a>.01){const U=pts(T.bb.up,bb.r),Dn=pts(T.bb.dn,bb.r),M=pts(T.bb.mid,bb.r);
     if(U.length>1){x.globalAlpha=bb.a;x.beginPath();U.forEach(([a,b],i)=>i?x.lineTo(a,b):x.moveTo(a,b));for(let i=Dn.length-1;i>=0;i--)x.lineTo(Dn[i][0],Dn[i][1]);
@@ -316,6 +392,8 @@ function drawTech(c,x,w,h,rev,now){const v=c._v,T=tech(v.sym),N=T.c.length,k=Mat
       x.fillStyle=gold?"#FFD60A":"#FF5000";x.textAlign="left";x.textBaseline="middle";x.fillText(lab,lx+8,ly+10);x.globalAlpha=1}
     else c._crossT=null}
   x.restore();
+  if(rev>=1){const fa=lin((now-c._t0-1600)/900),q=quant(v.sym),m=drawMC(c,x,now,{x0:X(k-1),x1:Xw,Y,S:endV,steps:20,sig:q.sigD,top,bot:top+mainH,a:fa,label:"20d"});
+    drawStats(x,Xw-4,top+26,statRows(v.sym,endV,m),.95*fa)}
   if(rev>=1){const ly=Y(endV);x.fillStyle=col;x.beginPath();x.roundRect(w-padR+3,ly-10,padR-4,20,4);x.fill();
     x.fillStyle="#000";x.font="600 12px JetBrains Mono";x.textBaseline="middle";x.textAlign="left";x.fillText(fp(endV),w-padR+8,ly);
     if(ck<.5){x.globalAlpha=1-ck*2;endDot(x,X(k-1),ly,col,rgb,now);x.globalAlpha=1}}
@@ -330,7 +408,7 @@ function drawTech(c,x,w,h,rev,now){const v=c._v,T=tech(v.sym),N=T.c.length,k=Mat
       x.fillStyle="#B8B8BF";x.font="11.5px JetBrains Mono";x.textAlign="left";x.textBaseline="top";x.fillText(`MACD 12 26 9   ${M.m[N-1].toFixed(2)}  signal ${M.sg[N-1].toFixed(2)}`,4,pt-2);
       x.globalAlpha=1}}
   /* legend: the live value of everything switched on */
-  const hi_=c._hover!=null&&rev>=1?clamp(Math.round(c._hover*w/Xw*(k-1)),0,k-1):k-1,gh=off+hi_;
+  const hi_=c._hover!=null&&rev>=1?clamp(Math.round(c._hover*w/Xh*(k-1)),0,k-1):k-1,gh=off+hi_;
   let lx=4;x.font="12px JetBrains Mono";x.textBaseline="top";x.textAlign="left";
   [[bb,`BB 20 2  ${fp(T.bb.up[gh])} / ${fp(T.bb.dn[gh])}`,"#D2D2DC"],[s50,`SMA 50  ${fp(T.s50[gh])}`,"#FFD60A"],[s200,`SMA 200  ${T.s200[gh]==null?"—":fp(T.s200[gh])}`,"#6BB3FF"]]
     .forEach(([q,t,cl])=>{if(q.a<=.01)return;x.globalAlpha=q.a;x.fillStyle=cl;x.fillText(t,lx,top+2);lx+=x.measureText(t).width+18;x.globalAlpha=1});
@@ -382,20 +460,20 @@ live($("kDn"),()=>STOCKS.concat(IDX).filter(s=>dayPct(s)<0).length,x=>Math.round
 
 /* ---------- the director: scenes play like an ad until someone takes the wheel */
 const SC_=[
- {h:"Every market you care about.",p:"In one calm window.",d:6000,v:{kind:"stock",sym:"NVDA",win:"1D"}},
- {h:"Any stock you want.",p:"Apple.",d:2800,v:{kind:"stock",sym:"AAPL",win:"1Y"}},
- {h:"Any stock you want.",p:"Apple. Tesla.",d:2800,v:{kind:"stock",sym:"TSLA",win:"1Y"}},
- {h:"Any stock you want.",p:"Apple. Tesla. Microsoft.",d:2800,v:{kind:"stock",sym:"MSFT",win:"1Y"}},
- {h:"Any stock you want.",p:"Apple. Tesla. Microsoft. AMD.",d:4400,v:{kind:"stock",sym:"AMD",win:"1Y"}},
- {h:"Any index you want.",p:"The S&P 500 against the Nasdaq, side by side.",d:5800,v:{kind:"compare",pair:["GSPC","IXIC"]}},
- {h:"Crypto, too.",p:"Bitcoin, around the clock.",d:4200,v:{kind:"stock",sym:"BTC-USD",win:"1Y"}},
- {h:"Every technical, drawn for you.",p:"Candles.",d:3400,v:{kind:"stock",sym:"MSFT",win:"6M"},ind:["candle"]},
- {h:"Every technical, drawn for you.",p:"Candles. Bollinger Bands.",d:3400,v:{kind:"stock",sym:"MSFT",win:"6M"},ind:["candle","bb"]},
- {h:"Every technical, drawn for you.",p:"Candles. Bollinger Bands. The 50 and 200-day.",d:4600,v:{kind:"stock",sym:"MSFT",win:"6M"},ind:["candle","bb","s50","s200"]},
- {h:"Every technical, drawn for you.",p:"Candles. Bollinger Bands. The 50 and 200-day. MACD.",d:5600,v:{kind:"stock",sym:"MSFT",win:"6M"},ind:["candle","bb","s50","s200","macd"]},
- {h:"Track your option calls.",p:"Cost, value, breakeven, and what happens if it runs.",d:8500,v:{kind:"option",sym:"NVDA"},sweep:1},
- {h:"Know where it leans.",p:"RSI, trend and range, measured for you.",d:5500,v:{kind:"stock",sym:"PLTR",win:"6M"},glow:1},
- {h:"Built around the way you watch.",p:"Custom software, made for you.",d:6000,v:{kind:"stock",sym:"META",win:"1D"}},
+ {h:"Your own trading desk.",p:"Custom software built to your spec, with the math running live.",d:5600,v:{kind:"stock",sym:"NVDA",win:"1D"}},
+ {h:"Any stock you want.",p:"Apple.",d:2300,v:{kind:"stock",sym:"AAPL",win:"1Y"},ind:["bb"]},
+ {h:"Any stock you want.",p:"Apple. Tesla.",d:2300,v:{kind:"stock",sym:"TSLA",win:"1Y"},ind:["s50","s200"]},
+ {h:"Any stock you want.",p:"Apple. Tesla. Microsoft.",d:2300,v:{kind:"stock",sym:"MSFT",win:"1Y"},ind:["bb","s50"]},
+ {h:"Any stock you want.",p:"Apple. Tesla. Microsoft. AMD.",d:3200,v:{kind:"stock",sym:"AMD",win:"1Y"},ind:["candle","bb","s50","s200"]},
+ {h:"Any index you want.",p:"The S&P 500 against the Nasdaq, side by side.",d:3800,v:{kind:"compare",pair:["GSPC","IXIC"]}},
+ {h:"Crypto, too.",p:"Bitcoin, around the clock.",d:3200,v:{kind:"stock",sym:"BTC-USD",win:"1Y"},ind:["s50","s200"]},
+ {h:"Every technical, drawn for you.",p:"Candles.",d:2400,v:{kind:"stock",sym:"MSFT",win:"6M"},ind:["candle"]},
+ {h:"Every technical, drawn for you.",p:"Candles. Bollinger Bands.",d:2400,v:{kind:"stock",sym:"MSFT",win:"6M"},ind:["candle","bb"]},
+ {h:"Every technical, drawn for you.",p:"Candles. Bollinger Bands. The 50 and 200-day.",d:3000,v:{kind:"stock",sym:"MSFT",win:"6M"},ind:["candle","bb","s50","s200"]},
+ {h:"Every technical, drawn for you.",p:"Candles. Bollinger Bands. The 50 and 200-day. MACD.",d:3600,v:{kind:"stock",sym:"MSFT",win:"6M"},ind:["candle","bb","s50","s200","macd"]},
+ {h:"Track your option calls.",p:"Cost, value, breakeven, and what happens if it runs.",d:5800,v:{kind:"option",sym:"NVDA"},sweep:1},
+ {h:"Know where it leans.",p:"RSI, trend, range and a live Monte Carlo, measured for you.",d:4600,v:{kind:"stock",sym:"PLTR",win:"6M"},glow:1,ind:["candle","bb","s50","s200","macd"]},
+ {h:"Built to your spec.",p:"Trading software designed around the way you trade.",d:5200,v:{kind:"stock",sym:"META",win:"1D"}},
 ];
 const st={i:-1,el:0,auto:true,hov:false,idle:0};
 const CHAP=[["Stocks",0,5],["Indices",5,6],["Crypto",6,7],["Technicals",7,11],["Options",11,12],["Signals",12,14]];
@@ -411,8 +489,8 @@ let capH="",capP="";
 function caption(h,p){if(h!==capH)words($("capH"),h,"");words($("capP"),p,h===capH?capP:"");capH=h;capP=p}
 function go(i){st.i=(i+SC_.length)%SC_.length;st.el=0;const s=SC_[st.i];
   const stay=same(front._v,s.v);show(s.v);caption(s.h,s.p);
-  if(s.ind){const c=front;setTimeout(()=>{if(front===c&&SC_[st.i]===s)IND.forEach(k=>setInd(c,k,s.ind.includes(k)))},stay?0:900)}
-  if(s.sweep)setTimeout(()=>{if(front._v.kind==="option")front._sweep=performance.now()},1300);
+  if(s.ind){const c=front;setTimeout(()=>{if(front===c&&SC_[st.i]===s)IND.forEach(k=>setInd(c,k,s.ind.includes(k)))},stay?0:250)}
+  if(s.sweep)setTimeout(()=>{if(front._v.kind==="option")front._sweep=performance.now()},800);
   if(s.glow)setTimeout(()=>{if(SC_[st.i]===s)front.classList.add("glow")},900);
   if(st.i===0){clock=shown=REPLAY_MS*OPEN_AT}  /* each loop opens mid-morning, so the first chart already has a shape */
   chapProgress()}
@@ -427,7 +505,7 @@ $("src").textContent=`Public market data · ${fdate(ALL.NVDA.t[ALL.NVDA.t.length
 /* ---------- one loop drives everything */
 let sparkT=0;
 function frame(now){const dt=Math.min(now-last,100);last=now;
-  clock+=dt;if(clock>REPLAY_MS)clock=0;if(now-tickAt>TICK_MS){shown=clock;tickAt=now}
+  clock+=dt;if(clock>REPLAY_MS)clock=0;shown=clock;
   if(st.auto&&!st.hov){st.el+=dt;const s=SC_[st.i];if(s){chapProgress();if(st.el>=s.d)go(st.i+1)}}
   if(!st.auto){st.idle+=dt;if(st.idle>9000){st.auto=true;setPlay();go(st.i+1)}}
   tickLive();$("kT").textContent=sessionTime();

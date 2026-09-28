@@ -28,8 +28,8 @@
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
-  <link rel="stylesheet" href="assets/css/styles.css?v=33">
-  <link rel="stylesheet" href="assets/css/motion.css?v=33">
+  <link rel="stylesheet" href="assets/css/styles.css?v=34">
+  <link rel="stylesheet" href="assets/css/motion.css?v=34">
 
 <!-- Structured data. Every fact here is one this site already states in prose:
        the entity, the city and the email come off contact.html. Nothing is
@@ -129,7 +129,7 @@
             and other custom builds you can buy. Designed and built by me, start to finish.</p>
           <div class="hero__cta">
             <a class="btn" href="software.html">Software &amp; web</a>
-            <a class="btn btn--ghost" href="shop.html">The builds</a>
+            <a class="btn btn--ghost" href="shop.html">Hardware</a>
           </div>
         </div>
         <!-- The pitch is that you deal with one person, so he is on the first
@@ -199,8 +199,10 @@
       <div class="container">
         <div class="fork">
           <header class="fork__head" data-reveal>
-            <span class="fork__n">01</span>
-            <h2>The studio.</h2>
+            <div>
+              <span class="fork__n">01</span>
+              <h2>The studio.</h2>
+            </div>
             <p>What is one without the other? On a machine, software is the flight
               controller, the motor controller and the sensors. In a business, it is the
               website, the custom CRM, the tracker and the dashboard. I build both.</p>
@@ -210,16 +212,22 @@
                any width; non-scaling strokes keep the line weight constant.
                Each branch is its own path from the root, so the pulse runs
                down the stem and splits into both at once. -->
-          <svg class="fork__lines" viewBox="0 0 1000 160" preserveAspectRatio="none" aria-hidden="true">
-            <path class="fork__base" pathLength="1" d="M500 0 V64 C500 112 250 96 250 160"/>
-            <path class="fork__base" pathLength="1" d="M500 0 V64 C500 112 750 96 750 160"/>
-            <path class="fork__pulse" pathLength="1" d="M500 0 V64 C500 112 250 96 250 160"/>
-            <path class="fork__pulse" pathLength="1" d="M500 0 V64 C500 112 750 96 750 160"/>
+          <!-- Circuit routing: one trace drops from the centre, runs left and
+               right, and turns down onto each card's top-left corner, where it
+               carries on down the card's edge (.fork__rail). preserveAspectRatio
+               "none" stretches it to the grid; x=515 is where the second
+               column starts (50% plus half the 3% column gap). -->
+          <svg class="fork__lines" viewBox="0 0 1000 100" preserveAspectRatio="none" aria-hidden="true">
+            <path class="fork__base" pathLength="1" d="M500 0 V44 Q500 50 494 50 H7 Q1 50 1 56 V100"/>
+            <path class="fork__base" pathLength="1" d="M500 0 V44 Q500 50 506 50 H509 Q515 50 515 56 V100"/>
+            <path class="fork__pulse" pathLength="1" d="M500 0 V44 Q500 50 494 50 H7 Q1 50 1 56 V100"/>
+            <path class="fork__pulse" pathLength="1" d="M500 0 V44 Q500 50 506 50 H509 Q515 50 515 56 V100"/>
           </svg>
 
           <div class="fork__cols">
             <a class="fork__card" href="software.html" data-reveal data-reveal-i="1">
               <span class="fork__node" aria-hidden="true"></span>
+              <span class="fork__rail" aria-hidden="true"></span>
               <svg class="fork__icon" viewBox="0 0 64 48" aria-hidden="true">
                 <rect x="2" y="3" width="60" height="42" rx="3"/>
                 <path d="M2 12 H62"/>
@@ -236,6 +244,7 @@
 
             <a class="fork__card" href="shop.html" data-reveal data-reveal-i="2">
               <span class="fork__node" aria-hidden="true"></span>
+              <span class="fork__rail" aria-hidden="true"></span>
               <!-- the i4 from above: four ducts, the body, the arms, and a
                    prop in each duct that spins while the card is hovered -->
               <svg class="fork__icon" viewBox="0 0 64 48" aria-hidden="true">
@@ -253,33 +262,9 @@
               <p>Robotic arms, FPV drones and a local-AI smart home, designed and built by
                 hand, with the CAD, firmware and build notes kept.</p>
               <p class="fork__tags">CAD<i>/</i>Fabrication<i>/</i>Firmware<i>/</i>Flight&nbsp;test</p>
-              <span class="link-arrow">See the builds</span>
+              <span class="link-arrow">See the hardware</span>
             </a>
           </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ===============================================================
-         02 · SELECTED BUILDS — plates, rendered by main.js. The first
-         one takes four of the six columns; the rest fall in behind it.
-         =============================================================== -->
-    <section class="section" id="work" data-sec="work">
-      <div class="container">
-        <div class="idx idx--split" data-reveal>
-          <span class="idx__n">02</span>
-          <p class="idx__lab">The builds</p>
-          <h2 class="idx__h">Projects.</h2>
-          <p class="idx__p">Designed, prototyped and made by hand. Hover one to bring it
-            to life.</p>
-        </div>
-        <!-- Both builds, the same size, side by side. Was one build rotating weekly until 2026-09-26.
-             One build, not the whole catalogue. The Builds page exists for the
-             rest; repeating it here gave the homepage a second, weaker version
-             of that page and a lot of scrolling to get past it. -->
-        <div class="plates" id="featured-grid" data-spans="plate--half,plate--half,plate--half,plate--half"></div>
-        <div class="plates__more" data-reveal>
-          <a class="link-arrow" href="shop.html">Every build</a>
         </div>
       </div>
     </section>
@@ -356,7 +341,7 @@
       <nav aria-label="Footer">
         <a href="index.html">Home</a>
         <a href="software.html">Websites &amp; software</a>
-        <a href="shop.html">The builds</a>
+        <a href="shop.html">Hardware</a>
         <a href="about.html">About Tyler Wade</a>
         <a href="contact.html">Contact</a>
         <a href="policies.html">Lead times, shipping &amp; refunds</a>
@@ -371,16 +356,16 @@
        HTML, but main.js CREATES those canvases for the build plates. Removing
        it blanks every hologram. If the 64 KB is ever worth reclaiming, the fix
        is to load it on demand when a plate scrolls into view. -->
-  <script defer src="assets/js/products.js?v=33"></script>
-  <script defer src="assets/js/components.js?v=33"></script>
-  <script defer src="assets/js/hologram.js?v=33"></script>
-  <script defer src="assets/js/main.js?v=33"></script>
-  <script defer src="assets/js/portrait.js?v=33"></script>
+  <script defer src="assets/js/products.js?v=34"></script>
+  <script defer src="assets/js/components.js?v=34"></script>
+  <script defer src="assets/js/hologram.js?v=34"></script>
+  <script defer src="assets/js/main.js?v=34"></script>
+  <script defer src="assets/js/portrait.js?v=34"></script>
   <!-- ?v=3 busts the module cache. three.js is vendored at assets/vendor/,
        so the star field no longer needs an inline importmap (which the CSP
        blocks) or a third-party fetch from unpkg. A returning visitor still
        holding an older starfield.js would pair it with HTML that no longer
        ships that map, so the version query has to move whenever this does. -->
-  <script type="module" src="assets/js/starfield.js?v=33"></script>
+  <script type="module" src="assets/js/starfield.js?v=34"></script>
 </body>
 </html>

@@ -13,7 +13,7 @@
 const NAV_ITEMS = [
   { href: "index.html", label: "Home" },
   { href: "software.html", label: "Software" },
-  { href: "shop.html", label: "Builds" },
+  { href: "shop.html", label: "Hardware" },
   { href: "about.html", label: "About" },
   { href: "contact.html", label: "Contact" },
 ];

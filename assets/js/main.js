@@ -94,7 +94,7 @@
         <div class="empty-state">
           <h1>No such build</h1>
           <p>That link doesn't match anything here. It may have been renamed.</p>
-          <a class="btn" href="shop.html">See the builds</a>
+          <a class="btn" href="shop.html">See the hardware</a>
         </div>`;
       return;
     }
@@ -113,7 +113,7 @@
       : RETICLE;
 
     host.innerHTML = `
-      <a class="back-link" href="shop.html">&larr; All builds</a>
+      <a class="back-link" href="shop.html">&larr; All hardware</a>
       <div class="detail" data-reveal>
         <div class="detail__media ${p.holo ? "is-holo" : "is-placeholder"}">
           ${media}

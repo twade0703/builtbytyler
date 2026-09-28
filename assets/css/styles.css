@@ -391,19 +391,17 @@ html.nav-open, html.nav-open body { overflow: hidden; }
   0%   { filter: drop-shadow(0 0 6px rgba(95, 230, 255, .95)) drop-shadow(0 0 18px rgba(95, 230, 255, .55)); }
   100% { filter: drop-shadow(0 0 3px rgba(95, 230, 255, .35)); }
 }
-/* The wave (assets/js/portrait.js): one straight front crosses the face every
-   7 s, rippling the lines and lighting them green on the way up, red on the
-   way back. The lit copy of each line is stroked with a gradient the script
-   slides along with the front, so colour exists only where the front is. */
+/* The trace (assets/js/portrait.js): a glowing pulse runs along every line,
+   each on its own slow-fast-slow curve, green up the face then red back. The
+   script moves each copy's dash offset; the colour is currentColor. */
 .portrait .pt-hot path {
-  stroke: url(#pt-hot-grad);
-  stroke-width: 4.8;
-  stroke-dasharray: none;
-  stroke-dashoffset: 0;
+  stroke: currentColor;
+  stroke-width: 4.6;
+  stroke-linecap: round;
   animation: none;
 }
-.portrait .pt-hot .hp { stroke-width: 5.8; }
-.portrait .pt-hot { filter: drop-shadow(0 0 6px var(--hot, #2BD98A)); }
+.portrait .pt-hot .hp { stroke-width: 5.6; }
+.portrait .pt-hot { color: #2BD98A; filter: drop-shadow(0 0 6px var(--hot, #2BD98A)); }
 @media (prefers-reduced-motion: reduce) {
   .portrait, .portrait path { animation: none; stroke-dashoffset: 0; }
   .portrait .pt-hot { display: none; }
@@ -765,19 +763,22 @@ html.nav-open, html.nav-open body { overflow: hidden; }
    two card centres fall because the columns have no gap (the cards carry
    their own margin instead).
    =================================================================== */
-.fork__head { text-align: center; max-width: 40rem; margin: 0 auto; }
+.fork__head {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(1.5rem, 4vw, 4rem);
+  align-items: end; padding-top: 1.25rem; border-top: 1px solid var(--hairline-strong);
+}
 .fork__n {
   display: block;
   font-family: var(--font-mono);
   font-size: var(--fs-micro);
   letter-spacing: 0.18em;
   color: var(--accent);
-  margin-bottom: 1rem;
+  margin-bottom: 0.9rem;
 }
-.fork__head h2 { font-size: var(--fs-h2); margin: 0 0 1rem; }
-.fork__head p { color: var(--muted); max-width: 44ch; margin: 0 auto; }
+.fork__head h2 { font-size: clamp(2.6rem, 5.2vw, 4.4rem); font-weight: 300; letter-spacing: -0.03em; line-height: 1; margin: 0; }
+.fork__head p { color: var(--muted); font-size: clamp(1.02rem, 1.3vw, 1.18rem); line-height: 1.55; max-width: 46ch; margin: 0; }
 
-.fork__lines { display: block; width: 100%; height: 150px; margin-top: 2.25rem; overflow: visible; }
+.fork__lines { display: block; width: 100%; height: 96px; margin-top: 2rem; overflow: visible; }
 .fork__lines path { fill: none; vector-effect: non-scaling-stroke; }
 .fork__base { stroke: var(--hairline-strong); stroke-width: 1.25; }
 .fork__pulse {
@@ -791,18 +792,18 @@ html.nav-open, html.nav-open body { overflow: hidden; }
 }
 @keyframes fork-pulse {
   0%   { stroke-dashoffset: 0.14; }
-  40%  { stroke-dashoffset: -1.02; }
+  36%  { stroke-dashoffset: -1.02; }
   100% { stroke-dashoffset: -1.02; }
 }
 
-.fork__cols { display: grid; grid-template-columns: 1fr 1fr; }
+.fork__cols { display: grid; grid-template-columns: 1fr 1fr; column-gap: 3%; }
 .fork__card {
   --c: var(--hairline-strong);
   position: relative;
   display: flex;
   flex-direction: column;
-  margin: 0 clamp(0.5rem, 2vw, 1.5rem);
-  padding: clamp(1.75rem, 3vw, 2.5rem);
+  margin: 0;
+  padding: clamp(2rem, 3.4vw, 3rem) clamp(1.75rem, 3vw, 2.75rem);
   color: inherit;
   text-decoration: none;
   text-align: left;
@@ -826,10 +827,10 @@ html.nav-open, html.nav-open body { overflow: hidden; }
 .fork__node {
   position: absolute;
   top: -5px;
-  left: 50%;
+  left: -4.5px;
   width: 9px;
   height: 9px;
-  margin-left: -4.5px;
+  z-index: 1;
   border-radius: 50%;
   background: var(--bg, #05080D);
   border: 1px solid var(--accent);
@@ -837,9 +838,9 @@ html.nav-open, html.nav-open body { overflow: hidden; }
 }
 
 .fork__icon {
-  width: 64px;
-  height: 48px;
-  margin-bottom: 1.5rem;
+  width: 84px;
+  height: 63px;
+  margin-bottom: 1.75rem;
   fill: none;
   stroke: var(--muted);
   stroke-width: 1.2;
@@ -861,8 +862,18 @@ html.nav-open, html.nav-open body { overflow: hidden; }
   color: var(--accent);
   margin-bottom: 0.9rem;
 }
-.fork__card h3 { font-size: var(--fs-h2); font-weight: 400; letter-spacing: -0.024em; margin: 0 0 0.9rem; }
-.fork__card > p { color: var(--muted); max-width: 44ch; }
+.fork__card h3 { font-size: clamp(2.2rem, 3.6vw, 3.2rem); font-weight: 400; letter-spacing: -0.028em; margin: 0 0 1rem; }
+.fork__card > p { color: var(--muted); max-width: 44ch; font-size: clamp(1rem, 1.25vw, 1.12rem); line-height: 1.55; }
+/* the route carried on down the card's left edge, with the pulse arriving
+   after it has come down the fork */
+.fork__rail { position: absolute; left: 0; top: 0; bottom: 0; width: 1px; background: var(--hairline-strong); overflow: hidden; }
+.fork__rail::after {
+  content: ""; position: absolute; left: 0; width: 1px; height: 22%; top: -22%;
+  background: linear-gradient(transparent, var(--accent), transparent);
+  box-shadow: 0 0 6px rgba(95, 230, 255, 0.8);
+  animation: fork-rail 6s cubic-bezier(.5, 0, .3, 1) 3.5s infinite;
+}
+@keyframes fork-rail { 0% { top: -22%; } 30% { top: 100%; } 100% { top: 100%; } }
 .fork__tags {
   font-family: var(--font-mono);
   font-size: var(--fs-micro);
@@ -889,15 +900,17 @@ html.nav-open, html.nav-open body { overflow: hidden; }
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .fork__pulse { display: none; }
+  .fork__pulse, .fork__rail::after { display: none; }
   .fork__card:hover .fork__prop { animation: none; }
 }
 /* stacked: no room for a fork, so the trace becomes one line down the middle */
 @media (max-width: 760px) {
-  .fork__lines { height: 56px; margin-top: 1.5rem; }
+  .fork__head { grid-template-columns: 1fr; }
+  .fork__lines { height: 48px; margin-top: 1.5rem; }
   .fork__lines path:nth-child(2), .fork__lines path:nth-child(4) { display: none; }
-  .fork__lines path { d: path("M500 0 V160"); }
+  .fork__lines path { d: path("M1 0 V100"); }
   .fork__cols { grid-template-columns: 1fr; row-gap: 2.5rem; }
+  .fork__rail::after { animation: none; }
   .fork__card { margin: 0; }
   .fork__card + .fork__card .fork__node { display: none; }   /* only the first card has a trace landing on it */
 }
@@ -908,7 +921,8 @@ html.nav-open, html.nav-open body { overflow: hidden; }
    text and the two buttons, then the working software centred and wide
    underneath. The demo is the point; the words stay short. */
 .opener__stack { display: flex; flex-direction: column; align-items: center; gap: clamp(2rem, 4vw, 3rem); }
-.opener__head { text-align: center; max-width: 46rem; }
+.opener__head { text-align: center; max-width: 64rem; }
+@media (min-width: 761px) { .opener__stack .display { white-space: nowrap; } }   /* one line on desktop */
 .opener__head .kicker { justify-content: center; }
 .opener__stack .display { font-size: clamp(2.3rem, 5vw, 4.2rem); margin: 0 0 1.1rem; }
 .opener__head .opener__lead { margin: 0 auto; max-width: 44ch; font-size: clamp(1rem, 1.3vw, 1.12rem); }

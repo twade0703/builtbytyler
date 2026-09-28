@@ -89,6 +89,26 @@ const PRODUCTS = [
       { label: "Status", value: "In development" },
     ],
   },
+  {
+    id: "beer-launcher",
+    name: "Beer Launcher",
+    tagline: "Press the button. A cold one comes to you.",
+    holo: "launcher",
+    status: "In design",
+    featured: true,
+    available: false,
+    description:
+      "A spring-loaded catapult that sits across the room and throws you a can when you " +
+      "press the button on its remote. A servo latch holds the arm cocked, the button " +
+      "releases it, and the arm stops against a padded bar so the can leaves in a soft " +
+      "arc instead of a line drive. Reload, re-cock, repeat.",
+    specs: [
+      { label: "Launch", value: "Spring arm, servo release" },
+      { label: "Trigger", value: "Wireless button remote" },
+      { label: "Payload", value: "One 12 oz can" },
+      { label: "Status", value: "In design" },
+    ],
+  },
 ];
 
 /* -----------------------------------------------------------------

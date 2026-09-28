@@ -64,7 +64,7 @@ const SCRIPTS=[
 
 /* ---------- the workflow each story walks through: [key, title, what it does, the tool it uses] */
 const STEPS={
- call:[["answer","Answer the call","Picks up on the first ring, 24/7, and says it's a virtual assistant.","Your business number"],
+ call:[["answer","Answer the call","Picks up on the first ring, 24/7, and says it's a virtual assistant.","Your number"],
   ["understand","Understand the problem","Turns what the caller says into a job description.",""],
   ["triage","Triage the urgency","Asks the safety questions you would: is the water off, is anyone at risk.",""],
   ["calendar","Check your calendar","Reads your real free and busy time and offers the soonest slots that fit.","Google Calendar"],
@@ -72,7 +72,7 @@ const STEPS={
   ["text","Text the customer","Confirmation now, a reminder later, an on-the-way text when your tech leaves.","SMS"],
   ["notify","Tell you and the team","A summary on your phone and a post in your team chat.","Slack · Teams"],
   ["log","Log the job","Creates the job and the customer in your job software, with the call attached.","Jobber · QuickBooks"]],
- missed:[["missed","Missed call","You were on a job and the call rang out.","Your business number"],
+ missed:[["missed","Missed call","You were on a job and the call rang out.","Your number"],
   ["textback","Text back in seconds","A friendly text goes out before they dial the next company.","SMS"],
   ["understand","Understand the reply","Reads their message and works out what the job is.",""],
   ["calendar","Offer times","Suggests open slots straight from your calendar.","Google Calendar"],
@@ -83,7 +83,7 @@ const STEPS={
   ["ask","Ask for the review","A thank-you text with your review link, to every customer.","SMS · Google review link"],
   ["reply","Read the reply","Praise is thanked. A complaint comes straight to you.",""],
   ["notify","Tell you","You see every review as it lands.","Slack"]],
- day:[["d1","Calls answered","Every call picked up or texted back.","Your business number"],["d2","Jobs booked","Straight onto the calendar.","Google Calendar"],
+ day:[["d1","Calls answered","Every call picked up or texted back.","Your number"],["d2","Jobs booked","Straight onto the calendar.","Google Calendar"],
   ["d3","Missed calls recovered","Texted back and turned into work.","SMS"],["d4","Jobs logged","Customer, job and invoice ready to go.","Jobber · QuickBooks"],
   ["d5","Reviews requested","Every finished job gets asked.","SMS"]],
 };
@@ -95,12 +95,12 @@ function typeIn(el,text,t0,dur,done){st.ty.push({el,w:text.split(" "),t0,dur,don
 
 /* ---------- smooth counters */
 const K={calls:37,booked:21,texts:64,missed:0,value:8420},KC={...K};
-function bump(id){const e=$(id);e.classList.remove("bump");void e.offsetWidth;e.classList.add("bump")}
-function tickK(){for(const k in K){KC[k]+=(K[k]-KC[k])*.1;if(Math.abs(K[k]-KC[k])<.5)KC[k]=K[k]}
+function bump(id){const e=$(id);if(!e)return;e.classList.remove("bump");void e.offsetWidth;e.classList.add("bump")}
+function tickK(){if(!$("kCalls"))return;for(const k in K){KC[k]+=(K[k]-KC[k])*.1;if(Math.abs(K[k]-KC[k])<.5)KC[k]=K[k]}
   $("kCalls").textContent=Math.round(KC.calls);$("kBooked").textContent=Math.round(KC.booked);$("kTexts").textContent=Math.round(KC.texts);
   $("kMissed").textContent=Math.round(KC.missed);$("kValue").textContent="$"+Math.round(KC.value).toLocaleString("en-US")}
-$("conn").innerHTML=CONN.map(c=>`<span data-c="${c}">${c}</span>`).join("");
-function lightTool(tool){if(!tool)return;tool.split(" · ").forEach(n=>{const e=$("conn").querySelector(`[data-c="${n}"]`);if(!e)return;
+if($("conn"))$("conn").innerHTML=CONN.map(c=>`<span data-c="${c}">${c}</span>`).join("");
+function lightTool(tool){if(!tool||!$("conn"))return;tool.split(" · ").forEach(n=>{const e=$("conn").querySelector(`[data-c="${n}"]`);if(!e)return;
   e.classList.add("lit");clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove("lit"),2200)})}
 
 /* ---------- views swap like a deck */
@@ -117,16 +117,16 @@ function caption(h,p){if(h!==capH)words($("capH"),h,"");words($("capP"),p,h===ca
 
 /* ---------- workflow panel */
 let stepEls={},stepOrder=[],stepTool={};
-function setSteps(key,title,sub){$("fH").textContent=title;$("fP").textContent=sub;stepEls={};stepTool={};stepOrder=STEPS[key].map(s=>s[0]);
-  $("steps").innerHTML=`<div class="rail"><i id="railI"></i></div>`+STEPS[key].map(([k,t,tip,tool],i)=>{stepTool[k]=tool;return`<div class="step" data-k="${k}" style="animation-delay:${i*50}ms">
-    <div class="ic">✓</div><div><b>${t}${tool?`<span class="tool">${tool}</span>`:""}</b><span class="det"></span></div><time></time><div class="tip">${tip}</div></div>`}).join("");
-  $("steps").querySelectorAll(".step").forEach(e=>stepEls[e.dataset.k]=e)}
+/* short labels for the step strip; the full title and what it does sit in the hover tip */
+const SHORTS={answer:"Answer",understand:"Understand",triage:"Triage",calendar:"Check calendar",book:"Book",text:"Text customer",notify:"Tell you",log:"Log the job",
+  missed:"Missed call",textback:"Text back",done:"Job done",wait:"Wait 2 hours",ask:"Ask for review",reply:"Read reply",d1:"Calls",d2:"Bookings",d3:"Recovered",d4:"Logged",d5:"Reviews"};
+function setSteps(key){stepEls={};stepTool={};stepOrder=STEPS[key].map(s=>s[0]);
+  $("steps").innerHTML=STEPS[key].map(([k,t,tip,tool])=>{stepTool[k]=tool;return`<div class="sp" data-k="${k}"><i>✓</i><div><b>${SHORTS[k]||t}</b>${tool?`<small>${tool}</small>`:""}</div><div class="tip"><b style="color:#fff">${t}</b><br>${tip}</div></div>`}).join("");
+  $("steps").querySelectorAll(".sp").forEach(e=>stepEls[e.dataset.k]=e)}
 const clk=()=>{const s=Math.max(0,st.E/1000);return`${Math.floor(s/60)}:${String(Math.floor(s%60)).padStart(2,"0")}`};
 function stepOn(k){const e=stepEls[k];if(e&&!e.classList.contains("done")){e.classList.add("active");lightTool(stepTool[k])}}
-function stepDone(k,detail){const e=stepEls[k];if(!e)return;e.classList.remove("active");e.classList.add("done");lightTool(stepTool[k]);
-  if(detail)e.querySelector(".det").textContent=detail;e.querySelector("time").textContent=clk();
-  const last=Math.max(...stepOrder.map((s,i)=>stepEls[s].classList.contains("done")?i:0));
-  $("railI").style.height=(last/(stepOrder.length-1)*100)+"%"}
+function stepDone(k,detail){const e=stepEls[k];if(!e)return;e.classList.remove("active");e.classList.add("done");
+  if(detail)e.querySelector(".tip").insertAdjacentHTML("beforeend",`<br><b style="color:#fff;font-weight:600">${detail}</b>`)}
 
 /* ---------- call view */
 const FIELDS=[["name","Name"],["phone","Phone"],["addr","Address"],["issue","Issue"],["urg","Urgency"],["slot","Booked"]];
@@ -195,15 +195,15 @@ function drawWave(now){if(!wx||!front||front.id!=="vCall")return;const sp=st.spe
   for(let i=0;i<n;i++){let a=.05;
     if(who&&!st.paused)a=.18+.82*Math.abs(Math.sin(i*.9+now/70)*Math.sin(i*.37+now/130))*(0.55+0.45*Math.sin(i/n*Math.PI));
     else if(st.ring)a=.05+.14*Math.max(0,Math.sin(now/180-i*.25));
-    bars[i]+=(a-bars[i])*.25;const h=Math.max(2,bars[i]*wh*.92);
+    bars[i]+=(a-bars[i])*.25;const h=bars[i]*wh*.92;if(h<3)continue;
     wx.fillStyle=who==="ai"?"#0A84FF":who==="c"?"#FFFFFF":st.ring?"#64B5FF":"#2a2e38";wx.globalAlpha=who?.95:.8;
     wx.beginPath();wx.roundRect(i*bw+bw*.24,mid-h/2,bw*.52,h,2);wx.fill()}
-  wx.globalAlpha=1;
+  wx.globalAlpha=1;wx.fillStyle=who==="ai"?"rgba(10,132,255,.35)":"rgba(255,255,255,.12)";wx.fillRect(0,mid-.5,ww,1);
   if(st.callT0!=null&&!st.callEnded){const s=(st.E-st.callT0)/1000;$("cStatT").textContent=`Assistant on the call · ${Math.floor(s/60)}:${String(Math.floor(s%60)).padStart(2,"0")}`}}
 
 /* ================= the stories ================= */
 function buildCall(S){const c=S.caller,[sd,ss,se]=S.slot,slot=slotTxt(sd,ss,se);
-  showView("vCall");setSteps("call","Answering a call","What the assistant is doing");resetCall(c);setStat("ringing",`Incoming call · ${S.clock}`);
+  showView("vCall");setSteps("call");resetCall(c);setStat("ringing",`Incoming call · ${S.clock}`);
   caption("It answers every call.",S.ring);
   let t=1900;
   at(t,()=>{st.ring=false;$("cAv").classList.remove("ring");setStat("live","Assistant on the call");st.callT0=st.E;
@@ -238,7 +238,7 @@ function buildCall(S){const c=S.caller,[sd,ss,se]=S.slot,slot=slotTxt(sd,ss,se);
   return tO+7200}
 
 function buildMissed(){const c={name:"James Kim",first:"James",ini:"JK",phone:"(831) 555-0187"};
-  showView("vCall");setSteps("missed","Missed-call text back","For the calls you'd rather take yourself");resetCall(c);setStat("ringing","Incoming call · 11:02 AM · you're on a job");
+  showView("vCall");setSteps("missed");resetCall(c);setStat("ringing","Incoming call · 11:02 AM · you're on a job");
   caption("Rather answer yourself?","It covers every call you miss.");stepOn("missed");
   at(3400,()=>{st.ring=false;$("cAv").classList.remove("ring");setStat("missed","Missed call");stepDone("missed","Rang out at 11:02 AM");stepOn("textback")});
   const tS=4300;
@@ -266,7 +266,7 @@ function buildMissed(){const c={name:"James Kim",first:"James",ini:"JK",phone:"(
 
 function buildReview(S){const c=S.caller,[sd,ss,se]=S.slot;
   renderCal([{d:sd,s:ss,e:se,t:S.job,w:c.name,cls:"done",cur:1}],null);$("gcSync").innerHTML=`<i>✓</i>${TECH} marked it complete`;showView("vCal");
-  setSteps("review","Review request","After every finished job");stepOn("done");
+  setSteps("review");stepOn("done");
   caption("After the job, it asks for the review.","Every customer, every time, without you remembering.");
   at(900,()=>stepDone("done",`${TECH} marked it complete`));at(1400,()=>stepOn("wait"));at(3000,()=>stepDone("wait","Waited 2 hours"));
   const tS=3300;
@@ -282,7 +282,7 @@ function buildReview(S){const c=S.caller,[sd,ss,se]=S.slot;
   at(tO+1400,()=>{post(`New 5-star review from ${c.first} ${c.name.split(" ")[1][0]}. for <b>${S.job}</b>.`,[["Tech",TECH],["Review",`“${S.review}”`]],["Say thanks"]);stepDone("notify","Review on your phone")});
   return tO+5200}
 
-function buildDay(){resetOwner("7:30");chatMode("teams");showView("vOwn");setSteps("day","Your day","While you were on the tools");
+function buildDay(){resetOwner("7:30");chatMode("teams");showView("vOwn");setSteps("day");
   caption("Software that works while you do.","Built around your business. We'll build yours.");
   const det=["6 answered · 0 unanswered","4 booked · $5,850","1 turned into a job","4 jobs · 4 customers","3 asked · 1 new 5-star"];
   STEPS.day.forEach(([k],i)=>{at(300+i*380,()=>stepOn(k));at(680+i*380,()=>stepDone(k,det[i]))});

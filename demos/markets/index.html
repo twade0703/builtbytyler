@@ -15,7 +15,7 @@
   --ok:#00C805; --bad:#FF5000; --ok-rgb:0,200,5; --bad-rgb:255,80,0;
   --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
   --sans:"Public Sans",system-ui,-apple-system,sans-serif;
-  --e:cubic-bezier(.22,1,.36,1);
+  --e:cubic-bezier(.4,0,.2,1);
   color-scheme:dark;
 }
 *{box-sizing:border-box}
@@ -62,15 +62,14 @@ html.embed .win{box-shadow:0 0 0 1px rgba(255,255,255,.03),0 10px 16px rgba(0,0,
 .kpi small{display:block;font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--mu)}
 .kpi b{display:flex;align-items:center;gap:7px;font-family:var(--mono);font-size:22px;font-weight:600;margin-top:4px}
 .kpi.t b{font-size:16.5px;margin-top:7px}
-.pulse{width:7px;height:7px;border-radius:50%;background:var(--ok);animation:pulse 1.8s infinite}
+.pulse{width:7px;height:7px;border-radius:50%;background:var(--ok)}
 @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(var(--ok-rgb),.55)}70%{box-shadow:0 0 0 8px rgba(var(--ok-rgb),0)}100%{box-shadow:0 0 0 0 rgba(var(--ok-rgb),0)}}
 
 /* ---------- middle: the deck + the list */
 .mid{display:grid;grid-template-columns:minmax(0,1fr) 336px;gap:14px;min-height:0}
 .deck{position:relative;min-height:0}
 .card,.ghost{position:absolute;inset:0 0 20px 0;background:var(--pan);border:1px solid var(--hair);border-radius:12px;
-  transition:transform .8s var(--e),opacity .8s var(--e),filter .8s var(--e),border-color .6s}
-.deck.fast .card{transition-duration:.46s}
+  transition:transform .9s var(--e),opacity .9s var(--e),filter .9s var(--e),border-color .6s}
 .ghost{transform:translateY(20px) scale(.93);opacity:.35;z-index:1}
 .card.back{transform:translateY(10px) scale(.965);opacity:.7;z-index:2;filter:brightness(.55)}
 .card.front{transform:none;opacity:1;z-index:3;filter:none}
@@ -135,12 +134,12 @@ html.embed .win{box-shadow:0 0 0 1px rgba(255,255,255,.03),0 10px 16px rgba(0,0,
 .w{display:inline-block;white-space:pre;animation:rise .9s var(--e) both}
 @keyframes rise{from{opacity:0;transform:translateY(14px);filter:blur(8px)}to{opacity:1;transform:none;filter:none}}
 .ctl{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
-.dots{display:flex;align-items:center;gap:7px}
-.dots button[data-i]{width:24px;height:5px;border-radius:3px;background:#2a2a30;position:relative}
-.dots button[data-i]::after{content:"";position:absolute;inset:-9px -3px}
-.dots button[data-i]:hover{background:#2c2c31}
-.dots button i{position:absolute;inset:0;border-radius:3px;background:var(--ok);transform-origin:left;transform:scaleX(0)}
-.dots button.done i{transform:scaleX(1);opacity:.45}
+.dots{display:flex;align-items:center;gap:6px}
+.dots button[data-c]{position:relative;overflow:hidden;font-family:var(--mono);font-size:12px;font-weight:500;padding:8px 13px;border-radius:999px;
+  border:1px solid rgba(255,255,255,.2);background:var(--pan2);color:var(--mu);transition:color .2s,border-color .2s,background .2s}
+.dots button[data-c]:hover{color:var(--tx);border-color:rgba(255,255,255,.5)}
+.dots button[data-c].on{color:var(--tx);border-color:rgba(var(--ok-rgb),.7)}
+.dots button[data-c] u{position:absolute;left:0;bottom:0;height:2px;width:0;background:var(--ok)}
 .play{font-family:var(--mono);font-size:13px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--tx);margin-left:12px;display:flex;align-items:center;gap:8px;
   padding:10px 18px;border:1px solid rgba(255,255,255,.35);border-radius:999px;background:var(--pan2);transition:background .2s,color .2s,border-color .2s,transform .2s var(--e)}
 .play:hover{background:var(--ok);border-color:var(--ok);color:#000;transform:translateY(-1px)}

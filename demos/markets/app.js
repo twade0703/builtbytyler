@@ -17,8 +17,9 @@ function fit(){SC=Math.min((innerWidth-32)/1280,(innerHeight-32)/800,1.25);stage
 addEventListener("resize",()=>{fit();sizeAll()});fit();
 
 /* ---------- the replay clock: the real Sep 25 session, 5-minute bars, played back smoothly */
-const REPLAY_MS=70000,OPEN_AT=.42;let clock=REPLAY_MS*OPEN_AT,last=performance.now();
-const frac=()=>Math.min(clock/REPLAY_MS,1);
+/* 8 minutes per session, and the screen only takes a new quote every 2.4s: small, infrequent moves, still at rest */
+const REPLAY_MS=480000,OPEN_AT=.42,TICK_MS=2400;let clock=REPLAY_MS*OPEN_AT,shown=clock,tickAt=0,last=performance.now();
+const frac=()=>Math.min(shown/REPLAY_MS,1);
 function interp(a,f){const x=f*(a.length-1),i=Math.floor(x),j=Math.min(i+1,a.length-1);return lerp(a[i],a[j],x-i)}
 const px=sym=>interp(ALL[sym].ic,frac());
 const prev=sym=>ALL[sym].prev;
@@ -75,7 +76,7 @@ function line(x,pts,col,wid=1.8,glow=14){x.save();x.beginPath();pts.forEach(([a,
   x.strokeStyle=col;x.lineWidth=wid;x.lineJoin="round";x.lineCap="round";x.shadowColor=col;x.shadowBlur=glow;x.stroke();x.restore()}
 function area(x,pts,rgb,bottom,top){if(pts.length<2)return;const g=x.createLinearGradient(0,top,0,bottom);g.addColorStop(0,`rgba(${rgb},.26)`);g.addColorStop(1,`rgba(${rgb},0)`);
   x.beginPath();pts.forEach(([a,b],i)=>i?x.lineTo(a,b):x.moveTo(a,b));x.lineTo(pts[pts.length-1][0],bottom);x.lineTo(pts[0][0],bottom);x.closePath();x.fillStyle=g;x.fill()}
-function endDot(x,a,b,col,rgb,now){const k=(now%1800)/1800;x.beginPath();x.arc(a,b,4+k*14,0,7);x.fillStyle=`rgba(${rgb},${.35*(1-k)})`;x.fill();
+function endDot(x,a,b,col,rgb,now){
   x.beginPath();x.arc(a,b,4,0,7);x.fillStyle=col;x.shadowColor=col;x.shadowBlur=12;x.fill();x.shadowBlur=0}
 
 /* ---------- cards */
@@ -99,9 +100,10 @@ const INDN={candle:["Candles","#00C805"],bb:["Bollinger","#D2D2DC"],s50:["SMA 50
 function setInd(c,k,on){const o=c._ind[k];if(!!o.on===!!on)return;o.on=on?1:0;o.t=performance.now();
   const b=c.querySelector(`.chips [data-i="${k}"]`);if(b)b.classList.toggle("on",!!on)}
 /* r = how far across it has drawn, a = how visible it is */
-function ik(c,k,now,dur=1600){const o=c._ind[k];if(!o.t)return{r:0,a:0};const p=now-o.t;return o.on?{r:easeOut(p/dur),a:1}:{r:1,a:1-easeOut(p/450)}}
-function morph(c,k,now,dur=1100){const o=c._ind[k];if(!o.t)return 0;const p=now-o.t;return o.on?easeOut(p/dur):1-easeOut(p/600)}
-function feed(c,now,html,key){if(now-(c._ft||0)<48||!c._hud||key===c._fk)return;c._ft=now;c._fk=key;  /* one line per bar, never the same bar twice */
+const lin=t=>clamp(t,0,1);
+function ik(c,k,now,dur=1800){const o=c._ind[k];if(!o.t)return{r:0,a:0};const p=now-o.t;return o.on?{r:lin(p/dur),a:1}:{r:1,a:1-lin(p/450)}}
+function morph(c,k,now,dur=1400){const o=c._ind[k];if(!o.t)return 0;const p=now-o.t;return o.on?lin(p/dur):1-lin(p/600)}
+function feed(c,now,html,key){if(now-(c._ft||0)<90||!c._hud||key===c._fk)return;c._ft=now;c._fk=key;  /* one line per bar, never the same bar twice */
   const d=document.createElement("div");d.innerHTML=html;
   c._hud.prepend(d);while(c._hud.children.length>6)c._hud.lastChild.remove();c._hud.classList.add("show");
   clearTimeout(c._hudT);c._hudT=setTimeout(()=>c._hud&&c._hud.classList.remove("show"),1600)}
@@ -187,16 +189,15 @@ function show(v,fast){
   if(same(front._v,v))return;
   const next=cards.find(c=>c!==front),cur=front,deck=$("deck");
   if(swapT){clearTimeout(swapT);swapT=null;cards.forEach(c=>{if(c.classList.contains("out")){c.classList.add("nt");c.classList.remove("out");c.classList.add("back");void c.offsetWidth;c.classList.remove("nt")}})}
-  deck.classList.toggle("fast",!!fast);
   render(next,v);
   next.classList.remove("back");next.classList.add("front");cur.classList.remove("front","glow");cur.classList.add("out");
   front=next;arm(next);syncList();
-  swapT=setTimeout(()=>{cur.classList.add("nt");cur.classList.remove("out");cur.classList.add("back");void cur.offsetWidth;cur.classList.remove("nt");swapT=null},fast?480:820);
+  swapT=setTimeout(()=>{cur.classList.add("nt");cur.classList.remove("out");cur.classList.add("back");void cur.offsetWidth;cur.classList.remove("nt");swapT=null},900);
 }
 
 /* ---------- drawing, every frame */
 function drawCard(c,now){if(!c._v||!c._cv)return;const{x,w,h}=sizeCanvas(c._cv),v=c._v;
-  const rev=c._t0?easeOut((now-c._t0)/(c.parentElement.classList.contains("fast")?900:1500)):0;
+  const rev=c._t0?clamp((now-c._t0)/1600,0,1):0;
   x.clearRect(0,0,w,h);
   if(v.kind==="option")return drawOption(c,x,w,h,rev,now);
   if(v.kind==="stock"&&v.win!=="1D")return drawTech(c,x,w,h,rev,now);
@@ -215,7 +216,7 @@ function drawCard(c,now){if(!c._v||!c._cv)return;const{x,w,h}=sizeCanvas(c._cv),
   for(let k=0;k<4;k++){const i=Math.round((sl-1)*k/3),t=times[i];if(t==null)continue;
     const lab=v.win==="1D"&&v.kind!=="compare"?new Date(t*1000).toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit",timeZone:"America/New_York"}):new Date(t*1000).toLocaleDateString("en-US",{month:"short",year:v.win==="1M"?undefined:"2-digit",day:v.win==="1M"?"numeric":undefined,timeZone:"UTC"});
     x.fillText(lab,clamp(X(i),26,w-padR-26),h-5)}
-  if(v.kind==="compare"||v.win==="1D"){const y=Y(base);x.setLineDash([2,5]);x.strokeStyle="rgba(255,255,255,.25)";x.beginPath();x.moveTo(0,y);x.lineTo(w-padR,y);x.stroke();x.setLineDash([]);
+  if(v.kind==="compare"||v.win==="1D"){const y=Math.round(Y(base))+.5;x.strokeStyle="rgba(255,255,255,.16)";x.beginPath();x.moveTo(0,y);x.lineTo(w-padR,y);x.stroke();
     x.fillStyle="#B8B8BF";x.textAlign="left";x.fillText(v.kind==="compare"?"start":"prev close",4,y-6)}
   const endV=series[series.length-1],upw=endV>=base,col=upw?"#00C805":"#FF5000",rgb=upw?"0,200,5":"255,80,0";
   const upTo=Math.max(1,Math.floor(rev*(series.length-1)));
@@ -246,19 +247,19 @@ function drawOption(c,x,w,h,rev,now){const o=OPT,padR=80,padB=24,top=10,ph=h-pad
   x.fillStyle="#9A9AA2";x.font="11.5px JetBrains Mono";x.textAlign="center";x.textBaseline="alphabetic";
   for(let k=0;k<5;k++){const s=lerp(lo,hi,k/4);x.fillText("$"+s.toFixed(0),clamp(X(s),22,w-padR-22),h-5)}
   const y0=Y(0);x.strokeStyle="rgba(255,255,255,.28)";x.beginPath();x.moveTo(0,y0);x.lineTo(w-padR,y0);x.stroke();
-  [[o.K,"strike"],[o.be,"breakeven"]].forEach(([s,l])=>{const a=X(s);x.setLineDash([2,5]);x.strokeStyle="rgba(255,255,255,.22)";x.beginPath();x.moveTo(a,top);x.lineTo(a,top+ph);x.stroke();x.setLineDash([]);
+  [[o.K,"strike"],[o.be,"breakeven"]].forEach(([s,l])=>{const a=Math.round(X(s))+.5;x.strokeStyle="rgba(255,255,255,.12)";x.beginPath();x.moveTo(a,top);x.lineTo(a,top+ph);x.stroke();
     x.fillStyle="#B8B8BF";x.textAlign="left";x.fillText(`${l} $${s.toFixed(0)}`,a+5,top+10+(l==="breakeven"?14:0))});
   const n=Math.max(2,Math.round(rev*today.length)),pt=today.slice(0,n).map((v,i)=>[X(xs[i]),Y(v)]),pe=expiry.slice(0,n).map((v,i)=>[X(xs[i]),Y(v)]);
   /* shade gain green, loss orange */
   x.save();x.beginPath();x.rect(0,top,w-padR,y0-top);x.clip();area(x,pt,"0,200,5",y0,top);x.restore();
   x.save();x.beginPath();x.rect(0,y0,w-padR,top+ph-y0);x.clip();
   x.beginPath();pt.forEach(([a,b],i)=>i?x.lineTo(a,b):x.moveTo(a,b));x.lineTo(pt[pt.length-1][0],y0);x.lineTo(pt[0][0],y0);x.closePath();x.fillStyle="rgba(255,80,0,.16)";x.fill();x.restore();
-  x.setLineDash([4,4]);line(x,pe,"rgba(255,255,255,.4)",1.2,0);x.setLineDash([]);
+  line(x,pe,"rgba(255,255,255,.28)",1.1,0);
   line(x,pt,"#00C805",2,16);
   /* the marker: live price, a what-if sweep during the scene, or wherever the pointer is */
   let S=S0,what=false;
   if(c._hover!=null){S=lerp(lo,hi,clamp(c._hover*w/(w-padR),0,1));what=true}
-  else if(c._sweep){const t=(now-c._sweep)/7000;if(t<1){S=S0*(1+.16*(1-Math.cos(2*Math.PI*t))/2);what=t>.08&&t<.92}else c._sweep=null}
+  else if(c._sweep){const t=(now-c._sweep)/7000;if(t<1){const u=t<.4?t/.4:t<.6?1:(1-t)/.4;S=S0*(1+.14*u);what=t>.06&&t<.94}else c._sweep=null}
   c._optS=Math.abs(S-S0)<.005?null:S;
   if(rev>=1){const a=X(S),pl=optPL(S),b=Y(pl),col=pl>=0?"#00C805":"#FF5000";
     x.strokeStyle="rgba(255,255,255,.35)";x.beginPath();x.moveTo(a+.5,top);x.lineTo(a+.5,top+ph);x.stroke();
@@ -292,7 +293,7 @@ function drawTech(c,x,w,h,rev,now){const v=c._v,T=tech(v.sym),N=T.c.length,k=Mat
   if(bb.a>.01){const U=pts(T.bb.up,bb.r),Dn=pts(T.bb.dn,bb.r),M=pts(T.bb.mid,bb.r);
     if(U.length>1){x.globalAlpha=bb.a;x.beginPath();U.forEach(([a,b],i)=>i?x.lineTo(a,b):x.moveTo(a,b));for(let i=Dn.length-1;i>=0;i--)x.lineTo(Dn[i][0],Dn[i][1]);
       x.closePath();x.fillStyle="rgba(210,210,230,.06)";x.fill();line(x,U,"rgba(210,210,220,.6)",1,0);line(x,Dn,"rgba(210,210,220,.6)",1,0);
-      x.setLineDash([3,4]);line(x,M,"rgba(255,255,255,.28)",1,0);x.setLineDash([]);x.globalAlpha=1}}
+      x.globalAlpha=1}}
   /* the price: the line fades out as the candles grow out of it, oldest first */
   if(ck<.99){x.globalAlpha=1-ck;const P=series.map((p,i)=>[X(i),Y(p)]);area(x,P,rgb,top+mainH,top);line(x,P,col);x.globalAlpha=1}
   if(ck>.01){const bw=Math.max(1.2,Xw/k*.62);
@@ -325,7 +326,7 @@ function drawTech(c,x,w,h,rev,now){const v=c._v,T=tech(v.sym),N=T.c.length,k=Mat
       x.strokeStyle="rgba(255,255,255,.18)";x.beginPath();x.moveTo(0,y0+.5);x.lineTo(Xw,y0+.5);x.stroke();
       for(let i=0;i<=fi;i++){const q=M.h[off+i];x.fillStyle=q>=0?"rgba(0,200,5,.55)":"rgba(255,80,0,.55)";x.fillRect(X(i)-bw/2,Math.min(y0,Ym(q)),bw,Math.abs(Ym(q)-y0))}
       const lm=[],ls=[];for(let i=0;i<=fi;i++){lm.push([X(i),Ym(M.m[off+i])]);ls.push([X(i),Ym(M.sg[off+i])])}
-      line(x,lm,"#FFFFFF",1.3,6);x.setLineDash([3,3]);line(x,ls,"rgba(255,214,10,.8)",1.1,0);x.setLineDash([]);
+      line(x,lm,"#FFFFFF",1.3,0);line(x,ls,"rgba(255,214,10,.75)",1.1,0);
       x.fillStyle="#B8B8BF";x.font="11.5px JetBrains Mono";x.textAlign="left";x.textBaseline="top";x.fillText(`MACD 12 26 9   ${M.m[N-1].toFixed(2)}  signal ${M.sg[N-1].toFixed(2)}`,4,pt-2);
       x.globalAlpha=1}}
   /* legend: the live value of everything switched on */
@@ -382,10 +383,10 @@ live($("kDn"),()=>STOCKS.concat(IDX).filter(s=>dayPct(s)<0).length,x=>Math.round
 /* ---------- the director: scenes play like an ad until someone takes the wheel */
 const SC_=[
  {h:"Every market you care about.",p:"In one calm window.",d:6000,v:{kind:"stock",sym:"NVDA",win:"1D"}},
- {h:"Any stock you want.",p:"Apple.",d:1500,v:{kind:"stock",sym:"AAPL",win:"1Y"},fast:1},
- {h:"Any stock you want.",p:"Apple. Tesla.",d:1500,v:{kind:"stock",sym:"TSLA",win:"1Y"},fast:1},
- {h:"Any stock you want.",p:"Apple. Tesla. Microsoft.",d:1500,v:{kind:"stock",sym:"MSFT",win:"1Y"},fast:1},
- {h:"Any stock you want.",p:"Apple. Tesla. Microsoft. AMD.",d:4200,v:{kind:"stock",sym:"AMD",win:"1Y"},fast:1},
+ {h:"Any stock you want.",p:"Apple.",d:2800,v:{kind:"stock",sym:"AAPL",win:"1Y"}},
+ {h:"Any stock you want.",p:"Apple. Tesla.",d:2800,v:{kind:"stock",sym:"TSLA",win:"1Y"}},
+ {h:"Any stock you want.",p:"Apple. Tesla. Microsoft.",d:2800,v:{kind:"stock",sym:"MSFT",win:"1Y"}},
+ {h:"Any stock you want.",p:"Apple. Tesla. Microsoft. AMD.",d:4400,v:{kind:"stock",sym:"AMD",win:"1Y"}},
  {h:"Any index you want.",p:"The S&P 500 against the Nasdaq, side by side.",d:5800,v:{kind:"compare",pair:["GSPC","IXIC"]}},
  {h:"Crypto, too.",p:"Bitcoin, around the clock.",d:4200,v:{kind:"stock",sym:"BTC-USD",win:"1Y"}},
  {h:"Every technical, drawn for you.",p:"Candles.",d:3400,v:{kind:"stock",sym:"MSFT",win:"6M"},ind:["candle"]},
@@ -397,20 +398,24 @@ const SC_=[
  {h:"Built around the way you watch.",p:"Custom software, made for you.",d:6000,v:{kind:"stock",sym:"META",win:"1D"}},
 ];
 const st={i:-1,el:0,auto:true,hov:false,idle:0};
-$("dots").insertAdjacentHTML("afterbegin",SC_.map((_,i)=>`<button data-i="${i}" aria-label="Scene ${i+1}"><i></i></button>`).join(""));
-const dotEls=[...$("dots").querySelectorAll("[data-i]")];
-dotEls.forEach(b=>b.onclick=()=>{st.auto=true;go(+b.dataset.i);setPlay()});
+const CHAP=[["Stocks",0,5],["Indices",5,6],["Crypto",6,7],["Technicals",7,11],["Options",11,12],["Signals",12,14]];
+$("dots").insertAdjacentHTML("afterbegin",CHAP.map(([n,a],i)=>`<button data-c="${i}">${n}<u></u></button>`).join(""));
+const chapEls=[...$("dots").querySelectorAll("[data-c]")];
+chapEls.forEach(b=>b.onclick=()=>{st.auto=true;go(CHAP[+b.dataset.c][1]);setPlay()});
+function chapProgress(){const k=CHAP.findIndex(([,a,b])=>st.i>=a&&st.i<b);chapEls.forEach((e,j)=>e.classList.toggle("on",j===k));
+  if(k<0)return;const[,a,b]=CHAP[k],tot=SC_.slice(a,b).reduce((x,s)=>x+s.d,0),done=SC_.slice(a,st.i).reduce((x,s)=>x+s.d,0)+Math.min(st.el,SC_[st.i].d);
+  chapEls.forEach((e,j)=>e.querySelector("u").style.width=j===k?(done/tot*100)+"%":"0")}
 function words(el,txt,from){const keep=from&&txt.startsWith(from)?from:"";
   el.innerHTML=(keep?`<span>${keep}</span>`:"")+txt.slice(keep.length).split(/(\s+)/).map((w,i)=>w.trim()?`<span class="w" style="animation-delay:${i*45}ms">${w}</span>`:w).join("")}
 let capH="",capP="";
 function caption(h,p){if(h!==capH)words($("capH"),h,"");words($("capP"),p,h===capH?capP:"");capH=h;capP=p}
 function go(i){st.i=(i+SC_.length)%SC_.length;st.el=0;const s=SC_[st.i];
-  const stay=same(front._v,s.v);show(s.v,s.fast);caption(s.h,s.p);
+  const stay=same(front._v,s.v);show(s.v);caption(s.h,s.p);
   if(s.ind){const c=front;setTimeout(()=>{if(front===c&&SC_[st.i]===s)IND.forEach(k=>setInd(c,k,s.ind.includes(k)))},stay?0:900)}
   if(s.sweep)setTimeout(()=>{if(front._v.kind==="option")front._sweep=performance.now()},1300);
   if(s.glow)setTimeout(()=>{if(SC_[st.i]===s)front.classList.add("glow")},900);
-  if(st.i===0)clock=REPLAY_MS*OPEN_AT;  /* each loop opens mid-morning, so the first chart already has a shape */
-  dotEls.forEach((d,k)=>{d.classList.toggle("done",k<st.i);d.querySelector("i").style.transform=k<st.i?"scaleX(1)":"scaleX(0)"})}
+  if(st.i===0){clock=shown=REPLAY_MS*OPEN_AT}  /* each loop opens mid-morning, so the first chart already has a shape */
+  chapProgress()}
 function setPlay(){$("play").innerHTML=st.auto?"❚❚&nbsp;Pause":"▶&nbsp;Play"}
 $("play").onclick=()=>{st.auto=!st.auto;if(st.auto)go(st.i+1);setPlay()};
 function userTook(){if(st.auto){st.auto=false;setPlay();caption("Go ahead, click around.","It picks back up when you step away.")}st.idle=0}
@@ -422,8 +427,8 @@ $("src").textContent=`Public market data · ${fdate(ALL.NVDA.t[ALL.NVDA.t.length
 /* ---------- one loop drives everything */
 let sparkT=0;
 function frame(now){const dt=Math.min(now-last,100);last=now;
-  clock+=dt;if(clock>REPLAY_MS+2500)clock=0;
-  if(st.auto&&!st.hov){st.el+=dt;const s=SC_[st.i];if(s){dotEls[st.i].querySelector("i").style.transform=`scaleX(${Math.min(st.el/s.d,1)})`;if(st.el>=s.d)go(st.i+1)}}
+  clock+=dt;if(clock>REPLAY_MS)clock=0;if(now-tickAt>TICK_MS){shown=clock;tickAt=now}
+  if(st.auto&&!st.hov){st.el+=dt;const s=SC_[st.i];if(s){chapProgress();if(st.el>=s.d)go(st.i+1)}}
   if(!st.auto){st.idle+=dt;if(st.idle>9000){st.auto=true;setPlay();go(st.i+1)}}
   tickLive();$("kT").textContent=sessionTime();
   if(now-sparkT>200){ixSparks();sparkT=now}

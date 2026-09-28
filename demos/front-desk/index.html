@@ -14,7 +14,7 @@
   --tx:#FFFFFF; --mu:#A3A9B6; --dim:#6E7482;
   --ac:#0A84FF; --ac2:#64B5FF; --acl:#8AB4F8; --ac-rgb:10,132,255; --red:#FF453A;
   --sans:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif; --mono:"JetBrains Mono",ui-monospace,monospace;
-  --e:cubic-bezier(.22,1,.36,1);
+  --e:cubic-bezier(.4,0,.2,1);
   color-scheme:dark;
 }
 *{box-sizing:border-box}
@@ -38,7 +38,25 @@ html.embed .win{box-shadow:0 0 0 1px rgba(255,255,255,.03),0 10px 16px rgba(0,0,
 .dot.r:hover::before{content:"×";position:absolute;inset:0;display:grid;place-items:center;font:700 10px/1 var(--sans);color:rgba(0,0,0,.6)}
 .bar .ttl{position:absolute;left:50%;transform:translateX(-50%);font-size:13px;font-weight:500;color:var(--mu)}
 
-.app{flex:1;min-height:0;padding:18px 20px 14px;display:grid;grid-template-rows:78px minmax(0,1fr) 80px;gap:14px}
+.app{flex:1;min-height:0;padding:26px 30px 14px;display:grid;grid-template-rows:auto auto minmax(0,1fr) auto;gap:16px}
+/* the story is the hero: one big line, one supporting line */
+.hero{display:flex;justify-content:space-between;align-items:flex-end;gap:28px}
+.hero h2{margin:0;font-size:48px;font-weight:700;letter-spacing:-.045em;line-height:1.04;min-height:50px}
+.hero p{margin:9px 0 0;font-size:19px;color:var(--mu);min-height:24px;letter-spacing:-.01em}
+.foot{display:flex;justify-content:space-between;font-size:11.5px;color:var(--dim);padding-top:2px}
+/* the workflow, as one quiet line of steps */
+.strip{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:11px 0}
+.sp{position:relative;display:flex;align-items:center;gap:9px;padding:0 8px 0 0;min-width:0;cursor:default}
+.sp i{width:22px;height:22px;flex:none;border-radius:50%;border:1.5px solid #353a46;display:grid;place-items:center;font-style:normal;font-size:10.5px;font-weight:800;color:transparent;transition:all .5s var(--e)}
+.sp.active i{border-color:var(--ac);box-shadow:0 0 0 4px rgba(var(--ac-rgb),.18)}
+.sp.done i{background:var(--ac);border-color:var(--ac);color:#fff}
+.sp div{min-width:0;flex:1}
+.sp b{display:block;font-size:13px;font-weight:500;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:color .4s}
+.sp small{display:block;font-size:11px;color:#50555f;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:color .4s}
+.sp.active b,.sp.done b{color:#fff}
+.sp.active small,.sp.done small{color:var(--ac2)}
+.sp .tip{position:absolute;left:0;top:calc(100% + 10px);z-index:9;width:230px;background:#1b1e26;border:1px solid var(--line2);border-radius:10px;padding:9px 11px;font-size:12.5px;line-height:1.45;color:var(--mu);opacity:0;transform:translateY(-4px);pointer-events:none;transition:opacity .2s,transform .2s}
+.sp:hover .tip{opacity:1;transform:none}
 .lab{font-size:12.5px;font-weight:500;color:var(--mu)}
 
 /* ---------- top strip */
@@ -60,9 +78,9 @@ html.embed .win{box-shadow:0 0 0 1px rgba(255,255,255,.03),0 10px 16px rgba(0,0,
 /* ---------- middle */
 .mid{display:grid;grid-template-columns:minmax(0,1fr) 350px;gap:14px;min-height:0}
 .deck{position:relative;min-height:0}
-.card,.ghost{position:absolute;inset:0 0 20px 0;background:var(--pan);border:1px solid var(--line2);border-radius:16px;overflow:hidden;
+.card,.ghost{position:absolute;inset:0 0 16px 0;background:var(--pan);border:1px solid var(--line2);border-radius:16px;overflow:hidden;
   transition:transform .8s var(--e),opacity .8s var(--e),filter .8s var(--e)}
-.ghost{transform:translateY(20px) scale(.93);opacity:.35;z-index:1}
+.ghost{transform:translateY(14px) scale(.96);opacity:.3;z-index:1}
 .card{transform:translateY(10px) scale(.965);opacity:0;z-index:2;filter:brightness(.55);pointer-events:none}
 .card.front{transform:none;opacity:1;z-index:3;filter:none;pointer-events:auto}
 .card.out{transform:translateX(-90px) rotate(-3.5deg) scale(.94);opacity:0;filter:blur(8px);z-index:4}
@@ -95,12 +113,12 @@ html.embed .win{box-shadow:0 0 0 1px rgba(255,255,255,.03),0 10px 16px rgba(0,0,
 .pills button.on{color:#000;background:#fff;border-color:#fff;font-weight:600}
 .wave{height:62px;margin:14px 0 12px;position:relative}
 .wave canvas{position:absolute;inset:0;width:100%;height:100%}
-.callgrid{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 262px;gap:16px}
+.callgrid{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:22px}
 .tx{position:relative;min-height:0;overflow:hidden;-webkit-mask-image:linear-gradient(transparent,#000 22%);mask-image:linear-gradient(transparent,#000 22%)}
 .tx-in{position:absolute;left:0;right:0;bottom:0;display:flex;flex-direction:column;gap:10px;padding-bottom:2px}
 .msg{max-width:86%;animation:rise .5s var(--e) both}
 .msg small{display:block;font-size:12px;font-weight:600;color:var(--mu);margin:0 0 4px 4px}
-.msg p{margin:0;padding:11px 15px;border-radius:18px;font-size:15px;line-height:1.45;min-height:44px}
+.msg p{margin:0;padding:12px 16px;border-radius:18px;font-size:16px;line-height:1.45;min-height:44px}
 .msg.ai small{color:var(--ac2)}
 .msg.ai p{background:rgba(var(--ac-rgb),.13);border:1px solid rgba(var(--ac-rgb),.35);border-bottom-left-radius:6px}
 .msg.c{align-self:flex-end}
@@ -149,17 +167,17 @@ html.embed .win{box-shadow:0 0 0 1px rgba(255,255,255,.03),0 10px 16px rgba(0,0,
 .now::before{content:"";position:absolute;left:-6px;top:-5px;width:12px;height:12px;border-radius:50%;background:#EA4335}
 
 /* ---------- iPhone 15 Pro */
-.scene{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;gap:40px}
-.iph{position:relative;width:246px;height:500px;border-radius:50px;padding:3px;flex:none;
+.scene{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;gap:56px}
+.iph{position:relative;width:224px;height:452px;border-radius:46px;padding:3px;flex:none;
   background:linear-gradient(145deg,#8d9096 0%,#3b3d42 22%,#6f7278 48%,#2c2e33 74%,#80838a 100%);
   box-shadow:0 40px 90px rgba(0,0,0,.85),0 0 0 1px rgba(0,0,0,.6)}
 .iph::before,.iph::after{content:"";position:absolute;width:3px;border-radius:2px;background:linear-gradient(90deg,#5e6167,#9a9da3)}
 .iph::before{left:-2px;top:96px;height:26px;box-shadow:0 44px 0 0 #74777d,0 90px 0 0 #74777d}
 .iph::after{right:-2px;top:150px;height:64px}
-.bezel{position:absolute;inset:3px;border-radius:47px;background:#000;padding:5px}
-.screen{position:relative;width:100%;height:100%;border-radius:42px;overflow:hidden;background:#000;display:flex;flex-direction:column}
-.island{position:absolute;top:9px;left:50%;transform:translateX(-50%);width:78px;height:23px;border-radius:14px;background:#000;z-index:6}
-.sbar{position:relative;z-index:5;height:40px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:6px 20px 0 26px;font-size:13px;font-weight:600}
+.bezel{position:absolute;inset:3px;border-radius:43px;background:#000;padding:5px}
+.screen{position:relative;width:100%;height:100%;border-radius:38px;overflow:hidden;background:#000;display:flex;flex-direction:column}
+.island{position:absolute;top:9px;left:50%;transform:translateX(-50%);width:64px;height:20px;border-radius:12px;background:#000;z-index:6}
+.sbar{position:relative;z-index:5;height:40px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:6px 17px 0 24px;font-size:12.5px;font-weight:600}
 .sbar .ico{display:flex;align-items:center;gap:5px}
 .homebar{position:absolute;bottom:7px;left:50%;transform:translateX(-50%);width:92px;height:4px;border-radius:3px;background:#fff;opacity:.9;z-index:6}
 /* Messages */
@@ -187,7 +205,7 @@ html.embed .win{box-shadow:0 0 0 1px rgba(255,255,255,.03),0 10px 16px rgba(0,0,
 /* lock screen */
 .lock .screen{background:radial-gradient(110% 70% at 30% 10%,#1f5fd6 0%,#0b2a6e 38%,#030a1c 72%,#000 100%)}
 .lk-date{text-align:center;font-size:13.5px;font-weight:600;color:rgba(255,255,255,.85);margin-top:10px}
-.lk-time{text-align:center;font-size:72px;font-weight:600;letter-spacing:-.04em;line-height:1;color:rgba(255,255,255,.92)}
+.lk-time{text-align:center;font-size:62px;font-weight:600;letter-spacing:-.04em;line-height:1;color:rgba(255,255,255,.92)}
 .notes{flex:1;display:flex;flex-direction:column;gap:6px;margin:16px 8px 0;overflow:hidden}
 .note{background:rgba(40,44,54,.7);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-radius:18px;padding:9px 11px;animation:note .7s var(--e) both}
 @keyframes note{from{opacity:0;transform:translateY(-24px) scale(.95)}to{opacity:1;transform:none}}
@@ -201,9 +219,9 @@ html.embed .win{box-shadow:0 0 0 1px rgba(255,255,255,.03),0 10px 16px rgba(0,0,
 .lk-foot i{width:40px;height:40px;border-radius:50%;background:rgba(0,0,0,.35);backdrop-filter:blur(8px);display:grid;place-items:center;font-style:normal}
 .lk-foot svg{width:16px;height:16px}
 
-.side{width:300px;display:flex;flex-direction:column;gap:12px}
-.side h3{margin:0;font-size:25px;font-weight:600;letter-spacing:-.025em;line-height:1.2}
-.side p{margin:0;font-size:15px;color:var(--mu);line-height:1.5}
+.side{width:340px;display:flex;flex-direction:column;gap:12px}
+.side h3{margin:0;font-size:30px;font-weight:600;letter-spacing:-.025em;line-height:1.2}
+.side p{margin:0;font-size:16px;color:var(--mu);line-height:1.5}
 .chk{display:flex;flex-direction:column;gap:9px;margin-top:6px}
 .chk div{display:flex;align-items:center;gap:10px;font-size:14.5px;color:var(--dim);transition:color .5s}
 .chk div i{width:20px;height:20px;border-radius:50%;border:1.5px solid #3a3e48;display:grid;place-items:center;font-style:normal;font-size:11px;color:transparent;transition:all .5s var(--e)}
@@ -211,7 +229,7 @@ html.embed .win{box-shadow:0 0 0 1px rgba(255,255,255,.03),0 10px 16px rgba(0,0,
 .chk div.on i{background:var(--ac);border-color:var(--ac);color:#fff}
 
 /* team chat (Slack / Teams) */
-.chat{width:420px;height:436px;border-radius:14px;background:#15161b;border:1px solid var(--line2);box-shadow:0 30px 70px rgba(0,0,0,.7);display:flex;flex-direction:column;overflow:hidden}
+.chat{width:440px;height:420px;border-radius:14px;background:#15161b;border:1px solid var(--line2);box-shadow:0 30px 70px rgba(0,0,0,.7);display:flex;flex-direction:column;overflow:hidden}
 .ch-hd{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--line)}
 .ch-hd b{font-size:15px;font-weight:700}
 .ch-hd small{font-size:12px;color:var(--mu)}
@@ -291,18 +309,12 @@ html.embed .win{box-shadow:0 0 0 1px rgba(255,255,255,.03),0 10px 16px rgba(0,0,
       <div class="ttl">Front Desk</div>
     </div>
     <div class="app">
-      <div class="top">
-        <div class="tile biz"><div class="row1"><b>Acme Home Services</b><span class="on"><span class="pulse"></span>Assistant on</span></div>
-          <div class="conn" id="conn"></div></div>
-        <div class="tile" id="tCalls"><span class="lab">Calls answered</span><b id="kCalls"></b></div>
-        <div class="tile" id="tBooked"><span class="lab">Jobs booked</span><b id="kBooked"></b></div>
-        <div class="tile" id="tTexts"><span class="lab">Texts sent</span><b id="kTexts"></b></div>
-        <div class="tile" id="tMissed"><span class="lab">Left unanswered</span><b id="kMissed" style="color:var(--ac2)"></b></div>
-        <div class="tile" id="tValue"><span class="lab">Booked this week</span><b id="kValue"></b></div>
+      <div class="hero">
+        <div><h2 id="capH"></h2><p id="capP"></p></div>
+        <div class="tabs" id="tabs"><button class="play" id="play"></button></div>
       </div>
-
-      <div class="mid">
-        <div class="deck" id="deck">
+      <div class="strip" id="steps"></div>
+      <div class="deck" id="deck">
           <div class="ghost"></div>
 
           <div class="card" id="vCall"><div class="pad">
@@ -359,17 +371,7 @@ html.embed .win{box-shadow:0 0 0 1px rgba(255,255,255,.03),0 10px 16px rgba(0,0,
           </div></div></div>
         </div>
 
-        <div class="flow"><h3 id="fH">Answering a call</h3><p id="fP">What the assistant is doing</p>
-          <div class="steps" id="steps"></div></div>
-      </div>
-
-      <div class="cap">
-        <div><h2 id="capH"></h2><p id="capP"></p></div>
-        <div class="ctl">
-          <div class="tabs" id="tabs"><button class="play" id="play"></button></div>
-          <div class="src">Example business · simulated calls and texts · no real customer data</div>
-        </div>
-      </div>
+      <div class="foot"><span>Acme Home Services · an example business</span><span>Simulated calls and texts · no real customer data</span></div>
     </div>
   </div>
 </div></div>

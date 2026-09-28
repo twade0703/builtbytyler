@@ -337,12 +337,29 @@ function step(dt){st.E+=dt;
   while(st.fi<st.ev.length&&st.ev[st.fi].t<=st.E)st.ev[st.fi++].fn();
   for(const t of st.ty){if(st.E<t.t0)continue;const n=clamp(Math.ceil((st.E-t.t0)/t.dur*t.w.length),0,t.w.length);
     if(n!==t.n){t.n=n;t.el.textContent=t.w.slice(0,n).join(" ")}if(n===t.w.length&&!t.fin){t.fin=1;t.done&&t.done()}}
-  const u=tabEls[st.si]&&tabEls[st.si].querySelector("u");if(u)u.style.width=Math.min(100,st.E/st.dur*100)+"%";
+  if(_w||st.E>=st.dur){const u=tabEls[st.si]&&tabEls[st.si].querySelector("u");if(u)u.style.width=Math.min(100,st.E/st.dur*100)+"%"}
   if(st.E>=st.dur)next()}
-function frame(now){const dt=Math.min(now-last,100);last=now;if(!st.paused)step(dt);
-  if(st.hold){st.idle+=dt;if(st.idle>6500){st.hold=false;st.paused=false;setPlay();focus(storyFocus)}}tickK();drawWave(now);requestAnimationFrame(frame)}
+/* PERF GATE: site speed, 2026-09-27. KEEP THIS when the demo is re-exported.
+   The loop used to run at the display's rate, always: 144 draws a second on a
+   144 Hz monitor, on screen or not. It now draws at most ~90 times a second,
+   evenly paced (every second frame at 120 and 144 Hz, every frame at 60 and
+   90), and not at all while the demo is scrolled out of view or the tab is
+   hidden. frame() clamps its dt, so a pause costs the reel nothing. Inside an
+   iframe the observer's root is the TOP page's viewport, which is the point. */
+let _on=true,_wait=false,_drawn=0;
+function gate(){if(_wait)return;_wait=true;requestAnimationFrame(now=>{_wait=false;
+  if(!_on||document.hidden)return;
+  if(now-_drawn<11){gate();return}
+  _drawn=now;frame(now)})}
+if("IntersectionObserver"in window)new IntersectionObserver(e=>{_on=e[e.length-1].isIntersecting;if(_on)gate()},{rootMargin:"120px"}).observe(document.documentElement);
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)gate()});
+/* PERF (keep on re-export): the tab underline is a width, so writing it is
+   layout. It is written 15 times a second; _w says when. */
+let _w=true,_wAt=0;
+function frame(now){const dt=Math.min(now-last,100);last=now;_w=now-_wAt>=66;if(_w)_wAt=now;if(!st.paused)step(dt);
+  if(st.hold){st.idle+=dt;if(st.idle>6500){st.hold=false;st.paused=false;setPlay();focus(storyFocus)}}tickK();drawWave(now);gate()}
 /* for checking a moment without waiting for it: demoSeek(story, ms) */
 window.demoSeek=(i,ms)=>{start(i);for(let e=0;e<ms;e+=40)step(40)};
 setPlay();
-(document.fonts?document.fonts.ready:Promise.resolve()).then(()=>{sizeWave();start(0);requestAnimationFrame(frame)});
+(document.fonts?document.fonts.ready:Promise.resolve()).then(()=>{sizeWave();start(0);gate()});
 })();

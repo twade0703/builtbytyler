@@ -433,6 +433,20 @@
     needsJS.forEach((el) => io.observe(el));
   }
 
+  /* Sections with animations the compositor cannot run (SVG dash offsets)
+     carry data-live, and get .is-live only while they are on screen; the
+     stylesheet pauses them otherwise. */
+  function initLive() {
+    const els = document.querySelectorAll("[data-live]");
+    if (!els.length) return;
+    if (!("IntersectionObserver" in window)) { els.forEach((el) => el.classList.add("is-live")); return; }
+    const io = new IntersectionObserver(
+      (entries) => entries.forEach((e) => e.target.classList.toggle("is-live", e.isIntersecting)),
+      { rootMargin: "80px" }
+    );
+    els.forEach((el) => io.observe(el));
+  }
+
   /* ---------------- Global click delegation ---------------- */
   function initDelegation() {
     document.addEventListener("click", (e) => {
@@ -457,6 +471,7 @@
     initSoftwarePlans();
     initConfirmation();
     initDelegation();
+    initLive();
     // Reveal runs last so dynamically-rendered cards are observed.
     initReveal();
   }

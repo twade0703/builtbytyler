@@ -36,7 +36,7 @@ builtbytyler/
 │   │   ├── components.js   Shared chrome (nav, footer, cart drawer, modals)
 │   │   ├── main.js         Behaviour: grids, cart, nav, HUD, plan handoff, reveals
 │   │   ├── hologram.js     2D-canvas wireframe holograms (plates + detail)
-│   │   └── starfield.js    The drifting star field behind every page (Three.js, ESM)
+│   │   └── starfield.js    The drifting star field behind every page (plain WebGL, ESM)
 │   └── img/                Photography and raster assets
 │
 └── tools/
@@ -53,9 +53,8 @@ Then open <http://localhost:5500>. Use this rather than a plain
 `python -m http.server`: the pages are cached aggressively otherwise, and you
 will spend an afternoon debugging a stylesheet the browser stopped fetching.
 
-`starfield.js` is an ES module and imports Three.js over the network, so the
-site must be served over HTTP — opening `index.html` from the filesystem will
-silently skip the backdrop.
+`starfield.js` is an ES module, so the site must be served over HTTP — opening
+`index.html` from the filesystem will silently skip the backdrop.
 
 ---
 
@@ -143,7 +142,12 @@ Two rules matter when editing it:
 **3 · Backdrop — `assets/js/starfield.js`**
 A fixed full-viewport field of drifting stars that dollies forward as the page
 scrolls, plus a vignette veil over it (`body::before` in `styles.css`). Three
-`THREE.Points` layers and a camera — no post-processing, no models.
+layers of points and a camera, drawn in plain WebGL: one shader, three draw
+calls, no library. It was Three.js until 2026-09-27; that was 1.3 MB (254 KB on
+the wire) on every page to draw 5,760 points. The rewrite reproduces what that
+renderer did (linear-light colour, additive blending, exp² fog, mip-mapped
+sprite, multisampled edges) and was checked against it pixel for pixel with
+seeded stars. It draws at most ~90 times a second on any display.
 
 It is a *field* and nothing else. An earlier version flew wireframe models
 through the same corridor and was cut for competing with the type; do not add
@@ -151,7 +155,7 @@ objects back into it.
 
 Two things in there are load-bearing and easy to break:
 
-- The far layer sets `sizeAttenuation: false`. The original scene ran an
+- The far layer sets `atten: false`. The original scene ran an
   UnrealBloom pass that was quietly making sub-pixel stars visible; without it,
   attenuated points at distance render under one pixel and the field vanishes.
 - `frame(0, 0)` is called once before the rAF loop starts. A page loaded in a

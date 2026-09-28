@@ -13,8 +13,10 @@
    the wave, and each line is traced from the end the wave reaches first, so
    the whole thing still reads as one pass.
 
-   Cost: about 38 dash offsets per frame, only while a pass is running
-   (about 2.8 s in every 7). Off for prefers-reduced-motion. */
+   Cost: about 38 dash offsets per step, only while a pass is running
+   (about 2.8 s in every 7), at most ~90 steps a second however fast the
+   display is, and no passes at all while the portrait is scrolled out of
+   view. Off for prefers-reduced-motion. */
 (function () {
   "use strict";
   const svg = document.querySelector("svg.portrait");
@@ -26,6 +28,7 @@
   const FIRST = 4200, EVERY = 7000;     // ms: first pass (after the draw-in), then every 7 s
   const SWEEP = 900;                    // ms: first line's start to the last line's start
   const DASH = 0.24;                    // the pulse, as a fraction of its line
+  const MIN_STEP = 11;                  // ms: skip a frame that arrives sooner (144 Hz draws at 72)
 
   const group = svg.querySelector("g[mask]");
   const base = [...group.querySelectorAll(":scope > path")];
@@ -87,8 +90,11 @@
     });
     const total = SWEEP + Math.max(...lines.map((l) => l.dur)) + 50;
     const t0 = performance.now();
+    let drawn = 0;
     function step(now) {
       const el = now - t0;
+      if (el < total && now - drawn < MIN_STEP) { requestAnimationFrame(step); return; }
+      drawn = now;
       for (const l of lines) {
         const t = (el - l.delay) / l.dur;
         let off;
@@ -105,9 +111,13 @@
     requestAnimationFrame(step);
   }
 
+  let inView = true;
+  if ("IntersectionObserver" in window) {
+    new IntersectionObserver((es) => { inView = es[es.length - 1].isIntersecting; }).observe(svg);
+  }
   setTimeout(() => {
     setup();
-    pass();
-    setInterval(() => { if (!document.hidden) pass(); }, EVERY);
+    if (inView) pass();
+    setInterval(() => { if (!document.hidden && inView) pass(); }, EVERY);
   }, FIRST);
 })();

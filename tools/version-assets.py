@@ -23,7 +23,7 @@ Bump VERSION on any deploy that changes CSS or JS.
 """
 import hashlib, io, json, os, re, glob, sys
 
-VERSION = "35"
+VERSION = "36"
 os.chdir(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 ASSETS = [
@@ -55,12 +55,10 @@ for f in pages:
         io.open(f, "w", encoding="utf-8", newline="\n").write(s)
         changed += 1
 
-# The vendored three.js is imported from inside starfield.js, not linked from
-# any page, so the loop above never sees it. It still sits under the immutable
-# cache rule in _headers, which means without a stamp here a new three.module.js
-# would be invisible to every returning visitor for a year. Stamping the import
-# is what makes that cache rule honest.
-MODULE_IMPORTS = [("assets/js/starfield.js", "../vendor/three.module.js")]
+# Dependencies imported from INSIDE a module are linked from no page, so the
+# loop above never sees them and they need stamping here. There are none now:
+# the star field used to import a vendored three.js and no longer does.
+MODULE_IMPORTS = []
 
 for src, dep in MODULE_IMPORTS:
     if not os.path.exists(src):
@@ -76,6 +74,32 @@ for src, dep in MODULE_IMPORTS:
         io.open(src, "w", encoding="utf-8", newline="\n").write(s)
         changed += 1
         print("  stamped", dep, "in", src)
+
+# The demos under demos/ are exported from their own projects and link their
+# scripts by bare name ("app.js"). Cloudflare caches those for four hours, so
+# a returning visitor kept an old app.js for an afternoon after every change.
+# Each local script is stamped with a hash of ITS OWN CONTENT, not VERSION: the
+# URL moves only when that file does, so the 365 KB data file stays cached
+# across deploys that never touched it. A fresh export arrives unstamped and
+# is stamped again here, on the next run.
+for page in glob.glob("demos/*/index.html"):
+    folder = os.path.dirname(page)
+    s = io.open(page, encoding="utf-8").read()
+    before = s
+
+    def stamp(m):
+        name = m.group(2)
+        path = os.path.join(folder, name)
+        if "/" in name or not os.path.exists(path):
+            return m.group(0)
+        h = hashlib.sha1(io.open(path, "rb").read()).hexdigest()[:8]
+        return m.group(1) + name + "?v=" + h + m.group(4)
+
+    s = re.sub(r'(<script src=")([A-Za-z0-9_.-]+\.js)(\?v=[0-9a-f]+)?(")', stamp, s)
+    if s != before:
+        io.open(page, "w", encoding="utf-8", newline="\n").write(s)
+        changed += 1
+        print("  stamped scripts in", page.replace(os.sep, "/"))
 
 print("versioned", changed, "files at v=" + VERSION)
 

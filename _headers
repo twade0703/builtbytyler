@@ -51,9 +51,6 @@
 /assets/css/*
   Cache-Control: public, max-age=604800, immutable
 
-/assets/vendor/*
-  Cache-Control: public, max-age=604800, immutable
-
 # Images are NOT stamped — the icons and the headshot are referenced by a
 # bare path — so they get a long cache rather than a permanent one. A month
 # is the most that can be given to a URL whose contents may be replaced.

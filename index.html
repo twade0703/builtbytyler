@@ -28,8 +28,8 @@
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
-  <link rel="stylesheet" href="assets/css/styles.css?v=35">
-  <link rel="stylesheet" href="assets/css/motion.css?v=35">
+  <link rel="stylesheet" href="assets/css/styles.css?v=36">
+  <link rel="stylesheet" href="assets/css/motion.css?v=36">
 
 <!-- Structured data. Every fact here is one this site already states in prose:
        the entity, the city and the email come off contact.html. Nothing is
@@ -197,7 +197,7 @@
          =============================================================== -->
     <section class="section" id="studio" data-sec="studio">
       <div class="container">
-        <div class="fork">
+        <div class="fork" data-live>
           <header class="fork__head" data-reveal>
             <div>
               <span class="fork__n">01</span>
@@ -220,6 +220,8 @@
           <svg class="fork__lines" viewBox="0 0 1000 100" preserveAspectRatio="none" aria-hidden="true">
             <path class="fork__base" pathLength="1" d="M500 0 V44 Q500 50 494 50 H7 Q1 50 1 56 V100"/>
             <path class="fork__base" pathLength="1" d="M500 0 V44 Q500 50 506 50 H509 Q515 50 515 56 V100"/>
+            <path class="fork__pulse fork__pulse--glow" pathLength="1" d="M500 0 V44 Q500 50 494 50 H7 Q1 50 1 56 V100"/>
+            <path class="fork__pulse fork__pulse--glow" pathLength="1" d="M500 0 V44 Q500 50 506 50 H509 Q515 50 515 56 V100"/>
             <path class="fork__pulse" pathLength="1" d="M500 0 V44 Q500 50 494 50 H7 Q1 50 1 56 V100"/>
             <path class="fork__pulse" pathLength="1" d="M500 0 V44 Q500 50 506 50 H509 Q515 50 515 56 V100"/>
           </svg>
@@ -355,22 +357,15 @@
     </div>
   </footer>
 
-  <!-- defer keeps execution order but stops these blocking first paint, which
-       was costing ~900 ms of the 4.6 s LCP. hologram.js stays: it is 64 KB and
-       looks unused here because the page ships no canvas[data-holo] in its
-       HTML, but main.js CREATES those canvases for the build plates. Removing
-       it blanks every hologram. If the 64 KB is ever worth reclaiming, the fix
-       is to load it on demand when a plate scrolls into view. -->
-  <script defer src="assets/js/products.js?v=35"></script>
-  <script defer src="assets/js/components.js?v=35"></script>
-  <script defer src="assets/js/hologram.js?v=35"></script>
-  <script defer src="assets/js/main.js?v=35"></script>
-  <script defer src="assets/js/portrait.js?v=35"></script>
-  <!-- ?v=3 busts the module cache. three.js is vendored at assets/vendor/,
-       so the star field no longer needs an inline importmap (which the CSP
-       blocks) or a third-party fetch from unpkg. A returning visitor still
-       holding an older starfield.js would pair it with HTML that no longer
-       ships that map, so the version query has to move whenever this does. -->
-  <script type="module" src="assets/js/starfield.js?v=35"></script>
+  <!-- defer keeps execution order but stops these blocking first paint.
+       hologram.js is NOT loaded on this page: it has no build plates, and it
+       is 120 KB of script to parse for nothing. It loads on Hardware and on
+       the build detail page, where main.js creates the canvases it draws. -->
+  <script defer src="assets/js/products.js?v=36"></script>
+  <script defer src="assets/js/components.js?v=36"></script>
+  <script defer src="assets/js/main.js?v=36"></script>
+  <script defer src="assets/js/portrait.js?v=36"></script>
+  <!-- The star field: plain WebGL, one small module, no library behind it. -->
+  <script type="module" src="assets/js/starfield.js?v=36"></script>
 </body>
 </html>

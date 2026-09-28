@@ -28,22 +28,33 @@ const px=sym=>interp(ALL[sym].ic,frac());
 const prev=sym=>ALL[sym].prev;
 const dayPct=sym=>(px(sym)/prev(sym)-1)*100;
 function sessionTime(){const s=ALL.NVDA,t=lerp(s.it[0],s.it[s.it.length-1],frac());
-  return new Date(t*1000).toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit",timeZone:"America/New_York"})}
+  return DF({hour:"numeric",minute:"2-digit",timeZone:"America/New_York"}).format(new Date(t*1000))}
 function daily(sym){const c=ALL[sym].c.slice();c[c.length-1]=px(sym);return c}
 
 /* ---------- formatting */
-const fp=p=>Math.abs(p)>=1000?p.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}):p.toFixed(2);
+/* PERF (site speed, 2026-09-27, keep on re-export): toLocaleString and
+   toLocaleTimeString build a new Intl formatter on EVERY call, and the draw
+   loop calls them for every axis label and every price on every frame. One
+   formatter per distinct set of options, made once. The text is identical. */
+const _fmt=new Map();
+const DF=o=>{const k="d"+JSON.stringify(o);let f=_fmt.get(k);if(!f)_fmt.set(k,f=new Intl.DateTimeFormat("en-US",o));return f};
+const NF=o=>{const k="n"+JSON.stringify(o||0);let f=_fmt.get(k);if(!f)_fmt.set(k,f=o?new Intl.NumberFormat("en-US",o):new Intl.NumberFormat());return f};
+const fp=p=>Math.abs(p)>=1000?NF({minimumFractionDigits:2,maximumFractionDigits:2}).format(p):p.toFixed(2);
 const fs=(x,d=2)=>(x>=0?"+":"−")+Math.abs(x).toFixed(d);
-const fm=x=>(x>=0?"+$":"−$")+Math.abs(x).toLocaleString("en-US",{maximumFractionDigits:0});
+const fm=x=>(x>=0?"+$":"−$")+NF({maximumFractionDigits:0}).format(Math.abs(x));
 const cls=x=>x>1e-9?"up":x<-1e-9?"dn":"fl";
-const fdate=t=>new Date(t*1000).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric",timeZone:"UTC"});
+const fdate=t=>DF({month:"short",day:"numeric",year:"numeric",timeZone:"UTC"}).format(new Date(t*1000));
 
 /* ---------- smooth numbers: every live figure glides to its target instead of jumping */
 const LIVE=new Map();
 function live(el,get,fmt,signEl){LIVE.set(el,{get,fmt,cur:null,signEl})}
+/* PERF (keep on re-export): every rewritten number dirties layout. The values
+   still ease every frame; the TEXT is written at most 15 times a second,
+   which is as fast as a changing digit can be read. _w is set in frame(). */
+let _w=true,_wAt=0;
 function tickLive(){for(const[el,o]of LIVE){if(!el.isConnected){LIVE.delete(el);continue}
   const t=o.get();o.cur=o.cur==null?t:o.cur+(t-o.cur)*.14;if(Math.abs(t-o.cur)<Math.abs(t)*1e-6)o.cur=t;
-  const txt=o.fmt(o.cur);if(el.textContent!==txt)el.textContent=txt;
+  if(_w){const txt=o.fmt(o.cur);if(el.textContent!==txt)el.textContent=txt}
   if(o.signEl!==undefined){const s=o.signEl||el,k=cls(o.cur);if(o.k!==k){s.classList.remove("up","dn","fl");s.classList.add(k);o.k=k}}}}
 
 /* ---------- measures */
@@ -125,7 +136,12 @@ function drawCorr(x,x0,y0,a){const{syms,m}=CM,cs=14;x.save();x.globalAlpha=a;x.f
 function emaA(a,k){const al=2/(k+1),r=[];let e=a[0];a.forEach((v,i)=>{e=i?v*al+e*(1-al):v;r.push(e)});return r}
 
 /* ---------- canvas helpers */
-function sizeCanvas(cv){const r=cv.parentElement,w=r.clientWidth,h=r.clientHeight,d=(devicePixelRatio||1)*SC*CAMZ;
+/* PERF (keep on re-export): this read clientWidth on every frame, straight
+   after the price text had been rewritten, which forced a full layout of the
+   page 70 times a second. The box is now measured when it changes size. */
+const _box=new WeakMap(),_ro="ResizeObserver"in window?new ResizeObserver(es=>es.forEach(e=>_box.set(e.target,{w:e.target.clientWidth,h:e.target.clientHeight}))):null;
+function boxOf(r){let b=_ro&&_box.get(r);if(!b){b={w:r.clientWidth,h:r.clientHeight};if(_ro){_box.set(r,b);_ro.observe(r)}}return b}
+function sizeCanvas(cv){const{w,h}=boxOf(cv.parentElement),d=(devicePixelRatio||1)*SC*CAMZ;
   if(cv.width!==Math.round(w*d)){cv.width=Math.round(w*d);cv.height=Math.round(h*d)}
   const x=cv.getContext("2d");x.setTransform(d,0,0,d,0,0);return{x,w,h}}
 function niceStep(r){const p=Math.pow(10,Math.floor(Math.log10(r))),f=r/p;return(f<1.5?1:f<3?2:f<7?5:10)*p}
@@ -213,7 +229,7 @@ function optionCard(c){const o=OPT;
     <div class="seg"><button class="on">P/L</button></div></div>
   <div class="c-ch"><canvas></canvas><div class="hud"></div><div class="tip"></div></div>
   <div class="c-sig six">
-    <div class="sg"><small>Cost</small><b>$${Math.round(o.cost).toLocaleString()}</b></div>
+    <div class="sg"><small>Cost</small><b>$${NF().format(Math.round(o.cost))}</b></div>
     <div class="sg"><small>Value now</small><b data-l="val"></b></div>
     <div class="sg"><small>${o.sym} now</small><b data-l="spot"></b></div>
     <div class="sg"><small>Breakeven</small><b>$${fp(o.be)}</b></div>
@@ -223,7 +239,7 @@ function optionCard(c){const o=OPT;
   const q=k=>c.querySelector(`[data-l="${k}"]`),S=()=>c._optS??px(o.sym);
   live(q("pl"),()=>optPL(S()),fm,null);
   live(q("plp"),()=>optPL(S())/o.cost*100,x=>`${fs(x,1)}%`,null);
-  live(q("val"),()=>optVal(S()).v*100*o.q,x=>"$"+Math.round(x).toLocaleString());
+  live(q("val"),()=>optVal(S()).v*100*o.q,x=>"$"+NF().format(Math.round(x)));
   live(q("spot"),S,x=>"$"+fp(x));
   live(q("dl"),()=>optVal(S()).delta,x=>x.toFixed(2));
 }
@@ -298,7 +314,7 @@ function drawCardInner(c,now){const{x,w,h}=sizeCanvas(c._cv),v=c._v;
   /* x labels */
   x.fillStyle="#9A9AA2";x.font="11.5px JetBrains Mono";x.textAlign="center";x.textBaseline="alphabetic";
   for(let k=0;k<4;k++){const i=Math.round((sl-1)*k/3),t=times[i];if(t==null)continue;
-    const lab=v.win==="1D"&&v.kind!=="compare"?new Date(t*1000).toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit",timeZone:"America/New_York"}):new Date(t*1000).toLocaleDateString("en-US",{month:"short",year:v.win==="1M"?undefined:"2-digit",day:v.win==="1M"?"numeric":undefined,timeZone:"UTC"});
+    const lab=v.win==="1D"&&v.kind!=="compare"?DF({hour:"numeric",minute:"2-digit",timeZone:"America/New_York"}).format(new Date(t*1000)):DF({month:"short",year:v.win==="1M"?undefined:"2-digit",day:v.win==="1M"?"numeric":undefined,timeZone:"UTC"}).format(new Date(t*1000));
     x.fillText(lab,clamp(X(i),26,w-padR-26),h-5)}
   if(v.kind==="compare"||v.win==="1D"){const y=Math.round(Y(base))+.5;x.strokeStyle="rgba(255,255,255,.16)";x.beginPath();x.moveTo(0,y);x.lineTo(w-padR,y);x.stroke();
     x.fillStyle="#B8B8BF";x.textAlign="left";x.fillText(v.kind==="compare"?"start":"prev close",4,y-6)}
@@ -328,7 +344,7 @@ function drawCardInner(c,now){const{x,w,h}=sizeCanvas(c._cv),v=c._v;
   if(c._hover!=null&&rev>=1){const i=clamp(Math.round(c._hover*(w)/(w-padR)*(sl-1)),0,series.length-1),hx=X(i),hy=Y(series[i]);
     x.strokeStyle="rgba(255,255,255,.3)";x.beginPath();x.moveTo(hx+.5,top);x.lineTo(hx+.5,top+ph);x.stroke();
     x.beginPath();x.arc(hx,hy,4.5,0,7);x.fillStyle="#fff";x.fill();
-    const t=times[i],when=v.win==="1D"&&v.kind!=="compare"?new Date(t*1000).toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit",timeZone:"America/New_York"}):fdate(t);
+    const t=times[i],when=v.win==="1D"&&v.kind!=="compare"?DF({hour:"numeric",minute:"2-digit",timeZone:"America/New_York"}).format(new Date(t*1000)):fdate(t);
     const chg=v.kind==="compare"?series[i]:(series[i]/base-1)*100;
     c._tip.innerHTML=v.kind==="compare"?`<span>${when}</span><br>${NAMES[v.pair[0]]} <b class="${cls(series[i])}">${fs(series[i],1)}%</b><br>${NAMES[v.pair[1]]} <b class="${cls(second[i])}">${fs(second[i],1)}%</b>`
       :`<span>${when}</span><br><b>$${fp(series[i])}</b> <b class="${cls(chg)}">${fs(chg)}%</b>`;
@@ -382,7 +398,7 @@ function drawTech(c,x,w,h,rev,now){const v=c._v,T=tech(v.sym),N=T.c.length,k=cla
   yAxis(x,w,Y,L,H,padR);
   const times=T.t.slice(off,off+k);
   x.fillStyle="#9A9AA2";x.font="11.5px JetBrains Mono";x.textAlign="center";x.textBaseline="alphabetic";
-  for(let j=0;j<4;j++){const i=Math.round((k-1)*j/3);x.fillText(new Date(times[i]*1000).toLocaleDateString("en-US",{month:"short",day:v.win==="1M"?"numeric":undefined,year:v.win==="1M"?undefined:"2-digit",timeZone:"UTC"}),clamp(X(i),26,Xw-26),h-5)}
+  for(let j=0;j<4;j++){const i=Math.round((k-1)*j/3);x.fillText(DF({month:"short",day:v.win==="1M"?"numeric":undefined,year:v.win==="1M"?undefined:"2-digit",timeZone:"UTC"}).format(new Date(times[i]*1000)),clamp(X(i),26,Xw-26),h-5)}
   const series=T.c.slice(off,off+k),base=series[0],endV=series[k-1],upw=endV>=base,col=upw?"#00C805":"#FF5000",rgb=upw?"0,200,5":"255,80,0";
   const pts=(arr,r)=>{const out=[],fi=r*(k-1);for(let i=0;i<=Math.floor(fi);i++){const y=arr[off+i];if(y!=null)out.push([X(i),Y(y)])}return out};
   x.save();x.beginPath();x.rect(0,0,Xh*rev+1,top+mainH+1);x.clip();
@@ -436,7 +452,7 @@ function drawTech(c,x,w,h,rev,now){const v=c._v,T=tech(v.sym),N=T.c.length,k=cla
   /* the readout: the calculation behind whatever is drawing right now, bar by bar */
   const drawing=IND.filter(q=>c._ind[q].on&&(q==="candle"?ck<1:ik(c,q,now).r<1)&&c._ind[q].t);
   if(drawing.length&&rev>=1){c._fc=(c._fc||0)+1;const q=drawing[c._fc%drawing.length],r=q==="candle"?ck:ik(c,q,now).r,g=off+Math.floor(r*(k-1));
-    const d=`<span>${new Date(T.t[g]*1000).toLocaleDateString("en-US",{month:"short",day:"numeric",timeZone:"UTC"})}</span>`;
+    const d=`<span>${DF({month:"short",day:"numeric",timeZone:"UTC"}).format(new Date(T.t[g]*1000))}</span>`;
     const html={candle:()=>`${d}O ${fp(T.o[g])}  H ${fp(T.h[g])}  L ${fp(T.l[g])}  C <b style="--k:${T.c[g]>=T.o[g]?"#00C805":"#FF5000"}">${fp(T.c[g])}</b>`,
       bb:()=>T.bb.mid[g]==null?"":`${d}μ20 ${fp(T.bb.mid[g])}  σ ${T.bb.sd[g].toFixed(2)}  ±2σ <b style="--k:#D2D2DC">${fp(T.bb.up[g])} / ${fp(T.bb.dn[g])}</b>`,
       s50:()=>T.s50[g]==null?"":`${d}Σ close[50] ÷ 50 = <b style="--k:#FFD60A">${fp(T.s50[g])}</b>`,
@@ -532,14 +548,29 @@ $("src").textContent=`Public market data · ${fdate(ALL.NVDA.t[ALL.NVDA.t.length
 
 /* ---------- one loop drives everything */
 let sparkT=0;
+/* PERF GATE: site speed, 2026-09-27. KEEP THIS when the demo is re-exported.
+   The loop used to run at the display's rate, always: 144 draws a second on a
+   144 Hz monitor, on screen or not. It now draws at most ~90 times a second,
+   evenly paced (every second frame at 120 and 144 Hz, every frame at 60 and
+   90), and not at all while the demo is scrolled out of view or the tab is
+   hidden. frame() clamps its dt, so a pause costs the reel nothing. Inside an
+   iframe the observer's root is the TOP page's viewport, which is the point. */
+let _on=true,_wait=false,_drawn=0;
+function gate(){if(_wait)return;_wait=true;requestAnimationFrame(now=>{_wait=false;
+  if(!_on||document.hidden)return;
+  if(now-_drawn<11){gate();return}
+  _drawn=now;frame(now)})}
+if("IntersectionObserver"in window)new IntersectionObserver(e=>{_on=e[e.length-1].isIntersecting;if(_on)gate()},{rootMargin:"120px"}).observe(document.documentElement);
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)gate()});
 function frame(now){const dt=Math.min(now-last,100);last=now;
+  _w=now-_wAt>=66;if(_w)_wAt=now;
   clock+=dt;if(clock>REPLAY_MS)clock=0;shown=clock;
-  if(st.auto&&!scrub){st.el+=dt;const s=SC_[st.i];if(s){progress();if(st.el>=s.d)go(st.i+1)}}
+  if(st.auto&&!scrub){st.el+=dt;const s=SC_[st.i];if(s){if(_w)progress();if(st.el>=s.d)go(st.i+1)}}
   if(!st.auto){st.idle+=dt;if(st.idle>7000){st.auto=true;setPlay();go(st.i+1)}}
-  tickLive();$("kT").textContent=sessionTime();
+  tickLive();if(_w){const k=$("kT"),t=sessionTime();if(k.textContent!==t)k.textContent=t}
   if(now-sparkT>200){ixSparks();sparkT=now}
   drawCard(front,now);
-  requestAnimationFrame(frame)}
+  gate()}
 setPlay();
-(document.fonts?document.fonts.ready:Promise.resolve()).then(()=>{sizeAll();go(0);requestAnimationFrame(frame)});
+(document.fonts?document.fonts.ready:Promise.resolve()).then(()=>{sizeAll();go(0);gate()});
 })();

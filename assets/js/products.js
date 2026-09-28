@@ -30,6 +30,7 @@ const PRODUCTS = [
     name: "NEMO Robotic Arm",
     tagline: "3D camera arm for streaming setups",
     holo: "arm",
+    status: "In design",
     featured: true,
     available: false,
     description:
@@ -40,7 +41,7 @@ const PRODUCTS = [
       { label: "Motion", value: "6-axis articulated" },
       { label: "Payload", value: "3D camera + gimbal" },
       { label: "Control", value: "Wireless · motion presets" },
-      { label: "Status", value: "In progress" },
+      { label: "Status", value: "In design" },
     ],
   },
   {

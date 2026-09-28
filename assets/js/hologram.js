@@ -1262,240 +1262,316 @@
     return { v, e };
   }
 
-  /* The smart home, drawn so it reads in one look: a small house, and in
-     front of it the device (a speaker, like an Echo, that runs its own AI
-     locally). Nothing is wired into the house; the speaker talks to smart
-     bulbs and plugs over the air.
+  /* The smart home, as a walk through a house. An open-top floor plan, like
+     a dollhouse: living room, entry, laundry and kitchen, with a voice puck
+     in the living room and one in the laundry. At rest it is the whole
+     house from above, dark.
 
-     Hover it and one exchange plays: the light ring on the speaker wakes and
-     sound rings rise off it (you spoke), the ring chases while it thinks,
-     signal arcs travel across to the house, the windows light up one after
-     another and the porch light comes on, and then the speaker answers you.
-     It repeats every 7 s. At rest the house is dark and the speaker idle. */
+     Hover and the camera moves through it, room to room, while the words
+     run at the bottom like subtitles: what you said, what the house said.
+       living room  "Turn on the living room lights."  the lamps come on
+       entry        "Open the front door."             the door swings in
+       laundry      "How long on the laundry?"         the drum turns, 22 min
+       kitchen      "Set the heat to 70."              the thermostat sweeps
+     then it pulls back to the whole house, lit. 15 s, then again. */
   function buildHome() {
     const parts = [];
-    const FY = -0.5;
-    const HX = 0.44, HZ0 = -0.62, HZ1 = 0.0, WH = 0.40, RH = 0.24;   // house half-width, depth, wall and roof height
-    const WT = 0.03;
-
-    // the house: four walls, a gable roof, a chimney
-    parts.push(makeBox(0, FY + WH / 2, HZ1, HX * 2, WH, WT));             // front
-    parts.push(makeBox(0, FY + WH / 2, HZ0, HX * 2, WH, WT));             // back
-    parts.push(makeBox(-HX, FY + WH / 2, (HZ0 + HZ1) / 2, WT, WH, HZ1 - HZ0));
-    parts.push(makeBox(HX, FY + WH / 2, (HZ0 + HZ1) / 2, WT, WH, HZ1 - HZ0));
-    const eave = 0.05, ry = FY + WH, zc = (HZ0 + HZ1) / 2;
-    const roof = {
-      v: [[-HX - eave, ry, HZ1 + eave], [HX + eave, ry, HZ1 + eave], [HX + eave, ry + RH, zc], [-HX - eave, ry + RH, zc],
-          [-HX - eave, ry, HZ0 - eave], [HX + eave, ry, HZ0 - eave]],
-      e: [[0, 1], [1, 2], [2, 3], [3, 0], [3, 4], [4, 5], [5, 2]],
-      f: [[0, 1, 2, 3], [3, 2, 5, 4]],
+    // Walls at floor-plan height, like an architect's model, so the camera
+    // sees into every room from any side; the interior ones lower still.
+    const FY = -0.36, WH = 0.17, IWH = 0.11, WT = 0.024;
+    const X0 = -0.92, X1 = 0.92, Z0 = -0.62, Z1 = 0.62;
+    const wall = (x0, z0, x1, z1, hh) => {               // a wall between two floor points
+      const cx = (x0 + x1) / 2, cz = (z0 + z1) / 2, H = hh || WH;
+      return makeBox(cx, FY + H / 2, cz, Math.max(WT, Math.abs(x1 - x0)), H, Math.max(WT, Math.abs(z1 - z0)));
     };
-    parts.push(roof);
-    [[-HX, 1], [HX, -1]].forEach(([x]) => parts.push({ v: [[x, ry, HZ1], [x, ry + RH, zc], [x, ry, HZ0]], e: [[0, 1], [1, 2]], f: [[0, 1, 2]] }));
-    parts.push(makeBox(0.24, ry + RH * 0.75, zc - 0.10, 0.08, 0.20, 0.08));  // chimney
 
-    // the door and its porch light
-    parts.push({ v: [[-0.07, FY, HZ1 + 0.017], [-0.07, FY + 0.24, HZ1 + 0.017], [0.07, FY + 0.24, HZ1 + 0.017], [0.07, FY, HZ1 + 0.017]], e: [[0, 1], [1, 2], [2, 3]] });
-    parts.push(makeBox(0.10, FY + 0.28, HZ1 + 0.03, 0.03, 0.04, 0.03));
-    // the windows (lit on the hover, so their panes are live)
-    const WINS = [
-      { c: [-0.26, FY + 0.22, HZ1 + 0.017], n: [0, 0, 1] },
-      { c: [0.26, FY + 0.22, HZ1 + 0.017], n: [0, 0, 1] },
-      { c: [HX + 0.017, FY + 0.22, -0.31], n: [1, 0, 0] },
-      { c: [-HX - 0.017, FY + 0.22, -0.31], n: [-1, 0, 0] },
-    ];
-    const winPts = (w) => {
-      const u = w.n[0] ? [0, 0, 1] : [1, 0, 0], h = 0.07, wd = 0.08;
-      const c = w.c;
-      return [V.add(c, V.add(V.mul(u, -wd), [0, -h, 0])), V.add(c, V.add(V.mul(u, wd), [0, -h, 0])),
-              V.add(c, V.add(V.mul(u, wd), [0, h, 0])), V.add(c, V.add(V.mul(u, -wd), [0, h, 0]))];
-    };
-    WINS.forEach((w) => {
-      const p = winPts(w);
-      parts.push({ v: p, e: [[0, 1], [1, 2], [2, 3], [3, 0]] });
+    // floor slab and the outer walls; the front wall has the door opening
+    parts.push(makeBox(0, FY - 0.02, 0, X1 - X0 + 0.04, 0.04, Z1 - Z0 + 0.04));
+    const DX0 = -0.24, DX1 = -0.06;                        // front door opening
+    parts.push(wall(X0, Z0, X1, Z0), wall(X0, Z0, X0, Z1), wall(X1, Z0, X1, Z1));
+    parts.push(wall(X0, Z1, DX0, Z1), wall(DX1, Z1, X1, Z1));
+    // interior walls, each with a doorway gap
+    parts.push(wall(-0.32, Z0, -0.32, -0.20, IWH), wall(-0.32, 0.02, -0.32, Z1, IWH));   // kitchen+laundry | the rest
+    parts.push(wall(X0, 0.0, -0.58, 0.0, IWH));                                           // kitchen | laundry
+    parts.push(wall(0.0, 0.20, 0.0, Z1, IWH));                                            // entry | living room
+
+    // living room: sofa, rug, a side table with the puck, two lamps, a TV
+    parts.push(makeBox(0.52, FY + 0.06, -0.48, 0.60, 0.12, 0.18));
+    parts.push(makeBox(0.52, FY + 0.15, -0.56, 0.60, 0.12, 0.05));
+    parts.push({ v: [[0.16, FY + 0.002, -0.30], [0.86, FY + 0.002, -0.30], [0.86, FY + 0.002, 0.10], [0.16, FY + 0.002, 0.10]], e: [[0, 1], [1, 2], [2, 3], [3, 0]] });
+    parts.push(makeBox(0.84, FY + 0.06, -0.20, 0.10, 0.12, 0.10));             // side table
+    parts.push(makeCylinderY(0.84, FY + 0.145, -0.20, 0.035, 0.03, 16));       // puck
+    parts.push(makeBox(0.52, FY + 0.10, 0.52, 0.44, 0.20, 0.03));              // TV on a low unit
+    parts.push(makeBox(0.52, FY + 0.03, 0.50, 0.50, 0.06, 0.10));
+    const LAMPS = [[0.16, -0.50], [0.88, 0.02]];
+    LAMPS.forEach(([x, z]) => {
+      parts.push(makeCylinderY(x, FY + 0.006, z, 0.04, 0.012, 12));
+      parts.push(tubeAlong([x, FY + 0.01, z], [x, FY + 0.24, z], 0.006, 5));
+      parts.push(makeLoftY([{ y: FY + 0.22, r: 0.05, cx: x, cz: z }, { y: FY + 0.29, r: 0.028, cx: x, cz: z }], 12));
     });
-    // a path from the door to the speaker
-    parts.push({ v: [[-0.05, FY + 0.003, HZ1 + 0.02], [-0.05, FY + 0.003, 0.34], [0.05, FY + 0.003, HZ1 + 0.02], [0.05, FY + 0.003, 0.34]], e: [[0, 1], [2, 3]] });
 
-    // the device: a speaker with a fabric grille and a light ring on top
-    const DV = [0, FY, 0.54], DR = 0.155, DH = 0.22;
-    parts.push(makeCylinderY(DV[0], FY + DH / 2, DV[2], DR, DH, 24));
-    for (let k = 1; k <= 4; k++) parts.push(makeRing(DV[0], FY + k * 0.035, DV[2], DR + 0.002, 24, "y"));
-    parts.push(makeRing(DV[0], FY + DH + 0.001, DV[2], DR * 0.72, 24, "y"));
-    parts.push(makeRing(DV[0], FY + DH + 0.001, DV[2], DR * 0.35, 16, "y"));
+    // entry: a console and a rug by the door
+    parts.push(makeBox(-0.26, FY + 0.05, 0.32, 0.03, 0.10, 0.18));
+    parts.push({ v: [[-0.24, FY + 0.002, 0.40], [-0.06, FY + 0.002, 0.40], [-0.06, FY + 0.002, 0.56], [-0.24, FY + 0.002, 0.56]], e: [[0, 1], [1, 2], [2, 3], [3, 0]] });
 
-    parts.push(makeBase(FY - 0.01, 1.15));
+    // laundry: washer and dryer, their round doors, and the second puck
+    // (against the laundry's inner wall, doors facing the front of the house)
+    [[-0.80, 0.10], [-0.64, 0.10]].forEach(([x, z]) => {
+      parts.push(makeBox(x, FY + 0.09, z, 0.14, 0.18, 0.14));
+      parts.push(makeRing(x, FY + 0.08, z + 0.071, 0.045, 18, "z"));
+    });
+    parts.push(makeBox(-0.44, FY + 0.10, 0.07, 0.16, 0.02, 0.10));             // shelf
+    parts.push(makeCylinderY(-0.44, FY + 0.125, 0.07, 0.028, 0.025, 14));      // puck
+
+    // kitchen: counters, an island, the fridge, the thermostat on the wall
+    parts.push(makeBox(-0.62, FY + 0.07, -0.56, 0.56, 0.14, 0.10));
+    parts.push(makeBox(-0.86, FY + 0.07, -0.30, 0.10, 0.14, 0.44));
+    parts.push(makeBox(-0.62, FY + 0.07, -0.24, 0.24, 0.14, 0.14));
+    parts.push(makeBox(-0.42, FY + 0.14, -0.55, 0.12, 0.28, 0.12));
+    parts.push(makeBox(-0.34, FY + 0.18, -0.36, 0.012, 0.08, 0.06));           // thermostat plate
+    parts.push(makeRing(-0.332, FY + 0.18, -0.36, 0.022, 14, "x"));
+
+    parts.push(makeBase(FY - 0.05, 1.2));
     const m = merge(parts);
     m.spinners = [];
-    m.spinRate = 0.2;
-    m.angle = 3.6;   // the speaker in front, the house's door and windows facing you
+    m.spinRate = 0.12;
+    m.angle = 0.5;
 
     const ss = (a, b, s) => V.ss((s - a) / (b - a));
+    const mix = (a, b, t) => (Array.isArray(a) ? a.map((v, i) => v + (b[i] - v) * t) : a + (b - a) * t);
+    // camera stops: [arrive by, focus, zoom, angle]
+    const WHOLE = { f: [0, FY + 0.05, 0], z: 1, a: 0.5 };
+    const STOPS = [
+      { t: 0.0, ...WHOLE },
+      { t: 1.0, f: [0.52, FY + 0.10, -0.22], z: 1.9, a: 0.95 },   // living room
+      { t: 3.6, f: [0.52, FY + 0.10, -0.22], z: 1.9, a: 1.05 },
+      { t: 4.5, f: [-0.15, FY + 0.08, 0.56], z: 2.3, a: 2.75 },   // entry, from the front path
+      { t: 6.9, f: [-0.15, FY + 0.08, 0.56], z: 2.3, a: 2.95 },
+      { t: 7.8, f: [-0.66, FY + 0.08, 0.14], z: 2.3, a: 3.20 },   // laundry, from the front of the house
+      { t: 10.3, f: [-0.66, FY + 0.08, 0.14], z: 2.3, a: 3.05 },
+      { t: 11.2, f: [-0.52, FY + 0.10, -0.34], z: 2.0, a: 5.33 },  // kitchen
+      { t: 13.3, f: [-0.52, FY + 0.10, -0.34], z: 2.0, a: 5.23 },
+      { t: 14.3, ...WHOLE, a: 6.65 },                               // the whole house, a full turn on
+      { t: 15.0, ...WHOLE, a: 6.75 },
+    ];
+    const LOOP = 15.5;
+    m.tour = (sec) => {
+      if (!(sec > 0)) return { focus: WHOLE.f, zoom: 1, ang: null };
+      const s = sec % LOOP;
+      let i = 0;
+      while (i < STOPS.length - 1 && STOPS[i + 1].t <= s) i++;
+      const a = STOPS[i], b = STOPS[Math.min(i + 1, STOPS.length - 1)];
+      const k = b.t > a.t ? V.ss((s - a.t) / (b.t - a.t)) : 1;
+      return { focus: mix(a.f, b.f, k), zoom: mix(a.z, b.z, k), ang: mix(a.a, b.a, k) };
+    };
+
+    const SAY = [
+      { t0: 1.1, t1: 3.6, q: "Turn on the living room lights.", a: "Done." },
+      { t0: 4.6, t1: 6.9, q: "Open the front door.", a: "Opening it now." },
+      { t0: 7.9, t1: 10.3, q: "How long on the laundry?", a: "22 minutes. I'll tell you when it's done." },
+      { t0: 11.3, t1: 13.3, q: "Set the heat to 70.", a: "Heating to 70." },
+    ];
     m.dynamic = function (time, deploy, spin, hoverT) {
-      const raw = (hoverT == null ? 99 : hoverT) / 0.72;
-      const s = raw > 0 ? raw % 7 : -1;
+      const sec = (hoverT == null ? 0 : hoverT) / 0.72;
+      const s = sec > 0 ? sec % LOOP : -1;
       const segs = [], faces = [], dots = [];
       const P = pen(segs, faces);
-      const top = FY + DH + 0.004;
+      const after = (t) => (s >= 0 ? ss(t, t + 0.35, s) : 0);
+      const endFade = 1 - (s >= 0 ? ss(14.9, 15.4, s) : 1);
 
-      // the light ring: idle dim; wakes, chases while thinking, glows answering
-      const listening = s >= 0 && s < 1.1, thinking = s >= 1.1 && s < 1.8, answering = s >= 3.8 && s < 5.4;
-      for (let k = 0; k < 12; k++) {
-        const a = (k / 12) * Math.PI * 2;
-        let lit = 0;
-        if (listening || answering) lit = 1;
-        if (thinking) lit = ((k - s * 18) % 12 + 12) % 12 < 3 ? 1 : 0;
-        dots.push([DV[0] + Math.cos(a) * DR * 0.72, top, DV[2] + Math.sin(a) * DR * 0.72, lit ? 2.0 : 0.8, lit ? 1 : 0]);
-      }
-      // you speak (rising rings) / it answers (wider rings)
-      if (listening || answering) {
-        const t0 = listening ? 0 : 3.8;
-        for (let k = 0; k < 3; k++) {
-          const ph = ((s - t0) * 1.3 + k / 3) % 1;
-          P.ring(DV[0], top + 0.02 + ph * 0.14, DV[2], DR * (0.6 + ph * (answering ? 1.9 : 1.2)), 28, "y", 1.1 * (1 - ph));
-        }
-      }
-      // the command goes to the house: arcs travel from the speaker to the front wall
-      if (s >= 1.7 && s < 2.5) {
-        for (let k = 0; k < 3; k++) {
-          const ph = ss(1.7, 2.5, s - k * 0.12);
-          if (ph <= 0 || ph >= 1) continue;
-          const z = DV[2] - DR - ph * (DV[2] - DR - HZ1 - 0.04), r = 0.10 + 0.06 * k;
-          const pts = [];
-          for (let i = 0; i <= 10; i++) {
-            const a = Math.PI * (0.2 + 0.6 * (i / 10));
-            pts.push([Math.cos(a) * r, FY + 0.20 + Math.sin(a) * r * 0.6, z]);
-          }
-          P.poly(pts, 1.2 * (1 - ph * 0.5));
-        }
-      }
-      // the house responds: windows one after another, then the porch light
-      const fade = 1 - ss(6.2, 6.9, s);
-      WINS.forEach((w, i) => {
-        const on = s >= 0 ? ss(2.4 + i * 0.3, 2.7 + i * 0.3, s) * fade : 0;
-        if (on <= 0.02) return;
-        const p = winPts(w);
-        P.loop(p, 1.3 * on + 0.2);
-        P.line(V.mul(V.add(p[0], p[1]), 0.5), V.mul(V.add(p[2], p[3]), 0.5), 1.0 * on);
-        P.line(V.mul(V.add(p[1], p[2]), 0.5), V.mul(V.add(p[3], p[0]), 0.5), 1.0 * on);
-        dots.push([w.c[0], w.c[1], w.c[2], 1.5 + on * 3.5, 1]);
-        // light falling out of the window onto the ground
-        const out = V.add(w.c, V.mul(w.n, 0.22));
-        [p[0], p[1]].forEach((q) => P.line(q, [out[0] + (q[0] - w.c[0]), FY + 0.004, out[2] + (q[2] - w.c[2])], 0.6 * on));
+      // what is being said, and which puck is answering
+      let caption = null;
+      SAY.forEach((c) => {
+        if (s < c.t0 || s >= c.t1) return;
+        caption = { q: c.q, a: c.a, qa: ss(c.t0, c.t0 + 0.3, s), aa: ss(c.t0 + 0.9, c.t0 + 1.2, s) };
       });
-      const porch = s >= 0 ? ss(3.6, 3.9, s) * fade : 0;
-      dots.push([0.10, FY + 0.28, HZ1 + 0.05, 1.0 + porch * 3.2, porch > 0.3 ? 1 : 0]);
-      return { segments: segs, faces, dots };
+      const talkAt = (px, pz, t0) => {
+        if (s < t0 || s >= t0 + 1.6) return;
+        for (let k = 0; k < 3; k++) {
+          const ph = ((s - t0) * 1.4 + k / 3) % 1;
+          P.ring(px, FY + 0.17 + ph * 0.06, pz, 0.04 + ph * 0.12, 20, "y", 1.1 * (1 - ph));
+        }
+        dots.push([px, FY + 0.162, pz, 2.2, 1]);
+      };
+      talkAt(0.84, -0.20, 1.1); talkAt(0.84, -0.20, 4.6); talkAt(-0.44, 0.07, 7.9); talkAt(-0.44, 0.07, 11.3);
+
+      // living room lamps: on at 2.0, and they stay on until the loop ends
+      const lampsOn = after(2.0) * endFade;
+      LAMPS.forEach(([x, z]) => {
+        dots.push([x, FY + 0.25, z, 1.0 + lampsOn * 3.4, lampsOn > 0.3 ? 1 : 0]);
+        if (lampsOn > 0.05) {
+          for (let k = 0; k < 10; k++) {
+            const a = (k / 10) * Math.PI * 2;
+            P.line([x + Math.cos(a) * 0.05, FY + 0.22, z + Math.sin(a) * 0.05],
+                   [x + Math.cos(a) * (0.10 + 0.08 * lampsOn), FY + 0.004, z + Math.sin(a) * (0.10 + 0.08 * lampsOn)], 0.5 + 0.5 * lampsOn);
+          }
+          P.ring(x, FY + 0.004, z, 0.10 + 0.08 * lampsOn, 22, "y", 0.8);
+        }
+      });
+
+      // the front door swings in on its hinge
+      const open = after(5.4) * 1.3 * endFade;
+      const hx = DX1, hz = Z1, dw = DX1 - DX0;
+      const tr = (x, y, z) => {
+        const dx = x - hx, dz = z - hz, c = Math.cos(-open), sn = Math.sin(-open);
+        return [hx + dx * c - dz * sn, y, hz + dx * sn + dz * c];
+      };
+      P.box(hx - dw / 2, FY + (WH - 0.008) / 2, hz, dw - 0.006, WH - 0.01, 0.018, 1.1, tr);
+
+      // the washer: the drum turns, and its display counts
+      const running = s >= 7.9 && s < 13.3;
+      for (let k = 0; k < 6; k++) {
+        const a = (k / 6) * Math.PI * 2 + (running ? s * 5 : 0);
+        dots.push([-0.80 + Math.cos(a) * 0.03, FY + 0.08 + Math.sin(a) * 0.03, 0.10 + 0.074, running ? 1.4 : 0.6, running ? 1 : 0]);
+      }
+      if (s >= 8.8 && s < 10.3) {
+        const arc = [];
+        for (let i = 0; i <= 16; i++) {
+          const a = Math.PI * (1 - (i / 16) * 0.63);
+          arc.push([-0.80 + Math.cos(a) * 0.028, FY + 0.155 + Math.sin(a) * 0.012, 0.10 + 0.073]);
+        }
+        P.poly(arc, 1.3);
+      }
+
+      // the thermostat sweeps to 70
+      const heat = after(12.2) * endFade;
+      const ang = -2.4 + 1.9 * heat;
+      const tip = [-0.331, FY + 0.18 + Math.sin(ang) * 0.018, -0.36 + Math.cos(ang) * 0.018];
+      P.line([-0.331, FY + 0.18, -0.36], tip, 1.2);
+      dots.push([tip[0], tip[1], tip[2], heat > 0.3 ? 2.0 : 0.8, heat > 0.3 ? 1 : 0]);
+
+      return { segments: segs, faces, dots, caption };
     };
     return m;
   }
 
-  /* The beer launcher. A machine you can follow end to end:
+  /* The beer launcher. A machine you can follow end to end, and all of it
+     gravity-fed:
 
-       fridge    an insulated unit at the back; cold cans stacked behind a
-                 glass door
-       chute     a sloped track from the fridge's dispenser to the cup, on its
-                 own legs, with a servo gate that lets one can through
-       catapult  two braced A-frames and bearing blocks carrying an axle; a
-                 torsion spring coiled round the axle each side; the
-                 throwing arm with a basket cup; a padded stop bar
-       reload    a winch whose cable drags the arm back down, and a latch
-                 that holds it cocked
-       remote    one big button, on the floor out front
+       fridge    a mini fridge, six cans, up on a short stand. Inside, a
+                 zigzag rack: cans lie across it and roll down to the front
+                 on their own. A servo latch at the outlet lets one go.
+       chute     two rails from the outlet, sloping down to just above the
+                 cradle, on legs
+       catapult  braced A-frames and bearing blocks on the axle, a torsion
+                 spring coiled round it each side, the arm, and a cradle at
+                 its end that holds the can lying across it, cupped, so it
+                 cannot roll out; a padded stop bar
+       reload    a motor and winch whose cable drags the arm back down, and a
+                 latch that holds it cocked
+       remote    one big button
 
-     Hover plays the whole cycle every 5 s: the button goes down, the latch
-     lets go, the springs whip the arm to the stop and the can leaves on a
-     ballistic arc out of frame; the winch reels the arm back and the latch
-     catches it; the gate opens, the next cold can rolls down the chute and
-     drops into the cup. At rest it sits cocked and loaded. */
+     A can only ever lies across the machine (its axis along x): in the
+     fridge, down the rails, in the cradle, and in the air it turns end over
+     end about that same axis. Hover plays the cycle every 5 s. */
   function buildLauncher() {
     const parts = [];
     const FY = -0.5;
-    const AX = [0, FY + 0.44, 0.10];                    // axle centre
-    const L = 0.60, SHORT = 0.10;                        // arm: axle to cup, and the short end behind it
-    const REST = -1.9, STOP = 0.5, RELEASE = -0.35;      // arm angle from straight up, + toward the front
+    const AX = [0, FY + 0.44, 0.10];
+    const L = 0.60, SHORT = 0.10;
+    const REST = -1.9, STOP = 0.5, RELEASE = -0.35;
+    const CR = 0.05;                                      // can radius
+    const CAN_HALF = 0.062;                               // half a can's length
 
     // base
-    parts.push(makeBox(0, FY + 0.025, -0.24, 0.66, 0.05, 1.56));
+    parts.push(makeBox(0, FY + 0.025, -0.20, 0.66, 0.05, 1.46));
     [[-1, -1], [1, -1], [1, 1], [-1, 1]].forEach(([a, b]) =>
-      parts.push(makeCylinderY(a * 0.28, FY - 0.004, -0.24 + b * 0.70, 0.035, 0.012, 10)));
+      parts.push(makeCylinderY(a * 0.28, FY - 0.004, -0.20 + b * 0.66, 0.035, 0.012, 10)));
 
-    // A-frames: two legs each, a bearing block at the apex, a tie at the foot
+    // A-frames, bearings, axle, springs
     [-0.17, 0.17].forEach((x) => {
       parts.push(beamPart([x, FY + 0.05, AX[2] - 0.26], [x, AX[1] - 0.02, AX[2]], 0.017));
       parts.push(beamPart([x, FY + 0.05, AX[2] + 0.26], [x, AX[1] - 0.02, AX[2]], 0.017));
       parts.push(beamPart([x, FY + 0.18, AX[2] - 0.17], [x, FY + 0.18, AX[2] + 0.17], 0.012));
       parts.push(makeBox(x, AX[1], AX[2], 0.05, 0.07, 0.07));
     });
-    parts.push(tubeAlong([-0.22, AX[1], AX[2]], [0.22, AX[1], AX[2]], 0.016, 10));   // axle
-    // torsion springs coiled round the axle, each with a fixed leg to the frame
+    parts.push(tubeAlong([-0.22, AX[1], AX[2]], [0.22, AX[1], AX[2]], 0.016, 10));
     [[-0.145, -0.06], [0.06, 0.145]].forEach(([x0, x1]) => {
       parts.push(helixX(x0, x1, AX[1], AX[2], 0.036, 6, 90));
       const xo = x0 < 0 ? x0 : x1;
       parts.push({ v: [[xo, AX[1] - 0.036, AX[2]], [xo, FY + 0.18, AX[2] + 0.10]], e: [[0, 1]] });
     });
-    // padded stop bar on two posts, where the arm ends its swing
+    // stop bar
     const SB = [0, AX[1] + Math.cos(STOP) * 0.30, AX[2] + Math.sin(STOP) * 0.30 + 0.035];
     [-0.23, 0.23].forEach((x) => parts.push(beamPart([x, FY + 0.05, SB[2]], [x, SB[1], SB[2]], 0.014)));
     parts.push(tubeAlong([-0.24, SB[1], SB[2]], [0.24, SB[1], SB[2]], 0.03, 12));
 
-    // the fridge: insulated walls, cooling fins, a glass door with the cans behind it
-    const FZ0 = -1.0, FZ1 = -0.70, FW = 0.20, FT = FY + 0.64;
-    parts.push(makeBox(0, FY + 0.06, (FZ0 + FZ1) / 2, FW * 2, 0.03, FZ1 - FZ0));       // floor
-    parts.push(makeBox(0, FT, (FZ0 + FZ1) / 2, FW * 2, 0.03, FZ1 - FZ0));             // top
-    parts.push(makeBox(0, (FY + 0.06 + FT) / 2, FZ0, FW * 2, FT - FY - 0.06, 0.03));  // back
-    [-FW, FW].forEach((x) => parts.push(makeBox(x, (FY + 0.06 + FT) / 2, (FZ0 + FZ1) / 2, 0.03, FT - FY - 0.06, FZ1 - FZ0)));
-    for (let k = 0; k < 7; k++) {                                                   // fins on the back
-      const x = -0.15 + k * 0.05;
-      parts.push({ v: [[x, FY + 0.12, FZ0 - 0.03], [x, FT - 0.04, FZ0 - 0.03]], e: [[0, 1]] });
-    }
-    parts.push({ v: [[-FW + 0.02, FY + 0.08, FZ1 + 0.01], [FW - 0.02, FY + 0.08, FZ1 + 0.01], [FW - 0.02, FT - 0.10, FZ1 + 0.01], [-FW + 0.02, FT - 0.10, FZ1 + 0.01]],
-                 e: [[0, 1], [1, 2], [2, 3], [3, 0]] });                            // door frame (glass: no face)
-    parts.push(beamPart([FW - 0.05, FY + 0.20, FZ1 + 0.03], [FW - 0.05, FY + 0.40, FZ1 + 0.03], 0.008));  // handle
-    const stacked = [FY + 0.14, FY + 0.24, FY + 0.34, FY + 0.44];                  // cans lying in the rack
-    stacked.forEach((y) => {
-      parts.push(tubeAlong([-0.065, y, -0.86], [0.065, y, -0.86], 0.045, 14));
-      parts.push(beamPart([-FW + 0.02, y - 0.05, -0.93], [-FW + 0.02, y - 0.05, -0.76], 0.006));
-      parts.push(beamPart([FW - 0.02, y - 0.05, -0.93], [FW - 0.02, y - 0.05, -0.76], 0.006));
-    });
-    // dispenser mouth at the top of the door
-    parts.push(makeBox(0, FT - 0.06, FZ1 + 0.02, 0.18, 0.06, 0.04));
+    // where the cradle sits when the arm is cocked, so the chute can end over it
+    const restDir = [0, Math.cos(REST), Math.sin(REST)];
+    const restUp = V.cross([1, 0, 0], restDir);
+    const CRADLE_REST = V.add(V.add(AX, V.mul(restDir, L)), V.mul(restUp, CR + 0.012));
 
-    // the chute: two rails from the dispenser to above the cup, on legs
-    const CH0 = [0, FT - 0.08, FZ1 + 0.03], CH1 = [0, FY + 0.45, -0.52];
+    // the mini fridge on a short stand
+    const FZ0 = -0.92, FZ1 = -0.66, FW = 0.12, FB = FY + 0.40, FT = FB + 0.24;
+    [[-1, -1], [1, -1], [1, 1], [-1, 1]].forEach(([a, b]) =>
+      parts.push(beamPart([a * (FW - 0.02), FY + 0.05, (FZ0 + FZ1) / 2 + b * 0.10], [a * (FW - 0.02), FB, (FZ0 + FZ1) / 2 + b * 0.10], 0.01)));
+    parts.push(makeBox(0, FB + 0.012, (FZ0 + FZ1) / 2, FW * 2, 0.024, FZ1 - FZ0));            // floor
+    parts.push(makeBox(0, FT, (FZ0 + FZ1) / 2, FW * 2, 0.024, FZ1 - FZ0));                    // top
+    parts.push(makeBox(0, (FB + FT) / 2, FZ0, FW * 2, FT - FB, 0.024));                       // back
+    [-FW, FW].forEach((x) => parts.push(makeBox(x, (FB + FT) / 2, (FZ0 + FZ1) / 2, 0.024, FT - FB, FZ1 - FZ0)));
+    for (let k = 0; k < 4; k++) parts.push({ v: [[-0.08 + k * 0.053, FB + 0.04, FZ0 - 0.018], [-0.08 + k * 0.053, FT - 0.03, FZ0 - 0.018]], e: [[0, 1]] });
+    parts.push({ v: [[-FW + 0.015, FB + 0.07, FZ1 + 0.005], [FW - 0.015, FB + 0.07, FZ1 + 0.005], [FW - 0.015, FT - 0.015, FZ1 + 0.005], [-FW + 0.015, FT - 0.015, FZ1 + 0.005]],
+                 e: [[0, 1], [1, 2], [2, 3], [3, 0]] });                                      // glass door (no face)
+    // zigzag rack: upper shelf runs down to the back, lower shelf down to the front
+    const upY0 = FT - 0.06, upY1 = FT - 0.10, loY0 = FB + 0.09, loY1 = FB + 0.05;
+    [-FW + 0.02, FW - 0.02].forEach((x) => {
+      parts.push(beamPart([x, upY0, FZ1 - 0.04], [x, upY1, FZ0 + 0.03], 0.006));
+      parts.push(beamPart([x, loY0, FZ0 + 0.03], [x, loY1, FZ1 - 0.02], 0.006));
+    });
+    const onShelf = (y0, y1, z0, z1, t) => [0, y0 + (y1 - y0) * t + CR, z0 + (z1 - z0) * t];
+    [0.15, 0.5, 0.85].forEach((t) => {                                                         // three cans on the upper shelf
+      const c = onShelf(upY0, upY1, FZ1 - 0.04, FZ0 + 0.03, t);
+      parts.push(tubeAlong([-CAN_HALF, c[1], c[2]], [CAN_HALF, c[1], c[2]], CR, 14));
+    });
+    [0.2, 0.55].forEach((t) => {                                                              // two waiting on the lower shelf
+      const c = onShelf(loY0, loY1, FZ0 + 0.03, FZ1 - 0.02, t);
+      parts.push(tubeAlong([-CAN_HALF, c[1], c[2]], [CAN_HALF, c[1], c[2]], CR, 14));
+    });
+    // the outlet's servo latch on the front, beside the door
+    parts.push(makeBox(FW - 0.02, FB + 0.07, FZ1 + 0.02, 0.04, 0.04, 0.03));
+
+    // the chute: from the outlet down to just above the cradle, on legs
+    const OUT = [0, loY1 + CR + 0.004, FZ1 + 0.02];                        // can centre at the outlet
+    const END = [0, CRADLE_REST[1] + CR + 0.07, CRADLE_REST[2]];           // can centre at the chute's end
     [-0.055, 0.055].forEach((x) => {
-      parts.push(beamPart([x, CH0[1], CH0[2]], [x, CH1[1], CH1[2]], 0.008));
-      parts.push(beamPart([x * 1.6, FY + 0.05, CH1[2] - 0.02], [x, CH1[1] - 0.01, CH1[2] - 0.02], 0.008));
+      parts.push(beamPart([x, OUT[1] - CR - 0.008, OUT[2]], [x, END[1] - CR - 0.008, END[2] + 0.02], 0.007));
+      parts.push(beamPart([x * 1.5, FY + 0.05, END[2] + 0.04], [x, END[1] - CR - 0.012, END[2] + 0.04], 0.007));
     });
-    parts.push(beamPart([-0.055, CH1[1] - 0.012, CH1[2] - 0.02], [0.055, CH1[1] - 0.012, CH1[2] - 0.02], 0.008));
-    parts.push(makeBox(0.10, CH1[1], CH1[2] - 0.03, 0.05, 0.05, 0.05));            // gate servo
 
-    // the winch and its motor, behind the frame; the latch post beside it
-    parts.push(makeBox(-0.14, FY + 0.10, -0.30, 0.10, 0.10, 0.12));                // motor
-    parts.push(tubeAlong([-0.09, FY + 0.10, -0.30], [0.03, FY + 0.10, -0.30], 0.035, 14));  // drum
-    parts.push(beamPart([0.08, FY + 0.05, -0.20], [0.08, FY + 0.30, -0.20], 0.012));   // latch post
-    parts.push(makeBox(0.08, FY + 0.10, -0.20, 0.06, 0.07, 0.06));                 // latch servo
-    // electronics, with the receiver's antenna
+    // winch motor and drum; latch post and servo
+    parts.push(makeBox(-0.14, FY + 0.10, -0.30, 0.10, 0.10, 0.12));
+    parts.push(tubeAlong([-0.09, FY + 0.10, -0.30], [0.03, FY + 0.10, -0.30], 0.035, 14));
+    parts.push(beamPart([0.08, FY + 0.05, -0.20], [0.08, FY + 0.30, -0.20], 0.012));
+    parts.push(makeBox(0.08, FY + 0.10, -0.20, 0.06, 0.07, 0.06));
+    // electronics and receiver antenna
     parts.push(makeBox(0.22, FY + 0.09, 0.30, 0.13, 0.08, 0.16));
     parts.push(tubeAlong([0.26, FY + 0.13, 0.26], [0.26, FY + 0.30, 0.26], 0.004, 5));
-
-    // the remote, on the floor out front
-    const RM = [0.48, FY + 0.025, 0.72];
+    // the remote
+    const RM = [0.48, FY + 0.025, 0.66];
     parts.push(makeBox(RM[0], RM[1], RM[2], 0.12, 0.05, 0.22));
     parts.push(makeRing(RM[0], RM[1] + 0.026, RM[2] - 0.02, 0.045, 18, "y"));
     parts.push(tubeAlong([RM[0] + 0.04, RM[1] + 0.02, RM[2] + 0.10], [RM[0] + 0.04, RM[1] + 0.13, RM[2] + 0.12], 0.004, 5));
 
-    parts.push(makeBase(FY - 0.012, 1.25));
+    parts.push(makeBase(FY - 0.012, 1.2));
     const m = merge(parts);
     m.spinners = [];
     m.spinRate = 0.2;
     m.angle = 0.95;
-    m.zoom = 1.25;
+    m.zoom = 1.5;
 
     const ss = (a, b, s) => V.ss((s - a) / (b - a));
     const along = (th, d) => [0, AX[1] + Math.cos(th) * d, AX[2] + Math.sin(th) * d];
-    const can = (P, c, axis, lw) => P.tube(V.sub(c, V.mul(axis, 0.065)), axis,
-      [{ d: 0, r: 0.032 }, { d: 0.012, r: 0.045 }, { d: 0.115, r: 0.045 }, { d: 0.13, r: 0.034 }], 12, lw || 1.1);
+    const X = [1, 0, 0];
+    // a can lying across the machine; `spin` turns it end over end about x
+    const can = (P, c, spin, lw) => {
+      const ax = [1, 0, 0];
+      P.tube(V.sub(c, V.mul(ax, CAN_HALF)), ax,
+        [{ d: 0, r: CR * 0.74 }, { d: 0.012, r: CR }, { d: 2 * CAN_HALF - 0.012, r: CR }, { d: 2 * CAN_HALF, r: CR * 0.74 }], 14, lw || 1.1);
+      if (spin != null) {                                    // a seam line so the tumble reads
+        const off = [0, Math.cos(spin) * CR, Math.sin(spin) * CR];
+        P.line(V.add(V.sub(c, V.mul(ax, CAN_HALF * 0.9)), off), V.add(V.add(c, V.mul(ax, CAN_HALF * 0.9)), off), 1.0);
+      }
+    };
 
     m.dynamic = function (time, deploy, spin, hoverT) {
       const raw = (hoverT == null ? 0 : hoverT) / 0.72;
@@ -1503,76 +1579,73 @@
       const segs = [], faces = [], dots = [];
       const P = pen(segs, faces);
 
-      // remote: button down at 0.3 s
+      // remote
       const press = s >= 0.3 && s < 0.65;
       P.tube([RM[0], RM[1] + 0.026, RM[2] - 0.02], [0, 1, 0], [{ d: 0, r: 0.038 }, { d: press ? 0.008 : 0.024, r: 0.038 }], 14, 1.1);
       dots.push([RM[0] - 0.035, RM[1] + 0.027, RM[2] + 0.07, press ? 2.4 : 0.9, press ? 1 : 0]);
 
-      // the arm: cocked; whips to the stop; held; reeled back by the winch
+      // arm
       let th = REST;
       if (s >= 0.5 && s < 0.64) th = REST + (STOP - REST) * Math.pow(ss(0.5, 0.64, s), 0.55);
       else if (s >= 0.64 && s < 1.1) th = STOP;
       else if (s >= 1.1 && s < 2.8) th = STOP + (REST - STOP) * ss(1.1, 2.8, s);
       const dir = [0, Math.cos(th), Math.sin(th)];
+      const up = V.cross(X, dir);
       const tip = along(th, L), tail = along(th, -SHORT);
       P.beam(tail, tip, 0.024, 1.2, 0.016);
-      // spring legs from the coils onto the arm
       [-0.10, 0.10].forEach((x) => P.line([x, AX[1] + 0.036, AX[2]], [x * 0.3, AX[1] + dir[1] * 0.12, AX[2] + dir[2] * 0.12], 1.0));
-      // the basket cup
-      const side = [1, 0, 0], up = V.cross(side, dir);
-      const cupC = V.add(tip, V.mul(up, 0.01));
-      P.ringUV(V.add(cupC, V.mul(up, 0.04)), side, dir, 0.062, 18, 1.2);
-      P.ringUV(cupC, side, dir, 0.05, 16, 1.0);
-      [0, 1, 2, 3].forEach((k) => {
-        const a = (k / 4) * Math.PI * 2 + 0.4;
-        const off = V.add(V.mul(side, Math.cos(a) * 0.05), V.mul(dir, Math.sin(a) * 0.05));
-        P.line(V.add(cupC, off), V.add(V.add(cupC, V.mul(up, 0.04)), V.mul(off, 1.24)), 0.9);
-      });
 
-      // the winch cable: taut while it reels the arm down, and while cocked
+      // the cradle: a trough across the arm's end, cupping a can lying in it
+      const cc = V.add(tip, V.mul(up, CR + 0.012));          // can centre when seated
+      const trough = (x) => {
+        const pts = [];
+        for (let i = 0; i <= 12; i++) {
+          const a = Math.PI * (0.15 + 0.70 * (i / 12));      // the lower two-thirds of a circle round the can
+          pts.push(V.add([x, 0, 0], V.add(V.mul(dir, Math.cos(a) * (CR + 0.01)), V.mul(up, -Math.sin(a) * (CR + 0.01) + (CR + 0.012)))));
+        }
+        return pts.map((p) => [p[0], p[1] + tip[1], p[2] + tip[2]]);
+      };
+      const tA = trough(-CAN_HALF - 0.012), tB = trough(CAN_HALF + 0.012);
+      P.poly(tA, 1.2); P.poly(tB, 1.2);
+      for (let i = 0; i < tA.length; i++) {
+        if (i % 3 === 0) P.line(tA[i], tB[i], 0.9);
+        if (i < tA.length - 1) P.face([tA[i], tA[i + 1], tB[i + 1], tB[i]]);
+      }
+      P.face(tA.slice()); P.face(tB.slice().reverse());      // end plates keep it from rolling out sideways
+
+      // winch cable, taut while cocked and while reeling
       const reeling = s >= 1.1 && s < 2.8;
-      if (s < 0 || reeling || s >= 2.8 || s < 0.5) {
+      if (s < 0 || s < 0.5 || reeling || s >= 2.8) {
         const hook = along(th, 0.40);
         P.line([-0.03, FY + 0.135, -0.30], hook, reeling ? 1.3 : 0.9);
         if (reeling) dots.push([-0.03, FY + 0.10, -0.30, 1.6, 1]);
       }
-      // the latch: its hook swings clear on the button
+      // latch
       const latchOpen = s >= 0.45 && s < 2.8;
       P.line([0.08, FY + 0.30, -0.20], [0.08, FY + 0.30 + (latchOpen ? 0.02 : 0.045), -0.20 + (latchOpen ? -0.05 : 0.02)], 1.2);
 
-      // the cans
-      const loaded = s < 0 || s < 0.57 || s >= 4.1;
-      if (loaded) can(P, V.add(cupC, V.mul(up, 0.075)), up);
+      // the cans: loaded; thrown; the next one released, rolled down, dropped in
+      const loaded = s < 0 || s < 0.57 || s >= 4.15;
+      if (loaded) can(P, cc);
       if (s >= 0.57 && s < 2.8) {
-        // in flight, tumbling, out of frame
         const t = s - 0.57;
-        const r0 = V.add(along(RELEASE, L), [0, 0.06, 0]);
+        const r0 = V.add(along(RELEASE, L), [0, CR + 0.012, 0]);
         const v0 = V.mul([0, -Math.sin(RELEASE), Math.cos(RELEASE)], 2.5);
-        const pos = [r0[0], r0[1] + v0[1] * t - 1.4 * t * t, r0[2] + v0[2] * t];
-        if (pos[1] > FY) {
-          const a = t * 10;
-          can(P, pos, [0, Math.cos(a), Math.sin(a)]);
-        }
+        const pos = [0, r0[1] + v0[1] * t - 1.4 * t * t, r0[2] + v0[2] * t];
+        if (pos[1] > FY) can(P, pos, t * 11);
       }
-      // the next can: gate opens, it rolls down the chute and drops into the cup
-      const rest = [CH0, CH1];
-      if (s >= 3.0 && s < 3.8) {
-        const t = ss(3.0, 3.8, s);
-        const c = V.add(V.add(rest[0], V.mul(V.sub(rest[1], rest[0]), t)), [0, 0.05, 0]);
-        can(P, c, [1, 0, 0]);
-      } else if (s >= 3.8 && s < 4.1) {
-        const t = ss(3.8, 4.1, s);
-        const from = V.add(rest[1], [0, 0.05, 0]), to = V.add(cupC, V.mul(up, 0.075));
-        const ax = V.norm(V.add(V.mul([1, 0, 0], 1 - t), V.mul(up, t + 0.001)));
-        can(P, V.add(from, V.mul(V.sub(to, from), t)), ax);
-      } else if (s < 0 || s < 3.0) {
-        can(P, V.add(rest[0], [0, 0.05, 0.01]), [1, 0, 0], 0.9);     // the next one waiting at the dispenser
+      const latchFridge = s >= 3.0 && s < 3.25;
+      if (s >= 3.0 && s < 3.85) {                             // out of the fridge and down the rails
+        const t = ss(3.0, 3.85, s);
+        can(P, V.add(OUT, V.mul(V.sub(END, OUT), t)));
+      } else if (s >= 3.85 && s < 4.15) {                     // off the end of the rails, into the cradle
+        const t = ss(3.85, 4.15, s);
+        can(P, V.add(END, V.mul(V.sub(cc, END), t * t)));
+      } else {
+        can(P, OUT, null, 0.9);                               // the next can, waiting at the outlet
       }
-      // gate flap
-      const gateOpen = s >= 3.75 && s < 4.1;
-      P.line([-0.06, CH1[1] + 0.01, CH1[2] + 0.03], [0.06, CH1[1] + (gateOpen ? -0.06 : 0.01), CH1[2] + 0.03], 1.2);
-      // fridge status light, cold
-      dots.push([-FW + 0.05, FT - 0.04, FZ1 + 0.02, 1.4, 1]);
+      P.line([FW - 0.04, FB + 0.10, FZ1 + 0.035], [FW - 0.04 - (latchFridge ? 0 : 0.07), FB + 0.10 - (latchFridge ? 0.06 : 0), FZ1 + 0.035], 1.2);
+      dots.push([-FW + 0.04, FT - 0.03, FZ1 + 0.01, 1.3, 1]);   // the fridge's cold light
       return { segments: segs, faces, dots };
     };
     return m;
@@ -1667,8 +1740,10 @@
        applied to every point it draws. Set once per frame in render(). */
     let bobY = 0;
     let zoomMul = 1;                 // model.hoverZoom: a camera push-in on hover
+    let camF = [0, 0, 0];            // model.tour: the point the camera is looking at
     function project(x, y, z, ca, sa) {
       // rotate about Y
+      x -= camF[0]; y -= camF[1]; z -= camF[2];
       const X = x * ca + z * sa;
       const Z = -x * sa + z * ca;
       const Y = y + bobY;
@@ -1815,9 +1890,18 @@
 
     function render() {
       ctx.clearRect(0, 0, w, h);
+      /* A model with a tour (model.tour) is filmed: while it is hovered the
+         camera moves through it, looking at a point, from an angle, at a
+         zoom, all set by the tour for that second of the hover. */
+      if (model.tour) {
+        const c = model.tour(reduce ? 0 : hoverT / T_RATE);
+        camF = c.focus || [0, 0, 0];
+        if (c.ang != null) angY = c.ang;
+      }
       const ca = Math.cos(angY), sa = Math.sin(angY);
       bobY = model.bob ? model.bob(reduce ? 0 : t) : 0;
       zoomMul = model.hoverZoom && !reduce ? model.hoverZoom(hoverT / T_RATE) : 1;
+      if (model.tour) zoomMul = model.tour(reduce ? 0 : hoverT / T_RATE).zoom || 1;
 
       // A slow, shallow flicker. Anything stronger reads as a broken screen
       // rather than a projection.
@@ -1862,12 +1946,13 @@
       // Articulated parts are generated per frame in model space, so they have
       // to enter the sort alongside the static shell or an arm link will draw
       // over the body it is behind.
-      let dynSegs = null, dynDots = null, dynFaces = null;
+      let dynSegs = null, dynDots = null, dynFaces = null, dynCaption = null;
       if (model.dynamic) {
         const gen = model.dynamic(reduce ? 0 : t, deploy, angY, hoverT);
         dynSegs = gen.segments || [];
         dynDots = gen.dots || [];
         dynFaces = gen.faces || null;
+        dynCaption = gen.caption || null;
       }
 
       // ---- bucket everything by depth ----
@@ -2110,6 +2195,29 @@
 
       // ---- 5. breakout: a magnified section through the part ----
       if (model.callout && !reduce) drawCallout(ca, sa);
+      if (dynCaption) drawCaption(dynCaption);
+    }
+
+    /* What a toured model says (dynamic() returns caption): the words you
+       speak and the words the house says back, bottom-left, like subtitles.
+       { q, a, qa, aa } where qa / aa fade each line in and out. */
+    function drawCaption(c) {
+      const x = 18, y1 = h - 44, y2 = h - 22;
+      ctx.save();
+      ctx.textAlign = "left";
+      const line = (tag, text, alpha, y) => {
+        if (!text || alpha <= 0.01) return;
+        ctx.globalAlpha = alpha;
+        ctx.font = "500 10px 'JetBrains Mono', monospace";
+        ctx.fillStyle = "rgba(" + rgb + ",0.75)";
+        ctx.fillText(tag, x, y);
+        ctx.font = "500 14px 'Instrument Sans', system-ui, sans-serif";
+        ctx.fillStyle = "rgba(" + cNear.join(",") + ",0.95)";
+        ctx.fillText(text, x + 58, y);
+      };
+      line("YOU", c.q, c.qa == null ? 1 : c.qa, y1);
+      line("HOUSE", c.a, c.aa == null ? 1 : c.aa, y2);
+      ctx.restore();
     }
 
     /* A breakout callout, like a detail view on a drawing: a leader runs from

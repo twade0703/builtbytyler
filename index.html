@@ -280,8 +280,13 @@
              him is asking to be taken on trust. Swap the file, not the markup,
              to change it. -->
         <figure class="band__fig">
-          <img src="assets/img/headshot.jpg" alt="Tyler Wade, who designs and builds everything on this site"
-               width="400" height="500" loading="lazy">
+          <!-- Eager on purpose, and on a versioned URL. The bare URL sat under
+               a month-long image cache and at least one browser held a bad
+               response for it, so the section showed alt text; a new URL
+               sidesteps any poisoned cache, and a 21 KB photo that carries the
+               pitch gains nothing from lazy-loading. Bump ?v= if the file changes. -->
+          <img src="assets/img/headshot.jpg?v=2" alt="Tyler Wade, who designs and builds everything on this site"
+               width="400" height="500" decoding="async">
           <figcaption><b>Tyler Wade</b>Monterey, California</figcaption>
         </figure>
         <h2 class="band__h">Every product starts as a sketch and ends as something <em>real</em>.</h2>

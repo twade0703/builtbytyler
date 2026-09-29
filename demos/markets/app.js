@@ -82,9 +82,8 @@ const OPT=(()=>{const sym="NVDA",s=ALL[sym],n=s.c.length,asof=s.t[n-1],exp=Date.
 const optVal=S=>bs(S,OPT.K,OPT.Tn,OPT.sg);
 const optPL=S=>optVal(S).v*100*OPT.q-OPT.cost;
 
-/* ---------- the quant layer: statistics and Monte Carlo that run behind every stock chart */
+/* ---------- the quant layer: statistics, and the likely-range cone on every stock chart */
 const mean=a=>a.reduce((x,y)=>x+y,0)/a.length, sdv=a=>{const m=mean(a);return Math.sqrt(a.reduce((x,y)=>x+(y-m)**2,0)/(a.length-1))};
-const gauss=()=>{let u=0,v=0;while(!u)u=Math.random();while(!v)v=Math.random();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v)};
 const RET=sym=>{const c=ALL[sym].c,r=[];for(let i=1;i<c.length;i++)r.push(Math.log(c[i]/c[i-1]));return r};
 const YR=sym=>sym==="BTC-USD"?365:252, QC={};
 function quant(sym){if(QC[sym])return QC[sym];const s=ALL[sym],r=RET(sym),n=YR(sym),r1=r.slice(-n);
@@ -98,30 +97,32 @@ function quant(sym){if(QC[sym])return QC[sym];const s=ALL[sym],r=RET(sym),n=YR(s
 /* correlation of daily returns across the watchlist, for the faint heatmap */
 const CM=(()=>{const syms=["NVDA","AAPL","TSLA","MSFT","AMD","META"],R=syms.map(s=>RET(s).slice(-252));
   return{syms,m:R.map(x=>R.map(y=>{const mx=mean(x),my=mean(y);let c=0,a=0,b=0;x.forEach((v,i)=>{c+=(v-mx)*(y[i]-my);a+=(v-mx)**2;b+=(y[i]-my)**2});return c/Math.sqrt(a*b)}))}})();
-const PAL=["#00C805","#6BB3FF","#FFD60A","#B38CFF","#FF7A3D","#3DDBD9"];
-function mcPath(steps,sig){const p=[1];let v=1;for(let i=0;i<steps;i++){v*=Math.exp(sig*gauss()-sig*sig/2);p.push(v)}return p}
-function mcRun(steps,sig){const N=500,cols=Array.from({length:steps+1},()=>[]);for(let k=0;k<N;k++)mcPath(steps,sig).forEach((v,i)=>cols[i].push(v));
-  cols.forEach(a=>a.sort((x,y)=>x-y));const q=f=>cols.map(a=>a[Math.floor(a.length*f)]);return{p5:q(.05),p50:q(.5),p95:q(.95),pup:cols[steps].filter(v=>v>1).length/N}}
-/* 42 paths, each born, drawn out, held and faded on its own clock, so the fan flows and never resets at once */
-function drawMC(c,x,now,o){const LIFE=4200;if(!c._mc||c._mc.steps!==o.steps)c._mc={steps:o.steps,paths:[],q:null,tq:null,qt:0};const m=c._mc;
-  const vm=c._vm||1,sg=o.sig*vm;if(m.vm!==vm){m.vm=vm;m.paths=[];m.tq=null}
-  while(m.paths.length<42)m.paths.push({p:mcPath(o.steps,sg),born:now-Math.random()*LIFE,col:PAL[m.paths.length%PAL.length]});
-  if(!m.tq||now-m.qt>LIFE){m.tq=mcRun(o.steps,sg);m.qt=now;if(!m.q)m.q=JSON.parse(JSON.stringify(m.tq))}
-  for(const k of ["p5","p50","p95"])m.q[k]=m.q[k].map((v,i)=>v+(m.tq[k][i]-v)*.03);m.q.pup+=(m.tq.pup-m.q.pup)*.03;
-  const X=i=>o.x0+(o.x1-o.x0)*i/o.steps,a=o.a??1;
-  x.save();x.beginPath();x.rect(o.x0,o.top,o.x1-o.x0+2,o.bot-o.top);x.clip();
-    x.lineWidth=1;
-  for(const pa of m.paths){let age=(now-pa.born)/LIFE;if(age>=1){pa.p=mcPath(o.steps,sg);pa.born=now;pa.col=PAL[(Math.random()*PAL.length)|0];age=0}
-    const grow=clamp(age/.5,0,1),fade=age<.75?1:1-(age-.75)/.25,n=grow*o.steps,k=Math.floor(n);
-    x.beginPath();for(let i=0;i<=k;i++){const yy=o.Y(o.S*pa.p[i]);i?x.lineTo(X(i),yy):x.moveTo(X(i),yy)}
-    if(k<o.steps){const f=n-k;x.lineTo(X(k+f),o.Y(o.S*(pa.p[k]+(pa.p[k+1]-pa.p[k])*f)))}
-    x.strokeStyle=pa.col;x.globalAlpha=.24*fade*a;x.stroke()}
-  x.globalAlpha=a;x.beginPath();m.q.p95.forEach((v,i)=>i?x.lineTo(X(i),o.Y(o.S*v)):x.moveTo(X(i),o.Y(o.S*v)));
-  for(let i=o.steps;i>=0;i--)x.lineTo(X(i),o.Y(o.S*m.q.p5[i]));x.closePath();x.fillStyle="rgba(107,179,255,.04)";x.fill();
-  for(const [k,cl] of [["p95","rgba(107,179,255,.75)"],["p5","rgba(107,179,255,.75)"],["p50","rgba(255,214,10,.9)"]]){x.beginPath();
-    m.q[k].forEach((v,i)=>i?x.lineTo(X(i),o.Y(o.S*v)):x.moveTo(X(i),o.Y(o.S*v)));x.strokeStyle=cl;x.lineWidth=1.2;x.stroke()}
-  x.fillStyle="rgba(168,168,173,.85)";x.font="10px JetBrains Mono";x.textAlign="right";x.textBaseline="top";x.fillText(`MC · 500 sims · no drift · ${o.label}`,o.x1-4,o.top+4);
-  x.restore();x.globalAlpha=1;return m}
+/* The range the price could be in, drawn as one still cone.
+   It used to be 42 random Monte Carlo paths redrawn on their own clocks, which
+   read as noise and never held still. The same model has an exact answer: a
+   zero-drift lognormal, so the q-quantile t bars ahead is
+       exp(z_q * sigma * sqrt(t) - sigma^2 * t / 2)
+   and P(above spot) is 1 - N(sigma * sqrt(T) / 2). No sampling, no jitter;
+   it draws once, left to right, and then only moves if you move the slider. */
+const ZQ={p5:-1.6449,p25:-.6745,p50:0,p75:.6745,p95:1.6449};
+function drawMC(c,x,now,o){const vm=c._vm||1,target=o.sig*vm;
+  if(!c._cone||c._cone.k!==o.label)c._cone={k:o.label,sg:target};
+  c._cone.sg+=(target-c._cone.sg)*.14;const sg=c._cone.sg,T=o.span,J=48;
+  const q={};for(const k in ZQ){q[k]=[];for(let j=0;j<=J;j++){const t=T*j/J;q[k].push(Math.exp(ZQ[k]*sg*Math.sqrt(t)-sg*sg*t/2))}}
+  q.pup=1-Ncdf(sg*Math.sqrt(T)/2);c._mc={q};
+  const g=easeOut(o.a??1),X=j=>o.x0+(o.x1-o.x0)*j/J,Yq=(k,j)=>o.Y(o.S*q[k][j]),n=Math.round(g*J);
+  if(n<1)return c._mc;
+  x.save();
+  const band=(lo,hi,fill)=>{x.beginPath();for(let j=0;j<=n;j++){const y=Yq(hi,j);j?x.lineTo(X(j),y):x.moveTo(X(j),y)}
+    for(let j=n;j>=0;j--)x.lineTo(X(j),Yq(lo,j));x.closePath();x.fillStyle=fill;x.fill()};
+  band("p5","p95","rgba(95,230,255,.055)");band("p25","p75","rgba(95,230,255,.08)");
+  const edge=(k,cl)=>{x.beginPath();for(let j=0;j<=n;j++){const y=Yq(k,j);j?x.lineTo(X(j),y):x.moveTo(X(j),y)}x.strokeStyle=cl;x.lineWidth=1;x.stroke()};
+  edge("p95","rgba(95,230,255,.34)");edge("p5","rgba(95,230,255,.34)");edge("p50","rgba(241,245,248,.35)");
+  if(g>=1){x.font="10.5px JetBrains Mono";x.textAlign="right";x.textBaseline="middle";
+    const lab=(k,t)=>{x.fillStyle="rgba(156,166,178,.9)";x.fillText(t,o.x1-6,Yq(k,J)+(k==="p95"?-9:9))};
+    lab("p95","95%  "+fp(o.S*q.p95[J]));lab("p5","5%  "+fp(o.S*q.p5[J]));
+    if(o.x1-o.x0>320){x.textAlign="left";x.textBaseline="top";x.fillStyle="rgba(95,104,115,1)";x.fillText("likely range · "+o.label+" · no drift",o.x0+10,o.top+4)}}
+  x.restore();return c._mc}
 function statRows(sym,S,m){const q=quant(sym),c=daily(sym).slice(-20),z=(S-mean(c))/sdv(c);
   return[["σ20 ann.",(q.sig20*100).toFixed(1)+"%"],["Sharpe 1Y rf4%",q.sharpe.toFixed(2)],["β vs S&P",q.beta.toFixed(2)],["z-score 20d",fs(z,2),z>=0?"#00C805":"#FF7A3D"],
     ["VaR 95% 1d",(q.var95*100).toFixed(1)+"%","#FF7A3D"],["Max DD 1Y",(q.mdd*100).toFixed(1)+"%"],["P > spot · no drift",m&&m.q?Math.round(m.q.pup*100)+"%":"—","#FFFFFF"]]}
@@ -311,6 +312,7 @@ function drawCardInner(c,now){const{x,w,h}=sizeCanvas(c._cv),v=c._v;
     sl=n;base=prev(v.sym);times=s.it}
   else{const d=daily(v.sym),k=Math.min(WIN[v.win],d.length);series=d.slice(-k);sl=series.length;base=series[0];times=ALL[v.sym].t.slice(-k)}
   const pool=v.kind==="compare"?series.concat(second):v.win==="1D"?ALL[v.sym].ic.concat([base]):series;
+  if(v.kind==="stock"&&v.win==="1D"&&c._mc){const e=series[series.length-1];pool.push(e*c._mc.q.p5[48],e*c._mc.q.p95[48])}
   let lo=Math.min(...pool),hi=Math.max(...pool);const pd=(hi-lo)*.08;lo-=pd;hi+=pd;
   const X=i=>(w-padR)*(i/(sl-1)),Y=p=>top+(hi-p)/(hi-lo)*ph;
   yAxis(x,w,Y,lo,hi,padR,v.kind==="compare"?(p=>fs(p,0)+"%"):fp);
@@ -325,18 +327,9 @@ function drawCardInner(c,now){const{x,w,h}=sizeCanvas(c._cv),v=c._v;
   const upTo=Math.max(1,Math.floor(rev*(series.length-1)));
   const pts=series.slice(0,upTo+1).map((p,i)=>[X(i),Y(p)]);
   if(rev<1&&upTo<series.length-1){const f=rev*(series.length-1)-upTo,a=series[upTo],b=series[upTo+1];pts.push([X(upTo+f),Y(lerp(a,b,f))])}
-  /* page one: intraday overlays, the live quant panel, the correlation map and a Monte Carlo fan into the rest of the session */
-  if(v.kind==="stock"&&v.win==="1D"){const n=series.length,fa=c._t0?lin((now-c._t0-1200)/900):0,ema=emaA(series,9),mu=[],up=[],dn=[];let s1=0,s2=0;
-    series.forEach((p,i)=>{s1+=p;s2+=p*p;const m=s1/(i+1),sd=Math.sqrt(Math.max(s2/(i+1)-m*m,0));mu.push(m);up.push(m+2*sd);dn.push(m-2*sd)});
-    const P=a=>a.slice(0,pts.length).map((p,i)=>[X(i),Y(p)]);x.save();x.globalAlpha=.9;
-    const U=P(up),Dn=P(dn);if(U.length>1){x.beginPath();U.forEach(([a,b],i)=>i?x.lineTo(a,b):x.moveTo(a,b));for(let i=Dn.length-1;i>=0;i--)x.lineTo(Dn[i][0],Dn[i][1]);x.closePath();x.fillStyle="rgba(107,179,255,.04)";x.fill();
-      line(x,U,"rgba(107,179,255,.55)",1,0);line(x,Dn,"rgba(107,179,255,.55)",1,0);line(x,P(mu),"rgba(255,214,10,.85)",1.3,0);line(x,P(ema),"rgba(179,140,255,.95)",1.4,0)}
-    x.restore();
-    const li=n-1;x.font="11.5px JetBrains Mono";x.textBaseline="top";x.textAlign="left";let lx=4;
-    [[`EMA 9  ${fp(ema[li])}`,"#B38CFF"],[`Mean  ${fp(mu[li])}`,"#FFD60A"],[`±2σ  ${fp(dn[li])}–${fp(up[li])}`,"#6BB3FF"]].forEach(([t,cl])=>{x.fillStyle=cl;x.fillText(t,lx,top+2);lx+=x.measureText(t).width+18});
-    if(rev>=1){const q=quant(v.sym),left=sl-1-(n-1),steps=Math.max(4,Math.min(36,left)),per=Math.max(1,left/steps);
-      drawMC(c,x,now,{x0:X(n-1),x1:w-padR,Y,S:series[n-1],steps,sig:q.sigI*Math.sqrt(per),top,bot:top+ph,a:fa,label:"to close"});
-      }}
+  /* page one: the price line and, once it has drawn, the range to the close */
+  if(v.kind==="stock"&&v.win==="1D"&&rev>=1){const n=series.length,fa=c._t0?lin((now-c._t0-1300)/1100):0;
+    drawMC(c,x,now,{x0:X(n-1),x1:w-padR,Y,S:series[n-1],span:Math.max(1,sl-n),sig:quant(v.sym).sigI,top,bot:top+ph,a:fa,label:"to the close"})}
   if(v.kind==="compare"){const A="#00C805";const p2=second.slice(0,upTo+1).map((p,i)=>[X(i),Y(p)]);
     area(x,pts,"0,200,5",top+ph,top);line(x,p2,"rgba(255,255,255,.85)",1.5,8);line(x,pts,A,1.8,14);
     const e=pts[pts.length-1];endDot(x,e[0],e[1],A,"0,200,5",now);const e2=p2[p2.length-1];x.beginPath();x.arc(e2[0],e2[1],3.5,0,7);x.fillStyle="#fff";x.fill()}
@@ -432,7 +425,7 @@ function drawTech(c,x,w,h,rev,now){const v=c._v,T=tech(v.sym),N=T.c.length,k=cla
       x.fillStyle=gold?"#FFD60A":"#FF5000";x.textAlign="left";x.textBaseline="middle";x.fillText(lab,lx+8,ly+10);x.globalAlpha=1}
     else c._crossT=null}
   x.restore();
-  if(rev>=1&&pan===0){const fa=lin((now-c._t0-1600)/900),q=quant(v.sym);drawMC(c,x,now,{x0:X(k-1),x1:Xw,Y,S:endV,steps:20,sig:q.sigD,top,bot:top+mainH,a:fa,label:"20d"})}
+  if(rev>=1&&pan===0){const fa=lin((now-c._t0-1600)/900),q=quant(v.sym);drawMC(c,x,now,{x0:X(k-1),x1:Xw,Y,S:endV,span:20,sig:q.sigD,top,bot:top+mainH,a:fa,label:"20 days"})}
   if(rev>=1){const ly=Y(endV);x.fillStyle=col;x.beginPath();x.roundRect(w-padR+3,ly-10,padR-4,20,2);x.fill();
     x.fillStyle="#000";x.font="600 12px JetBrains Mono";x.textBaseline="middle";x.textAlign="left";x.fillText(fp(endV),w-padR+8,ly);
     if(ck<.5){x.globalAlpha=1-ck*2;endDot(x,X(k-1),ly,col,rgb,now);x.globalAlpha=1}}
@@ -501,7 +494,7 @@ live($("kDn"),()=>STOCKS.concat(IDX).filter(s=>dayPct(s)<0).length,x=>Math.round
 const N1={kind:"stock",sym:"NVDA",win:"1D"};
 const SC_=[
  {d:4600,v:N1,h:"Your own trading desk.",p:"Custom trading software, built to your spec."},
- {d:4600,v:N1,cam:"quant",h:"The math runs live.",p:"Volatility, risk and a Monte Carlo, computing as you watch."},
+ {d:4600,v:N1,cam:"quant",h:"The math, done for you.",p:"Volatility, risk, and where it could trade by the close."},
  {d:3400,v:{kind:"stock",sym:"AAPL",win:"1Y"},ind:["bb"],h:"Any stock you want.",p:"Pick one from the list. The whole desk follows."},
  {d:3400,v:{kind:"stock",sym:"TSLA",win:"1Y"},ind:["s50","s200"]},
  {d:3600,v:{kind:"stock",sym:"AMD",win:"1Y"},ind:["candle","bb","s50","s200"]},

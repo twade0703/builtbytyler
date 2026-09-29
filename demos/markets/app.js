@@ -110,15 +110,18 @@ function drawMC(c,x,now,o){const vm=c._vm||1,target=o.sig*vm;
   c._cone.sg+=(target-c._cone.sg)*.14;const sg=c._cone.sg,T=o.span,J=48;
   const q={};for(const k in ZQ){q[k]=[];for(let j=0;j<=J;j++){const t=T*j/J;q[k].push(Math.exp(ZQ[k]*sg*Math.sqrt(t)-sg*sg*t/2))}}
   q.pup=1-Ncdf(sg*Math.sqrt(T)/2);c._mc={q};
-  const g=easeOut(o.a??1),X=j=>o.x0+(o.x1-o.x0)*j/J,Yq=(k,j)=>o.Y(o.S*q[k][j]),n=Math.round(g*J);
-  if(n<1)return c._mc;
+  const a0=clamp(o.a??1,0,1),g=a0*a0*(3-2*a0),X=j=>o.x0+(o.x1-o.x0)*j/J,Yq=(k,j)=>o.Y(o.S*q[k][j]);
+  if(g<=0)return c._mc;
+  /* draw to a fractional edge, so the cone grows continuously instead of a sample at a time */
+  const n=Math.min(J,Math.floor(g*J)),fr=g*J-n,edgeAt=(k)=>n<J?lerp(Yq(k,n),Yq(k,n+1),fr):Yq(k,J),xe=n<J?lerp(X(n),X(n+1),fr):X(J);
   x.save();
   const band=(lo,hi,fill)=>{x.beginPath();for(let j=0;j<=n;j++){const y=Yq(hi,j);j?x.lineTo(X(j),y):x.moveTo(X(j),y)}
+    x.lineTo(xe,edgeAt(hi));x.lineTo(xe,edgeAt(lo));
     for(let j=n;j>=0;j--)x.lineTo(X(j),Yq(lo,j));x.closePath();x.fillStyle=fill;x.fill()};
   band("p5","p95","rgba(95,230,255,.055)");band("p25","p75","rgba(95,230,255,.08)");
-  const edge=(k,cl)=>{x.beginPath();for(let j=0;j<=n;j++){const y=Yq(k,j);j?x.lineTo(X(j),y):x.moveTo(X(j),y)}x.strokeStyle=cl;x.lineWidth=1;x.stroke()};
+  const edge=(k,cl)=>{x.beginPath();for(let j=0;j<=n;j++){const y=Yq(k,j);j?x.lineTo(X(j),y):x.moveTo(X(j),y)}x.lineTo(xe,edgeAt(k));x.strokeStyle=cl;x.lineWidth=1;x.stroke()};
   edge("p95","rgba(95,230,255,.34)");edge("p5","rgba(95,230,255,.34)");edge("p50","rgba(241,245,248,.35)");
-  if(g>=1){x.font="10.5px JetBrains Mono";x.textAlign="right";x.textBaseline="middle";
+  if(g>.85){x.globalAlpha=(g-.85)/.15;x.font="10.5px JetBrains Mono";x.textAlign="right";x.textBaseline="middle";
     const lab=(k,t)=>{x.fillStyle="rgba(156,166,178,.9)";x.fillText(t,o.x1-6,Yq(k,J)+(k==="p95"?-9:9))};
     lab("p95","95%  "+fp(o.S*q.p95[J]));lab("p5","5%  "+fp(o.S*q.p5[J]));
     if(o.x1-o.x0>320){x.textAlign="left";x.textBaseline="top";x.fillStyle="rgba(95,104,115,1)";x.fillText("likely range · "+o.label+" · no drift",o.x0+10,o.top+4)}}
@@ -191,7 +194,7 @@ function setInd(c,k,on){const o=c._ind[k];if(!!o.on===!!on)return;o.on=on?1:0;o.
   const b=c.querySelector(`.chips [data-i="${k}"]`);if(b)b.classList.toggle("on",!!on)}
 /* r = how far across it has drawn, a = how visible it is */
 const lin=t=>clamp(t,0,1);
-function ik(c,k,now,dur=1800){const o=c._ind[k];if(!o.t)return{r:0,a:0};const p=now-o.t;return o.on?{r:lin(p/dur),a:1}:{r:1,a:1-lin(p/450)}}
+function ik(c,k,now,dur=1800){const o=c._ind[k];if(!o.t)return{r:0,a:0};const p=now-o.t,e=t=>t*t*(3-2*t);return o.on?{r:e(lin(p/dur)),a:e(lin(p/500))}:{r:1,a:1-e(lin(p/450))}}
 function morph(c,k,now,dur=1400){const o=c._ind[k];if(!o.t)return 0;const p=now-o.t;return o.on?lin(p/dur):1-lin(p/600)}
 function feed(c,now,html,key){if(now-(c._ft||0)<140||!c._hud||key===c._fk)return;c._ft=now;c._fk=key;  /* one line per bar, never the same bar twice */
   const d=document.createElement("div");d.innerHTML=html;d.style.transform="translateY(-19px)";d.style.opacity="0";
@@ -259,9 +262,12 @@ function optionCard(c){const o=OPT;
 }
 
 const PER={"1D":"today","1M":"past month","6M":"past 6 months","1Y":"past year"};
-function render(c,v){if(!c._v||c._v.sym!==v.sym)c._mc=null;c._v=v;c._vm=1;c._k=v.kind==="stock"&&v.win!=="1D"?WLEN(v.sym,v.win):0;c._kd=c._k;c._pan=0;c._pd=0;c._rev=0;c._t0=null;c._optS=null;c._sweep=null;c._hover=null;c._lo=null;
+function render(c,v){if(!c._v||c._v.sym!==v.sym)c._mc=null;c._up=null;c._upT=null;c._v=v;c._vm=1;c._k=v.kind==="stock"&&v.win!=="1D"?WLEN(v.sym,v.win):0;c._kd=c._k;c._pan=0;c._pd=0;c._rev=0;c._t0=null;c._optS=null;c._sweep=null;c._hover=null;c._lo=null;
   c._ind=Object.fromEntries(IND.map(k=>[k,{on:0,t:0}]));
   ({stock:stockCard,compare:compareCard,option:optionCard})[v.kind](c,v);
+  /* write this card's numbers now: an empty header is shorter, so the chart
+     measured tall, then snapped 50px shorter when the text arrived */
+  for(const[el,o]of LIVE)if(c.contains(el)){const t=o.get();o.cur=t;el.textContent=o.fmt(t);if(o.signEl!==undefined){const s2=o.signEl||el;o.k=cls(t);s2.classList.remove("up","dn","fl");s2.classList.add(o.k)}}
   c._cv=c.querySelector("canvas");c._tip=c.querySelector(".tip");sizeCanvas(c._cv);
   c._hud=$("hud");c._hud.innerHTML="";c._hud.classList.remove("show");$("eng").classList.remove("feed");
   $("wi").value=100;$("wb").textContent="×1.0";$("qt").classList.toggle("nomc",v.kind!=="stock");
@@ -299,22 +305,25 @@ function show(v){const c=front,old=c._v;if(same(old,v))return;
 
 /* ---------- drawing, every frame */
 function drawCard(c,now){if(!c._v||!c._cv)return;if(c._k){c._kd+=(c._k-c._kd)*.1;c._pd+=((c._pan||0)-(c._pd||0))*.18}drawCardInner(c,now);
-  if(c._ghost){const p=(now-c._ghostT)/520;if(p>=1)c._ghost=null;else{const x=c._cv.getContext("2d");x.save();x.setTransform(1,0,0,1,0,0);x.globalAlpha=1-p;x.drawImage(c._ghost,0,0);x.restore()}}}
+  if(c._ghost){const p=(now-c._ghostT)/700;if(p>=1)c._ghost=null;else{const x=c._cv.getContext("2d"),e=1-p*p*(3-2*p);x.save();x.setTransform(1,0,0,1,0,0);x.globalAlpha=e;x.drawImage(c._ghost,0,0,c._cv.width,c._cv.height);x.restore()}}}
 function drawCardInner(c,now){const{x,w,h}=sizeCanvas(c._cv),v=c._v;
-  const rev=c._t0?clamp((now-c._t0)/1600,0,1):0;
+  const r0=c._t0?clamp((now-c._t0)/1600,0,1):0,rev=r0<1?r0*r0*(3-2*r0):1;  /* ease in and out */
   x.clearRect(0,0,w,h);
   if(v.kind==="option")return drawOption(c,x,w,h,rev,now);
   if(v.kind==="stock"&&v.win!=="1D")return drawTech(c,x,w,h,rev,now);
   const padR=74,padB=24,top=8,ph=h-padB-top;
-  let series,sl,base,labels,times,second=null;
+  let series,sl,base,labels,times,second=null,xLast=null;
   if(v.kind==="compare"){const[a,b]=v.pair,A=daily(a).slice(-WLEN(a,"1Y")),B=daily(b).slice(-WLEN(b,"1Y"));series=A.map(p=>(p/A[0]-1)*100);second=B.map(p=>(p/B[0]-1)*100);sl=series.length;base=0;times=ALL[a].t.slice(-WLEN(a,"1Y"))}
   else if(v.win==="1D"){const s=ALL[v.sym],n=s.ic.length,xf=frac()*(n-1),k=Math.floor(xf);series=s.ic.slice(0,k+1);series.push(px(v.sym));if(xf===k)series.pop();
-    sl=n;base=prev(v.sym);times=s.it}
+    sl=n;base=prev(v.sym);times=s.it;xLast=xf}
   else{const d=daily(v.sym),k=Math.min(WIN[v.win],d.length);series=d.slice(-k);sl=series.length;base=series[0];times=ALL[v.sym].t.slice(-k)}
   const pool=v.kind==="compare"?series.concat(second):v.win==="1D"?ALL[v.sym].ic.concat([base]):series;
-  if(v.kind==="stock"&&v.win==="1D"&&c._mc){const e=series[series.length-1];pool.push(e*c._mc.q.p5[48],e*c._mc.q.p95[48])}
+  const cone=v.kind==="stock"&&v.win==="1D"?{sig:quant(v.sym).sigI*(c._vm||1),span:Math.max(.5,(sl-1)-xLast)}:null;
+  if(cone){const e=series[series.length-1],a=cone.sig*Math.sqrt(cone.span),d=cone.sig*cone.sig*cone.span/2;pool.push(e*Math.exp(1.6449*a-d),e*Math.exp(-1.6449*a-d))}
   let lo=Math.min(...pool),hi=Math.max(...pool);const pd=(hi-lo)*.08;lo-=pd;hi+=pd;
+  if(c._lo==null){c._lo=lo;c._hi=hi}else{c._lo+=(lo-c._lo)*.08;c._hi+=(hi-c._hi)*.08}lo=c._lo;hi=c._hi;
   const X=i=>(w-padR)*(i/(sl-1)),Y=p=>top+(hi-p)/(hi-lo)*ph;
+  const XA=i=>xLast!=null&&i===series.length-1?X(xLast):X(i);  /* the live point, at its true time */
   yAxis(x,w,Y,lo,hi,padR,v.kind==="compare"?(p=>fs(p,0)+"%"):fp);
   /* x labels */
   x.fillStyle="#9A9AA2";x.font="11.5px JetBrains Mono";x.textAlign="center";x.textBaseline="alphabetic";
@@ -323,13 +332,25 @@ function drawCardInner(c,now){const{x,w,h}=sizeCanvas(c._cv),v=c._v;
     x.fillText(lab,clamp(X(i),26,w-padR-26),h-5)}
   if(v.kind==="compare"||v.win==="1D"){const y=Math.round(Y(base))+.5;x.strokeStyle="rgba(255,255,255,.16)";x.beginPath();x.moveTo(0,y);x.lineTo(w-padR,y);x.stroke();
     x.fillStyle="#B8B8BF";x.textAlign="left";x.fillText(v.kind==="compare"?"start":"prev close",4,y-6)}
-  const endV=series[series.length-1],upw=endV>=base,col=upw?"#00C805":"#FF5000",rgb=upw?"0,200,5":"255,80,0";
+  /* Up or down colour. A price sitting on the previous close crossed it every
+     few seconds and the whole chart flashed green, orange, green. Now there is
+     a dead zone of 0.03% either side, and outside it the colour blends over
+     about half a second instead of switching in one frame. */
+  const endV=series[series.length-1],dv=v.kind==="compare"?endV/100:endV/base-1;
+  if(c._upT==null)c._upT=dv>=0?1:0;if(dv>.0003)c._upT=1;else if(dv<-.0003)c._upT=0;
+  if(c._up==null)c._up=c._upT;c._up+=(c._upT-c._up)*.07;const u=c._up,upw=u>=.5;
+  const mixc=(a,b)=>a.map((q,i)=>Math.round(b[i]+(q-b[i])*u)),C=mixc([0,200,5],[255,80,0]),rgb=C.join(","),col=`rgb(${rgb})`;
   const upTo=Math.max(1,Math.floor(rev*(series.length-1)));
-  const pts=series.slice(0,upTo+1).map((p,i)=>[X(i),Y(p)]);
-  if(rev<1&&upTo<series.length-1){const f=rev*(series.length-1)-upTo,a=series[upTo],b=series[upTo+1];pts.push([X(upTo+f),Y(lerp(a,b,f))])}
+  const pts=series.slice(0,upTo+1).map((p,i)=>[XA(i),Y(p)]);
+  if(rev<1&&upTo<series.length-1){const f=rev*(series.length-1)-upTo,a=series[upTo],b=series[upTo+1];pts.push([lerp(XA(upTo),XA(upTo+1),f),Y(lerp(a,b,f))])}
   /* page one: the price line and, once it has drawn, the range to the close */
-  if(v.kind==="stock"&&v.win==="1D"&&rev>=1){const n=series.length,fa=c._t0?lin((now-c._t0-1300)/1100):0;
-    drawMC(c,x,now,{x0:X(n-1),x1:w-padR,Y,S:series[n-1],span:Math.max(1,sl-n),sig:quant(v.sym).sigI,top,bot:top+ph,a:fa,label:"to the close"})}
+  if(cone){const n=series.length,ema=emaA(series,9),mu=[];let s1=0;series.forEach((p,i)=>{s1+=p;mu.push(s1/(i+1))});
+    const P=a=>a.slice(0,pts.length).map((p,i)=>[pts[i][0],Y(p)]);
+    line(x,P(mu),"rgba(255,214,10,.75)",1.2,0);line(x,P(ema),"rgba(179,140,255,.9)",1.3,0);
+    x.font="11.5px JetBrains Mono";x.textBaseline="top";x.textAlign="left";x.globalAlpha=Math.min(1,rev*1.5);let lx=4;
+    [["EMA 9 "+fp(ema[n-1]),"#B38CFF"],["Session avg "+fp(mu[n-1]),"#FFD60A"]].forEach(([t,cl])=>{x.fillStyle=cl;x.fillText(t,lx,top+2);lx+=x.measureText(t).width+20});x.globalAlpha=1;
+    if(rev>=1){const fa=lin((now-c._t0-1650)/1300);
+      drawMC(c,x,now,{x0:XA(n-1),x1:w-padR,Y,S:series[n-1],span:cone.span,sig:quant(v.sym).sigI,top,bot:top+ph,a:fa,label:"to the close"})}}
   if(v.kind==="compare"){const A="#00C805";const p2=second.slice(0,upTo+1).map((p,i)=>[X(i),Y(p)]);
     area(x,pts,"0,200,5",top+ph,top);line(x,p2,"rgba(255,255,255,.85)",1.5,8);line(x,pts,A,1.8,14);
     const e=pts[pts.length-1];endDot(x,e[0],e[1],A,"0,200,5",now);const e2=p2[p2.length-1];x.beginPath();x.arc(e2[0],e2[1],3.5,0,7);x.fillStyle="#fff";x.fill()}
@@ -385,9 +406,11 @@ function drawTech(c,x,w,h,rev,now){const v=c._v,T=tech(v.sym),N=T.c.length,k=cla
   const mainH=ph*(1-.3*mk);
   /* the scale eases toward whatever is showing, so adding an average zooms the view instead of jumping it */
   let lo=Infinity,hi=-Infinity;const acc=a=>{for(let i=off;i<off+k;i++){const y=a[i];if(y!=null){if(y<lo)lo=y;if(y>hi)hi=y}}};
-  if(ck>.01){acc(T.l);acc(T.h)}else acc(T.c);
-  if(bb.a>.01){acc(T.bb.up);acc(T.bb.dn)}if(s50.a>.01)acc(T.s50);if(s200.a>.01)acc(T.s200);
-  if(pan===0&&c._mc&&c._mc.q){const e=T.c[off+k-1];lo=Math.min(lo,e*Math.min(...c._mc.q.p5));hi=Math.max(hi,e*Math.max(...c._mc.q.p95))}
+  /* The scale is set for everything this chart could show, from its first
+     frame: turning bands or averages on used to rescale it half a second
+     into the shot, and every candle slid. It still eases for zoom and pan. */
+  acc(T.l);acc(T.h);acc(T.bb.up);acc(T.bb.dn);acc(T.s50);acc(T.s200);
+  if(pan===0){const e=T.c[off+k-1],sg=quant(v.sym).sigD*(c._vm||1),a=sg*Math.sqrt(20),d=sg*sg*10;lo=Math.min(lo,e*Math.exp(-1.6449*a-d));hi=Math.max(hi,e*Math.exp(1.6449*a-d))}
   const pd=(hi-lo)*.07;lo-=pd;hi+=pd;
   if(c._lo==null){c._lo=lo;c._hi=hi}else{c._lo+=(lo-c._lo)*.09;c._hi+=(hi-c._hi)*.09}
   const L=c._lo,H=c._hi,Y=p=>top+(H-p)/(H-L)*mainH;
@@ -425,7 +448,7 @@ function drawTech(c,x,w,h,rev,now){const v=c._v,T=tech(v.sym),N=T.c.length,k=cla
       x.fillStyle=gold?"#FFD60A":"#FF5000";x.textAlign="left";x.textBaseline="middle";x.fillText(lab,lx+8,ly+10);x.globalAlpha=1}
     else c._crossT=null}
   x.restore();
-  if(rev>=1&&pan===0){const fa=lin((now-c._t0-1600)/900),q=quant(v.sym);drawMC(c,x,now,{x0:X(k-1),x1:Xw,Y,S:endV,span:20,sig:q.sigD,top,bot:top+mainH,a:fa,label:"20 days"})}
+  if(rev>=1&&pan===0){const fa=lin((now-c._t0-1650)/1300),q=quant(v.sym);drawMC(c,x,now,{x0:X(k-1),x1:Xw,Y,S:endV,span:20,sig:q.sigD,top,bot:top+mainH,a:fa,label:"20 days"})}
   if(rev>=1){const ly=Y(endV);x.fillStyle=col;x.beginPath();x.roundRect(w-padR+3,ly-10,padR-4,20,2);x.fill();
     x.fillStyle="#000";x.font="600 12px JetBrains Mono";x.textBaseline="middle";x.textAlign="left";x.fillText(fp(endV),w-padR+8,ly);
     if(ck<.5){x.globalAlpha=1-ck*2;endDot(x,X(k-1),ly,col,rgb,now);x.globalAlpha=1}}

@@ -69,28 +69,6 @@ const PRODUCTS = [
     ],
   },
   {
-    id: "smart-home",
-    name: "Local AI Smart Home",
-    tagline: "A house that answers you, and keeps it to itself",
-    holo: "home",
-    status: "In development",
-    featured: true,
-    available: false,
-    description:
-      "A small computer in the home runs its own AI, so the house answers questions out " +
-      "loud and runs the lights and the thermostat without sending anything to the cloud. " +
-      "Walk in and the lights come on in stages: the entry, then the hallway, then the " +
-      "living room. Ask it anything about the house and it answers from what it knows, " +
-      "and says so when it does not.",
-    specs: [
-      { label: "Brain", value: "Local language model on a mini PC" },
-      { label: "Voice", value: "Wake word, speech and replies, all on site" },
-      { label: "Controls", value: "Lights, plugs, thermostat" },
-      { label: "Privacy", value: "Nothing leaves the home network" },
-      { label: "Status", value: "In development" },
-    ],
-  },
-  {
     id: "beverage-launcher",
     name: "Beverage Launcher",
     tagline: "Press the button. A cold one comes to you.",

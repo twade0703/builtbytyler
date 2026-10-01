@@ -36,8 +36,11 @@
 }
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;background:var(--bg);color:var(--tx);font-family:var(--sans);-webkit-font-smoothing:antialiased;overflow:hidden;font-variant-numeric:tabular-nums}
-/* a sideways scroll or two-finger swipe over the demo must not trigger the browser's back gesture */
-html,body{overscroll-behavior:none}
+/* A sideways swipe over the demo must not trigger the browser's back gesture.
+   SIDEWAYS ONLY: overscroll-behavior on both axes also stopped the wheel
+   passing through to the page, so the page could not be scrolled with the
+   pointer over the demo, which is most of the screen. */
+html,body{overscroll-behavior-x:none}
 html.embed,html.embed body{background:transparent}
 /* a colour-scheme that differs from the host page makes Chrome paint an opaque backdrop behind the iframe */
 html.embed{color-scheme:normal}

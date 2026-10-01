@@ -279,7 +279,10 @@ function render(c,v){if(!c._v||c._v.sym!==v.sym)c._mc=null;c._up=null;c._upT=nul
   c.querySelectorAll(".chips [data-i]").forEach(b=>b.onclick=()=>{userTook();const k=b.dataset.i;setInd(c,k,!c._ind[k].on)});
   const box=c.querySelector(".c-ch");
   const daily=()=>c._v.kind==="stock"&&c._v.win!=="1D";box.classList.toggle("pan",daily());
-  box.onwheel=e=>{if(!daily())return;e.preventDefault();userTook();const N=ALL[c._v.sym].c.length;
+  /* A plain wheel belongs to the PAGE: the demo fills most of the screen, and a
+     chart that swallowed the wheel made the page impossible to scroll past it.
+     Zoom is Ctrl (or Cmd) + wheel, which is also what a trackpad pinch sends. */
+  box.onwheel=e=>{if(!daily()||!(e.ctrlKey||e.metaKey))return;e.preventDefault();userTook();const N=ALL[c._v.sym].c.length;
     c._k=clamp(Math.round((c._k||WLEN(c._v.sym,c._v.win))*(e.deltaY>0?1.14:1/1.14)),20,N);c._pan=clamp(c._pan||0,0,N-c._k)};
   box.onpointerdown=e=>{if(!daily())return;c._drag={x:e.clientX,p:c._pan||0};try{box.setPointerCapture(e.pointerId)}catch(_){}box.style.cursor="grabbing"};
   box.onpointerup=()=>{c._drag=null;box.style.cursor=""};
@@ -532,7 +535,7 @@ const SC_=[
  {d:3600,v:{kind:"stock",sym:"MSFT",win:"6M"},ind:["candle","bb","s50","s200","macd"]},
  {d:5600,v:{kind:"option",sym:"NVDA"},sweep:1,h:"Track your option calls.",p:"Cost, value, breakeven, and what happens if it runs."},
  {d:4400,v:{kind:"stock",sym:"PLTR",win:"6M"},glow:1,ind:["candle","bb","s50","s200","macd"],h:"Know where it leans.",p:"Every signal, measured for you."},
- {d:4800,v:{kind:"stock",sym:"META",win:"1D"},h:"Built to your spec.",p:"Scroll the chart, drag it, toggle anything. It's yours to play with."},
+ {d:4800,v:{kind:"stock",sym:"META",win:"1D"},h:"Built to your spec.",p:"Drag the chart, toggle anything, Ctrl + scroll to zoom. It's yours to play with."},
 ];
 const TOT=SC_.reduce((x,s)=>x+s.d,0),START=SC_.map((_,i)=>SC_.slice(0,i).reduce((x,s)=>x+s.d,0));
 const st={i:-1,el:0,auto:true,idle:0};
@@ -562,7 +565,7 @@ function go(i){st.i=(i+SC_.length)%SC_.length;st.el=0;const s=SC_[st.i],was=fron
 function setPlay(){$("play").innerHTML=st.auto?"❚❚&nbsp;Pause":"▶&nbsp;Play"}
 $("play").onclick=()=>{st.auto=!st.auto;setPlay();if(st.auto)go(st.i+1);else camera("wide")};
 /* the first touch hands over the controls; step away and the movie carries on from where you are */
-function userTook(){if(st.auto){st.auto=false;setPlay();camera("wide");caption("You're driving.","Scroll the chart, drag it, flip indicators, move the what-if. It resumes when you stop.")}st.idle=0}
+function userTook(){if(st.auto){st.auto=false;setPlay();camera("wide");caption("You're driving.","Drag the chart, flip indicators, move the what-if. Ctrl + scroll zooms.")}st.idle=0}
 CAM.addEventListener("pointerdown",e=>{if(!e.target.closest(".row,.seg,.chips,.whatif"))userTook()},true);
 $("app").addEventListener("pointermove",()=>{st.idle=0});
 $("src").textContent=`Public market data · ${fdate(ALL.NVDA.t[ALL.NVDA.t.length-1])} session replay · option modeled`;

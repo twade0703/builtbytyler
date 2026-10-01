@@ -8,7 +8,7 @@ const $=id=>document.getElementById(id), clamp=(x,a,b)=>Math.max(a,Math.min(b,x)
 
 /* ---------- fit the 1280x800 frame to the viewport */
 const stage=$("stage");let SC=1;
-function fit(){SC=Math.min((innerWidth-32)/1280,(innerHeight-32)/800,1.25);stage.style.transform=`translate(-50%,-50%) scale(${SC})`}
+function fit(){SC=Math.max(.1,Math.min((innerWidth-32)/1280,(innerHeight-32)/800,1.25));stage.style.transform=`translate(-50%,-50%) scale(${SC})`}
 addEventListener("resize",()=>{fit();sizeWave()});fit();
 
 /* ---------- the business, its week and the tools it's wired to */
@@ -352,11 +352,19 @@ function gate(){if(_wait)return;_wait=true;requestAnimationFrame(now=>{_wait=fal
   _drawn=now;frame(now)})}
 if("IntersectionObserver"in window)new IntersectionObserver(e=>{_on=e[e.length-1].isIntersecting;if(_on)gate()},{rootMargin:"120px"}).observe(document.documentElement);
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)gate()});
+/* Someone touching the demo is looking at it: never leave it stopped under their hand. */
+["pointerdown","pointermove","wheel","keydown"].forEach(t=>addEventListener(t,()=>{if(!_on){_on=true}gate()},{passive:true,capture:true}));
 /* PERF (keep on re-export): the tab underline is a width, so writing it is
    layout. It is written 15 times a second; _w says when. */
 let _w=true,_wAt=0;
-function frame(now){const dt=Math.min(now-last,100);last=now;_w=now-_wAt>=66;if(_w)_wAt=now;if(!st.paused)step(dt);
-  if(st.hold){st.idle+=dt;if(st.idle>6500){st.hold=false;st.paused=false;setPlay();focus(storyFocus)}}tickK();drawWave(now);gate()}
+/* One bad frame must never freeze the demo: whatever a frame throws, the
+   next one is still scheduled, and the error is reported once. */
+let _errs=0;
+function frame(now){
+  try{const dt=Math.min(now-last,100);last=now;_w=now-_wAt>=66;if(_w)_wAt=now;if(!st.paused)step(dt);
+  if(st.hold){st.idle+=dt;if(st.idle>6500){st.hold=false;st.paused=false;setPlay();focus(storyFocus)}}tickK();drawWave(now);}
+  catch(e){if(_errs++<3&&window.console)console.error("front desk demo: a frame failed and was skipped",e)}
+  gate()}
 /* for checking a moment without waiting for it: demoSeek(story, ms) */
 window.demoSeek=(i,ms)=>{start(i);for(let e=0;e<ms;e+=40)step(40)};
 setPlay();

@@ -33,6 +33,8 @@
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased;overflow:hidden}
 button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+/* a sideways scroll or two-finger swipe over the demo must not trigger the browser's back gesture */
+html,body{overscroll-behavior:none}
 html.embed,html.embed body{background:transparent}
 /* a colour-scheme that differs from the host page makes Chrome paint an opaque backdrop behind the iframe */
 html.embed{color-scheme:normal}
@@ -239,6 +241,6 @@ html.embed .win{box-shadow:0 10px 16px rgba(0,0,0,.5)}
 </div></div>
 
 <script src="data.js?v=996b2c0a"></script>
-<script src="app.js?v=ca6f5074"></script>
+<script src="app.js?v=7a696bd3"></script>
 </body>
 </html>

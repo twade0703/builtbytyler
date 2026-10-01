@@ -15,7 +15,7 @@ const SHORT={GSPC:"S&P 500",IXIC:"NASDAQ",DJI:"DOW",RUT:"RUSSELL 2000","BTC-USD"
 
 /* ---------- fit the 1280x800 frame to the viewport */
 const stage=$("stage");let SC=1;
-function fit(){SC=Math.min((innerWidth-32)/1280,(innerHeight-32)/800,1.25);stage.style.transform=`translate(-50%,-50%) scale(${SC})`;}
+function fit(){SC=Math.max(.1,Math.min((innerWidth-32)/1280,(innerHeight-32)/800,1.25));stage.style.transform=`translate(-50%,-50%) scale(${SC})`;}
 const CAMZ=1;  /* there is no camera any more; kept so the canvas maths reads the same */
 addEventListener("resize",()=>{fit();sizeAll()});fit();
 
@@ -41,9 +41,12 @@ function daily(sym){const c=ALL[sym].c.slice();c[c.length-1]=px(sym);return c}
 const _fmt=new Map();
 const DF=o=>{const k="d"+JSON.stringify(o);let f=_fmt.get(k);if(!f)_fmt.set(k,f=new Intl.DateTimeFormat("en-US",o));return f};
 const NF=o=>{const k="n"+JSON.stringify(o||0);let f=_fmt.get(k);if(!f)_fmt.set(k,f=o?new Intl.NumberFormat("en-US",o):new Intl.NumberFormat());return f};
-const fp=p=>Math.abs(p)>=1000?NF({minimumFractionDigits:2,maximumFractionDigits:2}).format(p):p.toFixed(2);
-const fs=(x,d=2)=>(x>=0?"+":"−")+Math.abs(x).toFixed(d);
-const fm=x=>(x>=0?"+$":"−$")+NF({maximumFractionDigits:0}).format(Math.abs(x));
+/* A missing value prints as a dash. It used to throw: the first bars of a
+   series have no moving average, and one fp(null) in the legend, with the
+   chart zoomed out and the pointer over those bars, killed the whole demo. */
+const fp=p=>p==null||!isFinite(p)?"—":Math.abs(p)>=1000?NF({minimumFractionDigits:2,maximumFractionDigits:2}).format(p):p.toFixed(2);
+const fs=(x,d=2)=>x==null||!isFinite(x)?"—":(x>=0?"+":"−")+Math.abs(x).toFixed(d);
+const fm=x=>x==null||!isFinite(x)?"—":(x>=0?"+$":"−$")+NF({maximumFractionDigits:0}).format(Math.abs(x));
 const cls=x=>x>1e-9?"up":x<-1e-9?"dn":"fl";
 const fdate=t=>DF({month:"short",day:"numeric",year:"numeric",timeZone:"UTC"}).format(new Date(t*1000));
 
@@ -167,7 +170,7 @@ function yAxis(x,w,Y,lo,hi,padR,fmt=fp){const st=niceStep((hi-lo)/4);x.font="11.
     x.fillStyle="#9A9AA2";x.fillText(fmt(p),w-padR+8,y)}}
 function line(x,pts,col,wid=1.8,glow=14){x.save();x.beginPath();pts.forEach(([a,b],i)=>i?x.lineTo(a,b):x.moveTo(a,b));
   x.strokeStyle=col;x.lineWidth=wid;x.lineJoin="round";x.lineCap="round";x.shadowColor=col;x.shadowBlur=glow;x.stroke();x.restore()}
-function area(x,pts,rgb,bottom,top){if(pts.length<2)return;const g=x.createLinearGradient(0,top,0,bottom);g.addColorStop(0,`rgba(${rgb},.26)`);g.addColorStop(1,`rgba(${rgb},0)`);
+function area(x,pts,rgb,bottom,top){if(pts.length<2||!isFinite(top)||!isFinite(bottom))return;const g=x.createLinearGradient(0,top,0,bottom);g.addColorStop(0,`rgba(${rgb},.26)`);g.addColorStop(1,`rgba(${rgb},0)`);
   x.beginPath();pts.forEach(([a,b],i)=>i?x.lineTo(a,b):x.moveTo(a,b));x.lineTo(pts[pts.length-1][0],bottom);x.lineTo(pts[0][0],bottom);x.closePath();x.fillStyle=g;x.fill()}
 function endDot(x,a,b,col,rgb,now){
   x.beginPath();x.arc(a,b,4,0,7);x.fillStyle=col;x.shadowColor=col;x.shadowBlur=12;x.fill();x.shadowBlur=0}
@@ -299,13 +302,13 @@ function show(v){const c=front,old=c._v;if(same(old,v))return;
   /* same stock, another daily window: the chart just zooms there */
   if(old&&old.kind==="stock"&&v.kind==="stock"&&old.sym===v.sym&&old.win!=="1D"&&v.win!=="1D"){c._v=v;c._k=WLEN(v.sym,v.win);c._pan=0;
     c.querySelectorAll(".seg [data-w]").forEach(b=>b.classList.toggle("on",b.dataset.w===v.win));const p=c.querySelector('[data-l="per"]');if(p)p.textContent=PER[v.win];syncList();return}
-  let snap=null;if(c._cv){snap=document.createElement("canvas");snap.width=c._cv.width;snap.height=c._cv.height;snap.getContext("2d").drawImage(c._cv,0,0)}
+  let snap=null;if(c._cv&&c._cv.width&&c._cv.height){try{snap=document.createElement("canvas");snap.width=c._cv.width;snap.height=c._cv.height;snap.getContext("2d").drawImage(c._cv,0,0)}catch(_){snap=null}}
   render(c,v);c.classList.remove("glow");arm(c);
   if(snap){c._ghost=snap;c._ghostT=performance.now()}syncList();drawCorrRail()}
 
 /* ---------- drawing, every frame */
 function drawCard(c,now){if(!c._v||!c._cv)return;if(c._k){c._kd+=(c._k-c._kd)*.1;c._pd+=((c._pan||0)-(c._pd||0))*.18}drawCardInner(c,now);
-  if(c._ghost){const p=(now-c._ghostT)/700;if(p>=1)c._ghost=null;else{const x=c._cv.getContext("2d"),e=1-p*p*(3-2*p);x.save();x.setTransform(1,0,0,1,0,0);x.globalAlpha=e;x.drawImage(c._ghost,0,0,c._cv.width,c._cv.height);x.restore()}}}
+  if(c._ghost){const p=(now-c._ghostT)/700;if(p>=1)c._ghost=null;else{const x=c._cv.getContext("2d"),e=1-p*p*(3-2*p);x.save();x.setTransform(1,0,0,1,0,0);x.globalAlpha=e;try{x.drawImage(c._ghost,0,0,c._cv.width,c._cv.height)}catch(_){c._ghost=null}x.restore()}}}
 function drawCardInner(c,now){const{x,w,h}=sizeCanvas(c._cv),v=c._v;
   const r0=c._t0?clamp((now-c._t0)/1600,0,1):0,rev=r0<1?r0*r0*(3-2*r0):1;  /* ease in and out */
   x.clearRect(0,0,w,h);
@@ -466,7 +469,7 @@ function drawTech(c,x,w,h,rev,now){const v=c._v,T=tech(v.sym),N=T.c.length,k=cla
   const hi_=c._hover!=null&&rev>=1?clamp(Math.round(c._hover*w/Xh*(k-1)),0,k-1):k-1,gh=off+hi_;
   let lx=4;x.font="12px JetBrains Mono";x.textBaseline="top";x.textAlign="left";
   [[bb,`BB 20 2  ${fp(T.bb.up[gh])} / ${fp(T.bb.dn[gh])}`,"#D2D2DC"],[s50,`SMA 50  ${fp(T.s50[gh])}`,"#FFD60A"],[s200,`SMA 200  ${T.s200[gh]==null?"—":fp(T.s200[gh])}`,"#6BB3FF"]]
-    .forEach(([q,t,cl])=>{if(q.a<=.01)return;x.globalAlpha=q.a;x.fillStyle=cl;x.fillText(t,lx,top+2);lx+=x.measureText(t).width+18;x.globalAlpha=1});
+    .forEach(([q,t,cl])=>{if(q.a<=.01||t.includes("—"))return;x.globalAlpha=q.a;x.fillStyle=cl;x.fillText(t,lx,top+2);lx+=x.measureText(t).width+18;x.globalAlpha=1});
   /* the readout: the calculation behind whatever is drawing right now, bar by bar */
   const drawing=IND.filter(q=>c._ind[q].on&&(q==="candle"?ck<1:ik(c,q,now).r<1)&&c._ind[q].t);
   if(drawing.length&&rev>=1){c._fc=(c._fc||0)+1;const q=drawing[c._fc%drawing.length],r=q==="candle"?ck:ik(c,q,now).r,g=off+Math.floor(r*(k-1));
@@ -483,7 +486,7 @@ function drawTech(c,x,w,h,rev,now){const v=c._v,T=tech(v.sym),N=T.c.length,k=cla
     x.beginPath();x.arc(hx,hy,4.5,0,7);x.fillStyle="#fff";x.fill();
     const chg=(T.c[gh]/base-1)*100;
     c._tip.innerHTML=`<span>${fdate(T.t[gh])}</span><br>`+(ck>.5?`<span>O</span> ${fp(T.o[gh])} <span>H</span> ${fp(T.h[gh])}<br><span>L</span> ${fp(T.l[gh])} <span>C</span> <b>${fp(T.c[gh])}</b>`:`<b>$${fp(T.c[gh])}</b>`)+
-      ` <b class="${cls(chg)}">${fs(chg)}%</b>`+(md.a>.01?`<br><span>MACD</span> ${T.md.m[gh].toFixed(2)}`:"");
+      ` <b class="${cls(chg)}">${fs(chg)}%</b>`+(md.a>.01&&isFinite(T.md.m[gh])?`<br><span>MACD</span> ${T.md.m[gh].toFixed(2)}`:"");
     c._tip.classList.add("show");const tw=c._tip.offsetWidth;c._tip.style.left=(hx+14+tw>Xw?hx-14-tw:hx+14)+"px";c._tip.style.top=clamp(hy-60,0,h-80)+"px"}
 }
 
@@ -580,14 +583,25 @@ function gate(){if(_wait)return;_wait=true;requestAnimationFrame(now=>{_wait=fal
   _drawn=now;frame(now)})}
 if("IntersectionObserver"in window)new IntersectionObserver(e=>{_on=e[e.length-1].isIntersecting;if(_on)gate()},{rootMargin:"120px"}).observe(document.documentElement);
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)gate()});
-function frame(now){const dt=Math.min(now-last,100);last=now;
+/* Someone touching the demo is looking at it: never leave it stopped under their hand. */
+["pointerdown","pointermove","wheel","keydown"].forEach(t=>addEventListener(t,()=>{if(!_on){_on=true}gate()},{passive:true,capture:true}));
+/* One bad frame must never take the demo down. Everything a frame does is
+   inside the try; whatever it throws, the next frame is still scheduled. On an
+   error the card's transient state is cleared (the pointer position, the eased
+   scale, the crossfade), which is what the error was almost certainly about,
+   and the error is reported once so it can be found. */
+let _errs=0;
+function frame(now){
+  try{const dt=Math.min(now-last,100);last=now;
   _w=now-_wAt>=66;if(_w)_wAt=now;
   clock+=dt;if(clock>REPLAY_MS)clock=0;shown=clock;
   if(st.auto&&!scrub){st.el+=dt;const s=SC_[st.i];if(s){if(_w)progress();if(st.el>=s.d)go(st.i+1)}}
   if(!st.auto){st.idle+=dt;if(st.idle>7000){st.auto=true;setPlay();go(st.i+1)}}
   tickLive();if(_w){const k=$("kT"),t=sessionTime();if(k.textContent!==t)k.textContent=t}
   if(now-sparkT>200){ixSparks();sparkT=now}
-  drawCard(front,now);updateQuant(now);
+  drawCard(front,now);updateQuant(now);}
+  catch(e){const c=front;if(c){c._hover=null;c._lo=null;c._ghost=null;c._drag=null;if(c._tip)c._tip.classList.remove("show")}
+    if(_errs++<3&&window.console)console.error("markets demo: a frame failed and was skipped",e)}
   gate()}
 setPlay();
 (document.fonts?document.fonts.ready:Promise.resolve()).then(()=>{sizeAll();go(0);gate()});

@@ -447,6 +447,31 @@
     els.forEach((el) => io.observe(el));
   }
 
+  /* Software page: a preview opens the full demo in a dialog. The demo is
+     loaded when it is opened and unloaded when it is closed, and the two
+     previews behind it stop drawing for as long as it is up. */
+  function initDemos() {
+    const modal = document.getElementById("demo-modal");
+    if (!modal || typeof modal.showModal !== "function") {
+      // no <dialog>: the buttons fall back to opening the demo itself
+      document.querySelectorAll("[data-demo]").forEach((b) => b.addEventListener("click", () => { window.location.href = b.dataset.demo.replace("?embed", ""); }));
+      return;
+    }
+    const frame = modal.querySelector("iframe");
+    const grid = document.querySelector(".demos");
+    document.querySelectorAll("[data-demo]").forEach((b) => b.addEventListener("click", () => {
+      frame.title = b.dataset.demoTitle || "Demo";
+      modal.setAttribute("aria-label", b.dataset.demoTitle || "Demo");
+      frame.src = b.dataset.demo;
+      if (grid) grid.classList.add("is-paused");
+      modal.showModal();
+    }));
+    modal.querySelector(".demo-modal__close").addEventListener("click", () => modal.close());
+    // a click on the backdrop (the dialog itself, outside the frame) closes it
+    modal.addEventListener("click", (e) => { if (e.target === modal) modal.close(); });
+    modal.addEventListener("close", () => { frame.src = "about:blank"; if (grid) grid.classList.remove("is-paused"); });
+  }
+
   /* ---------------- Global click delegation ---------------- */
   function initDelegation() {
     document.addEventListener("click", (e) => {
@@ -472,6 +497,7 @@
     initConfirmation();
     initDelegation();
     initLive();
+    initDemos();
     // Reveal runs last so dynamically-rendered cards are observed.
     initReveal();
   }

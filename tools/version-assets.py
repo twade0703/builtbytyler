@@ -23,7 +23,7 @@ Bump VERSION on any deploy that changes CSS or JS.
 """
 import hashlib, io, json, os, re, glob, sys
 
-VERSION = "37"
+VERSION = "38"
 os.chdir(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 ASSETS = [
@@ -33,7 +33,6 @@ ASSETS = [
     "assets/js/components.js",
     "assets/js/hologram.js",
     "assets/js/main.js",
-    "assets/js/portrait.js",
     "assets/js/starfield.js",
 ]
 

@@ -391,20 +391,8 @@ html.nav-open, html.nav-open body { overflow: hidden; }
   0%   { filter: drop-shadow(0 0 6px rgba(95, 230, 255, .95)) drop-shadow(0 0 18px rgba(95, 230, 255, .55)); }
   100% { filter: drop-shadow(0 0 3px rgba(95, 230, 255, .35)); }
 }
-/* The trace (assets/js/portrait.js): a glowing pulse runs along every line,
-   each on its own slow-fast-slow curve, green up the face then red back. The
-   script moves each copy's dash offset; the colour is currentColor. */
-.portrait .pt-hot path {
-  stroke: currentColor;
-  stroke-width: 4.6;
-  stroke-linecap: round;
-  animation: none;
-}
-.portrait .pt-hot .hp { stroke-width: 5.6; }
-.portrait .pt-hot { color: #2BD98A; filter: drop-shadow(0 0 6px var(--hot, #2BD98A)); }
 @media (prefers-reduced-motion: reduce) {
   .portrait, .portrait path { animation: none; stroke-dashoffset: 0; }
-  .portrait .pt-hot { display: none; }
 }
 
 .scroll-cue {
@@ -939,41 +927,51 @@ html.nav-open, html.nav-open body { overflow: hidden; }
 .opener__stack .display { font-size: clamp(2.3rem, 5vw, 4.2rem); margin: 0 0 1.1rem; }
 .opener__head .opener__lead { margin: 0 auto; max-width: 44ch; font-size: clamp(1rem, 1.3vw, 1.12rem); }
 .opener__head .opener__cta { justify-content: center; margin-top: 1.6rem; }
-.opener__demo { margin: 0 auto; width: min(100%, 1060px); }
-.opener__demo iframe { display: block; width: 100%; aspect-ratio: 1312 / 832; border: 0; background: transparent; }
-.opener__demo figcaption {
-  margin-top: 0.6rem;
-  font-family: var(--font-mono);
-  font-size: var(--fs-micro);
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--muted);
-  text-align: center;
-}
+/* Software opener: the ask, directly under the headline. */
+.opener__ask { font-size: var(--fs-h2); font-weight: 400; letter-spacing: -0.024em; margin: 0 0 0.9rem; }
+.opener__head .opener__ask + .opener__lead { max-width: 54ch; }
 
-/* The second software showcase (software.html #front-desk): heading and
-   paragraph side by side on a hairline, then the demo centred at the same
-   width as the one in the opener. */
-.showcase { padding-top: clamp(2rem, 5vw, 4rem); }
-.showcase__head {
-  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(1.5rem, 4vw, 4rem);
-  align-items: end; max-width: 1060px; margin: 0 auto clamp(1.75rem, 3vw, 2.5rem);
-  padding-top: 1.25rem; border-top: 1px solid var(--hairline-strong);
+/* Built here (software.html #work): two small live previews, shown the way
+   the Hardware page shows builds. The preview is the demo itself, playing at
+   thumbnail size; it takes no input, so the pointer and the wheel stay with
+   the page. A button over it opens the full demo in a dialog. */
+.showcase { padding-top: clamp(1rem, 3vw, 2.5rem); }
+.showcase__kicker { margin-bottom: clamp(1.25rem, 2.5vw, 2rem); }
+.demo__media {
+  position: relative; aspect-ratio: 1312 / 832; overflow: hidden;
+  border: 1px solid var(--hairline); background: rgba(6, 11, 19, 0.6);
+  transition: border-color var(--m-mid, .28s) var(--m-ease, ease);
 }
-.showcase__head h2 { font-size: var(--fs-h2); margin: 0.75rem 0 0; }
-.showcase__head > p { color: var(--muted); max-width: 46ch; }
-.showcase__demo { margin: 0 auto; width: min(100%, 1060px); }
-.showcase__demo iframe { display: block; width: 100%; aspect-ratio: 1312 / 832; border: 0; background: transparent; }
-.showcase__demo figcaption, .opener__demo figcaption {
-  margin-top: 0.6rem;
-  font-family: var(--font-mono);
-  font-size: var(--fs-micro);
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--muted);
-  text-align: center;
+.demo__media iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; display: block; pointer-events: none; background: transparent; }
+.demo__open {
+  position: absolute; inset: 0; width: 100%; display: grid; place-items: end start; padding: 0.9rem;
+  background: transparent; border: 0; cursor: pointer; color: inherit; font: inherit;
 }
-@media (max-width: 760px) { .showcase__head { grid-template-columns: 1fr; } }
+.demo__open span {
+  font-family: var(--font-mono); font-size: var(--fs-micro); letter-spacing: 0.16em; text-transform: uppercase;
+  padding: 0.55rem 0.8rem; color: var(--bg, #05070a); background: var(--accent);
+  opacity: 0; transform: translateY(4px);
+  transition: opacity var(--m-mid, .28s) var(--m-ease, ease), transform var(--m-mid, .28s) var(--m-ease, ease);
+}
+.demo:hover .demo__media, .demo__open:focus-visible { border-color: var(--hairline-strong); }
+.demo:hover .demo__open span, .demo__open:focus-visible span { opacity: 1; transform: none; }
+.demo__open:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+@media (hover: none) { .demo__open span { opacity: 1; transform: none; } }
+/* while the full demo is open, the previews behind it stop drawing */
+.demos.is-paused .demo__media iframe { display: none; }
+
+.demo-modal {
+  width: min(96vw, 1312px, calc(90vh * 1312 / 832)); max-width: none; max-height: none;
+  padding: 0; border: 0; background: transparent; overflow: visible; color: inherit;
+}
+.demo-modal::backdrop { background: rgba(2, 4, 8, 0.86); }
+.demo-modal iframe { display: block; width: 100%; aspect-ratio: 1312 / 832; border: 0; background: transparent; }
+.demo-modal__close {
+  position: absolute; right: 0; bottom: 100%; margin-bottom: 0.5rem;
+  font-family: var(--font-mono); font-size: var(--fs-micro); letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--muted); background: transparent; border: 1px solid var(--hairline-strong); padding: 0.5rem 0.8rem; cursor: pointer;
+}
+.demo-modal__close:hover, .demo-modal__close:focus-visible { color: var(--text, #fff); border-color: var(--accent); }
 
 /* Software, 02 How it runs: one short paragraph and the timeline, so the band
    does not need the full band padding; it read as empty space. */

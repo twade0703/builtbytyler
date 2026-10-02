@@ -28,8 +28,8 @@
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
-  <link rel="stylesheet" href="assets/css/styles.css?v=37">
-  <link rel="stylesheet" href="assets/css/motion.css?v=37">
+  <link rel="stylesheet" href="assets/css/styles.css?v=38">
+  <link rel="stylesheet" href="assets/css/motion.css?v=38">
 
 <!-- Structured data. Every fact here is one this site already states in prose:
        the entity, the city and the email come off contact.html. Nothing is
@@ -84,7 +84,7 @@
         "name": "Do I own the site, or am I renting it?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "You own it. The domain is registered in your name and the code is yours. I host it and pay for the hosting and the domain myself, so there is nothing else for you to set up or pay for. If you ever leave, you take the whole thing with you."
+          "text": "You own it. The domain is registered in your name and the code is yours. I host it and pay for the hosting and the domain myself, so there is nothing else for you to set up or pay for."
         }
       },
       {
@@ -124,7 +124,7 @@
         "name": "What do you need from me to start?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Send me an email, or buy the Launch plan. As soon as the payment goes through I get a notification and I call you to go over what you want built, the style and the format. You can usually see the first version the next day."
+          "text": "Send me an email or book a call. I call you to go over what you want built, the style and the format."
         }
       }
     ]
@@ -213,56 +213,72 @@
   <main>
 
     <!-- ===============================================================
-         OPENER — headline left, the offer as a ledger of facts right.
-         Deliberately a different composition from the homepage hero:
-         that one carries an index, this one carries numbers.
+         OPENER: the headline, then the ask. "Tell me what is slowing you
+         down" used to close the page; it is the point of the page, so it
+         now sits directly under the headline with the two ways to reach me.
          =============================================================== -->
     <section class="section opener" data-sec="top">
       <div class="container opener__stack" data-enter>
         <div class="opener__head">
           <p class="kicker">Software &amp; web <b>—</b> for businesses</p>
           <h1 class="display" data-split>Elegant and modern <em>software</em>.</h1>
-          <p class="opener__lead">Websites, web apps and automation for your business.
-            One engineer, me, start to finish, and live in days.</p>
+          <h2 class="opener__ask">Tell me what is slowing you down.</h2>
+          <p class="opener__lead">I can help. Tell me what is costing your business customers,
+            or what you want to make better, and I will tell you what it would look like to
+            build. That is what the call is for.</p>
           <div class="opener__cta">
-            <a class="btn" href="#pricing">See what it costs</a>
-            <a class="btn btn--ghost" href="#method">How it works</a>
+            <a class="btn" href="mailto:twade@builtbytyler.com?subject=Software%20enquiry%20%E2%80%94%20BuiltByTyler">Book a call</a>
+            <a class="btn btn--ghost" href="contact.html">Other ways to reach me</a>
           </div>
         </div>
-        <!-- The markets demo: a working piece of software, not a screenshot.
-             Source lives in showcase/tracker/ (fetch.py refreshes its data and
-             is not shipped); demos/markets/ is the published copy. It is the
-             one page this site lets itself frame: see /demos/* in _headers. -->
-        <figure class="opener__demo">
-          <iframe src="demos/markets/?embed" title="Markets demo: a live tracker built here"></iframe>
-          <figcaption>Built here &mdash; a live markets tracker. Click in to take over.</figcaption>
-        </figure>
       </div>
     </section>
 
     <!-- ===============================================================
-         SHOWCASE 2 · THE FRONT DESK — a second working piece of software,
-         under the markets demo: a heading and one paragraph side by side,
-         then the demo centred and wide, the same width as the one above. Source: showcase/agent/ (index.html + app.js, no data, no
-         network calls); demos/front-desk/ is the published copy and is
-         framed under the same /demos/* rule in _headers.
+         BUILT HERE: a showcase, the way the Hardware page shows builds.
+         Two small live previews side by side; each one opens the full,
+         interactive demo in a dialog (main.js, initDemos). The previews
+         play but take no input: the pointer and the wheel belong to the
+         page until someone opens one.
+
+         Sources: showcase/tracker/ and showcase/agent/; demos/markets/
+         and demos/front-desk/ are the published copies, framed under the
+         /demos/* rule in _headers.
          =============================================================== -->
-    <section class="section showcase" id="front-desk" data-sec="front-desk">
+    <section class="section showcase" id="work" data-sec="work">
       <div class="container">
-        <div class="showcase__head" data-reveal>
-          <div>
-            <p class="kicker">Also built here</p>
-            <h2>An AI front desk.</h2>
-          </div>
-          <p>It answers the calls a business misses, on the first ring, asks the right
-            questions, books the job into the calendar and tells the team. Every missed call
-            becomes a booked job instead of a lost one.</p>
+        <p class="kicker showcase__kicker" data-reveal>Built here <b>—</b> click one to open it</p>
+        <div class="plates demos">
+          <article class="plate plate--half demo" data-reveal data-reveal-i="1">
+            <div class="demo__media">
+              <iframe src="demos/markets/?embed" title="Preview of the markets tracker demo" tabindex="-1" aria-hidden="true"></iframe>
+              <button class="demo__open" type="button" data-demo="demos/markets/?embed" data-demo-title="Markets tracker demo" aria-label="Open the markets tracker demo"><span>Open the demo</span></button>
+            </div>
+            <div class="plate__cap">
+              <span class="plate__n">01</span>
+              <h3 class="plate__name">Markets tracker</h3>
+              <span class="plate__price">Live demo</span>
+              <p class="plate__tag">Custom trading software: live prices, technicals and risk, built to spec.</p>
+            </div>
+          </article>
+          <article class="plate plate--half demo" data-reveal data-reveal-i="2">
+            <div class="demo__media">
+              <iframe src="demos/front-desk/?embed" title="Preview of the AI front desk demo" tabindex="-1" aria-hidden="true"></iframe>
+              <button class="demo__open" type="button" data-demo="demos/front-desk/?embed" data-demo-title="AI front desk demo" aria-label="Open the AI front desk demo"><span>Open the demo</span></button>
+            </div>
+            <div class="plate__cap">
+              <span class="plate__n">02</span>
+              <h3 class="plate__name">AI front desk</h3>
+              <span class="plate__price">Live demo</span>
+              <p class="plate__tag">Answers the calls a business misses, books the job and tells the team.</p>
+            </div>
+          </article>
         </div>
-        <figure class="showcase__demo" data-reveal>
-          <iframe src="demos/front-desk/?embed" title="Front Desk demo: an AI assistant that answers calls and books jobs" loading="lazy"></iframe>
-          <figcaption>Example business &mdash; simulated calls and texts. Click in to try a call.</figcaption>
-        </figure>
       </div>
+      <dialog class="demo-modal" id="demo-modal" aria-label="Demo">
+        <button class="demo-modal__close" type="button" aria-label="Close the demo">Close</button>
+        <iframe title="Demo"></iframe>
+      </dialog>
     </section>
 
     <!-- ===============================================================
@@ -284,7 +300,8 @@
               <p>Most small-business sites lose the customer before the phone rings — slow, dated,
                 unreadable on a phone, or missing the one thing a visitor came for. I build the
                 site around that one thing: hand-written, fast on a bad connection, and structured
-                so search engines and customers both find what they need on the first screen.</p>
+                so search engines and customers both find what they need on the first screen.
+                From $500.</p>
               <span class="index__tags">Hand-coded<i>/</i>Mobile first<i>/</i>SEO structure<i>/</i>Analytics<i>/</i>Accessible<i>/</i>Copywriting</span>
             </div>
           </li>
@@ -309,7 +326,7 @@
           <li class="index__row" data-reveal data-reveal-i="4">
             <h3>Care &amp; hosting</h3>
             <div>
-              <p>Hosting, backups, security headers and dependency updates. If the site goes down,
+              <p>$50 a month: hosting, the domain, backups, security headers and updates. If the site goes down,
                 tell me and I&rsquo;m on it right away. Anything else &mdash; a form misrouting, a
                 broken link, something that looks wrong &mdash; is fixed the same day.</p>
               <span class="index__tags">Backups<i>/</i>Updates<i>/</i>Monitoring<i>/</i>Monthly changes</span>
@@ -343,99 +360,37 @@
           <li>
             <span class="when">Day 0</span>
             <h3>Call</h3>
-            <p>Twenty minutes on what the business actually needs — not a feature list. I tell
-              you straight if software is not the answer.</p>
+            <p>Twenty minutes on what is losing your business money.</p>
           </li>
           <li>
-            <span class="when">Same day</span>
+            <span class="when">Before work starts</span>
             <h3>Scope &amp; quote</h3>
-            <p>A written scope with a fixed price and a date, usually within hours of the call.
-              Nothing starts until you have it in front of you.</p>
+            <p>A written scope with a fixed price and a date. Nothing starts until you have it
+              in front of you.</p>
           </li>
           <li>
             <span class="when">Days 1&ndash;2</span>
-            <h3>Build in the open</h3>
-            <p>A live link the day I start, not at the end. You review as it goes and say what
-              is wrong while it is still cheap to change.</p>
+            <h3>Build</h3>
+            <p>I build it. You see it and say what to change before it goes live.</p>
           </li>
           <li>
             <span class="when">Day 3</span>
-            <h3>Launch &amp; hand over</h3>
-            <p>Go live, plus the domain, the code, the analytics and a walkthrough of how to
-              run it without me.</p>
+            <h3>Launch</h3>
+            <p>It goes live. I host it and look after it for $50 a month.</p>
           </li>
         </ol>
       </div>
     </section>
 
     <!-- ===============================================================
-         04 · PRICING
-         -----------------------------------------------------------------
-         These numbers come from BuiltByTyler's own benchmark research
-         (00 Framework/BENCHMARK.md): the $5k–$10k project band is the
-         most consistently profitable in the Admin Bar 2026 survey
-         (N=622), and no operator in that research sustains a sub-$200/mo
-         plan with human labour attached. Confirm before quoting.
-         =============================================================== -->
-    <section class="section" id="pricing" data-sec="pricing">
-      <div class="container">
-        <div class="idx idx--split" data-reveal>
-          <span class="idx__n">03</span>
-          <p class="idx__lab">Pricing</p>
-          <h2 class="idx__h">Simple pricing, up front.</h2>
-          <p class="idx__p">Fixed price per build, and a monthly plan that keeps it fast, patched
-            and current. No hourly rates, no surprise invoices, no twelve-month lock-in.</p>
-        </div>
-
-        <div class="tier-grid tier-grid--two">
-          <article class="tier" data-plan="launch" data-reveal data-reveal-i="1">
-            <div>
-              <h3 class="tier__name">Launch</h3>
-              <p class="tier__for">A business that needs to look credible online.</p>
-            </div>
-            <p class="tier__price">$500<small>+ $50/mo care plan</small></p>
-            <ul class="tier__list">
-              <li>Up to 5 hand-built pages</li>
-              <li>Copywriting from your existing material</li>
-              <li>Contact, quote or booking form</li>
-              <li>Google Business &amp; local SEO setup</li>
-              <li>Hosting, SSL, backups, analytics</li>
-              <li>Small changes every month</li>
-            </ul>
-            <a class="btn btn--block" data-plan-cta="launch" href="contact.html?plan=launch">Start with Launch</a>
-          </article>
-
-          <article class="tier" data-plan="product" data-reveal data-reveal-i="3">
-            <div>
-              <h3 class="tier__name">Product</h3>
-              <p class="tier__for">Custom software for your own operation, or a product you intend to sell.</p>
-            </div>
-            <p class="tier__price">By consultation</p>
-            <ul class="tier__list">
-              <li>A consultation before anything is quoted</li>
-              <li>Discovery and a written technical scope</li>
-              <li>Accounts, roles, billing and admin</li>
-              <li>Fixed-price first release</li>
-              <li>Staging environment and test coverage</li>
-              <li>Repository, deployment and docs handed over</li>
-              <li>Retainer or hand-off — your call</li>
-            </ul>
-            <a class="btn btn--ghost btn--block" data-plan-cta="product" href="contact.html?plan=product">Book a call</a>
-          </article>
-        </div>
-
-      </div>
-    </section>
-
-    <!-- ===============================================================
-         05 · FAQ
+         03 · FAQ
          =============================================================== -->
     <section class="section" id="faq" data-sec="faq">
       <div class="container">
         <div class="idx" data-reveal>
-          <span class="idx__n">04</span>
+          <span class="idx__n">03</span>
           <p class="idx__lab">Straight answers</p>
-          <h2 class="idx__h">The questions that come up on every call.</h2>
+          <h2 class="idx__h">FAQ</h2>
         </div>
         <div class="faq-grid">
           <div class="faq" data-reveal>
@@ -443,7 +398,7 @@
               <summary>Do I own the site, or am I renting it?</summary>
               <p>You own it. The domain is registered in your name and the code is yours. I host
                 it and pay for the hosting and the domain myself, so there is nothing else for you
-                to set up or pay for. If you ever leave, you take the whole thing with you.</p>
+                to set up or pay for.</p>
             </details>
             <details>
               <summary>Why is there a monthly fee at all?</summary>
@@ -472,9 +427,8 @@
             </details>
             <details>
               <summary>What do you need from me to start?</summary>
-              <p>Send me an email, or buy the Launch plan. As soon as the payment goes through
-                I get a notification and I call you to go over what you want built, the style and
-                the format. You can usually see the first version the next day.</p>
+              <p>Send me an email or book a call. I call you to go over what you want built,
+                the style and the format.</p>
             </details>
           </div>
         </div>
@@ -482,17 +436,16 @@
     </section>
 
     <!-- ===============================================================
-         06 · CLOSE
+         CLOSE: the ask is at the top of the page now; this is the way out
+         of the FAQ for someone who read all the way down.
          =============================================================== -->
     <section class="section" id="next" data-sec="next">
       <div class="container">
-        <div class="close" data-reveal>
-          <span class="close__n">06</span>
-          <h2>Tell me what is <em>slowing you down</em>.</h2>
+        <div class="close close--quiet" data-reveal>
+          <span class="close__n">04</span>
+          <h2>Tell me what you need built.</h2>
           <div class="close__side">
-            <p>I can help. Tell me what is slowing you down, what is costing your business
-              customers, or what you want to make better &mdash; and I will tell you what it
-              would look like to build. That is what the call is for.</p>
+            <p>Send an email and I answer it myself.</p>
             <div class="close__actions">
               <a class="btn" href="mailto:twade@builtbytyler.com?subject=Software%20enquiry%20%E2%80%94%20BuiltByTyler">Book a call</a>
               <a class="btn btn--ghost" href="contact.html">Other ways to reach me</a>
@@ -534,10 +487,10 @@
        hologram.js is NOT loaded on this page: it has no build plates, and it
        is 120 KB of script to parse for nothing. It loads on Hardware and on
        the build detail page, where main.js creates the canvases it draws. -->
-  <script defer src="assets/js/products.js?v=37"></script>
-  <script defer src="assets/js/components.js?v=37"></script>
-  <script defer src="assets/js/main.js?v=37"></script>
+  <script defer src="assets/js/products.js?v=38"></script>
+  <script defer src="assets/js/components.js?v=38"></script>
+  <script defer src="assets/js/main.js?v=38"></script>
   <!-- The star field: plain WebGL, one small module, no library behind it. -->
-  <script type="module" src="assets/js/starfield.js?v=37"></script>
+  <script type="module" src="assets/js/starfield.js?v=38"></script>
 </body>
 </html>

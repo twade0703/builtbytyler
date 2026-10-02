@@ -702,6 +702,8 @@ html.nav-open, html.nav-open body { overflow: hidden; }
 .band__h em { font-style: normal; font-weight: 500; color: var(--band-accent); }
 .band__text { grid-area: text; color: var(--band-muted); font-size: 1.05rem; line-height: 1.6; padding-top: 0.5rem; }
 .band__text p + p { margin-top: 1rem; }
+/* a band with a heading and no paragraph beside it (About, My stack) */
+.band__grid--plain .band__h { grid-column: 2 / -1; max-width: none; }
 .band .btn--ghost { color: var(--band-ink); border-color: var(--band-ink); }
 .band .btn--ghost:hover { background: var(--band-ink); color: var(--band-bg); }
 .band .link-arrow { color: var(--band-accent); }

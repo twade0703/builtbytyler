@@ -927,15 +927,13 @@ html.nav-open, html.nav-open body { overflow: hidden; }
 .opener__stack .display { font-size: clamp(2.3rem, 5vw, 4.2rem); margin: 0 0 1.1rem; }
 .opener__head .opener__lead { margin: 0 auto; max-width: 44ch; font-size: clamp(1rem, 1.3vw, 1.12rem); }
 .opener__head .opener__cta { justify-content: center; margin-top: 1.6rem; }
-/* Software opener: the ask, directly under the headline. */
-.opener__ask { font-size: var(--fs-h2); font-weight: 400; letter-spacing: -0.024em; margin: 0 0 0.9rem; }
-.opener__head .opener__ask + .opener__lead { max-width: 54ch; }
-
 /* Built here (software.html #work): two small live previews, shown the way
    the Hardware page shows builds. The preview is the demo itself, playing at
    thumbnail size; it takes no input, so the pointer and the wheel stay with
    the page. A button over it opens the full demo in a dialog. */
-.showcase { padding-top: clamp(1rem, 3vw, 2.5rem); }
+.showcase { padding-top: clamp(1rem, 3vw, 2.5rem); padding-bottom: clamp(1rem, 2.5vw, 2rem); }
+/* the section after the showcase sits close under it; a full section gap read as a hole */
+.showcase + .section { padding-top: clamp(2rem, 4vw, 3.25rem); }
 .showcase__kicker { margin-bottom: clamp(1.25rem, 2.5vw, 2rem); }
 .demo__media {
   position: relative; aspect-ratio: 1312 / 832; overflow: hidden;

@@ -326,8 +326,11 @@ main, header, footer { position: relative; z-index: 1; }
   transition: transform .3s var(--ease);
 }
 .nav-links a:hover { color: var(--ink); }
-.nav-links a:hover::after, .nav-links a.is-active::after { transform: scaleX(1); transform-origin: left; }
-.nav-links a.is-active { color: var(--ink); }
+.nav-links a:hover::after { transform: scaleX(1); transform-origin: left; }
+/* The page you are on: white, and it stays white with the pointer elsewhere.
+   No underline; the underline is the hover. */
+.nav-links a.is-active { color: #fff; }
+.nav-links a.is-active::after { transform: scaleX(0); }
 .nav-actions { display: flex; align-items: center; gap: 1rem; }
 html.nav-open, html.nav-open body { overflow: hidden; }
 
@@ -1270,7 +1273,8 @@ html.nav-open, html.nav-open body { overflow: hidden; }
    =================================================================== */
 .contact-page { padding-top: clamp(4.5rem, 12vh, 8rem); }
 .contact-top { max-width: 900px; margin-bottom: clamp(2.5rem, 6vw, 4rem); }
-.contact-top .display { margin-bottom: 1.25rem; }
+.contact-top .display { margin-bottom: 0.9rem; }
+.contact-top__sub { font-size: var(--fs-h2); font-weight: 400; letter-spacing: -0.024em; margin: 0 0 1rem; }
 .contact-top__lead { max-width: 56ch; color: var(--muted); font-size: clamp(1rem, 1.5vw, 1.15rem); }
 .route-grid { display: grid; grid-template-columns: 1fr 1fr; border-top: 1px solid var(--hairline-strong); margin-bottom: clamp(3rem, 7vw, 5rem); }
 .route {

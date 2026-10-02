@@ -69,6 +69,23 @@ html { scroll-behavior: smooth; }
   [data-enter] > *:nth-child(6) { animation-delay: .56s; }
 }
 
+/* Arriving from another page on this site (boot.js sets .is-nav): the same
+   elements, but a quick fade with no stagger, no blur and no travel. The
+   staged entrance is for the first arrival, not for every click. */
+@media (prefers-reduced-motion: no-preference) {
+  html.is-nav [data-enter] > * { animation: bt-fade var(--m-mid) var(--m-ease-out) both; animation-delay: 0s !important; }
+  html.is-nav [data-split] .w { animation: bt-fade var(--m-mid) var(--m-ease-out) both; animation-delay: 0s; }
+  html.is-nav .portrait { animation-duration: .6s; animation-delay: 0s; }
+  html.is-nav .portrait path { animation-duration: calc(var(--t, .8s) * .3); animation-delay: calc(var(--d, 0s) * .2); }
+}
+
+/* Page to page: the browser cross-fades the old page into the new one
+   instead of cutting, where it can (same-site navigations). */
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition { navigation: auto; }
+  ::view-transition-old(root), ::view-transition-new(root) { animation-duration: .18s; }
+}
+
 /* A split headline runs its own per-word entrance, so it opts out of the
    container's blanket child animation — otherwise the two stack and the
    headline arrives late and twice. */

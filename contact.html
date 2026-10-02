@@ -28,8 +28,9 @@
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
-  <link rel="stylesheet" href="assets/css/styles.css?v=41">
-  <link rel="stylesheet" href="assets/css/motion.css?v=41">
+  <script src="assets/js/boot.js?v=43"></script>
+  <link rel="stylesheet" href="assets/css/styles.css?v=43">
+  <link rel="stylesheet" href="assets/css/motion.css?v=43">
 
 <!-- Structured data. Every fact here is one this site already states in prose:
        the entity, the city and the email come off contact.html. Nothing is
@@ -95,7 +96,15 @@
   </script>
 </head>
 <body>
-  <header id="site-nav"></header>
+  <!-- The nav is in the HTML, with this page already marked, so it is there
+       on the first paint; components.js re-renders the same thing. -->
+  <header id="site-nav" class="site-nav">
+    <div class="container site-nav__inner">
+      <a href="index.html" class="brand">Built<b>ByTyler</b></a>
+      <nav aria-label="Primary"><ul class="nav-links" id="nav-links"><li><a href="index.html">Home</a></li><li><a href="software.html">Software</a></li><li><a href="shop.html">Hardware</a></li><li><a href="about.html">About</a></li><li><a href="contact.html" class="is-active" aria-current="page">Contact</a></li></ul></nav>
+      <div class="nav-actions"><button class="nav-toggle" id="nav-toggle" aria-label="Toggle menu" aria-expanded="false"><span></span><span></span><span></span></button></div>
+    </div>
+  </header>
 
   <main>
     <!-- ===============================================================
@@ -107,15 +116,13 @@
       <div class="container">
 
         <div class="contact-top" data-enter>
-          <p class="eyebrow">Contact</p>
-          <h1 class="display" data-split>Tell me what you want <em>built</em>.</h1>
-          <p class="contact-top__lead">Everything here is made or written by one person, so
-            you will be talking to the person who does the work. No forms that vanish into a
-            queue &mdash; email reaches me directly and I answer every one.</p>
+          <h1 class="display" data-split>Contact</h1>
+          <h2 class="contact-top__sub">Tell me what you want built.</h2>
+          <p class="contact-top__lead">Send me an email with what you need. It comes straight to
+            me and I answer it myself.</p>
         </div>
 
-        <!-- Filled in by main.js when arriving from a software.html pricing
-             tier (contact.html?plan=launch|product). -->
+        <!-- Filled in by main.js when arriving with contact.html?plan=launch|product. -->
         <p class="notice" id="plan-notice" hidden></p>
 
         <!-- Two routes: hardware or software. -->
@@ -126,9 +133,8 @@
               <rect x="3" y="4" width="18" height="16" rx="1.5"/><path d="M3 9h18M7 6.5h.01M9.5 6.5h.01"/>
             </svg>
             <h2>A website or software</h2>
-            <p>For your business &mdash; a site, a web app, a SaaS product, or automation
-              that stops someone re-typing the same thing twice.</p>
-            <span class="route__meta" id="route-software-meta">Twenty minutes on a call &middot; from $550 to start, then $50/mo</span>
+            <p>A site, a web app or automation for your business.</p>
+            <span class="route__meta" id="route-software-meta">Written scope and price first</span>
             <span class="route__go" id="route-software-go">Start a software enquiry &rarr;</span>
           </a>
 
@@ -189,15 +195,15 @@
             <p class="eyebrow">What happens next</p>
             <ol class="next-steps">
               <li><b>You email</b><span>Whatever detail you have. A sentence is enough to start.</span></li>
-              <li><b>I reply within a day</b><span>Usually the same day, with a straight answer on whether I am the right person for it.</span></li>
-              <li><b>Twenty minutes on a call</b><span>What the business or the build actually needs. No pitch deck.</span></li>
-              <li><b>A written scope and price</b><span>Fixed, in front of you the same day, before anything starts.</span></li>
-              <li><b>Live in two to three days</b><span>From the go-ahead, unless it is waiting on something from you.</span></li>
+              <li><b>I reply</b><span>With a straight answer on whether I am the right person for it.</span></li>
+              <li><b>Twenty minutes on a call</b><span>What the business or the build needs.</span></li>
+              <li><b>A written scope and price</b><span>Fixed, and in front of you before anything starts.</span></li>
+              <li><b>Live quickly</b><span>A website can be live within days. A bigger build takes longer, and you get the timeline before you pay.</span></li>
             </ol>
             <p class="eyebrow" style="margin-top:2rem">Where I work</p>
-            <p class="contact-area">Based in <b>Monterey, California</b>, working with businesses anywhere in
-              the United States. Websites and software are built and handed over remotely, so
-              where you are does not matter; hardware ships from here.</p>
+            <p class="contact-area">Based in <b>Monterey, California</b>. I work with businesses anywhere in
+              the United States. Websites and software are built remotely, so where you are
+              does not matter.</p>
             <p class="contact-loc">BuiltByTyler LLC &middot; Monterey, California</p>
           </div>
         </div>
@@ -231,10 +237,10 @@
     </div>
   </footer>
 
-  <script src="assets/js/products.js?v=41"></script>
-  <script src="assets/js/components.js?v=41"></script>
-  <script src="assets/js/main.js?v=41"></script>
+  <script src="assets/js/products.js?v=43"></script>
+  <script src="assets/js/components.js?v=43"></script>
+  <script src="assets/js/main.js?v=43"></script>
   <!-- The star field: plain WebGL, one small module, no library behind it. -->
-  <script type="module" src="assets/js/starfield.js?v=41"></script>
+  <script type="module" src="assets/js/starfield.js?v=43"></script>
 </body>
 </html>

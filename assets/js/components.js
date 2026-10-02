@@ -18,29 +18,51 @@ const NAV_ITEMS = [
   { href: "contact.html", label: "Contact" },
 ];
 
-function currentPage() {
-  const path = window.location.pathname.split("/").pop();
-  return path === "" ? "index.html" : path;
+/* The live site serves clean addresses (/shop, not /shop.html) and answers a
+   .html request with a redirect to the clean one. Every link on the site was
+   written with .html, so every click made two round trips. On the live host
+   the links are rewritten to the address that answers directly; on a local
+   file server, which needs the extension, they are left alone. */
+const CLEAN_URLS = /^https?:$/.test(location.protocol) && !/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
+function cleanHref(h) {
+  if (!CLEAN_URLS || !h) return h;
+  const m = h.match(/^([a-z0-9_-]+)\.html((?:[?#].*)?)$/i);   // same-folder pages only: "shop.html", "product.html?id=x"
+  if (!m) return h;
+  return "/" + (m[1] === "index" ? "" : m[1]) + m[2];
+}
+function cleanLinks(root) {
+  if (!CLEAN_URLS) return;
+  (root || document).querySelectorAll("a[href]").forEach((a) => {
+    const h = a.getAttribute("href"), c = cleanHref(h);
+    if (c !== h) a.setAttribute("href", c);
+  });
+}
+window.BBTCleanLinks = cleanLinks;
+
+/* "shop" for /shop, /shop.html and shop.html alike; "index" for the root. */
+function pageStem(path) {
+  const seg = path.split(/[?#]/)[0].split("/").pop().replace(/\.html$/i, "");
+  return seg === "" ? "index" : seg;
 }
 
 function renderNav() {
   const host = document.getElementById("site-nav");
   if (!host) return;
-  const here = currentPage();
-  // product.html highlights "Shop"
-  const activeFor = here === "product.html" ? "shop.html" : here;
+  const here = pageStem(window.location.pathname);
+  // a build's own page lights "Hardware"
+  const activeFor = here === "product" ? "shop" : here;
 
   const links = NAV_ITEMS.map(
     (item) =>
-      `<li><a href="${item.href}" class="${
-        item.href === activeFor ? "is-active" : ""
-      }">${item.label}</a></li>`
+      `<li><a href="${cleanHref(item.href)}"${
+        pageStem(item.href) === activeFor ? ' class="is-active" aria-current="page"' : ""
+      }>${item.label}</a></li>`
   ).join("");
 
   host.className = "site-nav";
   host.innerHTML = `
     <div class="container site-nav__inner">
-      <a href="index.html" class="brand">Built<b>ByTyler</b></a>
+      <a href="${cleanHref("index.html")}" class="brand">Built<b>ByTyler</b></a>
       <nav aria-label="Primary">
         <ul class="nav-links" id="nav-links">${links}</ul>
       </nav>
@@ -50,6 +72,45 @@ function renderNav() {
         </button>
       </div>
     </div>`;
+}
+
+/* Have the next page ready before it is asked for. Where the browser supports
+   it, a page is loaded and rendered in the background as soon as the pointer
+   rests on its link, so the click only has to show it. Elsewhere the page is
+   fetched on hover or touch, which saves the wait for the server. */
+function initSpeculation() {
+  if (HTMLScriptElement.supports && HTMLScriptElement.supports("speculationrules")) {
+    const rules = document.createElement("script");
+    rules.type = "speculationrules";
+    const where = { and: [
+      { href_matches: "/*" },
+      { not: { href_matches: "/demos/*" } },
+      { not: { href_matches: "/assets/*" } },
+      { not: { href_matches: "/checkout-test*" } },
+      { not: { selector_matches: "[target=_blank], [download]" } },
+    ] };
+    // prefetch as well as prerender: if the browser declines to prerender
+    // (memory, battery saver), the page's HTML is still already here.
+    rules.textContent = JSON.stringify({
+      prefetch: [{ where, eagerness: "moderate" }],
+      prerender: [{ where, eagerness: "moderate" }],
+    });
+    document.head.appendChild(rules);
+    return;
+  }
+  const done = new Set();
+  const warm = (e) => {
+    const a = e.target.closest && e.target.closest("a[href]");
+    if (!a || a.target === "_blank" || a.origin !== location.origin || a.pathname === location.pathname) return;
+    if (/^\/(demos|assets)\//.test(a.pathname) || done.has(a.pathname)) return;
+    done.add(a.pathname);
+    const l = document.createElement("link");
+    l.rel = "prefetch"; l.href = a.pathname + a.search;
+    document.head.appendChild(l);
+  };
+  document.addEventListener("pointerover", warm, { passive: true });
+  document.addEventListener("touchstart", warm, { passive: true });
+  document.addEventListener("focusin", warm);
 }
 
 function renderFooter() {
@@ -109,6 +170,8 @@ function mountChrome() {
   renderNav();
   renderFooter();
   renderHUD();
+  cleanLinks(document);
+  initSpeculation();
 }
 
 if (document.readyState === "loading") {

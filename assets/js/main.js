@@ -216,12 +216,11 @@
     const key = (new URLSearchParams(window.location.search).get("plan") || "").toLowerCase();
     const plan = window.getPlanById && window.getPlanById(key);
     if (!plan) return;
-    const price = window.formatPlanPrice(plan);
 
     notice.hidden = false;
     notice.innerHTML =
-      `You came from the <b>${plan.name}</b> plan — ${price}. ` +
-      `Mention anything you want changed and I'll quote against it.`;
+      `You came from the <b>${plan.name}</b> plan. ` +
+      `Mention anything you want changed.`;
 
     /* Point the software route at the tier they came from, so the email
        arrives already labelled and they do not have to re-explain the
@@ -232,7 +231,7 @@
       route.href = `mailto:twade@builtbytyler.com?subject=${encodeURIComponent(subject)}`;
       route.classList.add("is-picked");
       const meta = document.getElementById("route-software-meta");
-      if (meta) meta.textContent = `${plan.name} plan · ${price}`;
+      if (meta) meta.textContent = `${plan.name} plan`;
       const go = document.getElementById("route-software-go");
       if (go) go.textContent = `Enquire about ${plan.name} →`;
     }
@@ -486,8 +485,12 @@
       renderGrid("featured-grid", window.PRODUCTS.filter((p) => p.featured));
       renderGrid("shop-grid", window.PRODUCTS);
       renderDetail();
-      // Bring the freshly-rendered holograms (home, shop, detail) to life.
-      if (window.BBTHolograms) window.BBTHolograms.mount();
+      if (window.BBTCleanLinks) window.BBTCleanLinks(document);   // the plates' own links
+      /* Bring the freshly-rendered holograms to life, AFTER the page has been
+         painted. Building the models is the heaviest thing the Hardware page
+         does (about 50 ms, four times that on a slow machine), and doing it
+         before the first paint is what made that page the slowest to appear. */
+      if (window.BBTHolograms) requestAnimationFrame(() => setTimeout(() => window.BBTHolograms.mount(), 0));
     }
     initMobileNav();
     initNavScroll();

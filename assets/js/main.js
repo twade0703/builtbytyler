@@ -141,27 +141,37 @@
     const links = document.getElementById("nav-links");
     if (!toggle || !links) return;
 
+    /* The menu is a drop-down, so it never freezes the page behind it. It used
+       to lock scrolling while open, with nothing but the bars to undo it: a tap
+       on the page did nothing, and one stray extra tap on the bars left the
+       page frozen. On a phone that reads as "it glitched and won't scroll".
+       Now anything that means "I'm done with the menu" closes it: a tap
+       anywhere else, a scroll, Escape, leaving or coming back to the page. */
+    const isOpen = () => links.classList.contains("is-open");
+    let openedAt = 0;
     const setOpen = (open) => {
       links.classList.toggle("is-open", open);
       toggle.classList.toggle("is-open", open);
       toggle.setAttribute("aria-expanded", String(open));
-      // Lock the page behind the open menu so it can't scroll through.
-      document.documentElement.classList.toggle("nav-open", open);
+      document.documentElement.classList.remove("nav-open");   // never lock the page
+      if (open) openedAt = window.scrollY;
     };
 
-    toggle.addEventListener("click", () =>
-      setOpen(!links.classList.contains("is-open"))
-    );
-    // Close on link tap or when escaping back to a wide layout.
-    links.addEventListener("click", (e) => {
-      if (e.target.closest("a")) setOpen(false);
+    toggle.addEventListener("click", (e) => { e.stopPropagation(); setOpen(!isOpen()); });
+    links.addEventListener("click", (e) => { if (e.target.closest("a")) setOpen(false); });
+    // a tap anywhere outside the menu closes it
+    document.addEventListener("click", (e) => {
+      if (isOpen() && !links.contains(e.target) && !toggle.contains(e.target)) setOpen(false);
     });
-    window.addEventListener("keydown", (e) => {
-      if (e.key === "Escape") setOpen(false);
-    });
-    window.matchMedia("(min-width: 721px)").addEventListener("change", (m) => {
-      if (m.matches) setOpen(false);
-    });
+    // scrolling the page closes it
+    window.addEventListener("scroll", () => {
+      if (isOpen() && Math.abs(window.scrollY - openedAt) > 12) setOpen(false);
+    }, { passive: true });
+    window.addEventListener("keydown", (e) => { if (e.key === "Escape") setOpen(false); });
+    // a page restored from the back/forward cache, or left, starts closed
+    window.addEventListener("pageshow", () => setOpen(false));
+    window.addEventListener("pagehide", () => setOpen(false));
+    window.matchMedia("(min-width: 721px)").addEventListener("change", (m) => { if (m.matches) setOpen(false); });
   }
 
   /* ---------------- Scroll progress HUD ----------------

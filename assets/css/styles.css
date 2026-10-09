@@ -332,7 +332,6 @@ main, header, footer { position: relative; z-index: 1; }
 .nav-links a.is-active { color: #fff; }
 .nav-links a.is-active::after { transform: scaleX(0); }
 .nav-actions { display: flex; align-items: center; gap: 1rem; }
-html.nav-open, html.nav-open body { overflow: hidden; }
 
 .nav-toggle { display: none; background: none; border: none; width: 28px; height: 28px; position: relative; }
 .nav-toggle span { position: absolute; left: 3px; right: 3px; height: 1.5px; background: var(--ink); transition: transform .3s var(--ease), opacity .2s var(--ease); }

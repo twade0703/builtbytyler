@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reverse Engineering &amp; Game Dev &middot; Built by Tyler</title>
+  <meta name="description" content="Game development and reverse engineering: software taken apart with AI agents, then rebuilt into things nobody else has made. Every project carries an honest status.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500&family=Instrument+Sans:wght@400;500&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" sizes="48x48" href="/assets/img/icon-48.png">
+  <link rel="icon" type="image/png" sizes="96x96" href="/assets/img/icon-96.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="/assets/img/icon-192.png">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <meta name="theme-color" content="#121216">
+  <link rel="canonical" href="https://builtbytyler.com/reverse-engineering">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Built by Tyler">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:url" content="https://builtbytyler.com/reverse-engineering">
+  <meta property="og:title" content="Reverse Engineering & Game Dev · Built by Tyler">
+  <meta property="og:description" content="Software taken apart with AI agents, then rebuilt into things nobody else has made. Every project carries an honest status.">
+  <meta name="twitter:title" content="Reverse Engineering & Game Dev · Built by Tyler">
+  <meta name="twitter:description" content="Software taken apart with AI agents, then rebuilt into things nobody else has made. Every project carries an honest status.">
+  <meta property="og:image" content="https://builtbytyler.com/assets/img/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <script src="assets/js/boot.js?v=45"></script>
+  <link rel="stylesheet" href="assets/css/styles.css?v=45">
+  <link rel="stylesheet" href="assets/css/motion.css?v=45">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+        "item": "https://builtbytyler.com/"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Reverse Engineering",
+        "item": "https://builtbytyler.com/reverse-engineering"
+      }
+    ]
+  }
+  </script>
+</head>
+<body>
+  <!-- The nav is in the HTML, with this page already marked, so it is there
+       on the first paint; components.js re-renders the same thing. -->
+  <header id="site-nav" class="site-nav">
+    <div class="container site-nav__inner">
+      <a href="index.html" class="brand">Built<b>ByTyler</b></a>
+      <nav aria-label="Primary"><ul class="nav-links" id="nav-links"><li><a href="index.html">Home</a></li><li><a href="software.html">Software</a></li><li><a href="shop.html">Hardware</a></li><li><a href="reverse-engineering.html" class="is-active" aria-current="page">Reverse Engineering</a></li><li><a href="about.html">About</a></li><li><a href="contact.html">Contact</a></li></ul></nav>
+      <div class="nav-actions"><button class="nav-toggle" id="nav-toggle" aria-label="Toggle menu" aria-expanded="false"><span></span><span></span><span></span></button></div>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- ===============================================================
+         OPENER: same centred stack as Software and Hardware, so the four
+         top-level pages open the same way.
+         =============================================================== -->
+    <section class="section opener" data-sec="top">
+      <div class="container opener__stack" data-enter>
+        <div class="opener__head">
+          <p class="kicker">Game dev <b>—</b> reverse engineering</p>
+          <h1 class="display" data-split>Taken apart, <em>rebuilt</em>.</h1>
+          <p class="opener__lead">I pull software apart with AI agents to learn how it really
+            works, then build what nobody else has. Every project carries an honest status.</p>
+          <div class="opener__cta">
+            <a class="btn" href="mailto:twade@builtbytyler.com?subject=Reverse%20engineering%20%E2%80%94%20BuiltByTyler">Talk about a project</a>
+            <a class="btn btn--ghost" href="#method">How it works</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===============================================================
+         THE WORK: one frame per project, the cover image in it. Clicking
+         a frame opens its slides in a dialog (main.js, initGallery).
+         Slides are listed in data-slides as "src|caption;src|caption".
+
+         Images come from the project sessions themselves; the sources are
+         amogus-chess/ and REA/eldencraft/. No decompiled code, no anti-cheat
+         and no menu showing a launcher for online play goes on this page.
+         =============================================================== -->
+    <section class="section showcase" id="work" data-sec="work">
+      <div class="container">
+        <p class="kicker showcase__kicker" data-reveal>The work <b>—</b> click one for the slides</p>
+        <div class="plates re-work">
+
+          <article class="plate plate--half re-case" data-reveal data-reveal-i="1">
+            <div class="plate__media re-case__media">
+              <span class="tick tick--tl"></span><span class="tick tick--br"></span>
+              <img src="assets/img/re/among-us-chess-1.jpg" alt="Key art: crewmates on the giant chessboard under a crowned king, rendered in Blender" loading="lazy" decoding="async">
+              <button class="re-case__open" type="button"
+                data-gallery="Among Us Chess"
+                data-slides="assets/img/re/among-us-chess-1.jpg|Key art, rendered in Blender Cycles from the same models the mod ships;assets/img/re/among-us-chess-2.jpg|Promo render: every crewmate, weapon and prop modelled from scratch in Blender, then cooked into a mod pak for a game with no SDK;assets/img/re/among-us-chess-4.jpg|Promo render: Zombies mode, with crewmate hordes and a crowned boss on the board;assets/img/re/among-us-chess-3.jpg|The proof, in game: an automated test drives the real build with real input and grades every step (40 of 40)"
+                aria-label="Open the Among Us Chess slides"><span>View slides</span></button>
+            </div>
+            <div class="plate__cap">
+              <span class="plate__n">01</span>
+              <h3 class="plate__name">Among Us Chess</h3>
+              <span class="plate__price"><span class="re-stamp re-stamp--playable">Playable</span></span>
+              <p class="plate__tag">A crewmate dropped into FPS Chess, with weapons, a crowd and bosses on the giant board.</p>
+            </div>
+          </article>
+
+          <article class="plate plate--half re-case" data-reveal data-reveal-i="2">
+            <div class="plate__media re-case__media">
+              <span class="tick tick--tl"></span><span class="tick tick--br"></span>
+              <img src="assets/img/re/elden-craft-1.jpg" alt="Steve with a diamond sword in front of the Church of Elleh ruins in Elden Ring" loading="lazy" decoding="async">
+              <button class="re-case__open" type="button"
+                data-gallery="Minecraft in Elden Ring"
+                data-slides="assets/img/re/elden-craft-1.jpg|Steve, rebuilt in Minecraft proportions, at the Church of Elleh, with the Minecraft HUD in place of Elden Ring's;assets/img/re/elden-craft-2.jpg|A crafting table placed in Limgrave: blocks spawn at runtime as real Elden Ring geometry;assets/img/re/elden-craft-3.jpg|A log, plank and cobblestone hut with a crafting table and TNT, built block by block in first person;assets/img/re/elden-craft-4.jpg|Survival and creative inventory, crafting and smelting, all read from the player's own Minecraft install"
+                aria-label="Open the Minecraft in Elden Ring slides"><span>View slides</span></button>
+            </div>
+            <div class="plate__cap">
+              <span class="plate__n">02</span>
+              <h3 class="plate__name">Minecraft in Elden Ring</h3>
+              <span class="plate__price"><span class="re-stamp re-stamp--partial">Partial</span></span>
+              <p class="plate__tag">Minecraft rebuilt inside Elden Ring: blocks, Steve, crafting, a bow and TNT. The download ships no Mojang or FromSoftware files.</p>
+            </div>
+          </article>
+
+        </div>
+        <p class="re-note" data-reveal>Fan projects, built to learn how these games work. Among Us, FPS Chess, Minecraft
+          and Elden Ring are trademarks of their owners; none of them made or endorsed these projects.</p>
+      </div>
+      <dialog class="re-gallery" id="re-gallery" aria-label="Project slides">
+        <button class="demo-modal__close" type="button" aria-label="Close the slides">Close</button>
+        <figure class="re-gallery__fig">
+          <img alt="">
+          <figcaption><span class="re-gallery__n"></span><span class="re-gallery__cap"></span></figcaption>
+        </figure>
+        <div class="re-gallery__nav">
+          <button type="button" class="re-gallery__prev" aria-label="Previous slide">Prev</button>
+          <button type="button" class="re-gallery__next" aria-label="Next slide">Next</button>
+        </div>
+      </dialog>
+    </section>
+
+    <!-- ===============================================================
+         01 · HOW IT WORKS: three rows, the order every project runs in.
+         =============================================================== -->
+    <section class="section" id="method" data-sec="method">
+      <div class="container">
+        <div class="idx idx--split" data-reveal>
+          <span class="idx__n">01</span>
+          <p class="idx__lab">How it works</p>
+        </div>
+
+        <ol class="index">
+          <li class="index__row index__row--lead" data-reveal data-reveal-i="1">
+            <h3>Take it apart</h3>
+            <div>
+              <p>An AI agent and a disassembler go through the program the way an engineer goes
+                through a teardown: what loads, what each system owns, and where a change can be
+                made safely. Findings are checked against the program running, not guessed from
+                the code alone.</p>
+              <span class="index__tags">REA<i>/</i>Ghidra<i>/</i>Claude Code<i>/</i>Runtime tracing</span>
+            </div>
+          </li>
+          <li class="index__row" data-reveal data-reveal-i="2">
+            <h3>Build it again</h3>
+            <div>
+              <p>Mechanics get rebuilt from scratch in our own code: a mod, a DLL or a whole engine.
+                What ships is only what I wrote.</p>
+              <span class="index__tags">Rust<i>/</i>C#<i>/</i>Lua<i>/</i>Unreal<i>/</i>Blender</span>
+            </div>
+          </li>
+          <li class="index__row" data-reveal data-reveal-i="3">
+            <h3>Prove it</h3>
+            <div>
+              <p>Every project is stamped <b>Playable</b>, <b>Partial</b> or <b>Cap</b>, and an
+                automated test drives the real build before a stamp goes on. If part of it does not
+                work yet, the stamp says so.</p>
+              <span class="index__tags">Smoke tests<i>/</i>Scripted input<i>/</i>Screenshots</span>
+            </div>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- ===============================================================
+         02 · THE RULES: the inverted band. This is the part a cautious
+         reader looks for, so it gets the light paper.
+         =============================================================== -->
+    <!-- Not id="rules": components.js mounts the measuring grid as #rules and
+         skips it if that id already exists. -->
+    <section class="band" id="principles" data-sec="principles">
+      <div class="container band__grid" data-reveal>
+        <p class="band__lab">02 <b>—</b> The rules</p>
+        <span class="band__n">02</span>
+        <h2 class="band__h">Offline, our own code, <em>nothing cracked</em>.</h2>
+        <div class="band__text">
+          <p>Reverse engineering is for learning how something works and building on it, not for
+            breaking it. These rules hold on everything I publish or release.</p>
+        </div>
+        <ul class="band__row">
+          <li>
+            <span class="n">01</span>
+            <b>Offline only</b>
+            <span>No online or multiplayer games, and anti-cheat is never touched.</span>
+          </li>
+          <li>
+            <span class="n">02</span>
+            <b>No cracks, no DRM</b>
+            <span>No keys, no cheats, no paid product unlocked.</span>
+          </li>
+          <li>
+            <span class="n">03</span>
+            <b>Our code ships</b>
+            <span>Decompiled code is never published, and downloads carry no ripped files.</span>
+          </li>
+          <li>
+            <span class="n">04</span>
+            <b>EULA first</b>
+            <span>Each target's licence is read before work starts.</span>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ===============================================================
+         CLOSE
+         =============================================================== -->
+    <section class="section" id="next" data-sec="next">
+      <div class="container">
+        <div class="close close--quiet" data-reveal>
+          <span class="close__n">03</span>
+          <h2>Have something you want taken apart?</h2>
+          <div class="close__side">
+            <p>A legacy tool nobody has the source for, a file format to read, or a mechanic you
+              want rebuilt in your own game. Tell me what it is and I will tell you whether it can
+              be done, and how cleanly.</p>
+            <div class="close__actions">
+              <a class="btn" href="mailto:twade@builtbytyler.com?subject=Reverse%20engineering%20%E2%80%94%20BuiltByTyler">Talk about a project</a>
+              <a class="btn btn--ghost" href="software.html">Software &amp; web</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+
+  <footer id="site-footer" data-year="2026">
+    <!-- Static fallback only. components.js overwrites this block on load.
+         Keep the links here in step with NAV_ITEMS. -->
+    <div class="container site-footer__inner">
+      <address>
+        <strong>Built by Tyler</strong> &mdash; BuiltByTyler LLC<br>
+        Monterey, California<br>
+        <a href="tel:+12817398942">(281) 739-8942</a> &middot;
+        <a href="mailto:twade@builtbytyler.com">twade@builtbytyler.com</a>
+      </address>
+      <nav aria-label="Footer">
+        <a href="index.html">Home</a>
+        <a href="software.html">Websites &amp; software</a>
+        <a href="shop.html">Hardware</a>
+        <a href="reverse-engineering.html">Reverse engineering</a>
+        <a href="about.html">About Tyler Wade</a>
+        <a href="contact.html">Contact</a>
+        <a href="policies.html">Lead times, shipping &amp; refunds</a>
+        <a href="terms.html">Website terms</a>
+      </nav>
+    </div>
+  </footer>
+
+  <!-- No hologram.js here: this page has no build plates. -->
+  <script defer src="assets/js/products.js?v=45"></script>
+  <script defer src="assets/js/components.js?v=45"></script>
+  <script defer src="assets/js/main.js?v=45"></script>
+  <!-- The star field: plain WebGL, one small module, no library behind it. -->
+  <script type="module" src="assets/js/starfield.js?v=45"></script>
+</body>
+</html>

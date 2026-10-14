@@ -14,6 +14,7 @@ const NAV_ITEMS = [
   { href: "index.html", label: "Home" },
   { href: "software.html", label: "Software" },
   { href: "shop.html", label: "Hardware" },
+  { href: "reverse-engineering.html", label: "Reverse Engineering" },
   { href: "about.html", label: "About" },
   { href: "contact.html", label: "Contact" },
 ];

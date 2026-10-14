@@ -232,5 +232,15 @@
   "assets/js/main.js": "bff3a4d113692d35",
   "assets/js/products.js": "0b537737e101c4c6",
   "assets/js/starfield.js": "5dccfa32aaf73983"
+ },
+ "45": {
+  "assets/css/motion.css": "8351bc50fa21b964",
+  "assets/css/styles.css": "cd3e65fc90ea88bb",
+  "assets/js/boot.js": "16d8f6f634b9865a",
+  "assets/js/components.js": "44b94465e4a1d569",
+  "assets/js/hologram.js": "0289a4435fa17e06",
+  "assets/js/main.js": "e9d84f384c6b0653",
+  "assets/js/products.js": "f83de0db3cc765d2",
+  "assets/js/starfield.js": "a6fee63dc2d6eb45"
  }
 }

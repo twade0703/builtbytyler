@@ -481,6 +481,56 @@
     modal.addEventListener("close", () => { frame.src = "about:blank"; if (grid) grid.classList.remove("is-paused"); });
   }
 
+  /* Reverse engineering page: a project frame opens its slides in a dialog.
+     The slides live on the button as data-slides="src|caption;src|caption",
+     so adding one is an edit to the HTML only. Arrow keys step through. */
+  function initGallery() {
+    const modal = document.getElementById("re-gallery");
+    const buttons = document.querySelectorAll("[data-gallery]");
+    if (!modal || !buttons.length) return;
+    const parse = (b) => (b.dataset.slides || "").split(";").filter(Boolean).map((s) => {
+      const [src, cap] = s.split("|");
+      return { src: src.trim(), cap: (cap || "").trim() };
+    });
+    if (typeof modal.showModal !== "function") {
+      // no <dialog>: open the cover image itself
+      buttons.forEach((b) => b.addEventListener("click", () => { const s = parse(b)[0]; if (s) window.location.href = s.src; }));
+      return;
+    }
+    const img = modal.querySelector("img");
+    const num = modal.querySelector(".re-gallery__n");
+    const cap = modal.querySelector(".re-gallery__cap");
+    const nav = modal.querySelector(".re-gallery__nav");
+    let slides = [], at = 0, title = "";
+    const show = (i) => {
+      at = (i + slides.length) % slides.length;
+      const s = slides[at];
+      img.src = s.src;
+      img.alt = s.cap || title;
+      num.textContent = `${String(at + 1).padStart(2, "0")} / ${String(slides.length).padStart(2, "0")}`;
+      cap.textContent = s.cap ? `${title}: ${s.cap}` : title;
+    };
+    buttons.forEach((b) => b.addEventListener("click", () => {
+      slides = parse(b);
+      if (!slides.length) return;
+      title = b.dataset.gallery || "";
+      modal.setAttribute("aria-label", `${title} slides`);
+      nav.hidden = slides.length < 2;
+      show(0);
+      modal.showModal();
+    }));
+    modal.querySelector(".re-gallery__prev").addEventListener("click", () => show(at - 1));
+    modal.querySelector(".re-gallery__next").addEventListener("click", () => show(at + 1));
+    modal.querySelector(".demo-modal__close").addEventListener("click", () => modal.close());
+    modal.addEventListener("click", (e) => { if (e.target === modal) modal.close(); });
+    modal.addEventListener("keydown", (e) => {
+      if (slides.length < 2) return;
+      if (e.key === "ArrowLeft") { e.preventDefault(); show(at - 1); }
+      if (e.key === "ArrowRight") { e.preventDefault(); show(at + 1); }
+    });
+    modal.addEventListener("close", () => { img.removeAttribute("src"); });
+  }
+
   /* ---------------- Global click delegation ---------------- */
   function initDelegation() {
     document.addEventListener("click", (e) => {
@@ -511,6 +561,7 @@
     initDelegation();
     initLive();
     initDemos();
+    initGallery();
     // Reveal runs last so dynamically-rendered cards are observed.
     initReveal();
   }

@@ -1152,6 +1152,21 @@
     });
     parts.push(makeRing(0, 0.112, -0.09, 0.014, 10, "y"));
 
+    /* The LiPo, strapped on top, as every 3" quad flies. It sits forward of
+       the arming button so the LED stays in view, with a strap round its
+       middle and the lead running back to the XT30 plug at the tail. Without
+       a pack the body reads as a bare frame on a bench; with one it reads as
+       a machine about to fly. */
+    const PY = 0.112, PH = 0.07, PZ = 0.06, PL = 0.2, PW = 0.12;
+    parts.push(makeBox(0, PY + PH / 2, PZ, PW, PH, PL));                  // the pack
+    parts.push(makeBox(0, PY + PH / 2, PZ, PW + 0.012, PH + 0.01, 0.026)); // the strap
+    parts.push(makeBox(0, PY + PH + 0.006, PZ, 0.045, 0.004, 0.034));     // the strap's buckle
+    [-0.03, 0.03].forEach((lx) => {                                       // twin leads, out the back
+      parts.push(tubeAlong([lx * 0.5, PY + 0.02, PZ - PL / 2], [lx, PY + 0.014, PZ - PL / 2 - 0.09], 0.007, 6));
+    });
+    // XT30 plug, behind the arming button so it never covers the LED
+    parts.push(makeBox(0, PY + 0.014, PZ - PL / 2 - 0.105, 0.07, 0.022, 0.03));
+
     // "I4" on both flanks, as on the CAD. Seen from +x, screen-right is -z;
     // from -x it is +z — so each side runs its own way and neither reads mirrored.
     const glyphs = (side) => {
@@ -1184,7 +1199,18 @@
 
     const m = merge(parts);
     m.spinners = spinners;
-    m.zoom = 0.62;   // pulled well back: a small quad sits small in its frame, with air round it
+    /* Shown in flight, not parked: nose down and banked into a turn, the way
+       an FPV quad actually carries itself through the air, from a lower eye
+       line than the other models so it is seen against the frame rather than
+       looked down on. It fills its frame — at 0.62 it read as a toy. */
+    m.att = { pitch: 0.18, roll: -0.14 };
+    m.tilt = -0.34;
+    m.zoom = 0.94;
+    // It rests nose-toward-you, three-quarter on. The old resting angle (0.4)
+    // looks at the pitched quad from behind, which puts it nearly edge-on.
+    m.angle = 1.55;
+    // a slow float while it is hovered, so it reads as holding a hover
+    m.bob = (time) => Math.sin(time * 1.7) * 0.025;
     /* It hangs perfectly still. Nothing moves until it is hovered; then it
        turns like a product on a turntable — one eye height, one slow even
        lap — and the breakout below pops up a second in. */
@@ -1502,7 +1528,16 @@
     let deploy = reduce ? 1 : 0;     // 0 = parked/collapsed, 1 = deployed (deploy models)
     let hoverT = 0;                  // grows while hovered (arm's search-then-lock timing)
     let calloutAnchor = -1;          // which anchor an open callout is locked to (-1 = none yet)
-    const tilt = -0.42;              // look slightly down on the model
+    // look slightly down on the model; a model may sit the camera lower
+    const tilt = model.tilt != null ? model.tilt : -0.42;
+    /* model.att = { pitch, roll }: an attitude the whole model is held at, in
+       its own frame, before it turns on the turntable. It is applied inside
+       project() and measure(), so the spinners, the live geometry and the
+       callout anchors all tilt with the frame; baking it into the vertices
+       would leave the rotor discs flat while the quad around them banked. */
+    const att = model.att || null;
+    const cP = att ? Math.cos(att.pitch || 0) : 1, sP = att ? Math.sin(att.pitch || 0) : 0;
+    const cRl = att ? Math.cos(att.roll || 0) : 1, sRl = att ? Math.sin(att.roll || 0) : 0;
     const viewerDist = 3.4;
 
     /* The depth ramp. Far edges are cold, thin and dim; near edges are hot,
@@ -1557,7 +1592,14 @@
     let bobY = 0;
     let zoomMul = 1;                 // model.hoverZoom: a camera push-in on hover
     let camF = [0, 0, 0];            // model.tour: the point the camera is looking at
-    function project(x, y, z, ca, sa) {
+    function project(x, y, z, ca, sa, level) {
+      // the model's attitude: pitch (nose down for +) then roll. `level`
+      // skips it for things that belong to the room, like the floor pool.
+      if (att && !level) {
+        const y1 = y * cP - z * sP, z1 = y * sP + z * cP;
+        const x2 = x * cRl - y1 * sRl, y2 = x * sRl + y1 * cRl;
+        x = x2; y = y2; z = z1;
+      }
       // rotate about Y
       x -= camF[0]; y -= camF[1]; z -= camF[2];
       const X = x * ca + z * sa;
@@ -1589,7 +1631,11 @@
       for (let a = 0; a < 12; a++) {
         const th = (a / 12) * Math.PI * 2, ca = Math.cos(th), sa = Math.sin(th);
         for (let i = 0; i < pts.length; i++) {
-          const q = pts[i];
+          let q = pts[i];
+          if (att) {
+            const y1 = q[1] * cP - q[2] * sP, z1 = q[1] * sP + q[2] * cP;
+            q = [q[0] * cRl - y1 * sRl, q[0] * sRl + y1 * cRl, z1];
+          }
           const X = q[0] * ca + q[2] * sa, Z = -q[0] * sa + q[2] * ca;
           const qy = q[1] + (model.bob ? model.bob(0) + 0.03 : 0);
           const Y2 = qy * cosT - Z * sinT, Z2 = qy * sinT + Z * cosT;
@@ -1742,7 +1788,7 @@
       // ---- 0. floor pool ----
       // Every model stands on a base ring at y≈-1. A soft pool of light under
       // it stops the object floating in a void, and costs one gradient fill.
-      const floor = project(0, -0.98 - bobY, 0, ca, sa);   // the floor does not hover
+      const floor = project(0, -0.98 - bobY, 0, ca, sa, true);   // the floor does not hover, or bank
       const fr = scale * 1.15;
       const pool = ctx.createRadialGradient(floor[0], floor[1], 0, floor[0], floor[1], fr);
       pool.addColorStop(0, "rgba(" + rgb + "," + (0.11 * flicker).toFixed(3) + ")");

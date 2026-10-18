@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Reverse Engineering with AI &middot; Built by Tyler</title>
-  <meta name="description" content="Reverse engineering with AI: compiled apps and games taken apart from the .exe back to readable source, then combined into things nobody else has built.">
+  <meta name="description" content="Software built with AI: CombineCAD, a CAD program where Claude models the part from a plain description, and game projects built to learn how games work.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500&family=Instrument+Sans:wght@400;500&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -21,16 +21,16 @@
   <meta property="og:locale" content="en_US">
   <meta property="og:url" content="https://builtbytyler.com/reverse-engineering">
   <meta property="og:title" content="Reverse Engineering with AI · Built by Tyler">
-  <meta property="og:description" content="Compiled apps and games taken apart with AI, from the .exe back to readable source, then combined into things nobody else has built.">
+  <meta property="og:description" content="Software built with AI: CombineCAD, a CAD program where Claude models the part from a plain description, and game projects built to learn how games work.">
   <meta name="twitter:title" content="Reverse Engineering with AI · Built by Tyler">
-  <meta name="twitter:description" content="Compiled apps and games taken apart with AI, from the .exe back to readable source, then combined into things nobody else has built.">
+  <meta name="twitter:description" content="Software built with AI: CombineCAD, a CAD program where Claude models the part from a plain description, and game projects built to learn how games work.">
   <meta property="og:image" content="https://builtbytyler.com/assets/img/og-image.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
-  <script src="assets/js/boot.js?v=47"></script>
-  <link rel="stylesheet" href="assets/css/styles.css?v=47">
-  <link rel="stylesheet" href="assets/css/motion.css?v=47">
+  <script src="assets/js/boot.js?v=48"></script>
+  <link rel="stylesheet" href="assets/css/styles.css?v=48">
+  <link rel="stylesheet" href="assets/css/motion.css?v=48">
 
   <script type="application/ld+json">
   {
@@ -74,13 +74,13 @@
       <div class="container opener__stack" data-enter>
         <div class="opener__head">
           <p class="kicker">Reverse engineering <b>—</b> with AI</p>
-          <h1 class="display" data-split>Taken apart, <em>rebuilt</em>.</h1>
-          <p class="opener__lead">I take apart compiled apps and games with AI agents: from the
-            .exe back to readable source, then into things nobody else has built, like two
-            programs combined into one.</p>
+          <h1 class="display" data-split>Software I build with <em>AI</em>.</h1>
+          <p class="opener__lead">I build my own software with AI agents. Below is CombineCAD, a CAD
+            program where the AI does the modelling, and two game projects I built to learn how
+            games work.</p>
           <div class="opener__cta">
             <a class="btn" href="mailto:twade@builtbytyler.com?subject=Reverse%20engineering%20%E2%80%94%20BuiltByTyler">Talk about a project</a>
-            <a class="btn btn--ghost" href="#method">How it works</a>
+            <a class="btn btn--ghost" href="#modeling">See CombineCAD</a>
           </div>
         </div>
       </div>
@@ -95,9 +95,110 @@
          amogus-chess/ and REA/eldencraft/. No decompiled code, no anti-cheat
          and no menu showing a launcher for online play goes on this page.
          =============================================================== -->
-    <section class="section showcase" id="work" data-sec="work">
+    <!-- ===============================================================
+         THE TAB STRIP + THE TWO SECTIONS IT POINTS AT. The strip is sticky
+         inside .re-tabbed only, so it lets go once Games is passed.
+         =============================================================== -->
+    <div class="re-tabbed">
+      <nav class="re-tabs" aria-label="On this page">
+        <div class="container re-tabs__row">
+          <a href="#modeling" class="re-tabs__a is-on">Modeling software</a>
+          <a href="#games" class="re-tabs__a">Games</a>
+        </div>
+      </nav>
+
+    <!-- ===============================================================
+         01 · MODELING SOFTWARE: CombineCAD. The slideshow plays the three
+         proving builds step by step, from the frames the app saved after
+         each tool call, captioned from the run transcripts (main.js,
+         initCadShow). The buggy renders come from the v4 report.
+         =============================================================== -->
+    <section class="section re-sec" id="modeling" data-sec="modeling">
       <div class="container">
-        <p class="kicker showcase__kicker" data-reveal>The work <b>—</b> click one for the slides</p>
+        <div class="idx idx--split" data-reveal>
+          <span class="idx__n">01</span>
+          <p class="idx__lab">Modeling software</p>
+          <h2 class="idx__h">CombineCAD</h2>
+          <p class="idx__p">A 3D modelling program I built with Claude inside it. You describe the
+            part in plain words. The AI builds it one feature at a time and checks it against the
+            real parts it has to fit.</p>
+        </div>
+          <div class="cad-show" data-cad-show data-reveal aria-roledescription="slideshow" aria-label="CombineCAD builds">
+            <div class="cad-show__bar">
+              <div class="cad-show__chaps" aria-label="Builds">
+              <button type="button" class="cad-show__chap is-on" data-chap="0">RC car<i></i></button>
+              <button type="button" class="cad-show__chap" data-chap="1">Rocket<i></i></button>
+              <button type="button" class="cad-show__chap" data-chap="2">Drone<i></i></button>
+              <button type="button" class="cad-show__chap" data-chap="3">Finished buggy<i></i></button>
+              </div>
+              <div class="cad-show__ctl">
+                <button type="button" class="cad-show__prev" aria-label="Previous step">Prev</button>
+                <button type="button" class="cad-show__play" aria-pressed="false">Pause</button>
+                <button type="button" class="cad-show__next" aria-label="Next step">Next</button>
+              </div>
+            </div>
+            <div class="cad-show__frame">
+              <span class="tick tick--tl"></span><span class="tick tick--br"></span>
+              <img src="assets/img/re/cad-car-1.jpg" data-chap="0" alt="CombineCAD, rc car: Claude sketches the plate on the top plane and extrudes it 3 mm." width="1400" height="749" decoding="async" class="is-on">
+              <img data-src="assets/img/re/cad-car-2.jpg" data-chap="0" alt="CombineCAD, rc car: It adds the lip, cuts one pocket and patterns it down the middle, then measures the plate against the spec." width="1400" height="749" decoding="async">
+              <img data-src="assets/img/re/cad-car-3.jpg" data-chap="0" alt="CombineCAD, rc car: Next message asks for a 540 motor mount. It takes the hole pattern from its hardware catalog, slots the holes for gear mesh and braces the plate with two ribs." width="1400" height="749" decoding="async">
+              <img data-src="assets/img/re/cad-car-4.jpg" data-chap="0" alt="CombineCAD, rc car: Four wheels, revolved as separate bodies at the 260 mm wheelbase, with hex hubs and bearing seats." width="1400" height="749" decoding="async">
+              <img data-src="assets/img/re/cad-car-5.jpg" data-chap="0" alt="CombineCAD, rc car: A steering servo mount goes on the front. The check: five closed solids, nothing intersecting, all four wheels the same volume to 0.01 mm³." width="1400" height="749" decoding="async">
+              <img data-src="assets/img/re/cad-rocket-1.jpg" data-chap="1" alt="CombineCAD, rocket: Claude revolves the 400 mm body tube from the BT-50&#x27;s real sizes." width="1400" height="749" decoding="async">
+              <img data-src="assets/img/re/cad-rocket-2.jpg" data-chap="1" alt="CombineCAD, rocket: It turns down the motor mount tube. A D12 is 24.0 mm and a BT-50 is 24.1 mm inside, so a second tube cannot fit. The motor slides straight into the body, the way Estes builds them." width="1400" height="749" decoding="async">
+              <img data-src="assets/img/re/cad-rocket-3.jpg" data-chap="1" alt="CombineCAD, rocket: Four fins patterned round the tail and filleted at the root, plus a launch lug." width="1400" height="749" decoding="async">
+              <img data-src="assets/img/re/cad-rocket-4.jpg" data-chap="1" alt="CombineCAD, rocket: Then it works out the balance itself. 0.84 calibres bare, short of the 1.0 rule. 1.69 with a parachute and shock cord in, which passes." width="1400" height="749" decoding="async">
+              <img data-src="assets/img/re/cad-drone-1.jpg" data-chap="2" alt="CombineCAD, drone: Claude starts with the centre body, a 46 mm plate 4 mm thick." width="1400" height="749" decoding="async">
+              <img data-src="assets/img/re/cad-drone-2.jpg" data-chap="2" alt="CombineCAD, drone: One arm and motor pad, patterned four times round the centre and filleted where the arms meet the body." width="1400" height="749" decoding="async">
+              <img data-src="assets/img/re/cad-drone-3.jpg" data-chap="2" alt="CombineCAD, drone: It checks 5 inch props clear each other at this wheelbase, then cuts a lightening slot down every arm." width="1400" height="749" decoding="async">
+              <img data-src="assets/img/re/cad-drone-4.jpg" data-chap="2" alt="CombineCAD, drone: A top plate 25 mm up with matching stack and standoff holes, and two camera plates at the front." width="1400" height="749" decoding="async">
+              <img data-src="assets/img/re/cad-drone-5.jpg" data-chap="2" alt="CombineCAD, drone: Every hole pattern checks out. It could not find where the camera&#x27;s M2 holes sit, so it asked for the number instead of guessing." width="1400" height="749" decoding="async">
+              <img data-src="assets/img/re/cad-buggy-1.jpg" data-chap="3" alt="CombineCAD, finished buggy: A working two stage gearbox, 8.89 to 1, with real involute teeth on every gear." width="1400" height="749" decoding="async">
+              <img data-src="assets/img/re/cad-buggy-2.jpg" data-chap="3" alt="CombineCAD, finished buggy: The pinion is a real Robinson Racing 15T, meshing with a printed 60T spur." width="1400" height="749" decoding="async">
+              <img data-src="assets/img/re/cad-buggy-3.jpg" data-chap="3" alt="CombineCAD, finished buggy: 15 printed parts, with the real motor, ESC, servo, battery and bearings placed. Interference check: 0 clashes." width="1400" height="749" decoding="async">
+            </div>
+            <div class="cad-show__text" aria-live="polite">
+              <div class="cad-show__prompts">
+              <p class="cad-show__prompt is-on" data-chap="0"><span>Typed</span>Build a 1/10 scale RC car chassis. A 3 mm plate, 300 by 110 mm with rounded ends, a 6 mm lip and lightening pockets down the middle. Wheelbase is 260 mm.</p>
+              <p class="cad-show__prompt" data-chap="1"><span>Typed</span>Design a model rocket around an Estes BT-50 body tube and a D12 motor. A 400 mm tube, an ogive nose cone with a shoulder, and a motor mount.</p>
+              <p class="cad-show__prompt" data-chap="2"><span>Typed</span>Start a 5 inch FPV freestyle quad frame. A 4 mm bottom plate, 30.5 mm stack holes, four arms in a true X for a 225 mm wheelbase, sized for 2306 motors.</p>
+              <p class="cad-show__prompt" data-chap="3"><span>Then</span>The RC car taken all the way, with Claude writing the build.</p>
+              </div>
+              <div class="cad-show__caps">
+              <p class="cad-show__cap is-on" data-chap="0"><span class="cad-show__n">01 / 05</span>Claude sketches the plate on the top plane and extrudes it 3 mm.</p>
+              <p class="cad-show__cap" data-chap="0"><span class="cad-show__n">02 / 05</span>It adds the lip, cuts one pocket and patterns it down the middle, then measures the plate against the spec.</p>
+              <p class="cad-show__cap" data-chap="0"><span class="cad-show__n">03 / 05</span>Next message asks for a 540 motor mount. It takes the hole pattern from its hardware catalog, slots the holes for gear mesh and braces the plate with two ribs.</p>
+              <p class="cad-show__cap" data-chap="0"><span class="cad-show__n">04 / 05</span>Four wheels, revolved as separate bodies at the 260 mm wheelbase, with hex hubs and bearing seats.</p>
+              <p class="cad-show__cap" data-chap="0"><span class="cad-show__n">05 / 05</span>A steering servo mount goes on the front. The check: five closed solids, nothing intersecting, all four wheels the same volume to 0.01 mm³.</p>
+              <p class="cad-show__cap" data-chap="1"><span class="cad-show__n">01 / 04</span>Claude revolves the 400 mm body tube from the BT-50's real sizes.</p>
+              <p class="cad-show__cap" data-chap="1"><span class="cad-show__n">02 / 04</span>It turns down the motor mount tube. A D12 is 24.0 mm and a BT-50 is 24.1 mm inside, so a second tube cannot fit. The motor slides straight into the body, the way Estes builds them.</p>
+              <p class="cad-show__cap" data-chap="1"><span class="cad-show__n">03 / 04</span>Four fins patterned round the tail and filleted at the root, plus a launch lug.</p>
+              <p class="cad-show__cap" data-chap="1"><span class="cad-show__n">04 / 04</span>Then it works out the balance itself. 0.84 calibres bare, short of the 1.0 rule. 1.69 with a parachute and shock cord in, which passes.</p>
+              <p class="cad-show__cap" data-chap="2"><span class="cad-show__n">01 / 05</span>Claude starts with the centre body, a 46 mm plate 4 mm thick.</p>
+              <p class="cad-show__cap" data-chap="2"><span class="cad-show__n">02 / 05</span>One arm and motor pad, patterned four times round the centre and filleted where the arms meet the body.</p>
+              <p class="cad-show__cap" data-chap="2"><span class="cad-show__n">03 / 05</span>It checks 5 inch props clear each other at this wheelbase, then cuts a lightening slot down every arm.</p>
+              <p class="cad-show__cap" data-chap="2"><span class="cad-show__n">04 / 05</span>A top plate 25 mm up with matching stack and standoff holes, and two camera plates at the front.</p>
+              <p class="cad-show__cap" data-chap="2"><span class="cad-show__n">05 / 05</span>Every hole pattern checks out. It could not find where the camera's M2 holes sit, so it asked for the number instead of guessing.</p>
+              <p class="cad-show__cap" data-chap="3"><span class="cad-show__n">01 / 03</span>A working two stage gearbox, 8.89 to 1, with real involute teeth on every gear.</p>
+              <p class="cad-show__cap" data-chap="3"><span class="cad-show__n">02 / 03</span>The pinion is a real Robinson Racing 15T, meshing with a printed 60T spur.</p>
+              <p class="cad-show__cap" data-chap="3"><span class="cad-show__n">03 / 03</span>15 printed parts, with the real motor, ESC, servo, battery and bearings placed. Interference check: 0 clashes.</p>
+              </div>
+            </div>
+          </div>
+      </div>
+    </section>
+
+    <!-- ===============================================================
+         02 · GAMES
+         =============================================================== -->
+    <section class="section re-sec" id="games" data-sec="games">
+      <div class="container">
+        <div class="idx idx--split" data-reveal>
+          <span class="idx__n">02</span>
+          <p class="idx__lab">Games</p>
+          <h2 class="idx__h">Game projects</h2>
+          <p class="idx__p">Mods built to learn how games work. Click one for the slides.</p>
+        </div>
         <div class="plates re-work">
 
           <article class="plate plate--half re-case" data-reveal data-reveal-i="1">
@@ -150,14 +251,15 @@
         </div>
       </dialog>
     </section>
+    </div>
 
     <!-- ===============================================================
-         01 · HOW IT WORKS: three rows, the order every project runs in.
+         03 · HOW IT WORKS: three rows, the order every project runs in.
          =============================================================== -->
     <section class="section" id="method" data-sec="method">
       <div class="container">
         <div class="idx idx--split" data-reveal>
-          <span class="idx__n">01</span>
+          <span class="idx__n">03</span>
           <p class="idx__lab">How it works</p>
         </div>
 
@@ -197,15 +299,15 @@
     </section>
 
     <!-- ===============================================================
-         02 · THE RULES: the inverted band. This is the part a cautious
+         04 · THE RULES: the inverted band. This is the part a cautious
          reader looks for, so it gets the light paper.
          =============================================================== -->
     <!-- Not id="rules": components.js mounts the measuring grid as #rules and
          skips it if that id already exists. -->
     <section class="band" id="principles" data-sec="principles">
       <div class="container band__grid" data-reveal>
-        <p class="band__lab">02 <b>—</b> The rules</p>
-        <span class="band__n">02</span>
+        <p class="band__lab">04 <b>—</b> The rules</p>
+        <span class="band__n">04</span>
         <h2 class="band__h">Offline, our own code, <em>nothing cracked</em>.</h2>
         <div class="band__text">
           <p>Reverse engineering is for learning how something works and building on it, not for
@@ -242,12 +344,12 @@
     <section class="section" id="next" data-sec="next">
       <div class="container">
         <div class="close close--quiet" data-reveal>
-          <span class="close__n">03</span>
-          <h2>Have something you want taken apart?</h2>
+          <span class="close__n">05</span>
+          <h2>Have something you want built?</h2>
           <div class="close__side">
-            <p>A legacy tool nobody has the source for, a file format to read, or a mechanic you
-              want rebuilt in your own game. Tell me what it is and I will tell you whether it can
-              be done, and how cleanly.</p>
+            <p>A tool for your shop, a modelling job you want automated, an old program nobody
+              has the source for, or a mechanic for your own game. Tell me what it is and I will
+              tell you whether it can be done.</p>
             <div class="close__actions">
               <a class="btn" href="mailto:twade@builtbytyler.com?subject=Reverse%20engineering%20%E2%80%94%20BuiltByTyler">Talk about a project</a>
               <a class="btn btn--ghost" href="software.html">Software &amp; web</a>
@@ -284,10 +386,10 @@
   </footer>
 
   <!-- No hologram.js here: this page has no build plates. -->
-  <script defer src="assets/js/products.js?v=47"></script>
-  <script defer src="assets/js/components.js?v=47"></script>
-  <script defer src="assets/js/main.js?v=47"></script>
+  <script defer src="assets/js/products.js?v=48"></script>
+  <script defer src="assets/js/components.js?v=48"></script>
+  <script defer src="assets/js/main.js?v=48"></script>
   <!-- The star field: plain WebGL, one small module, no library behind it. -->
-  <script type="module" src="assets/js/starfield.js?v=47"></script>
+  <script type="module" src="assets/js/starfield.js?v=48"></script>
 </body>
 </html>

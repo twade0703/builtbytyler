@@ -1050,6 +1050,108 @@ main, header, footer { position: relative; z-index: 1; }
 .re-gallery__nav button:hover, .re-gallery__nav button:focus-visible { color: var(--ink); border-color: var(--accent); }
 .re-gallery__nav[hidden] { display: none; }
 
+/* Reverse engineering: the tab strip. Sticky only inside .re-tabbed, so it
+   rides under the nav through Modeling software and Games and lets go after.
+   Words with a mark under the current one, like every other choice on the
+   site. */
+.re-tabs {
+  position: sticky; top: 48px; z-index: 90;
+  background: rgba(4, 7, 12, 0.72);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  border-top: 1px solid var(--hairline);
+  border-bottom: 1px solid var(--hairline);
+}
+.re-tabs__row { display: flex; gap: clamp(1.25rem, 3vw, 2.5rem); }
+.re-tabs__a {
+  position: relative; padding: 0.85rem 0;
+  font-family: var(--font-mono); font-size: var(--fs-micro); letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--muted); white-space: nowrap; transition: color .25s var(--ease);
+}
+.re-tabs__a::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 1px; background: var(--accent);
+  transform: scaleX(0); transform-origin: left; transition: transform .35s var(--ease);
+}
+.re-tabs__a:hover { color: var(--ink); }
+.re-tabs__a.is-on { color: #fff; }
+.re-tabs__a.is-on::after { transform: scaleX(1); }
+/* the anchors land below the nav and the strip, not under them */
+.re-sec { scroll-margin-top: 92px; }
+.re-tabbed > .re-sec:first-of-type { padding-top: clamp(2.5rem, 5vw, 4rem); }
+
+/* CombineCAD slideshow (main.js, initCadShow). One fixed frame; frames swap
+   in place with a crossfade and nothing moves the frame itself. Every prompt
+   and every caption sits in the same grid cell, so the block is always as
+   tall as its longest line and the page under it never jumps. */
+.cad-show { margin-top: clamp(0.5rem, 1.5vw, 1rem); }
+.cad-show__bar {
+  display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 0.75rem 1.5rem;
+  margin-bottom: 0.9rem;
+}
+.cad-show__chaps { display: flex; flex-wrap: wrap; gap: 0.25rem clamp(1rem, 2.5vw, 2rem); }
+.cad-show__chap {
+  position: relative; padding: 0.45rem 0; background: none; border: 0; cursor: pointer;
+  font-family: var(--font-mono); font-size: var(--fs-micro); letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--muted); transition: color .25s var(--ease);
+}
+.cad-show__chap::before { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 1px; background: var(--hairline); opacity: 0; }
+.cad-show__chap i {
+  position: absolute; left: 0; right: 0; bottom: 0; height: 1px; background: var(--accent);
+  transform: scaleX(0); transform-origin: left; transition: transform .6s var(--ease);
+}
+.cad-show__chap:hover { color: var(--ink); }
+.cad-show__chap.is-on { color: #fff; }
+.cad-show__chap.is-on::before { opacity: 1; }
+.cad-show__chap.is-on i { transform: scaleX(var(--p, 0)); }
+.cad-show__chap:focus-visible, .cad-show__ctl button:focus-visible { outline: 1px solid var(--accent); outline-offset: 3px; }
+.cad-show__ctl { display: flex; gap: 0.5rem; }
+.cad-show__ctl button {
+  font-family: var(--font-mono); font-size: var(--fs-micro); letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--muted); background: transparent; border: 1px solid var(--hairline-strong); padding: 0.45rem 0.75rem; cursor: pointer;
+  transition: color .25s var(--ease), border-color .25s var(--ease);
+}
+.cad-show__ctl button:hover { color: var(--ink); border-color: var(--accent); }
+.cad-show__play { min-width: 5.6rem; }
+
+.cad-show__frame {
+  position: relative; aspect-ratio: 1832 / 980; overflow: hidden;
+  border: 1px solid var(--hairline); background: #dfe3e8;
+}
+.cad-show__frame img {
+  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block;
+  opacity: 0; transition: opacity .8s var(--ease);
+}
+.cad-show__frame img.is-on { opacity: 1; }
+.cad-show__frame .tick { position: absolute; width: 12px; height: 12px; border: 1px solid var(--tick); opacity: 0.6; pointer-events: none; z-index: 2; }
+.cad-show__frame .tick--tl { top: -1px; left: -1px; border-right: 0; border-bottom: 0; }
+.cad-show__frame .tick--br { bottom: -1px; right: -1px; border-left: 0; border-top: 0; }
+
+.cad-show__text {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: 0.6rem clamp(1.25rem, 3vw, 2.5rem);
+  padding-top: 0.9rem; margin-top: 0.9rem; border-top: 1px solid var(--hairline);
+}
+.cad-show__prompts, .cad-show__caps { display: grid; }
+.cad-show__prompt, .cad-show__cap {
+  grid-area: 1 / 1; margin: 0; opacity: 0; visibility: hidden;
+  transition: opacity .5s var(--ease), visibility 0s linear .5s;
+}
+.cad-show__prompt.is-on, .cad-show__cap.is-on { opacity: 1; visibility: visible; transition: opacity .5s var(--ease) .15s, visibility 0s; }
+.cad-show__prompt { color: var(--muted); font-size: var(--fs-small); line-height: 1.55; }
+.cad-show__prompt span, .cad-show__n {
+  display: block; margin-bottom: 0.35rem;
+  font-family: var(--font-mono); font-size: var(--fs-micro); letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent);
+}
+.cad-show__cap { color: var(--ink); font-size: 1rem; line-height: 1.5; }
+@media (max-width: 720px) {
+  .cad-show__text { grid-template-columns: minmax(0, 1fr); }
+  .cad-show__ctl { width: 100%; }
+  .cad-show__ctl button { flex: 1; }
+  .re-tabs { top: 48px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cad-show__frame img, .cad-show__prompt, .cad-show__cap, .cad-show__chap i { transition: none; }
+}
+
 /* Software, 02 How it runs: one short paragraph and the timeline, so the band
    does not need the full band padding; it read as empty space. */
 #method.band { padding-block: clamp(3rem, 6vw, 5rem); }

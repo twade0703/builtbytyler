@@ -531,6 +531,102 @@
     modal.addEventListener("close", () => { img.removeAttribute("src"); });
   }
 
+  /* ---------------- CombineCAD slideshow (reverse-engineering.html) ----------------
+     One frame, frames swapped in place. Plays only while it is on screen and
+     the tab is visible; Prev, Next or a chapter pauses it so the reader keeps
+     the step they chose. A frame is shown only once its image has loaded, so
+     the crossfade never fades to an empty frame. No touch or wheel handlers:
+     the page scrolls through it like any picture. */
+  function initCadShow() {
+    const root = document.querySelector("[data-cad-show]");
+    if (!root) return;
+    const imgs = [...root.querySelectorAll(".cad-show__frame img")];
+    const caps = [...root.querySelectorAll(".cad-show__cap")];
+    const prompts = [...root.querySelectorAll(".cad-show__prompt")];
+    const chaps = [...root.querySelectorAll(".cad-show__chap")];
+    const play = root.querySelector(".cad-show__play");
+    if (!imgs.length) return;
+    const chapOf = (i) => +imgs[i].dataset.chap;
+    const firstOf = (c) => imgs.findIndex((im) => +im.dataset.chap === c);
+    const countOf = (c) => imgs.filter((im) => +im.dataset.chap === c).length;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let at = 0, playing = !reduce, onScreen = false, timer = 0, want = 0;
+
+    const load = (i) => {
+      const im = imgs[(i + imgs.length) % imgs.length];
+      if (im.dataset.src && !im.getAttribute("src")) im.src = im.dataset.src;
+      return im;
+    };
+    const paint = (i) => {
+      at = i;
+      const c = chapOf(i);
+      const step = i - firstOf(c);
+      imgs.forEach((im, k) => im.classList.toggle("is-on", k === i));
+      caps.forEach((p, k) => p.classList.toggle("is-on", k === i));
+      prompts.forEach((p) => p.classList.toggle("is-on", +p.dataset.chap === c));
+      chaps.forEach((b, k) => {
+        b.classList.toggle("is-on", k === c);
+        if (k === c) b.style.setProperty("--p", ((step + 1) / countOf(c)).toFixed(3));
+      });
+      load(i + 1);
+      schedule();
+    };
+    const go = (i) => {
+      i = (i + imgs.length) % imgs.length;
+      want = i;
+      const im = load(i);
+      if (im.complete && im.naturalWidth) return paint(i);
+      const done = () => { if (want === i) paint(i); };
+      im.addEventListener("load", done, { once: true });
+      im.addEventListener("error", done, { once: true });
+    };
+    const schedule = () => {
+      clearTimeout(timer);
+      if (!playing || !onScreen || document.hidden) return;
+      const c = chapOf(at);
+      const last = at === firstOf(c) + countOf(c) - 1;
+      timer = setTimeout(() => go(at + 1), last ? 5200 : 3400);
+    };
+    const setPlaying = (on) => {
+      playing = on;
+      play.textContent = on ? "Pause" : "Play";
+      play.setAttribute("aria-pressed", on ? "false" : "true");
+      schedule();
+    };
+    const manual = (i) => { setPlaying(false); go(i); };
+
+    root.querySelector(".cad-show__prev").addEventListener("click", () => manual(at - 1));
+    root.querySelector(".cad-show__next").addEventListener("click", () => manual(at + 1));
+    play.addEventListener("click", () => { setPlaying(!playing); if (playing) go(at + 1); });
+    chaps.forEach((b) => b.addEventListener("click", () => manual(firstOf(+b.dataset.chap))));
+    root.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowLeft") { e.preventDefault(); manual(at - 1); }
+      if (e.key === "ArrowRight") { e.preventDefault(); manual(at + 1); }
+    });
+    document.addEventListener("visibilitychange", schedule);
+    if ("IntersectionObserver" in window) {
+      new IntersectionObserver((es) => {
+        onScreen = es[0].isIntersecting;
+        if (onScreen) load(at + 1);
+        schedule();
+      }, { threshold: 0.35 }).observe(root.querySelector(".cad-show__frame"));
+    } else { onScreen = true; }
+    setPlaying(playing);
+    paint(0);
+  }
+
+  /* The tab strip on the same page: the section under the strip is lit. */
+  function initReTabs() {
+    const links = [...document.querySelectorAll(".re-tabs__a")];
+    if (!links.length || !("IntersectionObserver" in window)) return;
+    const secs = links.map((a) => document.querySelector(a.getAttribute("href"))).filter(Boolean);
+    const light = (id) => links.forEach((a) => a.classList.toggle("is-on", a.getAttribute("href") === "#" + id));
+    const io = new IntersectionObserver((es) => {
+      es.forEach((e) => { if (e.isIntersecting) light(e.target.id); });
+    }, { rootMargin: "-120px 0px -55% 0px" });
+    secs.forEach((s) => io.observe(s));
+  }
+
   /* ---------------- Global click delegation ---------------- */
   function initDelegation() {
     document.addEventListener("click", (e) => {
@@ -562,6 +658,8 @@
     initLive();
     initDemos();
     initGallery();
+    initCadShow();
+    initReTabs();
     // Reveal runs last so dynamically-rendered cards are observed.
     initReveal();
   }

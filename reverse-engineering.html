@@ -28,9 +28,9 @@
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
-  <script src="assets/js/boot.js?v=48"></script>
-  <link rel="stylesheet" href="assets/css/styles.css?v=48">
-  <link rel="stylesheet" href="assets/css/motion.css?v=48">
+  <script src="assets/js/boot.js?v=49"></script>
+  <link rel="stylesheet" href="assets/css/styles.css?v=49">
+  <link rel="stylesheet" href="assets/css/motion.css?v=49">
 
   <script type="application/ld+json">
   {
@@ -96,26 +96,27 @@
          and no menu showing a launcher for online play goes on this page.
          =============================================================== -->
     <!-- ===============================================================
-         THE TAB STRIP + THE TWO SECTIONS IT POINTS AT. The strip is sticky
-         inside .re-tabbed only, so it lets go once Games is passed.
+         THE TWO PANES. Modeling software and Games sit side by side; a tab
+         slides the track sideways so the other one comes in at the same
+         level (main.js, initRePanes). #modeling and #games in the address
+         open the matching pane. The tab row is sticky inside .re-tabbed.
          =============================================================== -->
     <div class="re-tabbed">
-      <nav class="re-tabs" aria-label="On this page">
-        <div class="container re-tabs__row">
-          <a href="#modeling" class="re-tabs__a is-on">Modeling software</a>
-          <a href="#games" class="re-tabs__a">Games</a>
+      <div class="re-tabs">
+        <div class="container re-tabs__row" role="tablist" aria-label="On this page">
+          <a href="#modeling" class="re-tabs__a is-on" role="tab" aria-selected="true" aria-controls="modeling" id="tab-modeling"><span>01</span>Modeling software</a>
+          <a href="#games" class="re-tabs__a" role="tab" aria-selected="false" aria-controls="games" id="tab-games"><span>02</span>Games</a>
         </div>
-      </nav>
+      </div>
+      <div class="re-panes">
+        <div class="re-panes__track">
 
-    <!-- ===============================================================
-         01 · MODELING SOFTWARE: CombineCAD. The slideshow plays the three
-         proving builds step by step, from the frames the app saved after
-         each tool call, captioned from the run transcripts (main.js,
-         initCadShow). The buggy renders come from the v4 report.
-         =============================================================== -->
-    <section class="section re-sec" id="modeling" data-sec="modeling">
+    <!-- 01 · MODELING SOFTWARE: CombineCAD. Frames the app saved after each
+         tool call in the proving builds, captioned from the run transcripts;
+         the buggy renders come from the v4 report (main.js, initCadShow). -->
+    <section class="section re-pane" id="modeling" role="tabpanel" aria-labelledby="tab-modeling" data-sec="modeling">
       <div class="container">
-        <div class="idx idx--split" data-reveal>
+        <div class="idx idx--split">
           <span class="idx__n">01</span>
           <p class="idx__lab">Modeling software</p>
           <h2 class="idx__h">CombineCAD</h2>
@@ -123,77 +124,53 @@
             part in plain words. The AI builds it one feature at a time and checks it against the
             real parts it has to fit.</p>
         </div>
-          <div class="cad-show" data-cad-show data-reveal aria-roledescription="slideshow" aria-label="CombineCAD builds">
-            <div class="cad-show__bar">
-              <div class="cad-show__chaps" aria-label="Builds">
-              <button type="button" class="cad-show__chap is-on" data-chap="0">RC car<i></i></button>
-              <button type="button" class="cad-show__chap" data-chap="1">Rocket<i></i></button>
-              <button type="button" class="cad-show__chap" data-chap="2">Drone<i></i></button>
-              <button type="button" class="cad-show__chap" data-chap="3">Finished buggy<i></i></button>
+            <div class="cad-show" data-cad-show aria-roledescription="slideshow" aria-label="CombineCAD builds">
+              <div class="cad-show__frame">
+                <span class="tick tick--tl"></span><span class="tick tick--br"></span>
+                <img src="assets/img/re/cad-car-1.jpg" data-chap="0" alt="CombineCAD, rc car: Claude sketches the plate on the top plane and extrudes it 3 mm." width="1400" height="749" decoding="async" class="is-on">
+                <img data-src="assets/img/re/cad-car-2.jpg" data-chap="0" alt="CombineCAD, rc car: It adds the lip, cuts one pocket and patterns it down the middle, then measures the plate against the spec." width="1400" height="749" decoding="async">
+                <img data-src="assets/img/re/cad-buggy-1.jpg" data-chap="0" alt="CombineCAD, rc car: Then Claude took the car all the way. 15 printed parts, with the real motor, ESC, servo, battery and bearings placed." width="1400" height="749" decoding="async">
+                <img data-src="assets/img/re/cad-buggy-3.jpg" data-chap="0" alt="CombineCAD, rc car: Interference check on the whole assembly: 0 clashes." width="1400" height="749" decoding="async">
+                <img data-src="assets/img/re/cad-buggy-4.jpg" data-chap="0" alt="CombineCAD, rc car: A printed cover closes the gearbox, with 1.5 mm clearance to the gear teeth." width="1400" height="749" decoding="async">
+                <img data-src="assets/img/re/cad-buggy-2.jpg" data-chap="0" alt="CombineCAD, rc car: Under the cover, a two stage gearbox at 8.89 to 1. The pinion is a real Robinson Racing 15T meshing with a printed 60T spur." width="1400" height="749" decoding="async">
+                <img data-src="assets/img/re/cad-rocket-2.jpg" data-chap="1" alt="CombineCAD, rocket: Claude turns down the motor mount tube. A D12 is 24.0 mm and a BT-50 is 24.1 mm inside, so a second tube cannot fit. The motor slides straight into the body, the way Estes builds them." width="1400" height="749" decoding="async">
+                <img data-src="assets/img/re/cad-rocket-4.jpg" data-chap="1" alt="CombineCAD, rocket: Fins, a launch lug, then the balance worked out. 0.84 calibres bare, short of the 1.0 rule. 1.69 with a parachute and shock cord in, which passes." width="1400" height="749" decoding="async">
+                <button type="button" class="cad-show__arrow cad-show__arrow--prev" aria-label="Previous slide"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+                <button type="button" class="cad-show__arrow cad-show__arrow--next" aria-label="Next slide"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
               </div>
-              <div class="cad-show__ctl">
-                <button type="button" class="cad-show__prev" aria-label="Previous step">Prev</button>
-                <button type="button" class="cad-show__play" aria-pressed="false">Pause</button>
-                <button type="button" class="cad-show__next" aria-label="Next step">Next</button>
-              </div>
-            </div>
-            <div class="cad-show__frame">
-              <span class="tick tick--tl"></span><span class="tick tick--br"></span>
-              <img src="assets/img/re/cad-car-1.jpg" data-chap="0" alt="CombineCAD, rc car: Claude sketches the plate on the top plane and extrudes it 3 mm." width="1400" height="749" decoding="async" class="is-on">
-              <img data-src="assets/img/re/cad-car-2.jpg" data-chap="0" alt="CombineCAD, rc car: It adds the lip, cuts one pocket and patterns it down the middle, then measures the plate against the spec." width="1400" height="749" decoding="async">
-              <img data-src="assets/img/re/cad-car-3.jpg" data-chap="0" alt="CombineCAD, rc car: Next message asks for a 540 motor mount. It takes the hole pattern from its hardware catalog, slots the holes for gear mesh and braces the plate with two ribs." width="1400" height="749" decoding="async">
-              <img data-src="assets/img/re/cad-car-4.jpg" data-chap="0" alt="CombineCAD, rc car: Four wheels, revolved as separate bodies at the 260 mm wheelbase, with hex hubs and bearing seats." width="1400" height="749" decoding="async">
-              <img data-src="assets/img/re/cad-car-5.jpg" data-chap="0" alt="CombineCAD, rc car: A steering servo mount goes on the front. The check: five closed solids, nothing intersecting, all four wheels the same volume to 0.01 mm³." width="1400" height="749" decoding="async">
-              <img data-src="assets/img/re/cad-rocket-1.jpg" data-chap="1" alt="CombineCAD, rocket: Claude revolves the 400 mm body tube from the BT-50&#x27;s real sizes." width="1400" height="749" decoding="async">
-              <img data-src="assets/img/re/cad-rocket-2.jpg" data-chap="1" alt="CombineCAD, rocket: It turns down the motor mount tube. A D12 is 24.0 mm and a BT-50 is 24.1 mm inside, so a second tube cannot fit. The motor slides straight into the body, the way Estes builds them." width="1400" height="749" decoding="async">
-              <img data-src="assets/img/re/cad-rocket-3.jpg" data-chap="1" alt="CombineCAD, rocket: Four fins patterned round the tail and filleted at the root, plus a launch lug." width="1400" height="749" decoding="async">
-              <img data-src="assets/img/re/cad-rocket-4.jpg" data-chap="1" alt="CombineCAD, rocket: Then it works out the balance itself. 0.84 calibres bare, short of the 1.0 rule. 1.69 with a parachute and shock cord in, which passes." width="1400" height="749" decoding="async">
-              <img data-src="assets/img/re/cad-drone-1.jpg" data-chap="2" alt="CombineCAD, drone: Claude starts with the centre body, a 46 mm plate 4 mm thick." width="1400" height="749" decoding="async">
-              <img data-src="assets/img/re/cad-drone-2.jpg" data-chap="2" alt="CombineCAD, drone: One arm and motor pad, patterned four times round the centre and filleted where the arms meet the body." width="1400" height="749" decoding="async">
-              <img data-src="assets/img/re/cad-drone-3.jpg" data-chap="2" alt="CombineCAD, drone: It checks 5 inch props clear each other at this wheelbase, then cuts a lightening slot down every arm." width="1400" height="749" decoding="async">
-              <img data-src="assets/img/re/cad-drone-4.jpg" data-chap="2" alt="CombineCAD, drone: A top plate 25 mm up with matching stack and standoff holes, and two camera plates at the front." width="1400" height="749" decoding="async">
-              <img data-src="assets/img/re/cad-drone-5.jpg" data-chap="2" alt="CombineCAD, drone: Every hole pattern checks out. It could not find where the camera&#x27;s M2 holes sit, so it asked for the number instead of guessing." width="1400" height="749" decoding="async">
-              <img data-src="assets/img/re/cad-buggy-1.jpg" data-chap="3" alt="CombineCAD, finished buggy: A working two stage gearbox, 8.89 to 1, with real involute teeth on every gear." width="1400" height="749" decoding="async">
-              <img data-src="assets/img/re/cad-buggy-2.jpg" data-chap="3" alt="CombineCAD, finished buggy: The pinion is a real Robinson Racing 15T, meshing with a printed 60T spur." width="1400" height="749" decoding="async">
-              <img data-src="assets/img/re/cad-buggy-3.jpg" data-chap="3" alt="CombineCAD, finished buggy: 15 printed parts, with the real motor, ESC, servo, battery and bearings placed. Interference check: 0 clashes." width="1400" height="749" decoding="async">
-            </div>
-            <div class="cad-show__text" aria-live="polite">
-              <div class="cad-show__prompts">
-              <p class="cad-show__prompt is-on" data-chap="0"><span>Typed</span>Build a 1/10 scale RC car chassis. A 3 mm plate, 300 by 110 mm with rounded ends, a 6 mm lip and lightening pockets down the middle. Wheelbase is 260 mm.</p>
-              <p class="cad-show__prompt" data-chap="1"><span>Typed</span>Design a model rocket around an Estes BT-50 body tube and a D12 motor. A 400 mm tube, an ogive nose cone with a shoulder, and a motor mount.</p>
-              <p class="cad-show__prompt" data-chap="2"><span>Typed</span>Start a 5 inch FPV freestyle quad frame. A 4 mm bottom plate, 30.5 mm stack holes, four arms in a true X for a 225 mm wheelbase, sized for 2306 motors.</p>
-              <p class="cad-show__prompt" data-chap="3"><span>Then</span>The RC car taken all the way, with Claude writing the build.</p>
-              </div>
-              <div class="cad-show__caps">
-              <p class="cad-show__cap is-on" data-chap="0"><span class="cad-show__n">01 / 05</span>Claude sketches the plate on the top plane and extrudes it 3 mm.</p>
-              <p class="cad-show__cap" data-chap="0"><span class="cad-show__n">02 / 05</span>It adds the lip, cuts one pocket and patterns it down the middle, then measures the plate against the spec.</p>
-              <p class="cad-show__cap" data-chap="0"><span class="cad-show__n">03 / 05</span>Next message asks for a 540 motor mount. It takes the hole pattern from its hardware catalog, slots the holes for gear mesh and braces the plate with two ribs.</p>
-              <p class="cad-show__cap" data-chap="0"><span class="cad-show__n">04 / 05</span>Four wheels, revolved as separate bodies at the 260 mm wheelbase, with hex hubs and bearing seats.</p>
-              <p class="cad-show__cap" data-chap="0"><span class="cad-show__n">05 / 05</span>A steering servo mount goes on the front. The check: five closed solids, nothing intersecting, all four wheels the same volume to 0.01 mm³.</p>
-              <p class="cad-show__cap" data-chap="1"><span class="cad-show__n">01 / 04</span>Claude revolves the 400 mm body tube from the BT-50's real sizes.</p>
-              <p class="cad-show__cap" data-chap="1"><span class="cad-show__n">02 / 04</span>It turns down the motor mount tube. A D12 is 24.0 mm and a BT-50 is 24.1 mm inside, so a second tube cannot fit. The motor slides straight into the body, the way Estes builds them.</p>
-              <p class="cad-show__cap" data-chap="1"><span class="cad-show__n">03 / 04</span>Four fins patterned round the tail and filleted at the root, plus a launch lug.</p>
-              <p class="cad-show__cap" data-chap="1"><span class="cad-show__n">04 / 04</span>Then it works out the balance itself. 0.84 calibres bare, short of the 1.0 rule. 1.69 with a parachute and shock cord in, which passes.</p>
-              <p class="cad-show__cap" data-chap="2"><span class="cad-show__n">01 / 05</span>Claude starts with the centre body, a 46 mm plate 4 mm thick.</p>
-              <p class="cad-show__cap" data-chap="2"><span class="cad-show__n">02 / 05</span>One arm and motor pad, patterned four times round the centre and filleted where the arms meet the body.</p>
-              <p class="cad-show__cap" data-chap="2"><span class="cad-show__n">03 / 05</span>It checks 5 inch props clear each other at this wheelbase, then cuts a lightening slot down every arm.</p>
-              <p class="cad-show__cap" data-chap="2"><span class="cad-show__n">04 / 05</span>A top plate 25 mm up with matching stack and standoff holes, and two camera plates at the front.</p>
-              <p class="cad-show__cap" data-chap="2"><span class="cad-show__n">05 / 05</span>Every hole pattern checks out. It could not find where the camera's M2 holes sit, so it asked for the number instead of guessing.</p>
-              <p class="cad-show__cap" data-chap="3"><span class="cad-show__n">01 / 03</span>A working two stage gearbox, 8.89 to 1, with real involute teeth on every gear.</p>
-              <p class="cad-show__cap" data-chap="3"><span class="cad-show__n">02 / 03</span>The pinion is a real Robinson Racing 15T, meshing with a printed 60T spur.</p>
-              <p class="cad-show__cap" data-chap="3"><span class="cad-show__n">03 / 03</span>15 printed parts, with the real motor, ESC, servo, battery and bearings placed. Interference check: 0 clashes.</p>
+              <div class="cad-show__side">
+                <div class="cad-show__bar">
+                  <div class="cad-show__chaps" aria-label="Builds">
+                <button type="button" class="cad-show__chap is-on" data-chap="0">RC car<i></i></button>
+                <button type="button" class="cad-show__chap" data-chap="1">Rocket<i></i></button>
+                  </div>
+                  <button type="button" class="cad-show__play" aria-pressed="false">Pause</button>
+                </div>
+                <div class="cad-show__text" aria-live="polite">
+                  <div class="cad-show__prompts">
+                <p class="cad-show__prompt is-on" data-chap="0"><span>Typed</span>Build a 1/10 scale RC car chassis. A 3 mm plate, 300 by 110 mm with rounded ends, a 6 mm lip and lightening pockets down the middle. Wheelbase is 260 mm.</p>
+                <p class="cad-show__prompt" data-chap="1"><span>Typed</span>Design a model rocket around an Estes BT-50 body tube and a D12 motor. A 400 mm tube, an ogive nose cone with a shoulder, and a motor mount.</p>
+                  </div>
+                  <div class="cad-show__caps">
+                <p class="cad-show__cap is-on" data-chap="0"><span class="cad-show__n">01 / 06</span>Claude sketches the plate on the top plane and extrudes it 3 mm.</p>
+                <p class="cad-show__cap" data-chap="0"><span class="cad-show__n">02 / 06</span>It adds the lip, cuts one pocket and patterns it down the middle, then measures the plate against the spec.</p>
+                <p class="cad-show__cap" data-chap="0"><span class="cad-show__n">03 / 06</span>Then Claude took the car all the way. 15 printed parts, with the real motor, ESC, servo, battery and bearings placed.</p>
+                <p class="cad-show__cap" data-chap="0"><span class="cad-show__n">04 / 06</span>Interference check on the whole assembly: 0 clashes.</p>
+                <p class="cad-show__cap" data-chap="0"><span class="cad-show__n">05 / 06</span>A printed cover closes the gearbox, with 1.5 mm clearance to the gear teeth.</p>
+                <p class="cad-show__cap" data-chap="0"><span class="cad-show__n">06 / 06</span>Under the cover, a two stage gearbox at 8.89 to 1. The pinion is a real Robinson Racing 15T meshing with a printed 60T spur.</p>
+                <p class="cad-show__cap" data-chap="1"><span class="cad-show__n">01 / 02</span>Claude turns down the motor mount tube. A D12 is 24.0 mm and a BT-50 is 24.1 mm inside, so a second tube cannot fit. The motor slides straight into the body, the way Estes builds them.</p>
+                <p class="cad-show__cap" data-chap="1"><span class="cad-show__n">02 / 02</span>Fins, a launch lug, then the balance worked out. 0.84 calibres bare, short of the 1.0 rule. 1.69 with a parachute and shock cord in, which passes.</p>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
       </div>
     </section>
 
-    <!-- ===============================================================
-         02 · GAMES
-         =============================================================== -->
-    <section class="section re-sec" id="games" data-sec="games">
+    <!-- 02 · GAMES -->
+    <section class="section re-pane showcase" id="games" role="tabpanel" aria-labelledby="tab-games" data-sec="games">
       <div class="container">
-        <div class="idx idx--split" data-reveal>
+        <div class="idx idx--split">
           <span class="idx__n">02</span>
           <p class="idx__lab">Games</p>
           <h2 class="idx__h">Game projects</h2>
@@ -251,6 +228,9 @@
         </div>
       </dialog>
     </section>
+
+        </div>
+      </div>
     </div>
 
     <!-- ===============================================================
@@ -386,10 +366,10 @@
   </footer>
 
   <!-- No hologram.js here: this page has no build plates. -->
-  <script defer src="assets/js/products.js?v=48"></script>
-  <script defer src="assets/js/components.js?v=48"></script>
-  <script defer src="assets/js/main.js?v=48"></script>
+  <script defer src="assets/js/products.js?v=49"></script>
+  <script defer src="assets/js/components.js?v=49"></script>
+  <script defer src="assets/js/main.js?v=49"></script>
   <!-- The star field: plain WebGL, one small module, no library behind it. -->
-  <script type="module" src="assets/js/starfield.js?v=48"></script>
+  <script type="module" src="assets/js/starfield.js?v=49"></script>
 </body>
 </html>

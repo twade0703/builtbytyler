@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Reverse Engineering with AI &middot; Built by Tyler</title>
-  <meta name="description" content="Software built with AI: CombineCAD, a CAD program where Claude models the part from a plain description, and a game project built to learn how games work.">
+  <title>Games &middot; Built by Tyler</title>
+  <meta name="description" content="Games built with AI: mods made to learn how games work, starting with Minecraft rebuilt inside Elden Ring.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500&family=Instrument+Sans:wght@400;500&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -15,22 +15,22 @@
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="manifest" href="/site.webmanifest">
   <meta name="theme-color" content="#121216">
-  <link rel="canonical" href="https://builtbytyler.com/reverse-engineering">
+  <link rel="canonical" href="https://builtbytyler.com/games">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Built by Tyler">
   <meta property="og:locale" content="en_US">
-  <meta property="og:url" content="https://builtbytyler.com/reverse-engineering">
-  <meta property="og:title" content="Reverse Engineering with AI · Built by Tyler">
-  <meta property="og:description" content="Software built with AI: CombineCAD, a CAD program where Claude models the part from a plain description, and a game project built to learn how games work.">
-  <meta name="twitter:title" content="Reverse Engineering with AI · Built by Tyler">
-  <meta name="twitter:description" content="Software built with AI: CombineCAD, a CAD program where Claude models the part from a plain description, and a game project built to learn how games work.">
+  <meta property="og:url" content="https://builtbytyler.com/games">
+  <meta property="og:title" content="Games · Built by Tyler">
+  <meta property="og:description" content="Games built with AI: mods made to learn how games work, starting with Minecraft rebuilt inside Elden Ring.">
+  <meta name="twitter:title" content="Games · Built by Tyler">
+  <meta name="twitter:description" content="Games built with AI: mods made to learn how games work, starting with Minecraft rebuilt inside Elden Ring.">
   <meta property="og:image" content="https://builtbytyler.com/assets/img/og-image.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
-  <script src="assets/js/boot.js?v=49"></script>
-  <link rel="stylesheet" href="assets/css/styles.css?v=49">
-  <link rel="stylesheet" href="assets/css/motion.css?v=49">
+  <script src="assets/js/boot.js?v=50"></script>
+  <link rel="stylesheet" href="assets/css/styles.css?v=50">
+  <link rel="stylesheet" href="assets/css/motion.css?v=50">
 
   <script type="application/ld+json">
   {
@@ -46,8 +46,8 @@
       {
         "@type": "ListItem",
         "position": 2,
-        "name": "Reverse Engineering",
-        "item": "https://builtbytyler.com/reverse-engineering"
+        "name": "Games",
+        "item": "https://builtbytyler.com/games"
       }
     ]
   }
@@ -59,7 +59,7 @@
   <header id="site-nav" class="site-nav">
     <div class="container site-nav__inner">
       <a href="index.html" class="brand">Built<b>ByTyler</b></a>
-      <nav aria-label="Primary"><ul class="nav-links" id="nav-links"><li><a href="index.html">Home</a></li><li><a href="software.html">Software</a></li><li><a href="shop.html">Hardware</a></li><li><a href="reverse-engineering.html" class="is-active" aria-current="page">Reverse Engineering</a></li><li><a href="about.html">About</a></li><li><a href="contact.html">Contact</a></li></ul></nav>
+      <nav aria-label="Primary"><ul class="nav-links" id="nav-links"><li><a href="index.html">Home</a></li><li><a href="software.html">Software</a></li><li><a href="shop.html">Hardware</a></li><li><a href="games.html" class="is-active" aria-current="page">Games</a></li><li><a href="about.html">About</a></li><li><a href="contact.html">Contact</a></li></ul></nav>
       <div class="nav-actions"><button class="nav-toggle" id="nav-toggle" aria-label="Toggle menu" aria-expanded="false"><span></span><span></span><span></span></button></div>
     </div>
   </header>
@@ -73,96 +73,26 @@
     <section class="section opener" data-sec="top">
       <div class="container opener__stack" data-enter>
         <div class="opener__head">
-          <p class="kicker">Reverse engineering <b>—</b> with AI</p>
-          <h1 class="display" data-split>Software I build with <em>AI</em>.</h1>
-          <p class="opener__lead">I build my own software with AI agents. Below is CombineCAD, a CAD
-            program where the AI does the modelling, and a game project I built to learn how
-            games work.</p>
+          <p class="kicker">Games <b>—</b> built with AI</p>
+          <h1 class="display" data-split>Games I build with <em>AI</em>.</h1>
+          <p class="opener__lead">Mods I build with AI agents to learn how games work. What ships is
+            my own code.</p>
           <div class="opener__cta">
-            <a class="btn" href="mailto:twade@builtbytyler.com?subject=Reverse%20engineering%20%E2%80%94%20BuiltByTyler">Talk about a project</a>
-            <a class="btn btn--ghost" href="#modeling">See CombineCAD</a>
+            <a class="btn" href="mailto:twade@builtbytyler.com?subject=Games%20%E2%80%94%20BuiltByTyler">Talk about a project</a>
+            <a class="btn btn--ghost" href="#games">See the games</a>
           </div>
         </div>
       </div>
     </section>
 
     <!-- ===============================================================
-         THE TWO PANES. Modeling software and Games sit side by side; a tab
-         slides the track sideways so the other one comes in at the same
-         level (main.js, initRePanes). #modeling and #games in the address
-         open the matching pane. The tab row is sticky inside .re-tabbed.
+         01 · GAMES: one frame per project; a frame opens its slides in a
+         dialog (main.js, initGallery).
          =============================================================== -->
-    <div class="re-tabbed">
-      <div class="re-tabs">
-        <div class="container re-tabs__row" role="tablist" aria-label="On this page">
-          <a href="#modeling" class="re-tabs__a is-on" role="tab" aria-selected="true" aria-controls="modeling" id="tab-modeling"><span>01</span>Modeling software</a>
-          <a href="#games" class="re-tabs__a" role="tab" aria-selected="false" aria-controls="games" id="tab-games"><span>02</span>Games</a>
-        </div>
-      </div>
-      <div class="re-panes">
-        <div class="re-panes__track">
-
-    <!-- 01 · MODELING SOFTWARE: CombineCAD. Frames the app saved after each
-         tool call in the proving builds, captioned from the run transcripts;
-         the buggy renders come from the v4 report (main.js, initCadShow). -->
-    <section class="section re-pane" id="modeling" role="tabpanel" aria-labelledby="tab-modeling" data-sec="modeling">
+    <section class="section showcase" id="games" data-sec="games">
       <div class="container">
         <div class="idx idx--split">
           <span class="idx__n">01</span>
-          <p class="idx__lab">Modeling software</p>
-          <h2 class="idx__h">CombineCAD</h2>
-          <p class="idx__p">A 3D modelling program I built with Claude inside it. You describe the
-            part in plain words. The AI builds it one feature at a time and checks it against the
-            real parts it has to fit.</p>
-        </div>
-            <div class="cad-show" data-cad-show aria-roledescription="slideshow" aria-label="CombineCAD builds">
-              <div class="cad-show__frame">
-                <span class="tick tick--tl"></span><span class="tick tick--br"></span>
-                <img src="assets/img/re/cad-car-1.jpg" data-chap="0" alt="CombineCAD, rc car: Claude sketches the plate on the top plane and extrudes it 3 mm." width="1400" height="749" decoding="async" class="is-on">
-                <img data-src="assets/img/re/cad-car-2.jpg" data-chap="0" alt="CombineCAD, rc car: It adds the lip, cuts one pocket and patterns it down the middle, then measures the plate against the spec." width="1400" height="749" decoding="async">
-                <img data-src="assets/img/re/cad-buggy-1.jpg" data-chap="0" alt="CombineCAD, rc car: Then Claude took the car all the way. 15 printed parts, with the real motor, ESC, servo, battery and bearings placed." width="1400" height="749" decoding="async">
-                <img data-src="assets/img/re/cad-buggy-3.jpg" data-chap="0" alt="CombineCAD, rc car: Interference check on the whole assembly: 0 clashes." width="1400" height="749" decoding="async">
-                <img data-src="assets/img/re/cad-buggy-4.jpg" data-chap="0" alt="CombineCAD, rc car: A printed cover closes the gearbox, with 1.5 mm clearance to the gear teeth." width="1400" height="749" decoding="async">
-                <img data-src="assets/img/re/cad-buggy-2.jpg" data-chap="0" alt="CombineCAD, rc car: Under the cover, a two stage gearbox at 8.89 to 1. The pinion is a real Robinson Racing 15T meshing with a printed 60T spur." width="1400" height="749" decoding="async">
-                <img data-src="assets/img/re/cad-rocket-2.jpg" data-chap="1" alt="CombineCAD, rocket: Claude turns down the motor mount tube. A D12 is 24.0 mm and a BT-50 is 24.1 mm inside, so a second tube cannot fit. The motor slides straight into the body, the way Estes builds them." width="1400" height="749" decoding="async">
-                <img data-src="assets/img/re/cad-rocket-4.jpg" data-chap="1" alt="CombineCAD, rocket: Fins, a launch lug, then the balance worked out. 0.84 calibres bare, short of the 1.0 rule. 1.69 with a parachute and shock cord in, which passes." width="1400" height="749" decoding="async">
-                <button type="button" class="cad-show__arrow cad-show__arrow--prev" aria-label="Previous slide"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
-                <button type="button" class="cad-show__arrow cad-show__arrow--next" aria-label="Next slide"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
-              </div>
-              <div class="cad-show__side">
-                <div class="cad-show__bar">
-                  <div class="cad-show__chaps" aria-label="Builds">
-                <button type="button" class="cad-show__chap is-on" data-chap="0">RC car<i></i></button>
-                <button type="button" class="cad-show__chap" data-chap="1">Rocket<i></i></button>
-                  </div>
-                  <button type="button" class="cad-show__play" aria-pressed="false">Pause</button>
-                </div>
-                <div class="cad-show__text" aria-live="polite">
-                  <div class="cad-show__prompts">
-                <p class="cad-show__prompt is-on" data-chap="0"><span>Typed</span>Build a 1/10 scale RC car chassis. A 3 mm plate, 300 by 110 mm with rounded ends, a 6 mm lip and lightening pockets down the middle. Wheelbase is 260 mm.</p>
-                <p class="cad-show__prompt" data-chap="1"><span>Typed</span>Design a model rocket around an Estes BT-50 body tube and a D12 motor. A 400 mm tube, an ogive nose cone with a shoulder, and a motor mount.</p>
-                  </div>
-                  <div class="cad-show__caps">
-                <p class="cad-show__cap is-on" data-chap="0"><span class="cad-show__n">01 / 06</span>Claude sketches the plate on the top plane and extrudes it 3 mm.</p>
-                <p class="cad-show__cap" data-chap="0"><span class="cad-show__n">02 / 06</span>It adds the lip, cuts one pocket and patterns it down the middle, then measures the plate against the spec.</p>
-                <p class="cad-show__cap" data-chap="0"><span class="cad-show__n">03 / 06</span>Then Claude took the car all the way. 15 printed parts, with the real motor, ESC, servo, battery and bearings placed.</p>
-                <p class="cad-show__cap" data-chap="0"><span class="cad-show__n">04 / 06</span>Interference check on the whole assembly: 0 clashes.</p>
-                <p class="cad-show__cap" data-chap="0"><span class="cad-show__n">05 / 06</span>A printed cover closes the gearbox, with 1.5 mm clearance to the gear teeth.</p>
-                <p class="cad-show__cap" data-chap="0"><span class="cad-show__n">06 / 06</span>Under the cover, a two stage gearbox at 8.89 to 1. The pinion is a real Robinson Racing 15T meshing with a printed 60T spur.</p>
-                <p class="cad-show__cap" data-chap="1"><span class="cad-show__n">01 / 02</span>Claude turns down the motor mount tube. A D12 is 24.0 mm and a BT-50 is 24.1 mm inside, so a second tube cannot fit. The motor slides straight into the body, the way Estes builds them.</p>
-                <p class="cad-show__cap" data-chap="1"><span class="cad-show__n">02 / 02</span>Fins, a launch lug, then the balance worked out. 0.84 calibres bare, short of the 1.0 rule. 1.69 with a parachute and shock cord in, which passes.</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-      </div>
-    </section>
-
-    <!-- 02 · GAMES -->
-    <section class="section re-pane showcase" id="games" role="tabpanel" aria-labelledby="tab-games" data-sec="games">
-      <div class="container">
-        <div class="idx idx--split">
-          <span class="idx__n">02</span>
           <p class="idx__lab">Games</p>
           <h2 class="idx__h">Game project</h2>
           <p class="idx__p">A mod built to learn how games work. Click it for the slides.</p>
@@ -203,17 +133,13 @@
       </dialog>
     </section>
 
-        </div>
-      </div>
-    </div>
-
     <!-- ===============================================================
-         03 · HOW IT WORKS: three rows, the order every project runs in.
+         02 · HOW IT WORKS: three rows, the order every project runs in.
          =============================================================== -->
     <section class="section" id="method" data-sec="method">
       <div class="container">
         <div class="idx idx--split" data-reveal>
-          <span class="idx__n">03</span>
+          <span class="idx__n">02</span>
           <p class="idx__lab">How it works</p>
         </div>
 
@@ -253,15 +179,15 @@
     </section>
 
     <!-- ===============================================================
-         04 · THE RULES: the inverted band. This is the part a cautious
+         03 · THE RULES: the inverted band. This is the part a cautious
          reader looks for, so it gets the light paper.
          =============================================================== -->
     <!-- Not id="rules": components.js mounts the measuring grid as #rules and
          skips it if that id already exists. -->
     <section class="band" id="principles" data-sec="principles">
       <div class="container band__grid" data-reveal>
-        <p class="band__lab">04 <b>—</b> The rules</p>
-        <span class="band__n">04</span>
+        <p class="band__lab">03 <b>—</b> The rules</p>
+        <span class="band__n">03</span>
         <h2 class="band__h">Offline, our own code, <em>nothing cracked</em>.</h2>
         <div class="band__text">
           <p>Reverse engineering is for learning how something works and building on it, not for
@@ -298,14 +224,13 @@
     <section class="section" id="next" data-sec="next">
       <div class="container">
         <div class="close close--quiet" data-reveal>
-          <span class="close__n">05</span>
+          <span class="close__n">04</span>
           <h2>Have something you want built?</h2>
           <div class="close__side">
-            <p>A tool for your shop, a modelling job you want automated, an old program nobody
-              has the source for, or a mechanic for your own game. Tell me what it is and I will
-              tell you whether it can be done.</p>
+            <p>A mechanic for your own game, a mod, or an old program nobody has the source for.
+              Tell me what it is and I will tell you whether it can be done.</p>
             <div class="close__actions">
-              <a class="btn" href="mailto:twade@builtbytyler.com?subject=Reverse%20engineering%20%E2%80%94%20BuiltByTyler">Talk about a project</a>
+              <a class="btn" href="mailto:twade@builtbytyler.com?subject=Games%20%E2%80%94%20BuiltByTyler">Talk about a project</a>
               <a class="btn btn--ghost" href="software.html">Software &amp; web</a>
             </div>
           </div>
@@ -330,7 +255,7 @@
         <a href="index.html">Home</a>
         <a href="software.html">Websites &amp; software</a>
         <a href="shop.html">Hardware</a>
-        <a href="reverse-engineering.html">Reverse engineering</a>
+        <a href="games.html">Games</a>
         <a href="about.html">About Tyler Wade</a>
         <a href="contact.html">Contact</a>
         <a href="policies.html">Lead times, shipping &amp; refunds</a>
@@ -340,10 +265,10 @@
   </footer>
 
   <!-- No hologram.js here: this page has no build plates. -->
-  <script defer src="assets/js/products.js?v=49"></script>
-  <script defer src="assets/js/components.js?v=49"></script>
-  <script defer src="assets/js/main.js?v=49"></script>
+  <script defer src="assets/js/products.js?v=50"></script>
+  <script defer src="assets/js/components.js?v=50"></script>
+  <script defer src="assets/js/main.js?v=50"></script>
   <!-- The star field: plain WebGL, one small module, no library behind it. -->
-  <script type="module" src="assets/js/starfield.js?v=49"></script>
+  <script type="module" src="assets/js/starfield.js?v=50"></script>
 </body>
 </html>

@@ -1050,52 +1050,21 @@ main, header, footer { position: relative; z-index: 1; }
 .re-gallery__nav button:hover, .re-gallery__nav button:focus-visible { color: var(--ink); border-color: var(--accent); }
 .re-gallery__nav[hidden] { display: none; }
 
-/* Reverse engineering: the tab row. Two big labels, boxed so they read as
-   buttons, the current one lit with a full accent rule under it. Sticky
-   only inside .re-tabbed. */
-.re-tabs {
-  position: sticky; top: 48px; z-index: 90;
-  background: rgba(4, 7, 12, 0.82);
-  backdrop-filter: blur(14px) saturate(140%);
-  -webkit-backdrop-filter: blur(14px) saturate(140%);
-  border-top: 1px solid var(--hairline);
-  border-bottom: 1px solid var(--hairline);
-}
-.re-tabs__row { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
-.re-tabs__a {
-  position: relative; display: flex; align-items: baseline; gap: 0.8rem;
-  padding: 1.05rem 1.2rem 1rem;
-  font-family: var(--font-display); font-size: clamp(1.05rem, 1.6vw, 1.3rem); font-weight: 400; letter-spacing: -0.01em;
-  color: var(--muted); cursor: pointer;
-  border-left: 1px solid var(--hairline);
-  transition: color .25s var(--ease), background .25s var(--ease);
-}
-.re-tabs__a:last-child { border-right: 1px solid var(--hairline); }
-.re-tabs__a span { font-family: var(--font-mono); font-size: var(--fs-micro); letter-spacing: 0.18em; color: var(--muted); }
-.re-tabs__a::after {
-  content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: var(--accent);
-  transform: scaleX(0); transform-origin: left; transition: transform .4s var(--ease);
-}
-.re-tabs__a::before { content: "→"; position: absolute; right: 1.2rem; top: 50%; transform: translateY(-50%); font-family: var(--font-mono); font-size: 0.9rem; color: var(--accent); opacity: 0; transition: opacity .25s var(--ease); }
-.re-tabs__a:hover { color: var(--ink); background: rgba(95, 230, 255, 0.05); }
-.re-tabs__a:hover::before { opacity: 1; }
-.re-tabs__a.is-on { color: #fff; background: rgba(95, 230, 255, 0.07); }
-.re-tabs__a.is-on span { color: var(--accent); }
-.re-tabs__a.is-on::after { transform: scaleX(1); }
-.re-tabs__a.is-on::before { opacity: 0; }
-.re-tabs__a:focus-visible { outline: 1px solid var(--accent); outline-offset: -3px; }
-
-/* The panes: one track, two panes side by side. The track slides by a full
-   width; the window is as tall as the pane showing (main.js sets the height),
-   so a short pane does not leave the long one's height behind it. clip, not
-   hidden: hidden would make this a scroll container and stop the panes'
-   scroll-driven reveals. */
-.re-panes { overflow: clip; transition: height .5s var(--ease); }
-.re-panes__track { display: flex; align-items: flex-start; transition: transform .6s var(--ease); will-change: transform; }
-.re-panes.is-games .re-panes__track { transform: translateX(-100%); }
-.re-pane { flex: 0 0 100%; min-width: 0; padding-top: clamp(2.5rem, 5vw, 4rem); }
-.re-pane.showcase { padding-bottom: clamp(3rem, 6vw, 5rem); }
-.re-panes:not(.is-games) #games, .re-panes.is-games #modeling { visibility: hidden; transition: visibility 0s linear .6s; }
+/* Software, CombineCAD (software.html #combinecad): a head, the reel in one
+   fixed frame, then the step-by-step slides. The reel is a muted, looping
+   video that loads and plays only while it is on screen (main.js, initReel). */
+.cad-sec { padding-top: clamp(2.5rem, 5vw, 4rem); }
+.cad-head { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1rem clamp(1.5rem, 4vw, 3rem); align-items: end; margin-bottom: clamp(1.25rem, 2.5vw, 2rem); }
+.cad-head__h { font-size: var(--fs-h1); font-weight: 300; letter-spacing: -0.03em; }
+.cad-head__p { color: var(--muted); max-width: 52ch; font-size: 1.02rem; margin: 0; }
+.cad-reel { position: relative; aspect-ratio: 16 / 9; overflow: hidden; border: 1px solid var(--hairline); background: #04070C; }
+.cad-reel video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+.cad-reel .tick { position: absolute; width: 12px; height: 12px; border: 1px solid var(--tick); opacity: 0.6; pointer-events: none; z-index: 2; }
+.cad-reel .tick--tl { top: -1px; left: -1px; border-right: 0; border-bottom: 0; }
+.cad-reel .tick--br { bottom: -1px; right: -1px; border-left: 0; border-top: 0; }
+.cad-reel__cap { margin: 0.9rem 0 0; padding-top: 0.9rem; border-top: 1px solid var(--hairline); color: var(--muted); font-size: var(--fs-small); max-width: 80ch; }
+.cad-sub { margin: clamp(2.5rem, 5vw, 4rem) 0 clamp(1rem, 2vw, 1.5rem); }
+@media (max-width: 720px) { .cad-head { grid-template-columns: minmax(0, 1fr); } }
 
 /* CombineCAD slideshow (main.js, initCadShow). On a wide screen the frame
    sits left and the words right, so the app window is smaller than a full
@@ -1171,14 +1140,12 @@ main, header, footer { position: relative; z-index: 1; }
   .cad-show { grid-template-columns: minmax(0, 1fr); }
 }
 @media (max-width: 720px) {
-  .re-tabs__a { padding: 0.9rem 0.8rem 0.85rem; gap: 0.5rem; font-size: 1rem; }
-  .re-tabs__a::before { display: none; }
   .cad-show__arrow { width: 40px; height: 40px; margin-top: -20px; }
   .cad-show__arrow--prev { left: 0.4rem; }
   .cad-show__arrow--next { right: 0.4rem; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .cad-show__frame img, .cad-show__prompt, .cad-show__cap, .cad-show__chap i, .re-panes, .re-panes__track { transition: none; }
+  .cad-show__frame img, .cad-show__prompt, .cad-show__cap, .cad-show__chap i { transition: none; }
 }
 
 /* Software, 02 How it runs: one short paragraph and the timeline, so the band

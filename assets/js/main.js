@@ -481,7 +481,7 @@
     modal.addEventListener("close", () => { frame.src = "about:blank"; if (grid) grid.classList.remove("is-paused"); });
   }
 
-  /* Reverse engineering page: a project frame opens its slides in a dialog.
+  /* Games page: a project frame opens its slides in a dialog.
      The slides live on the button as data-slides="src|caption;src|caption",
      so adding one is an edit to the HTML only. Arrow keys step through. */
   function initGallery() {
@@ -531,9 +531,9 @@
     modal.addEventListener("close", () => { img.removeAttribute("src"); });
   }
 
-  /* ---------------- CombineCAD slideshow (reverse-engineering.html) ----------------
-     One frame, frames swapped in place. Plays only while it is on screen, its
-     pane is showing and the tab is visible; an arrow or a chapter pauses it so
+  /* ---------------- CombineCAD slideshow (software.html #combinecad) ----------------
+     One frame, frames swapped in place. Plays only while it is on screen and the
+     tab is visible; an arrow or a chapter pauses it so
      the reader keeps the step they chose. A frame is shown only once its image
      has loaded, so the crossfade never fades to an empty frame. No touch or
      wheel handlers: the page scrolls through it like any picture. */
@@ -545,7 +545,6 @@
     const prompts = [...root.querySelectorAll(".cad-show__prompt")];
     const chaps = [...root.querySelectorAll(".cad-show__chap")];
     const play = root.querySelector(".cad-show__play");
-    const panes = root.closest(".re-panes");
     if (!imgs.length) return;
     const chapOf = (i) => +imgs[i].dataset.chap;
     const firstOf = (c) => imgs.findIndex((im) => +im.dataset.chap === c);
@@ -583,8 +582,7 @@
     };
     const schedule = () => {
       clearTimeout(timer);
-      const hiddenPane = panes && panes.classList.contains("is-games");
-      if (!playing || !onScreen || hiddenPane || document.hidden) return;
+      if (!playing || !onScreen || document.hidden) return;
       const c = chapOf(at);
       const last = at === firstOf(c) + countOf(c) - 1;
       timer = setTimeout(() => go(at + 1), last ? 5200 : 3400);
@@ -606,7 +604,6 @@
       if (e.key === "ArrowRight") { e.preventDefault(); manual(at + 1); }
     });
     document.addEventListener("visibilitychange", schedule);
-    if (panes) panes.addEventListener("re-pane", schedule);
     if ("IntersectionObserver" in window) {
       new IntersectionObserver((es) => {
         onScreen = es[0].isIntersecting;
@@ -618,53 +615,20 @@
     paint(0);
   }
 
-  /* The two panes on the same page. A tab slides the track sideways so the
-     other pane comes in at the same level, and the page scrolls only as far
-     as it needs to bring the tab row under the nav. The window takes the
-     height of the pane showing, kept current as its images load. */
-  function initRePanes() {
-    const panes = document.querySelector(".re-panes");
-    if (!panes) return;
-    const tabs = [...document.querySelectorAll(".re-tabs__a")];
-    const strip = document.querySelector(".re-tabs");
-    const modeling = document.getElementById("modeling");
-    const games = document.getElementById("games");
-    const fit = () => { panes.style.height = (panes.classList.contains("is-games") ? games : modeling).offsetHeight + "px"; };
-    const show = (id, scroll) => {
-      const toGames = id === "games";
-      panes.classList.toggle("is-games", toGames);
-      tabs.forEach((a) => {
-        const on = a.getAttribute("href") === "#" + id;
-        a.classList.toggle("is-on", on);
-        a.setAttribute("aria-selected", on ? "true" : "false");
-      });
-      modeling.inert = toGames;
-      games.inert = !toGames;
-      fit();
-      panes.dispatchEvent(new Event("re-pane"));
-      if (scroll) {
-        const nav = document.querySelector(".site-nav");
-        const top = strip.parentElement.getBoundingClientRect().top + window.scrollY - (nav ? 48 : 0);
-        if (Math.abs(window.scrollY - top) > 4) window.scrollTo({ top, behavior: "smooth" });
-      }
-    };
-    tabs.forEach((a) => a.addEventListener("click", (e) => {
-      e.preventDefault();
-      const id = a.getAttribute("href").slice(1);
-      show(id, true);
-      if (history.replaceState) history.replaceState(null, "", "#" + id);
-    }));
-    // links elsewhere on the page that point at a pane (the opener's "See CombineCAD")
-    document.querySelectorAll('a[href="#modeling"], a[href="#games"]').forEach((a) => {
-      if (a.classList.contains("re-tabs__a")) return;
-      a.addEventListener("click", (e) => { e.preventDefault(); show(a.getAttribute("href").slice(1), true); });
-    });
-    const fromHash = () => { const h = location.hash.slice(1); if (h === "games" || h === "modeling") show(h, true); };
-    window.addEventListener("hashchange", fromHash);
-    if ("ResizeObserver" in window) { const ro = new ResizeObserver(fit); ro.observe(modeling); ro.observe(games); }
-    window.addEventListener("resize", fit);
-    show(location.hash === "#games" ? "games" : "modeling", false);
-    if (location.hash === "#games" || location.hash === "#modeling") requestAnimationFrame(() => show(location.hash.slice(1), true));
+  /* The CombineCAD reel (software.html #combinecad). The video has no src
+     until it first comes near the screen, then plays only while it is on
+     screen. Reduced motion keeps the poster and shows the controls. */
+  function initReel() {
+    const v = document.querySelector("[data-reel] video");
+    if (!v) return;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const load = () => { if (!v.getAttribute("src")) { v.src = v.dataset.src; } };
+    if (reduce) { v.controls = true; v.preload = "metadata"; load(); return; }
+    if (!("IntersectionObserver" in window)) { load(); v.play().catch(() => {}); return; }
+    new IntersectionObserver((es) => {
+      const on = es[0].isIntersecting;
+      if (on) { load(); v.play().catch(() => {}); } else if (!v.paused) v.pause();
+    }, { rootMargin: "200px 0px", threshold: 0.01 }).observe(v);
   }
 
   /* ---------------- Global click delegation ---------------- */
@@ -699,7 +663,7 @@
     initDemos();
     initGallery();
     initCadShow();
-    initRePanes();
+    initReel();
     // Reveal runs last so dynamically-rendered cards are observed.
     initReveal();
   }

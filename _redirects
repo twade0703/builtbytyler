@@ -27,3 +27,7 @@
 #
 # This file is kept because PATH redirects (an old URL moving, say) do work
 # here and belong in it.
+
+# The reverse engineering page became Games on 2026-10-18.
+/reverse-engineering /games 301
+/reverse-engineering.html /games 301

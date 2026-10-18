@@ -28,9 +28,9 @@
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
-  <script src="assets/js/boot.js?v=49"></script>
-  <link rel="stylesheet" href="assets/css/styles.css?v=49">
-  <link rel="stylesheet" href="assets/css/motion.css?v=49">
+  <script src="assets/js/boot.js?v=50"></script>
+  <link rel="stylesheet" href="assets/css/styles.css?v=50">
+  <link rel="stylesheet" href="assets/css/motion.css?v=50">
 
 <!-- Structured data. Every fact here is one this site already states in prose:
        the entity, the city and the email come off contact.html. Nothing is
@@ -214,7 +214,7 @@
   <header id="site-nav" class="site-nav">
     <div class="container site-nav__inner">
       <a href="index.html" class="brand">Built<b>ByTyler</b></a>
-      <nav aria-label="Primary"><ul class="nav-links" id="nav-links"><li><a href="index.html">Home</a></li><li><a href="software.html" class="is-active" aria-current="page">Software</a></li><li><a href="shop.html">Hardware</a></li><li><a href="reverse-engineering.html">Reverse Engineering</a></li><li><a href="about.html">About</a></li><li><a href="contact.html">Contact</a></li></ul></nav>
+      <nav aria-label="Primary"><ul class="nav-links" id="nav-links"><li><a href="index.html">Home</a></li><li><a href="software.html" class="is-active" aria-current="page">Software</a></li><li><a href="shop.html">Hardware</a></li><li><a href="games.html">Games</a></li><li><a href="about.html">About</a></li><li><a href="contact.html">Contact</a></li></ul></nav>
       <div class="nav-actions"><button class="nav-toggle" id="nav-toggle" aria-label="Toggle menu" aria-expanded="false"><span></span><span></span><span></span></button></div>
     </div>
   </header>
@@ -286,6 +286,73 @@
         <button class="demo-modal__close" type="button" aria-label="Close the demo">Close</button>
         <iframe title="Demo"></iframe>
       </dialog>
+    </section>
+
+    <!-- ===============================================================
+         COMBINECAD. The reel is rendered from the real CombineCAD exports
+         (RC Buggy 1-10 v4, Model Rocket BT-60 Canard v3) and opens on the
+         app itself, sped up, while Claude builds the chassis. It loads and
+         plays only when it is on screen (main.js, initReel). Under it, the
+         step-by-step slides from the proving builds (initCadShow).
+         =============================================================== -->
+    <section class="section showcase cad-sec" id="combinecad" data-sec="combinecad">
+      <div class="container">
+        <p class="kicker showcase__kicker" data-reveal>Modeling software <b>—</b> CombineCAD</p>
+        <div class="cad-head" data-reveal>
+          <h2 class="cad-head__h">CombineCAD</h2>
+          <p class="cad-head__p">A 3D modelling program I built with Claude inside it. You describe the
+            part in plain words. The AI builds it one feature at a time and checks it against the
+            real parts it has to fit.</p>
+        </div>
+        <div class="cad-reel" data-reel>
+          <span class="tick tick--tl"></span><span class="tick tick--br"></span>
+          <video muted loop playsinline preload="none" poster="assets/img/cad/combinecad-reel-poster.jpg"
+            data-src="assets/img/cad/combinecad-reel.mp4" aria-label="CombineCAD reel: Claude building an RC car chassis, the finished buggy, its gearbox and exploded parts, and a canard rocket"></video>
+        </div>
+        <p class="cad-reel__cap">Rendered from the CombineCAD files. The RC buggy has 15 printed parts and a
+          real motor, ESC, servo and bearings, with 0 clashes. The rocket steers on canards.</p>
+        <p class="kicker cad-sub" data-reveal>How it builds <b>—</b> step by step</p>
+            <div class="cad-show" data-cad-show aria-roledescription="slideshow" aria-label="CombineCAD builds">
+              <div class="cad-show__frame">
+                <span class="tick tick--tl"></span><span class="tick tick--br"></span>
+                <img src="assets/img/re/cad-car-1.jpg" data-chap="0" alt="CombineCAD, rc car: Claude sketches the plate on the top plane and extrudes it 3 mm." width="1400" height="749" decoding="async" class="is-on">
+                <img data-src="assets/img/re/cad-car-2.jpg" data-chap="0" alt="CombineCAD, rc car: It adds the lip, cuts one pocket and patterns it down the middle, then measures the plate against the spec." width="1400" height="749" decoding="async">
+                <img data-src="assets/img/re/cad-buggy-1.jpg" data-chap="0" alt="CombineCAD, rc car: Then Claude took the car all the way. 15 printed parts, with the real motor, ESC, servo, battery and bearings placed." width="1400" height="749" decoding="async">
+                <img data-src="assets/img/re/cad-buggy-3.jpg" data-chap="0" alt="CombineCAD, rc car: Interference check on the whole assembly: 0 clashes." width="1400" height="749" decoding="async">
+                <img data-src="assets/img/re/cad-buggy-4.jpg" data-chap="0" alt="CombineCAD, rc car: A printed cover closes the gearbox, with 1.5 mm clearance to the gear teeth." width="1400" height="749" decoding="async">
+                <img data-src="assets/img/re/cad-buggy-2.jpg" data-chap="0" alt="CombineCAD, rc car: Under the cover, a two stage gearbox at 8.89 to 1. The pinion is a real Robinson Racing 15T meshing with a printed 60T spur." width="1400" height="749" decoding="async">
+                <img data-src="assets/img/re/cad-rocket-2.jpg" data-chap="1" alt="CombineCAD, rocket: Claude turns down the motor mount tube. A D12 is 24.0 mm and a BT-50 is 24.1 mm inside, so a second tube cannot fit. The motor slides straight into the body, the way Estes builds them." width="1400" height="749" decoding="async">
+                <img data-src="assets/img/re/cad-rocket-4.jpg" data-chap="1" alt="CombineCAD, rocket: Fins, a launch lug, then the balance worked out. 0.84 calibres bare, short of the 1.0 rule. 1.69 with a parachute and shock cord in, which passes." width="1400" height="749" decoding="async">
+                <button type="button" class="cad-show__arrow cad-show__arrow--prev" aria-label="Previous slide"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+                <button type="button" class="cad-show__arrow cad-show__arrow--next" aria-label="Next slide"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
+              </div>
+              <div class="cad-show__side">
+                <div class="cad-show__bar">
+                  <div class="cad-show__chaps" aria-label="Builds">
+                <button type="button" class="cad-show__chap is-on" data-chap="0">RC car<i></i></button>
+                <button type="button" class="cad-show__chap" data-chap="1">Rocket<i></i></button>
+                  </div>
+                  <button type="button" class="cad-show__play" aria-pressed="false">Pause</button>
+                </div>
+                <div class="cad-show__text" aria-live="polite">
+                  <div class="cad-show__prompts">
+                <p class="cad-show__prompt is-on" data-chap="0"><span>Typed</span>Build a 1/10 scale RC car chassis. A 3 mm plate, 300 by 110 mm with rounded ends, a 6 mm lip and lightening pockets down the middle. Wheelbase is 260 mm.</p>
+                <p class="cad-show__prompt" data-chap="1"><span>Typed</span>Design a model rocket around an Estes BT-50 body tube and a D12 motor. A 400 mm tube, an ogive nose cone with a shoulder, and a motor mount.</p>
+                  </div>
+                  <div class="cad-show__caps">
+                <p class="cad-show__cap is-on" data-chap="0"><span class="cad-show__n">01 / 06</span>Claude sketches the plate on the top plane and extrudes it 3 mm.</p>
+                <p class="cad-show__cap" data-chap="0"><span class="cad-show__n">02 / 06</span>It adds the lip, cuts one pocket and patterns it down the middle, then measures the plate against the spec.</p>
+                <p class="cad-show__cap" data-chap="0"><span class="cad-show__n">03 / 06</span>Then Claude took the car all the way. 15 printed parts, with the real motor, ESC, servo, battery and bearings placed.</p>
+                <p class="cad-show__cap" data-chap="0"><span class="cad-show__n">04 / 06</span>Interference check on the whole assembly: 0 clashes.</p>
+                <p class="cad-show__cap" data-chap="0"><span class="cad-show__n">05 / 06</span>A printed cover closes the gearbox, with 1.5 mm clearance to the gear teeth.</p>
+                <p class="cad-show__cap" data-chap="0"><span class="cad-show__n">06 / 06</span>Under the cover, a two stage gearbox at 8.89 to 1. The pinion is a real Robinson Racing 15T meshing with a printed 60T spur.</p>
+                <p class="cad-show__cap" data-chap="1"><span class="cad-show__n">01 / 02</span>Claude turns down the motor mount tube. A D12 is 24.0 mm and a BT-50 is 24.1 mm inside, so a second tube cannot fit. The motor slides straight into the body, the way Estes builds them.</p>
+                <p class="cad-show__cap" data-chap="1"><span class="cad-show__n">02 / 02</span>Fins, a launch lug, then the balance worked out. 0.84 calibres bare, short of the 1.0 rule. 1.69 with a parachute and shock cord in, which passes.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+      </div>
     </section>
 
     <!-- ===============================================================
@@ -484,7 +551,7 @@
         <a href="index.html">Home</a>
         <a href="software.html">Websites &amp; software</a>
         <a href="shop.html">Hardware</a>
-        <a href="reverse-engineering.html">Reverse engineering</a>
+        <a href="games.html">Games</a>
         <a href="about.html">About Tyler Wade</a>
         <a href="contact.html">Contact</a>
         <a href="policies.html">Lead times, shipping &amp; refunds</a>
@@ -497,10 +564,10 @@
        hologram.js is NOT loaded on this page: it has no build plates, and it
        is 120 KB of script to parse for nothing. It loads on Hardware and on
        the build detail page, where main.js creates the canvases it draws. -->
-  <script defer src="assets/js/products.js?v=49"></script>
-  <script defer src="assets/js/components.js?v=49"></script>
-  <script defer src="assets/js/main.js?v=49"></script>
+  <script defer src="assets/js/products.js?v=50"></script>
+  <script defer src="assets/js/components.js?v=50"></script>
+  <script defer src="assets/js/main.js?v=50"></script>
   <!-- The star field: plain WebGL, one small module, no library behind it. -->
-  <script type="module" src="assets/js/starfield.js?v=49"></script>
+  <script type="module" src="assets/js/starfield.js?v=50"></script>
 </body>
 </html>

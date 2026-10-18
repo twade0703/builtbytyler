@@ -549,6 +549,12 @@ main, header, footer { position: relative; z-index: 1; }
 .index__row--lead { padding-block: clamp(1.75rem, 3.5vw, 2.75rem); }
 .index__row--lead h3 { font-size: var(--fs-h2); font-weight: 400; letter-spacing: -0.024em; }
 .index__row--lead p { max-width: 62ch; font-size: 1.05rem; }
+/* 2026-10-18, Tyler: "From $500 ... that's not obvious enough." The price gets its own line. */
+.index__row--lead .price-line { margin-top: 1rem; font-family: var(--font-mono); font-size: 0.95rem; letter-spacing: 0.04em; color: var(--muted); }
+.index__row--lead .price-line b { font-family: var(--font-display, inherit); font-size: 1.9rem; font-weight: 400; letter-spacing: -0.02em; color: var(--ink, currentColor); margin-right: 0.25rem; }
+.index__row--lead .price-line i { font-style: normal; opacity: 0.5; margin: 0 0.6rem; }
+.opener__price { margin-top: 0.9rem; font-size: 1.05rem; color: var(--muted); }
+.opener__price b { color: var(--ink, currentColor); font-weight: 600; }
 
 /* ===================================================================
    PLATES — the builds. A hologram in a frame, the caption set on a

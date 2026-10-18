@@ -1202,10 +1202,11 @@
     /* Shown in flight, not parked: nose down and banked into a turn, the way
        an FPV quad actually carries itself through the air, from a lower eye
        line than the other models so it is seen against the frame rather than
-       looked down on. It fills its frame — at 0.62 it read as a toy. */
+       looked down on. At 0.62 it read as a toy; at 0.94 the ducts ran off the card
+       edges (Tyler, 2026-10-18: "too close to it, and it looks stupid"). */
     m.att = { pitch: 0.18, roll: -0.14 };
     m.tilt = -0.34;
-    m.zoom = 0.94;
+    m.zoom = 0.74;
     // It rests nose-toward-you, three-quarter on. The old resting angle (0.4)
     // looks at the pitched quad from behind, which puts it nearly edge-on.
     m.angle = 1.55;
@@ -1218,9 +1219,9 @@
     // a quick push in on the hover so you can see what it is, then back out
     m.hoverZoom = (s) => {
       if (s <= 0) return 1;
-      if (s < 0.55) return 1 + 0.38 * V.ss(s / 0.55);
-      if (s < 1.5) return 1.38;
-      if (s < 2.3) return 1.38 - 0.38 * V.ss((s - 1.5) / 0.8);
+      if (s < 0.55) return 1 + 0.26 * V.ss(s / 0.55);
+      if (s < 1.5) return 1.26;
+      if (s < 2.3) return 1.26 - 0.26 * V.ss((s - 1.5) / 0.8);
       return 1;
     };
     // the breakout: a section through the arm where it roots into the duct —

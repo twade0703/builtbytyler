@@ -57,8 +57,8 @@ const PRODUCTS = [
     name: "3\" Mini FPV Quad",
     tagline: "The i4: a 3-inch ducted mini quad",
     holo: "drone",
-    reel: "assets/img/hw/i4-reel-1.mp4",
-    poster: "assets/img/hw/i4-reel-1-poster.jpg",
+    reel: "assets/img/hw/i4-reel-2.mp4",
+    poster: "assets/img/hw/i4-reel-2-poster.jpg",
     status: "In testing",
     featured: true,
     available: false,
@@ -66,15 +66,17 @@ const PRODUCTS = [
       "The i4: a 3\" ducted mini quad with a one-piece 3D-printed airframe in carbon-fibre PLA " +
       "or PLA Aero. Wide arms run straight under each motor, the four ducts are braced to each " +
       "other, and a bumper band around the outside takes the hit in a crash. It comes with the " +
-      "STEP and STL files for every part, and a SpeedyBee F405 flight controller running " +
-      "Betaflight, programmed and bound to a remote.",
+      "STEP and STL files for every part, and a SpeedyBee F405 Mini flight controller over a " +
+      "35A 4-in-1 ESC, running Betaflight, programmed and bound to a remote.",
     specs: [
       { label: "Airframe", value: "One printed piece · PLA-CF or PLA Aero" },
       { label: "Frame", value: "4 × 82 mm ducts · 125 mm wheelbase · bumper band" },
-      { label: "Motors", value: "4 × XING2 1404 3800 kV · 3\" tri-blade props" },
-      { label: "Flight controller", value: "SpeedyBee F405 AIO · Betaflight" },
+      { label: "Motors", value: "4 × XING2 1404 3800 kV · Gemfan 3016 tri-blades" },
+      { label: "Flight controller", value: "SpeedyBee F405 Mini · Betaflight" },
+      { label: "ESC", value: "SpeedyBee BLS 35A 4-in-1 · 20x20 stack" },
       { label: "Video", value: "HGLRC Zeus Nano 5.8 GHz · RunCam Nano 4" },
-      { label: "Radio", value: "RadioMaster RP1 ELRS · 4S 650 mAh" },
+      { label: "Radio", value: "RadioMaster RP1 ELRS" },
+      { label: "Battery", value: "GNB 4S 650 mAh · 15 mm strap" },
       { label: "Files", value: "STEP + STL included" },
       { label: "Status", value: "In testing" },
     ],

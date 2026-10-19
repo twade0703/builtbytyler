@@ -1063,6 +1063,12 @@ main, header, footer { position: relative; z-index: 1; }
 .cad-reel .tick--tl { top: -1px; left: -1px; border-right: 0; border-bottom: 0; }
 .cad-reel .tick--br { bottom: -1px; right: -1px; border-left: 0; border-top: 0; }
 .cad-reel__cap { margin: 0.9rem 0 0; padding-top: 0.9rem; border-top: 1px solid var(--hairline); color: var(--muted); font-size: var(--fs-small); max-width: 80ch; }
+.cad-spec { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; margin: 1.25rem 0 0; border-top: 1px solid var(--hairline); }
+.cad-spec div { padding: 0.85rem 1rem 0.9rem 0; border-bottom: 1px solid var(--hairline); }
+.cad-spec dt { font-family: var(--font-mono); font-size: var(--fs-micro); letter-spacing: 0.16em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.3rem; }
+.cad-spec dd { margin: 0; color: var(--ink); font-size: var(--fs-small); line-height: 1.45; }
+@media (max-width: 900px) { .cad-spec { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 520px) { .cad-spec { grid-template-columns: minmax(0, 1fr); } }
 .cad-sub { margin: clamp(2.5rem, 5vw, 4rem) 0 clamp(1rem, 2vw, 1.5rem); }
 @media (max-width: 720px) { .cad-head { grid-template-columns: minmax(0, 1fr); } }
 

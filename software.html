@@ -28,9 +28,9 @@
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
-  <script src="assets/js/boot.js?v=50"></script>
-  <link rel="stylesheet" href="assets/css/styles.css?v=50">
-  <link rel="stylesheet" href="assets/css/motion.css?v=50">
+  <script src="assets/js/boot.js?v=51"></script>
+  <link rel="stylesheet" href="assets/css/styles.css?v=51">
+  <link rel="stylesheet" href="assets/css/motion.css?v=51">
 
 <!-- Structured data. Every fact here is one this site already states in prose:
        the entity, the city and the email come off contact.html. Nothing is
@@ -290,8 +290,7 @@
 
     <!-- ===============================================================
          COMBINECAD. The reel is rendered from the real CombineCAD exports
-         (RC Buggy 1-10 v4) plus the GT3 RS style body from reel/gt3rs.py,
-         and opens on the app itself, sped up, while Claude builds the chassis. It loads and
+         (RC Buggy 1-10 v4) and opens on the app itself, sped up, while Claude builds the chassis. It loads and
          plays only when it is on screen (main.js, initReel). Under it, the
          step-by-step slides from the proving builds (initCadShow).
          =============================================================== -->
@@ -306,13 +305,21 @@
         </div>
         <div class="cad-reel" data-reel>
           <span class="tick tick--tl"></span><span class="tick tick--br"></span>
-          <video muted loop playsinline preload="none" poster="assets/img/cad/combinecad-reel-3-poster.jpg"
-            data-src="assets/img/cad/combinecad-reel-3.mp4" aria-label="CombineCAD reel: Claude building an RC car chassis, then a GT3 RS style body on that chassis, lifting off to show the gearbox"></video>
+          <video muted loop playsinline preload="none" poster="assets/img/cad/combinecad-reel-4-poster.jpg"
+            data-src="assets/img/cad/combinecad-reel-4.mp4" aria-label="CombineCAD reel: Claude building the RC buggy in the app, then the chassis with its electronics named and its gearbox running"></video>
         </div>
-        <p class="cad-reel__cap">Rendered from the CombineCAD files. A body in the style of the 911 GT3 RS,
-          drawn at 1:8.78 so its wheelbase matches the RC buggy chassis, on new wheels and magnetic body
-          posts. The chassis underneath has 15 printed parts and a real motor, ESC, servo and bearings.
-          A design study, not a product. Porsche and 911 GT3 RS are trademarks of Porsche AG.</p>
+        <p class="cad-reel__cap">Rendered from the CombineCAD files. It opens on the app itself while Claude
+          builds the buggy, all 300 features, then shows the chassis with every part it was designed around.</p>
+        <dl class="cad-spec" data-reveal>
+          <div><dt>Motor</dt><dd>Hobbywing QuicRun 3650 G2, 10.5T, 3600 kV, sensored</dd></div>
+          <div><dt>ESC</dt><dd>Hobbywing QuicRun 10BL120 G2, 120 A, BEC set to 6.0 V</dd></div>
+          <div><dt>Battery</dt><dd>Spektrum Smart G2 2S 5000 mAh 100C hardcase</dd></div>
+          <div><dt>Radio</dt><dd>FlySky FS-iA6B receiver on an AFHDS 2A transmitter</dd></div>
+          <div><dt>Steering</dt><dd>DS3218 20 kg servo, printed rack and knuckles</dd></div>
+          <div><dt>Gearing</dt><dd>15/60 then 18/40, 8.89:1, about 40 km/h on 2S</dd></div>
+          <div><dt>Hardware</dt><dd>15 printed parts, 12 bearings, 25 M3 heat-set inserts, steel axles</dd></div>
+          <div><dt>Checks</dt><dd>Geometry valid, 0 clashes between every part pair</dd></div>
+        </dl>
         <p class="kicker cad-sub" data-reveal>How it builds <b>—</b> step by step</p>
             <div class="cad-show" data-cad-show aria-roledescription="slideshow" aria-label="CombineCAD builds">
               <div class="cad-show__frame">
@@ -566,10 +573,10 @@
        hologram.js is NOT loaded on this page: it has no build plates, and it
        is 120 KB of script to parse for nothing. It loads on Hardware and on
        the build detail page, where main.js creates the canvases it draws. -->
-  <script defer src="assets/js/products.js?v=50"></script>
-  <script defer src="assets/js/components.js?v=50"></script>
-  <script defer src="assets/js/main.js?v=50"></script>
+  <script defer src="assets/js/products.js?v=51"></script>
+  <script defer src="assets/js/components.js?v=51"></script>
+  <script defer src="assets/js/main.js?v=51"></script>
   <!-- The star field: plain WebGL, one small module, no library behind it. -->
-  <script type="module" src="assets/js/starfield.js?v=50"></script>
+  <script type="module" src="assets/js/starfield.js?v=51"></script>
 </body>
 </html>

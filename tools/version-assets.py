@@ -23,7 +23,7 @@ Bump VERSION on any deploy that changes CSS or JS.
 """
 import hashlib, io, json, os, re, glob, sys
 
-VERSION = "59"
+VERSION = "60"
 os.chdir(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 ASSETS = [

@@ -28,9 +28,9 @@
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
-  <script src="assets/js/boot.js?v=52"></script>
-  <link rel="stylesheet" href="assets/css/styles.css?v=52">
-  <link rel="stylesheet" href="assets/css/motion.css?v=52">
+  <script src="assets/js/boot.js?v=53"></script>
+  <link rel="stylesheet" href="assets/css/styles.css?v=53">
+  <link rel="stylesheet" href="assets/css/motion.css?v=53">
 
 <!-- Structured data. Every fact here is one this site already states in prose:
        the entity, the city and the email come off contact.html. Nothing is
@@ -242,75 +242,50 @@
     </section>
 
     <!-- ===============================================================
-         BUILT HERE: a showcase, the way the Hardware page shows builds.
-         Two small live previews side by side; each one opens the full,
-         interactive demo in a dialog (main.js, initDemos). The previews
-         play but take no input: the pointer and the wheel belong to the
-         page until someone opens one.
-
-         Sources: showcase/tracker/ and showcase/agent/; demos/markets/
-         and demos/front-desk/ are the published copies, framed under the
-         /demos/* rule in _headers.
+         SOFTWARE: the programs, each with its own app icon. CombineCAD leads
+         with what it does and the two reels (main.js, initReel; a click opens
+         a reel large, initReelModal). The two web apps sit side by side with
+         their live previews (initDemos).
          =============================================================== -->
-    <section class="section showcase" id="work" data-sec="work">
+    <section class="section sw" id="work" data-sec="work">
       <div class="container">
-        <p class="kicker showcase__kicker" data-reveal>Built here <b>—</b> click one to open it</p>
-        <div class="plates demos">
-          <article class="plate plate--half demo" data-reveal data-reveal-i="1">
-            <div class="demo__media">
-              <iframe src="demos/markets/?embed" title="Preview of the markets tracker demo" tabindex="-1" aria-hidden="true"></iframe>
-              <button class="demo__open" type="button" data-demo="demos/markets/?embed" data-demo-title="Markets tracker demo" aria-label="Open the markets tracker demo"><span>Open the demo</span></button>
-            </div>
-            <div class="plate__cap">
-              <span class="plate__n">01</span>
-              <h3 class="plate__name">Markets tracker</h3>
-              <span class="plate__price">Live demo</span>
-              <p class="plate__tag">Custom trading software: live prices, technicals and risk, built to spec.</p>
-            </div>
-          </article>
-          <article class="plate plate--half demo" data-reveal data-reveal-i="2">
-            <div class="demo__media">
-              <iframe src="demos/front-desk/?embed" title="Preview of the AI front desk demo" tabindex="-1" aria-hidden="true"></iframe>
-              <button class="demo__open" type="button" data-demo="demos/front-desk/?embed" data-demo-title="AI front desk demo" aria-label="Open the AI front desk demo"><span>Open the demo</span></button>
-            </div>
-            <div class="plate__cap">
-              <span class="plate__n">02</span>
-              <h3 class="plate__name">AI front desk</h3>
-              <span class="plate__price">Live demo</span>
-              <p class="plate__tag">Answers the calls a business misses, books the job and tells the team.</p>
-            </div>
-          </article>
+        <div class="sw-head" data-reveal>
+          <p class="kicker">Software <b>—</b> built with AI</p>
+          <h2 class="sw-head__h">Software</h2>
+          <p class="sw-head__p">Programs I built with AI agents. Each one is real and runs today.</p>
         </div>
-      </div>
-      <dialog class="demo-modal" id="demo-modal" aria-label="Demo">
-        <button class="demo-modal__close" type="button" aria-label="Close the demo">Close</button>
-        <iframe title="Demo"></iframe>
-      </dialog>
-    </section>
 
-    <!-- ===============================================================
-         COMBINECAD. The reel is rendered from the real CombineCAD exports
-         (RC Buggy 1-10 v4) and opens on the app itself, sped up, while Claude builds the chassis. It loads and
-         plays only when it is on screen (main.js, initReel). The car and the
-         rocket sit side by side, each with the parts it was designed around.
-         =============================================================== -->
-    <section class="section showcase cad-sec" id="combinecad" data-sec="combinecad">
-      <div class="container">
-        <p class="kicker showcase__kicker" data-reveal>Modeling software <b>—</b> CombineCAD</p>
-        <div class="cad-head" data-reveal>
-          <h2 class="cad-head__h">CombineCAD</h2>
-          <p class="cad-head__p">A 3D modelling program I built with Claude inside it. You describe the
-            part in plain words. The AI builds it one feature at a time and checks it against the
-            real parts it has to fit.</p>
-        </div>
-        <div class="cad-duo">
+        <article class="app app--lead" id="combinecad" data-reveal>
+          <header class="app__head">
+            <img class="app__icon" src="assets/img/cad/combinecad-icon.png" width="64" height="64" alt="">
+            <div class="app__title">
+              <h3 class="app__name">CombineCAD</h3>
+              <p class="app__line">A full 3D modelling program with Claude built in.</p>
+            </div>
+            <span class="app__tag">Desktop app</span>
+          </header>
+          <div class="app__pitch">
+            <p class="app__lead">Model a part yourself with sketches, features and a history tree you can edit. Or
+              describe it, and Claude builds it for you one feature at a time. Either way you end up with real CAD
+              you can change, print or send to a machine shop.</p>
+            <ul class="app__feats">
+              <li><b>Model it yourself</b><span>Sketch, extrude, revolve, loft, sweep, fillet, shell, pattern and mirror, in a feature tree you can roll back and edit.</span></li>
+              <li><b>Or ask Claude</b><span>Describe the part in plain words. Claude builds it step by step, and every step stays editable.</span></li>
+              <li><b>Real hardware</b><span>Motors, bearings, screws and inserts from a parts catalog, placed at their real sizes.</span></li>
+              <li><b>Checked before printing</b><span>Interference and fit checks between every part in the model.</span></li>
+              <li><b>Opens your files</b><span>STEP, IGES, STL, 3MF and OBJ in. STEP and one STL per printed part out.</span></li>
+              <li><b>Never freezes</b><span>Big parts rebuild in the background while you keep working.</span></li>
+            </ul>
+          </div>
+          <div class="cad-duo">
           <figure class="cad-item" data-reveal data-reveal-i="1">
-            <figcaption class="cad-item__head"><span>01</span>RC car</figcaption>
-            <div class="cad-reel" data-reel>
+            <figcaption class="cad-item__head"><span>01</span>RC car, GT3 RS body kit</figcaption>
+            <button class="cad-reel" type="button" data-reel aria-label="Watch this reel large">
               <span class="tick tick--tl"></span><span class="tick tick--br"></span>
-              <video muted loop playsinline preload="none" poster="assets/img/cad/car-reel-1-poster.jpg"
-                data-src="assets/img/cad/car-reel-1.mp4" aria-label="Claude building the RC car in CombineCAD, then the chassis with its electronics named and its gearbox running"></video>
-            </div>
+              <video muted loop playsinline preload="none" poster="assets/img/cad/car-reel-2-poster.jpg"
+                data-src="assets/img/cad/car-reel-2.mp4" aria-label="Claude building the RC car in CombineCAD, then the GT3 RS body kit on the chassis, lifting off to show the electronics and the gearbox"></video>
+              <span class="cad-reel__zoom" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7"/></svg>Watch large</span>
+            </button>
             <dl class="cad-spec">
               <div><dt>Motor</dt><dd>Hobbywing QuicRun 3650 G2, 10.5T, 3600 kV</dd></div>
               <div><dt>ESC</dt><dd>QuicRun 10BL120 G2, 120 A, BEC at 6.0 V</dd></div>
@@ -318,17 +293,18 @@
               <div><dt>Radio</dt><dd>FlySky FS-iA6B on an AFHDS 2A transmitter</dd></div>
               <div><dt>Steering</dt><dd>DS3218 20 kg servo, printed rack and knuckles</dd></div>
               <div><dt>Gearing</dt><dd>15/60 then 18/40, 8.89:1, about 40 km/h</dd></div>
-              <div><dt>Hardware</dt><dd>15 printed parts, 12 bearings, 25 M3 inserts</dd></div>
+              <div><dt>Body kit</dt><dd>992 GT3 RS shell on magnetic posts, arches cut for full lock</dd></div>
               <div><dt>Checks</dt><dd>Geometry valid, 0 clashes between every part pair</dd></div>
             </dl>
           </figure>
           <figure class="cad-item" data-reveal data-reveal-i="2">
             <figcaption class="cad-item__head"><span>02</span>Rocket</figcaption>
-            <div class="cad-reel" data-reel>
+            <button class="cad-reel" type="button" data-reel aria-label="Watch this reel large">
               <span class="tick tick--tl"></span><span class="tick tick--br"></span>
-              <video muted loop playsinline preload="none" poster="assets/img/cad/rocket-reel-1-poster.jpg"
-                data-src="assets/img/cad/rocket-reel-1.mp4" aria-label="Claude building the canard rocket in CombineCAD, then the rocket with its canards moving, a section cut naming its electronics, and stage separation"></video>
-            </div>
+              <video muted loop playsinline preload="none" poster="assets/img/cad/rocket-reel-2-poster.jpg"
+                data-src="assets/img/cad/rocket-reel-2.mp4" aria-label="Claude building the canard rocket in CombineCAD, then the rocket with its canards moving, a section cut naming its electronics, and stage separation"></video>
+              <span class="cad-reel__zoom" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7"/></svg>Watch large</span>
+            </button>
             <dl class="cad-spec">
               <div><dt>Airframe</dt><dd>BT-60 tubes, printed nose cone, fin can and canard bay</dd></div>
               <div><dt>Motor</dt><dd>Estes E12-4, 24 mm</dd></div>
@@ -340,9 +316,89 @@
               <div><dt>Build</dt><dd>131 features, every part named and placed</dd></div>
             </dl>
           </figure>
+          </div>
+          <p class="cad-reel__cap">Click a reel to watch it large. Both open on CombineCAD itself, sped up, while
+            Claude builds the part. Everything after that is rendered from the same CombineCAD files.</p>
+        </article>
+
+        <div class="apps-pair demos">
+          <article class="app demo" data-reveal data-reveal-i="1">
+            <header class="app__head">
+              <span class="app__icon app__icon--money" aria-hidden="true"><svg viewBox="0 0 64 64"><path d="M41 22.5c-1.8-2.9-5-4.5-9-4.5-5.2 0-8.6 2.7-8.6 6.4 0 9 18.4 4.6 18.4 13.6 0 4-3.8 6.6-9.4 6.6-4.4 0-7.9-1.8-9.6-4.8M32 12.5v39"/></svg></span>
+              <div class="app__title">
+                <h3 class="app__name">Markets tracker</h3>
+                <p class="app__line">Custom trading software: live prices, technicals and risk, built to spec.</p>
+              </div>
+              <span class="app__tag">Live demo</span>
+            </header>
+            <div class="demo__media">
+              <iframe src="demos/markets/?embed" title="Preview of the markets tracker demo" tabindex="-1" aria-hidden="true"></iframe>
+              <button class="demo__open" type="button" data-demo="demos/markets/?embed" data-demo-title="Markets tracker demo" aria-label="Open the markets tracker demo"><span>Open the demo</span></button>
+            </div>
+          </article>
+          <article class="app demo" data-reveal data-reveal-i="2">
+            <header class="app__head">
+              <span class="app__icon app__icon--phone" aria-hidden="true"><svg viewBox="-6 -6 44 44"><path d="M9 5h4l2 6-3 2c1.4 3 3.8 5.4 6.8 6.8l2-3 6 2v4a2 2 0 0 1-2.2 2C14 27.6 4.4 18 4 7.2A2 2 0 0 1 6 5z"/></svg></span>
+              <div class="app__title">
+                <h3 class="app__name">AI front desk</h3>
+                <p class="app__line">Answers the calls a business misses, books the job and tells the team.</p>
+              </div>
+              <span class="app__tag">Live demo</span>
+            </header>
+            <div class="demo__media">
+              <iframe src="demos/front-desk/?embed" title="Preview of the AI front desk demo" tabindex="-1" aria-hidden="true"></iframe>
+              <button class="demo__open" type="button" data-demo="demos/front-desk/?embed" data-demo-title="AI front desk demo" aria-label="Open the AI front desk demo"><span>Open the demo</span></button>
+            </div>
+          </article>
         </div>
-        <p class="cad-reel__cap">Both reels open on CombineCAD itself, sped up, while Claude builds the part feature by
-          feature. Everything after that is rendered from the same CombineCAD files.</p>
+      </div>
+      <dialog class="demo-modal" id="demo-modal" aria-label="Demo">
+        <button class="demo-modal__close" type="button" aria-label="Close the demo">Close</button>
+        <iframe title="Demo"></iframe>
+      </dialog>
+      <dialog class="reel-modal" id="reel-modal" aria-label="Reel">
+        <button class="demo-modal__close" type="button" aria-label="Close the reel">Close</button>
+        <video controls playsinline muted loop></video>
+      </dialog>
+    </section>
+
+    <!-- ===============================================================
+         WEBSITES: a click-through slideshow of the best sites
+         (main.js, initSiteShow). The concepts were built before the owner
+         signed and carry their own disclosure bar; each slide says which.
+         =============================================================== -->
+    <section class="section sites" id="websites" data-sec="websites">
+      <div class="container">
+        <div class="sw-head" data-reveal>
+          <p class="kicker">Websites <b>—</b> for local businesses</p>
+          <h2 class="sw-head__h">Websites</h2>
+          <p class="sw-head__p">Each one is built from the business's own reviews and photos. Click through a few.</p>
+        </div>
+        <div class="site-show" data-site-show data-reveal>
+          <div class="site-show__frame">
+            <span class="tick tick--tl"></span><span class="tick tick--br"></span>
+            <img class="is-on" src="assets/img/sites/artisan.jpg" width="1600" height="1000" alt="Artisan Marble Restoration website, hero" decoding="async">
+            <img data-src="assets/img/sites/creperie.jpg" width="1600" height="1000" alt="The Creperie Cafe website, hero" decoding="async">
+            <img data-src="assets/img/sites/aloha.jpg" width="1600" height="1000" alt="Aloha Norma website, hero" decoding="async">
+            <img data-src="assets/img/sites/allfour.jpg" width="1600" height="1000" alt="All 4 Season Painting website, hero" decoding="async">
+            <button type="button" class="site-show__arrow site-show__arrow--prev" aria-label="Previous site"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+            <button type="button" class="site-show__arrow site-show__arrow--next" aria-label="Next site"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
+          </div>
+          <div class="site-show__bar">
+            <div class="site-show__caps" aria-live="polite">
+              <p class="site-show__cap is-on"><b>Artisan Marble Restoration</b><span>Bellevue, WA · Concept, built before the owner signed</span><a href="https://see.builtbytyler.com/artisan-marble-restoration/" target="_blank" rel="noopener">Open the site</a></p>
+              <p class="site-show__cap"><b>The Creperie Cafe</b><span>Seaside, CA · Proposal, on its own domain</span><a href="https://thecreperiemonterey.com/" target="_blank" rel="noopener">Open the site</a></p>
+              <p class="site-show__cap"><b>Aloha Norma</b><span>Las Vegas, NV · Concept, built before the owner signed</span><a href="https://see.builtbytyler.com/aloha-norma/" target="_blank" rel="noopener">Open the site</a></p>
+              <p class="site-show__cap"><b>All 4 Season Painting</b><span>Bellevue, WA · Concept, built before the owner signed</span><a href="https://see.builtbytyler.com/all-4-season-painting-llc/" target="_blank" rel="noopener">Open the site</a></p>
+            </div>
+            <div class="site-show__dots" role="tablist" aria-label="Sites">
+              <button type="button" class="is-on" aria-label="Artisan Marble Restoration"></button>
+              <button type="button" aria-label="The Creperie Cafe"></button>
+              <button type="button" aria-label="Aloha Norma"></button>
+              <button type="button" aria-label="All 4 Season Painting"></button>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -555,10 +611,10 @@
        hologram.js is NOT loaded on this page: it has no build plates, and it
        is 120 KB of script to parse for nothing. It loads on Hardware and on
        the build detail page, where main.js creates the canvases it draws. -->
-  <script defer src="assets/js/products.js?v=52"></script>
-  <script defer src="assets/js/components.js?v=52"></script>
-  <script defer src="assets/js/main.js?v=52"></script>
+  <script defer src="assets/js/products.js?v=53"></script>
+  <script defer src="assets/js/components.js?v=53"></script>
+  <script defer src="assets/js/main.js?v=53"></script>
   <!-- The star field: plain WebGL, one small module, no library behind it. -->
-  <script type="module" src="assets/js/starfield.js?v=52"></script>
+  <script type="module" src="assets/js/starfield.js?v=53"></script>
 </body>
 </html>

@@ -549,6 +549,56 @@
     });
   }
 
+  /* A reel opens large: the same file in a dialog, with controls. */
+  function initReelModal() {
+    const modal = document.getElementById("reel-modal");
+    const buttons = document.querySelectorAll("button[data-reel]");
+    if (!modal || !buttons.length || typeof modal.showModal !== "function") return;
+    const big = modal.querySelector("video");
+    buttons.forEach((b) => b.addEventListener("click", () => {
+      const v = b.querySelector("video");
+      big.src = v.dataset.src; big.poster = v.getAttribute("poster") || "";
+      big.currentTime = 0;
+      modal.showModal();
+      big.play().catch(() => {});
+    }));
+    modal.querySelector(".demo-modal__close").addEventListener("click", () => modal.close());
+    modal.addEventListener("click", (e) => { if (e.target === modal) modal.close(); });
+    modal.addEventListener("close", () => { big.pause(); big.removeAttribute("src"); big.load(); });
+  }
+
+  /* The website show: click through, one site at a time, crossfading in
+     one fixed frame. The next image is fetched ahead. */
+  function initSiteShow() {
+    const root = document.querySelector("[data-site-show]");
+    if (!root) return;
+    const imgs = [...root.querySelectorAll(".site-show__frame img")];
+    const caps = [...root.querySelectorAll(".site-show__cap")];
+    const dots = [...root.querySelectorAll(".site-show__dots button")];
+    let at = 0;
+    const load = (i) => { const im = imgs[(i + imgs.length) % imgs.length]; if (im.dataset.src && !im.getAttribute("src")) im.src = im.dataset.src; return im; };
+    const show = (i) => {
+      i = (i + imgs.length) % imgs.length;
+      const im = load(i);
+      const paint = () => {
+        at = i;
+        imgs.forEach((x, k) => x.classList.toggle("is-on", k === i));
+        caps.forEach((x, k) => x.classList.toggle("is-on", k === i));
+        dots.forEach((x, k) => { x.classList.toggle("is-on", k === i); x.setAttribute("aria-selected", k === i ? "true" : "false"); });
+        load(i + 1);
+      };
+      if (im.complete && im.naturalWidth) paint(); else im.addEventListener("load", paint, { once: true });
+    };
+    root.querySelector(".site-show__arrow--prev").addEventListener("click", () => show(at - 1));
+    root.querySelector(".site-show__arrow--next").addEventListener("click", () => show(at + 1));
+    dots.forEach((d, k) => d.addEventListener("click", () => show(k)));
+    root.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowLeft") { e.preventDefault(); show(at - 1); }
+      if (e.key === "ArrowRight") { e.preventDefault(); show(at + 1); }
+    });
+    load(1);
+  }
+
   /* ---------------- Global click delegation ---------------- */
   function initDelegation() {
     document.addEventListener("click", (e) => {
@@ -581,6 +631,8 @@
     initDemos();
     initGallery();
     initReel();
+    initReelModal();
+    initSiteShow();
     // Reveal runs last so dynamically-rendered cards are observed.
     initReveal();
   }

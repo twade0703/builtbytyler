@@ -15,8 +15,10 @@
      name        display name
      tagline     short one-liner
      holo        hologram model: "arm" | "drone" | "evtol"
-                 (see hologram.js;
-                 omit for a clean placeholder panel)
+                 (see hologram.js; omit for a clean placeholder panel)
+     reel        product reel (mp4), rendered from the CombineCAD build; when set
+                 it replaces the hologram, plays when on screen and opens large
+     poster      the reel's still frame
      status      the line under the name, e.g. "In testing" (defaults to "In progress")
      featured    show on the home page
      available   true = buyable now, false = sold via a build package
@@ -28,45 +30,52 @@ const PRODUCTS = [
   {
     id: "nemo-arm",
     name: "NEMO Robotic Arm",
-    tagline: "3D camera arm for streaming setups",
+    tagline: "Portable 3-axis camera arm for creators",
     holo: "arm",
+    reel: "",
+    poster: "",
     status: "In design",
     featured: true,
     available: false,
     description:
-      "A robotic camera arm for streamers and creators. NEMA 17 stepper motors drive " +
-      "the joints through printed cycloidal gearboxes, it runs from a portable power " +
-      "source, and the end takes whatever camera you already use. Programmable motion " +
-      "paths and smooth tracking.",
+      "A three-axis robotic camera arm for streamers and creators. Every joint is a NEMA 17 " +
+      "stepper driving through a cycloidal gearbox, so moves are smooth and hold their position " +
+      "under load. It runs from a USB-C power bank, so it goes wherever the shoot is, and the " +
+      "1/4-20 mount takes whatever camera you already own. Moves are programmed and played back " +
+      "over Bluetooth.",
     specs: [
+      { label: "Motion", value: "3-axis · base, shoulder, elbow" },
       { label: "Drive", value: "NEMA 17 steppers · cycloidal gearboxes" },
-      { label: "Power", value: "Portable power source" },
-      { label: "Camera", value: "Adaptable mount · any camera" },
-      { label: "Control", value: "Wireless · motion presets" },
+      { label: "Power", value: "USB-C PD power bank · portable" },
+      { label: "Camera", value: "1/4-20 mount · any camera" },
+      { label: "Control", value: "ESP32 · TMC2209 · Bluetooth presets" },
       { label: "Status", value: "In design" },
     ],
   },
   {
     id: "fpv-drones",
     name: "3\" Mini FPV Quad",
-    tagline: "3D-printed ducted mini quad",
+    tagline: "The i4: a 3-inch ducted mini quad",
     holo: "drone",
+    reel: "assets/img/hw/i4-reel-1.mp4",
+    poster: "assets/img/hw/i4-reel-1-poster.jpg",
     status: "In testing",
     featured: true,
     available: false,
     description:
-      "The i4: a 3\" ducted mini quad with a 3D-printed airframe in carbon-fibre PLA or PLA Aero, " +
-      "printed with a structural mesh infill. The frame is one piece and built to take a " +
-      "crash: wide arms run straight under each motor, the ducts are braced to each other, " +
-      "and a thicker bumper band takes the hit. It comes with the STEP and STL files for " +
-      "every part, and an STM32 flight controller running Betaflight, programmed and " +
-      "bound to a remote.",
+      "The i4: a 3\" ducted mini quad with a one-piece 3D-printed airframe in carbon-fibre PLA " +
+      "or PLA Aero. Wide arms run straight under each motor, the four ducts are braced to each " +
+      "other, and a bumper band around the outside takes the hit in a crash. It comes with the " +
+      "STEP and STL files for every part, and a SpeedyBee F405 flight controller running " +
+      "Betaflight, programmed and bound to a remote.",
     specs: [
-      { label: "Airframe", value: "3D-printed PLA-CF or PLA Aero" },
-      { label: "Frame", value: "One piece · braced ducts · crash bumper" },
+      { label: "Airframe", value: "One printed piece · PLA-CF or PLA Aero" },
+      { label: "Frame", value: "4 × 82 mm ducts · 125 mm wheelbase · bumper band" },
+      { label: "Motors", value: "4 × XING2 1404 3800 kV · 3\" tri-blade props" },
+      { label: "Flight controller", value: "SpeedyBee F405 AIO · Betaflight" },
+      { label: "Video", value: "HGLRC Zeus Nano 5.8 GHz · RunCam Nano 4" },
+      { label: "Radio", value: "RadioMaster RP1 ELRS · 4S 650 mAh" },
       { label: "Files", value: "STEP + STL included" },
-      { label: "Flight controller", value: "STM32 · Betaflight" },
-      { label: "Radio", value: "Bound to a remote · 5.8 GHz video" },
       { label: "Status", value: "In testing" },
     ],
   },

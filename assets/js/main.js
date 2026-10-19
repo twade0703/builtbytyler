@@ -35,6 +35,11 @@
 
   const TICKS = `<span class="tick tick--tl"></span><span class="tick tick--br"></span>`;
 
+  /* A product reel: no src until it comes near the screen (initReel). */
+  const reelVideo = (p) =>
+    `<video muted loop playsinline preload="none" poster="${p.poster || ""}" data-src="${p.reel}" aria-label="${p.name}: product reel"></video>
+     <span class="plate__open">Watch it large</span>`;
+
   function plateHTML(p, index, span) {
     const idx = String((index || 0) + 1).padStart(2, "0");
     const href = `product.html?id=${p.id}`;
@@ -43,11 +48,17 @@
       ? `<canvas class="plate__holo" data-holo="${p.holo}"></canvas>
          <span class="plate__hud">3D <em>·</em> Wireframe</span>`
       : RETICLE;
+    // a build with a reel plays it in the frame; a click opens it large
+    const frame = p.reel
+      ? `<button class="plate__media is-reel" type="button" data-reel aria-label="Watch the ${p.name} reel large">
+          ${TICKS}${reelVideo(p)}
+        </button>`
+      : `<a class="plate__media ${p.holo ? "is-holo" : "is-placeholder"}" href="${href}" aria-label="${p.name}">
+          ${TICKS}${media}
+        </a>`;
     return `
       <article class="plate ${span || ""}" data-reveal data-reveal-i="${((index || 0) % 6) + 1}">
-        <a class="plate__media ${p.holo ? "is-holo" : "is-placeholder"}" href="${href}" aria-label="${p.name}">
-          ${TICKS}${media}
-        </a>
+        ${frame}
         <div class="plate__cap">
           <span class="plate__n">${idx}</span>
           <h3 class="plate__name"><a href="${href}">${p.name}</a></h3>
@@ -115,9 +126,9 @@
     host.innerHTML = `
       <a class="back-link" href="shop.html">&larr; All hardware</a>
       <div class="detail" data-reveal>
-        <div class="detail__media ${p.holo ? "is-holo" : "is-placeholder"}">
-          ${media}
-        </div>
+        ${p.reel
+          ? `<button class="detail__media is-reel" type="button" data-reel aria-label="Watch the ${p.name} reel large">${reelVideo(p)}</button>`
+          : `<div class="detail__media ${p.holo ? "is-holo" : "is-placeholder"}">${media}</div>`}
         <div class="detail__info">
           <p class="badge">${p.status || "In progress"}</p>
           <h1>${p.name}</h1>

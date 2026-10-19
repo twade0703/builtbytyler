@@ -290,8 +290,8 @@
 
     <!-- ===============================================================
          COMBINECAD. The reel is rendered from the real CombineCAD exports
-         (RC Buggy 1-10 v4, Model Rocket BT-60 Canard v3) and opens on the
-         app itself, sped up, while Claude builds the chassis. It loads and
+         (RC Buggy 1-10 v4) plus the GT3 RS style body from reel/gt3rs.py,
+         and opens on the app itself, sped up, while Claude builds the chassis. It loads and
          plays only when it is on screen (main.js, initReel). Under it, the
          step-by-step slides from the proving builds (initCadShow).
          =============================================================== -->
@@ -306,11 +306,13 @@
         </div>
         <div class="cad-reel" data-reel>
           <span class="tick tick--tl"></span><span class="tick tick--br"></span>
-          <video muted loop playsinline preload="none" poster="assets/img/cad/combinecad-reel-poster.jpg"
-            data-src="assets/img/cad/combinecad-reel-2.mp4" aria-label="CombineCAD reel: Claude building an RC car chassis, the finished buggy, its gearbox and exploded parts, and a canard rocket"></video>
+          <video muted loop playsinline preload="none" poster="assets/img/cad/combinecad-reel-3-poster.jpg"
+            data-src="assets/img/cad/combinecad-reel-3.mp4" aria-label="CombineCAD reel: Claude building an RC car chassis, then a GT3 RS style body on that chassis, lifting off to show the gearbox"></video>
         </div>
-        <p class="cad-reel__cap">Rendered from the CombineCAD files. The RC buggy has 15 printed parts and a
-          real motor, ESC, servo and bearings, with 0 clashes. The rocket steers on canards.</p>
+        <p class="cad-reel__cap">Rendered from the CombineCAD files. A body in the style of the 911 GT3 RS,
+          drawn at 1:8.78 so its wheelbase matches the RC buggy chassis, on new wheels and magnetic body
+          posts. The chassis underneath has 15 printed parts and a real motor, ESC, servo and bearings.
+          A design study, not a product. Porsche and 911 GT3 RS are trademarks of Porsche AG.</p>
         <p class="kicker cad-sub" data-reveal>How it builds <b>—</b> step by step</p>
             <div class="cad-show" data-cad-show aria-roledescription="slideshow" aria-label="CombineCAD builds">
               <div class="cad-show__frame">

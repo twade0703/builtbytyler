@@ -1093,9 +1093,11 @@ span.app__icon svg { width: 62%; height: 62%; fill: none; stroke: #fff; stroke-w
 .apps-pair .app__name { font-size: var(--fs-h3); font-weight: 500; letter-spacing: -0.012em; }
 .apps-pair .app__icon { width: 52px; height: 52px; border-radius: 12px; }
 
-.app__pitch { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.4fr); gap: clamp(1.25rem, 3.5vw, 3rem); margin-bottom: clamp(1.75rem, 3.5vw, 2.5rem); }
-.app__lead { margin: 0; font-size: clamp(1.05rem, 1.4vw, 1.2rem); line-height: 1.55; color: var(--ink); }
-.app__feats { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border-top: 1px solid var(--hairline); }
+/* the pitch line runs full width, the six features sit under it in one even row of three,
+   so nothing leaves a hole beside a shorter column */
+.app__pitch { display: grid; grid-template-columns: minmax(0, 1fr); gap: clamp(1rem, 2vw, 1.5rem); margin-bottom: clamp(1.75rem, 3.5vw, 2.5rem); }
+.app__lead { margin: 0; max-width: 68ch; font-size: clamp(1.05rem, 1.4vw, 1.2rem); line-height: 1.55; color: var(--ink); }
+.app__feats { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1px solid var(--hairline); }
 .app__feats li { padding: 0.8rem 1rem 0.85rem 0; border-bottom: 1px solid var(--hairline); }
 .app__feats b { display: block; font-weight: 500; color: var(--ink); margin-bottom: 0.2rem; }
 .app__feats span { color: var(--muted); font-size: var(--fs-small); line-height: 1.45; }
@@ -1119,7 +1121,9 @@ button.cad-reel:focus-visible { outline: 2px solid var(--accent); outline-offset
 .reel-modal::backdrop { background: rgba(2, 4, 8, 0.9); }
 .reel-modal video { display: block; width: 100%; aspect-ratio: 16 / 9; background: #000; border: 1px solid var(--hairline); }
 
-/* the website show: one fixed frame, sites crossfade in place */
+/* the website show: one fixed frame, sites crossfade in place; kept narrower than the
+   column so it reads as a showcase, not a second page */
+.site-show { max-width: 960px; margin-inline: auto; }
 .site-show__frame { position: relative; aspect-ratio: 16 / 10; overflow: hidden; border: 1px solid var(--hairline); background: #05070b; }
 .site-show__frame img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: top center; display: block; opacity: 0; transition: opacity .7s var(--ease); }
 .site-show__frame img.is-on { opacity: 1; }
@@ -1153,15 +1157,22 @@ button.cad-reel:focus-visible { outline: 2px solid var(--accent); outline-offset
 @media (max-width: 900px) {
   .sw-head { grid-template-columns: minmax(0, 1fr); grid-template-areas: "k" "h" "p"; }
   .app__pitch, .apps-pair { grid-template-columns: minmax(0, 1fr); }
+  .app__feats, .hw-feats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 560px) {
   .app__head { grid-template-columns: auto minmax(0, 1fr); }
   .app__tag { display: none; }
-  .app__feats { grid-template-columns: minmax(0, 1fr); }
+  .app__feats, .hw-feats { grid-template-columns: minmax(0, 1fr); }
   .app__icon { width: 52px; height: 52px; border-radius: 12px; }
   .site-show__arrow { width: 42px; height: 42px; margin-top: -21px; }
   .site-show__bar { flex-direction: column; align-items: flex-start; }
 }
+
+/* Hardware: the page stays on the dark ground the whole way down, like Software. What
+   every build keeps is a hairline row of four under a section head, not a light band. */
+.hw-kept { padding-top: clamp(2.5rem, 5vw, 4rem); }
+.hw-feats { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.hw-feats li .n { display: block; font-family: var(--font-mono); font-size: var(--fs-micro); letter-spacing: 0.18em; color: var(--accent); margin-bottom: 0.45rem; }
 
 /* Software, 02 How it runs: one short paragraph and the timeline, so the band
    does not need the full band padding; it read as empty space. */

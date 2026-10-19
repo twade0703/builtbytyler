@@ -28,9 +28,9 @@
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
-  <script src="assets/js/boot.js?v=53"></script>
-  <link rel="stylesheet" href="assets/css/styles.css?v=53">
-  <link rel="stylesheet" href="assets/css/motion.css?v=53">
+  <script src="assets/js/boot.js?v=54"></script>
+  <link rel="stylesheet" href="assets/css/styles.css?v=54">
+  <link rel="stylesheet" href="assets/css/motion.css?v=54">
 
 <!-- Structured data. Every fact here is one this site already states in prose:
        the entity, the city and the email come off contact.html. Nothing is
@@ -130,42 +130,23 @@
     </section>
 
     <!-- ===============================================================
-         01 · WHAT IS KEPT — the inverted band. This is the reassurance
-         section, and it belongs on light paper: it is the part someone
-         reads carefully.
+         01 · WHAT IS KEPT. Same dark ground as the opener, so the landing
+         reads as one continuous page, the way Software does: a section
+         head, then the four things as one hairline row.
          =============================================================== -->
-    <section class="band" id="included" data-sec="included">
-      <div class="container band__grid" data-reveal>
-        <p class="band__lab">01 <b>—</b> Kept with every build</p>
-        <span class="band__n">01</span>
-        <h2 class="band__h">Every build keeps <em>how it was made</em>.</h2>
-        <div class="band__text">
-          <p>Every build comes with everything it took to make it: the files it was designed
-            from, the code it runs and the parts that went into it. Break a part and you can
-            print a new one; want it to do something else and you can change it.</p>
-          <p>Modify it, print a spare, fork the firmware. It is yours.</p>
+    <section class="section hw-kept" id="included" data-sec="included">
+      <div class="container">
+        <div class="sw-head" data-reveal>
+          <p class="kicker">Kept with every build</p>
+          <h2 class="sw-head__h">Every build keeps <em>how it was made</em>.</h2>
+          <p class="sw-head__p">The files it was designed from, the code it runs and the parts that went into it. Break a
+            part and print a new one. Want it to do something else and change it. It is yours.</p>
         </div>
-        <ul class="band__row">
-          <li>
-            <span class="n">01</span>
-            <b>STEP / STL files</b>
-            <span>Editable CAD plus print-ready meshes for every part.</span>
-          </li>
-          <li>
-            <span class="n">02</span>
-            <b>Program files</b>
-            <span>The firmware and source code the build actually runs.</span>
-          </li>
-          <li>
-            <span class="n">03</span>
-            <b>Hardware package</b>
-            <span>All the electronics and parts, ready to build.</span>
-          </li>
-          <li>
-            <span class="n">04</span>
-            <b>Build notes</b>
-            <span>What broke, what changed and why — assembly through first flight.</span>
-          </li>
+        <ul class="app__feats hw-feats" data-reveal>
+          <li><span class="n">01</span><b>STEP and STL files</b><span>Editable CAD plus print-ready meshes for every part.</span></li>
+          <li><span class="n">02</span><b>Program files</b><span>The firmware and source code the build actually runs.</span></li>
+          <li><span class="n">03</span><b>Hardware package</b><span>All the electronics and parts, ready to build.</span></li>
+          <li><span class="n">04</span><b>Build notes</b><span>What broke, what changed and why, from assembly to first run.</span></li>
         </ul>
       </div>
     </section>
@@ -225,11 +206,11 @@
        HTML, but main.js CREATES those canvases for the build plates. Removing
        it blanks every hologram. If the 64 KB is ever worth reclaiming, the fix
        is to load it on demand when a plate scrolls into view. -->
-  <script defer src="assets/js/products.js?v=53"></script>
-  <script defer src="assets/js/components.js?v=53"></script>
-  <script defer src="assets/js/hologram.js?v=53"></script>
-  <script defer src="assets/js/main.js?v=53"></script>
+  <script defer src="assets/js/products.js?v=54"></script>
+  <script defer src="assets/js/components.js?v=54"></script>
+  <script defer src="assets/js/hologram.js?v=54"></script>
+  <script defer src="assets/js/main.js?v=54"></script>
   <!-- The star field: plain WebGL, one small module, no library behind it. -->
-  <script type="module" src="assets/js/starfield.js?v=53"></script>
+  <script type="module" src="assets/js/starfield.js?v=54"></script>
 </body>
 </html>

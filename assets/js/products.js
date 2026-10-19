@@ -34,12 +34,14 @@ const PRODUCTS = [
     featured: true,
     available: false,
     description:
-      "A six-axis robotic camera arm built for streamers and creators — programmable " +
-      "motion paths, smooth tracking, and a mount tuned for 3D capture rigs. Designed, " +
-      "machined and assembled end to end.",
+      "A robotic camera arm for streamers and creators. NEMA 17 stepper motors drive " +
+      "the joints through printed cycloidal gearboxes, it runs from a portable power " +
+      "source, and the end takes whatever camera you already use. Programmable motion " +
+      "paths and smooth tracking.",
     specs: [
-      { label: "Motion", value: "6-axis articulated" },
-      { label: "Payload", value: "3D camera + gimbal" },
+      { label: "Drive", value: "NEMA 17 steppers · cycloidal gearboxes" },
+      { label: "Power", value: "Portable power source" },
+      { label: "Camera", value: "Adaptable mount · any camera" },
       { label: "Control", value: "Wireless · motion presets" },
       { label: "Status", value: "In design" },
     ],

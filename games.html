@@ -32,6 +32,37 @@
   <link rel="stylesheet" href="assets/css/styles.css?v=57">
   <link rel="stylesheet" href="assets/css/motion.css?v=57">
 
+  <!-- The games grid. Page-local so the site stylesheet and its ?v= stamps stay untouched;
+       move it into styles.css at the next asset version bump. -->
+  <style>
+    .game-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr)); gap: 1rem; margin-top: clamp(1.25rem, 2.5vw, 2rem); }
+    .gcard { position: relative; display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--hairline); transition: border-color .25s ease; }
+    .gcard:hover { border-color: var(--hairline-strong); }
+    .gcard__media { position: relative; aspect-ratio: 16 / 10; overflow: hidden; }
+    .gcard__media .re-case__open { padding: 0.6rem; }
+    .gcard__media .re-case__open span { padding: 0.4rem 0.6rem; font-size: 0.6rem; }
+    .gcard__body { display: flex; flex-direction: column; gap: 0.45rem; flex: 1; padding: 0.75rem 0.8rem 0.8rem; }
+    .gcard__top { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+    .gcard__name { margin: 0; font-family: var(--font-display); font-size: 1.05rem; font-weight: 500; letter-spacing: -0.01em; line-height: 1.2; }
+    .gcard__top .re-stamp { flex: none; font-size: 0.56rem; padding: 0.18rem 0.4rem; transform: rotate(-3deg); }
+    .gcard__tag { margin: 0; color: var(--muted); font-size: 0.8rem; line-height: 1.38; min-height: 2.76em;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .gcard__actions { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: auto; }
+    .gcard__actions .btn { flex: 1 1 auto; padding: 0.55rem 0.7rem; font-size: 0.6rem; letter-spacing: 0.14em; }
+    .gcard__meta { margin: 0; font-family: var(--font-mono); font-size: 0.58rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+    @media (max-width: 560px) {
+      .game-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.6rem; }
+      .gcard__body { padding: 0.55rem; gap: 0.35rem; }
+      .gcard__top { flex-direction: column; align-items: flex-start; gap: 0.3rem; }
+      .gcard__name { font-size: 0.92rem; }
+      .gcard__tag, .gcard__meta { display: none; }
+      .gcard__actions { flex-direction: column; }
+      .gcard__actions .btn { width: 100%; padding: 0.5rem 0.4rem; letter-spacing: 0.1em; }
+      .gcard__media .re-case__open { padding: 0.35rem; }
+      .gcard__media .re-case__open span { padding: 0.25rem 0.4rem; font-size: 0.5rem; letter-spacing: 0.1em; }
+    }
+  </style>
+
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -95,76 +126,59 @@
           <span class="idx__n">01</span>
           <p class="idx__lab">Games</p>
           <h2 class="idx__h">Game projects</h2>
-          <p class="idx__p">Two originals you can play right now, and a mod built to learn how games work. Click one for the slides.</p>
+          <p class="idx__p">Originals you can play right now, and mods built to learn how games work. Click a picture for its slides.</p>
         </div>
-        <div class="plates re-work">
+        <div class="game-grid">
 
-          <article class="plate plate--solo re-case" data-reveal data-reveal-i="1">
-            <div class="plate__media re-case__media">
-              <span class="tick tick--tl"></span><span class="tick tick--br"></span>
-              <img src="assets/img/re/checkmate-roulette-1.jpg" alt="Checkmate Roulette in 3D: a lit chessboard on a neon game-show stage, with MAESTRO the robot host and the six-chamber drum" loading="lazy" decoding="async">
-              <button class="re-case__open" type="button"
-                data-gallery="Checkmate Roulette"
+          <article class="gcard re-case" data-reveal data-reveal-i="1">
+            <div class="gcard__media re-case__media">
+              <img src="assets/img/re/checkmate-roulette-1.jpg" alt="Checkmate Roulette in 3D: a lit chessboard on a neon game-show stage" loading="lazy" decoding="async">
+              <button class="re-case__open" type="button" data-gallery="Checkmate Roulette"
                 data-slides="assets/img/re/checkmate-roulette-1.jpg|The 3D board: orbit it like a CAD model with the middle mouse button, zoom with the wheel;assets/img/re/checkmate-roulette-2.jpg|Every capture is a standoff: FIRE at the target, or DOUBLE DOWN on yourself for a bonus move;assets/img/re/checkmate-roulette-3.jpg|The drum fires: you know how many shells are live, never which;assets/img/re/checkmate-roulette-4.jpg|The 2D board is one key away (V). MAESTRO took this one by checkmate;assets/img/re/checkmate-roulette-5.jpg|The title stage, with the board turning in 3D"
-                aria-label="Open the Checkmate Roulette slides"><span>View slides</span></button>
+                aria-label="Open the Checkmate Roulette slides"><span>Slides</span></button>
             </div>
-            <div class="plate__cap">
-              <span class="plate__n">01</span>
-              <h3 class="plate__name">Checkmate Roulette</h3>
-              <span class="plate__price"><span class="re-stamp re-stamp--playable">Playable</span></span>
-              <p class="plate__tag">Chess against a robot game-show host, where every capture is a roulette standoff.
-                Play it in 2D or full 3D.</p>
-              <div class="close__actions" style="grid-column: 2 / -1; margin-top: 0.9rem;">
-                <a class="btn" href="/play/checkmate-roulette/">Play in your browser</a>
-                <a class="btn btn--ghost" href="https://github.com/twade0703/builtbytyler/releases/download/checkmate-roulette-v0.2.0/CheckmateRoulette-v0.2.0-win64.zip" rel="noopener">Download for Windows</a>
-              </div>
-              <p class="re-note" style="grid-column: 2 / -1; margin-top: 0.75rem;">Free &middot; v0.2.0 &middot; Windows 38&nbsp;MB,
-                DRM-free, no account, no data collected. In the browser it needs WebGL&nbsp;2 and a mouse.</p>
+            <div class="gcard__body">
+              <div class="gcard__top"><h3 class="gcard__name">Checkmate Roulette</h3><span class="re-stamp re-stamp--playable">Playable</span></div>
+              <p class="gcard__tag">Chess where every capture is a roulette standoff. Play it in 2D or full 3D.</p>
+              <div class="gcard__actions"><a class="btn" href="/play/checkmate-roulette/">Play</a><a class="btn btn--ghost" href="https://github.com/twade0703/builtbytyler/releases/download/checkmate-roulette-v0.2.0/CheckmateRoulette-v0.2.0-win64.zip" rel="noopener">Windows</a></div>
+              <p class="gcard__meta">Free &middot; v0.2.0 &middot; browser or 38 MB</p>
             </div>
           </article>
 
-          <article class="plate plate--solo re-case" data-reveal data-reveal-i="2">
-            <div class="plate__media re-case__media">
-              <span class="tick tick--tl"></span><span class="tick tick--br"></span>
-              <img src="assets/img/re/taskbar-souls-1.jpg" alt="Taskbar Souls docked above the taskbar: a pixel knight parries a skeleton in a thin strip below a document window" loading="lazy" decoding="async">
-              <button class="re-case__open" type="button"
-                data-gallery="Taskbar Souls"
+          <article class="gcard re-case" data-reveal data-reveal-i="2">
+            <div class="gcard__media re-case__media">
+              <img src="assets/img/re/taskbar-souls-thumb.jpg" alt="Taskbar Souls docked above the taskbar: a pixel knight parries a skeleton" loading="lazy" decoding="async">
+              <button class="re-case__open" type="button" data-gallery="Taskbar Souls"
                 data-slides="assets/img/re/taskbar-souls-1.jpg|It lives above your taskbar and fights while you work. Click the strip on the &quot;!&quot; to parry;assets/img/re/taskbar-souls-2.jpg|Fall, and your embers wait where you fell. Get back to them before you fall again;assets/img/re/taskbar-souls-3.jpg|The Ember Shrine opens above the strip: level up and change weapons;assets/img/re/taskbar-souls-4.jpg|Five zones, five bosses, then a New Journey where everything grows stronger;assets/img/re/taskbar-souls-5.jpg|Close it and come back: your knight kept fighting while you were away"
-                aria-label="Open the Taskbar Souls slides"><span>View slides</span></button>
+                aria-label="Open the Taskbar Souls slides"><span>Slides</span></button>
             </div>
-            <div class="plate__cap">
-              <span class="plate__n">02</span>
-              <h3 class="plate__name">Taskbar Souls</h3>
-              <span class="plate__price"><span class="re-stamp re-stamp--playable">Playable</span></span>
-              <p class="plate__tag">A tiny knight fights a dark-fantasy campaign along your taskbar while you work.
-                Click to parry when you're watching.</p>
-              <div class="close__actions" style="grid-column: 2 / -1; margin-top: 0.9rem;">
-                <a class="btn" href="https://github.com/twade0703/builtbytyler/releases/download/taskbar-souls-v0.1.0/TaskbarSouls-v0.1.0-win64.zip" rel="noopener">Download for Windows</a>
-              </div>
-              <p class="re-note" style="grid-column: 2 / -1; margin-top: 0.75rem;">Free &middot; v0.1.0 &middot; Windows 38&nbsp;MB,
-                DRM-free, no account, no data collected. Saves stay on your computer.</p>
+            <div class="gcard__body">
+              <div class="gcard__top"><h3 class="gcard__name">Taskbar Souls</h3><span class="re-stamp re-stamp--playable">Playable</span></div>
+              <p class="gcard__tag">An idle knight fights along your taskbar while you work. Click to parry.</p>
+              <div class="gcard__actions"><a class="btn" href="https://github.com/twade0703/builtbytyler/releases/download/taskbar-souls-v0.1.0/TaskbarSouls-v0.1.0-win64.zip" rel="noopener">Download</a></div>
+              <p class="gcard__meta">Free &middot; v0.1.0 &middot; Windows 38 MB</p>
             </div>
           </article>
 
-          <article class="plate plate--solo re-case" data-reveal data-reveal-i="3">
-            <div class="plate__media re-case__media">
-              <span class="tick tick--tl"></span><span class="tick tick--br"></span>
+          <article class="gcard re-case" data-reveal data-reveal-i="3">
+            <div class="gcard__media re-case__media">
               <img src="assets/img/re/elden-craft-1.jpg" alt="Steve with a diamond sword in front of the Church of Elleh ruins in Elden Ring" loading="lazy" decoding="async">
-              <button class="re-case__open" type="button"
-                data-gallery="Minecraft in Elden Ring"
+              <button class="re-case__open" type="button" data-gallery="Minecraft in Elden Ring"
                 data-slides="assets/img/re/elden-craft-1.jpg|Steve, rebuilt in Minecraft proportions, at the Church of Elleh, with the Minecraft HUD in place of Elden Ring's;assets/img/re/elden-craft-2.jpg|A crafting table placed in Limgrave: blocks spawn at runtime as real Elden Ring geometry;assets/img/re/elden-craft-3.jpg|A log, plank and cobblestone hut with a crafting table and TNT, built block by block in first person;assets/img/re/elden-craft-4.jpg|Survival and creative inventory, crafting and smelting, all read from the player's own Minecraft install"
-                aria-label="Open the Minecraft in Elden Ring slides"><span>View slides</span></button>
+                aria-label="Open the Minecraft in Elden Ring slides"><span>Slides</span></button>
             </div>
-            <div class="plate__cap">
-              <span class="plate__n">03</span>
-              <h3 class="plate__name">Minecraft in Elden Ring</h3>
-              <span class="plate__price"><span class="re-stamp re-stamp--partial">Partial</span></span>
-              <p class="plate__tag">Minecraft rebuilt inside Elden Ring: blocks, Steve, crafting, a bow and TNT. The download ships no Mojang or FromSoftware files.</p>
+            <div class="gcard__body">
+              <div class="gcard__top"><h3 class="gcard__name">Minecraft in Elden Ring</h3><span class="re-stamp re-stamp--partial">Partial</span></div>
+              <p class="gcard__tag">Minecraft rebuilt inside Elden Ring: blocks, Steve, crafting, a bow and TNT.</p>
+              <p class="gcard__meta">Fan mod &middot; ships no Mojang or FromSoftware files</p>
             </div>
           </article>
 
+          <!-- To add a game, copy one <article> above and change: the img (16:10 works best),
+               data-gallery + data-slides ("src|caption;src|caption"), name, stamp
+               (playable / partial / cap), tag (one line), the buttons and the meta line. -->
         </div>
-        <p class="re-note" data-reveal>Checkmate Roulette and Taskbar Souls are original games made with the Godot Engine (MIT licence).
+        <p class="re-note" data-reveal>Free, DRM-free, and none of them collects data. The originals are made with the Godot Engine (MIT licence).
           Minecraft in Elden Ring is a fan project, built to learn how these games work; Minecraft and Elden Ring are
           trademarks of their owners, and neither made or endorsed it.</p>
       </div>

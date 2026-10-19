@@ -32,8 +32,8 @@ const PRODUCTS = [
     name: "NEMO Robotic Arm",
     tagline: "A camera robot on its own rail",
     holo: "arm",
-    reel: "assets/img/hw/nemo-reel-2.mp4",
-    poster: "assets/img/hw/nemo-reel-2-poster.jpg",
+    reel: "assets/img/hw/nemo-reel-3.mp4",
+    poster: "assets/img/hw/nemo-reel-3-poster.jpg",
     status: "In design",
     featured: true,
     available: false,
@@ -41,17 +41,18 @@ const PRODUCTS = [
       "A camera robot for streamers and creators. The arm rides a one metre rail on four MGN12 " +
       "blocks, pulled by a GT2 belt, so slides are smooth and repeatable. On top of the carriage " +
       "are four rotary joints: base, shoulder, elbow and a camera pan at the tip. Every rotary " +
-      "joint is a NEMA 17 stepper driving our own 25:1 cycloidal gearbox, so moves are smooth " +
-      "and hold their position under load. It runs from a USB-C power bank in the box at the end " +
-      "of the rail, and the 1/4-20 plate takes whatever camera you already own. Every part is " +
+      "joint is a stepper driving our own 25:1 cycloidal gearbox, so moves are smooth " +
+      "and hold their position under load. The camera pan at the tip is a compact version of the " +
+      "same gearbox. It runs from a USB-C power bank that slides into the end of the rail, and the " +
+      "1/4-20 plate takes whatever camera you already own. Every part is " +
       "3D printed or off the shelf.",
     specs: [
       { label: "Motion", value: "Rail slide + 4 rotary · base, shoulder, elbow, camera pan" },
       { label: "Rail", value: "2 × 2040 + 2 × MGN12 · 4 blocks · 840 mm travel" },
       { label: "Rail drive", value: "NEMA 17 · GT2 belt, 20T pulley · drag chain" },
-      { label: "Joints", value: "NEMA 17 + 25:1 cycloid in every joint" },
+      { label: "Joints", value: "25:1 cycloid in every joint · NEMA 17, NEMA 14 on the pan" },
       { label: "Payload", value: "1 kg camera at full reach" },
-      { label: "Power", value: "USB-C PD power bank · 100 W" },
+      { label: "Power", value: "USB-C PD power bank · 100 W · inside the rail end" },
       { label: "Camera", value: "1/4-20 plate · any camera" },
       { label: "Control", value: "ESP32 · 5 × TMC2209 · Bluetooth" },
       { label: "Files", value: "STEP + STL included" },
@@ -63,8 +64,8 @@ const PRODUCTS = [
     name: "3\" Mini FPV Quad",
     tagline: "The i4: a 3-inch ducted mini quad",
     holo: "drone",
-    reel: "assets/img/hw/i4-reel-2.mp4",
-    poster: "assets/img/hw/i4-reel-2-poster.jpg",
+    reel: "assets/img/hw/i4-reel-3.mp4",
+    poster: "assets/img/hw/i4-reel-3-poster.jpg",
     status: "In testing",
     featured: true,
     available: false,

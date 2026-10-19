@@ -640,7 +640,7 @@
     return m;
   }
 
-  /* NEMO camera arm — a six-axis robot on a long linear slide.
+  /* NEMO camera arm: a camera robot on a long linear slide.
 
      Three things drive this shape, and all three were wrong before:
 

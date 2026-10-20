@@ -32,28 +32,29 @@ const PRODUCTS = [
     name: "NEMO Robotic Arm",
     tagline: "A camera robot on its own rail",
     holo: "arm",
-    reel: "assets/img/hw/nemo-reel-5.mp4",
-    poster: "assets/img/hw/nemo-reel-5-poster.jpg",
+    reel: "assets/img/hw/nemo-reel-6.mp4",
+    poster: "assets/img/hw/nemo-reel-6-poster.jpg",
     status: "In design",
     featured: true,
     available: false,
     description:
       "A camera robot for streamers and creators. The arm rides a one metre rail on two SBR12 " +
-      "supported round rails and four ball bushings, pulled by a GT2 belt, so slides are smooth " +
-      "and repeatable. On top of the carriage are four rotary joints: base, shoulder, elbow and a " +
+      "supported round rails, bolted down every 100 mm through 3D-printed risers into T-nuts in the " +
+      "2040 extrusion and clamped at the ends in machined SK12 supports, with four ball bushings " +
+      "and a GT2 belt, so slides are smooth and repeatable. On top of the carriage are four rotary joints: base, shoulder, elbow and a " +
       "camera pan at the tip. Every rotary joint is a stepper driving our own 25:1 cycloidal " +
       "gearbox, so moves are smooth and hold their position under load. It runs from a USB-C " +
       "power bank that slides into the end of the rail, and the 1/4-20 plate takes whatever " +
       "camera you already own. Every part is 3D printed or off the shelf.",
     specs: [
       { label: "Motion", value: "Rail slide + 4 rotary joints: base, shoulder, elbow, camera pan" },
-      { label: "Rail", value: "2 × 2040 extrusion · 2 × SBR12 supported round rails · 4 × SBR12UU · 840 mm travel" },
+      { label: "Rail", value: "2 × 2040 extrusion · 2 × SBR12 rails on 20 printed risers (M5 T-nuts, M4 inserts) · SK12 end clamps · 4 × SBR12UU · 840 mm travel" },
       { label: "Rail drive", value: "NEMA 17 · GT2 belt on a 20T pulley · 12.5 µm per step · drag chain" },
       { label: "Gearboxes", value: "Our own 25:1 cycloid in every joint · 26 rollers, 2 discs" },
       { label: "Motors", value: "NEMA 17 on the base, shoulder and elbow · NEMA 14 on the camera pan" },
       { label: "Payload", value: "1 kg camera at full reach · shoulder needs 3.6 of 4.9 N·m" },
       { label: "Reach", value: "250 mm arm on a 1 m rail" },
-      { label: "Stability", value: "Tip margin 3.4 with the arm level at full reach" },
+      { label: "Stability", value: "Tip margin 3.6 with the arm level at full reach" },
       { label: "Camera", value: "1/4-20 plate · any camera" },
       { label: "Power", value: "100 W USB-C PD power bank, inside the rail end" },
       { label: "Control", value: "ESP32 · 5 × TMC2209 · Bluetooth" },

@@ -40,7 +40,7 @@
     `<video muted loop playsinline preload="none" poster="${p.poster || ""}" data-src="${p.reel}" aria-label="${p.name}: product reel"></video>
      <span class="plate__open">Watch it large</span>`;
 
-  function plateHTML(p, index, span) {
+  function plateHTML(p, index, span, withSpecs) {
     const idx = String((index || 0) + 1).padStart(2, "0");
     const href = `product.html?id=${p.id}`;
     const status = p.status || "In progress";
@@ -65,6 +65,7 @@
           <span class="plate__price">${status}</span>
           <p class="plate__tag">${p.tagline}</p>
         </div>
+        ${withSpecs && p.specs ? `<dl class="cad-spec plate__spec">${p.specs.map((x) => `<div><dt>${x.label}</dt><dd>${x.value}</dd></div>`).join("")}</dl>` : ""}
       </article>`;
   }
 
@@ -82,8 +83,9 @@
       return;
     }
     const custom = (grid.getAttribute("data-spans") || "").split(",").map((v) => v.trim());
+    const specs = grid.hasAttribute("data-specs");             // the Hardware page lists the full system under each build
     grid.innerHTML = list
-      .map((p, i) => plateHTML(p, i, custom[i] !== undefined && custom[i] !== "" ? (custom[i] === "-" ? "" : custom[i]) : SPANS[i] || ""))
+      .map((p, i) => plateHTML(p, i, custom[i] !== undefined && custom[i] !== "" ? (custom[i] === "-" ? "" : custom[i]) : SPANS[i] || "", specs))
       .join("");
   }
 

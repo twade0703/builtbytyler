@@ -32,29 +32,32 @@ const PRODUCTS = [
     name: "NEMO Robotic Arm",
     tagline: "A camera robot on its own rail",
     holo: "arm",
-    reel: "assets/img/hw/nemo-reel-4.mp4",
-    poster: "assets/img/hw/nemo-reel-4-poster.jpg",
+    reel: "assets/img/hw/nemo-reel-5.mp4",
+    poster: "assets/img/hw/nemo-reel-5-poster.jpg",
     status: "In design",
     featured: true,
     available: false,
     description:
-      "A camera robot for streamers and creators. The arm rides a one metre rail on four MGN12 " +
-      "blocks, pulled by a GT2 belt, so slides are smooth and repeatable. On top of the carriage " +
-      "are four rotary joints: base, shoulder, elbow and a camera pan at the tip. Every rotary " +
-      "joint is a stepper driving our own 25:1 cycloidal gearbox, so moves are smooth " +
-      "and hold their position under load. The camera pan at the tip is a compact version of the " +
-      "same gearbox. It runs from a USB-C power bank that slides into the end of the rail, and the " +
-      "1/4-20 plate takes whatever camera you already own. Every part is " +
-      "3D printed or off the shelf.",
+      "A camera robot for streamers and creators. The arm rides a one metre rail on two SBR12 " +
+      "supported round rails and four ball bushings, pulled by a GT2 belt, so slides are smooth " +
+      "and repeatable. On top of the carriage are four rotary joints: base, shoulder, elbow and a " +
+      "camera pan at the tip. Every rotary joint is a stepper driving our own 25:1 cycloidal " +
+      "gearbox, so moves are smooth and hold their position under load. It runs from a USB-C " +
+      "power bank that slides into the end of the rail, and the 1/4-20 plate takes whatever " +
+      "camera you already own. Every part is 3D printed or off the shelf.",
     specs: [
-      { label: "Motion", value: "Rail slide + 4 rotary · base, shoulder, elbow, camera pan" },
-      { label: "Rail", value: "2 × 2040 + 2 × MGN12 · 4 blocks · 840 mm travel" },
-      { label: "Rail drive", value: "NEMA 17 · GT2 belt, 20T pulley · drag chain" },
-      { label: "Joints", value: "25:1 cycloid in every joint · NEMA 17, NEMA 14 on the pan" },
-      { label: "Payload", value: "1 kg camera at full reach" },
-      { label: "Power", value: "USB-C PD power bank · 100 W · inside the rail end" },
+      { label: "Motion", value: "Rail slide + 4 rotary joints: base, shoulder, elbow, camera pan" },
+      { label: "Rail", value: "2 × 2040 extrusion · 2 × SBR12 supported round rails · 4 × SBR12UU · 840 mm travel" },
+      { label: "Rail drive", value: "NEMA 17 · GT2 belt on a 20T pulley · 12.5 µm per step · drag chain" },
+      { label: "Gearboxes", value: "Our own 25:1 cycloid in every joint · 26 rollers, 2 discs" },
+      { label: "Motors", value: "NEMA 17 on the base, shoulder and elbow · NEMA 14 on the camera pan" },
+      { label: "Payload", value: "1 kg camera at full reach · shoulder needs 3.6 of 4.9 N·m" },
+      { label: "Reach", value: "250 mm arm on a 1 m rail" },
+      { label: "Stability", value: "Tip margin 3.4 with the arm level at full reach" },
       { label: "Camera", value: "1/4-20 plate · any camera" },
+      { label: "Power", value: "100 W USB-C PD power bank, inside the rail end" },
       { label: "Control", value: "ESP32 · 5 × TMC2209 · Bluetooth" },
+      { label: "Size", value: "1215 × 394 × 316 mm" },
       { label: "Files", value: "STEP + STL included" },
       { label: "Status", value: "In design" },
     ],
@@ -64,26 +67,32 @@ const PRODUCTS = [
     name: "3\" Mini FPV Quad",
     tagline: "The i4: a 3-inch ducted mini quad",
     holo: "drone",
-    reel: "assets/img/hw/i4-reel-3.mp4",
-    poster: "assets/img/hw/i4-reel-3-poster.jpg",
+    reel: "assets/img/hw/i4-reel-4.mp4",
+    poster: "assets/img/hw/i4-reel-4-poster.jpg",
     status: "In testing",
     featured: true,
     available: false,
     description:
-      "The i4: a 3\" ducted mini quad with a one-piece 3D-printed airframe in carbon-fibre PLA " +
-      "or PLA Aero. Wide arms run straight under each motor, the four ducts are braced to each " +
-      "other, and a bumper band around the outside takes the hit in a crash. It comes with the " +
-      "STEP and STL files for every part, and a SpeedyBee F405 Mini flight controller over a " +
-      "35A 4-in-1 ESC, running Betaflight, programmed and bound to a remote.",
+      "The i4: a 3\" ducted mini quad built for quiet, smooth flight. The airframe is one printed " +
+      "piece in carbon-fibre PLA or PLA Aero: four braced ducts, arms that run straight under each " +
+      "motor, and a bumper band that takes the hit in a crash. It flies four XING2 1404 motors on " +
+      "Gemfan Hurricane 3016 tri-blades, the quietest 3\" prop for its thrust, off a Hummingbird " +
+      "255 all-in-one flight controller and 50 A ESC. Video is a Caddx Ant camera into a Zeus Nano " +
+      "transmitter, control is ExpressLRS, and it runs on a 4S 650 mAh pack. It comes with the " +
+      "STEP and STL files for every part, set up in Betaflight and bound to your remote.",
     specs: [
-      { label: "Airframe", value: "One printed piece · PLA-CF or PLA Aero" },
-      { label: "Frame", value: "4 × 82 mm ducts · 125 mm wheelbase · bumper band" },
-      { label: "Motors", value: "4 × XING2 1404 3800 kV · Gemfan 3016 tri-blades" },
-      { label: "Flight controller", value: "SpeedyBee F405 Mini · Betaflight" },
-      { label: "ESC", value: "SpeedyBee BLS 35A 4-in-1 · 20x20 stack" },
-      { label: "Video", value: "HGLRC Zeus Nano 5.8 GHz · RunCam Nano 4" },
-      { label: "Radio", value: "RadioMaster RP1 ELRS" },
-      { label: "Battery", value: "GNB 4S 650 mAh · 15 mm strap" },
+      { label: "Airframe", value: "One printed piece · PLA-CF or PLA Aero · 4 × 79 mm ducts" },
+      { label: "Motors", value: "4 × iFlight XING2 1404 3800 kV · 1.5 mm shaft" },
+      { label: "Props", value: "Gemfan Hurricane 3016 tri-blade · 1.6 in pitch · 1.26 mm tip gap" },
+      { label: "Flight controller + ESC", value: "Hummingbird 255 AIO · AT32F435 · AM32 50 A 4-in-1" },
+      { label: "Camera", value: "Caddx Ant Nano 1200TVL · WDR" },
+      { label: "Video", value: "HGLRC Zeus Nano 350 mW · FlyFishRC Osprey 40 mm RHCP" },
+      { label: "Radio", value: "RadioMaster XR2 Nano · ExpressLRS 2.4 GHz" },
+      { label: "Battery", value: "Tattu 650 mAh 4S 75C · XT30 · 15 mm strap" },
+      { label: "Weight", value: "321 g ready to fly in PLA-CF · 261 g in PLA Aero" },
+      { label: "Hover time", value: "About 7 min in PLA-CF · 10 min in PLA Aero (calculated)" },
+      { label: "Video range", value: "About 1 to 1.5 km line of sight (estimated)" },
+      { label: "Goggles", value: "Pairs with Skyzone Cobra SD X V4 · RHCP" },
       { label: "Files", value: "STEP + STL included" },
       { label: "Status", value: "In testing" },
     ],

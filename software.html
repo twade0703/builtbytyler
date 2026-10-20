@@ -265,61 +265,30 @@
             <span class="app__tag">Desktop app</span>
           </header>
           <div class="app__pitch">
-            <p class="app__lead">Model a part yourself with sketches, features and a history tree you can edit. Or
-              describe it, and Claude builds it for you one feature at a time. Either way you end up with real CAD
-              you can change, print or send to a machine shop.</p>
+            <p class="app__lead">Tell it what you want built and Claude designs it in front of you, one feature at a
+              time, and every step stays editable. Or model it yourself. Either way you end up with real CAD: every part
+              named, every screw at its real size, checked for fit and ready to print or send to a machine shop.</p>
             <ul class="app__feats">
-              <li><b>Model it yourself</b><span>Sketch, extrude, revolve, loft, sweep, fillet, shell, pattern and mirror, in a feature tree you can roll back and edit.</span></li>
-              <li><b>Or ask Claude</b><span>Describe the part in plain words. Claude builds it step by step, and every step stays editable.</span></li>
-              <li><b>Real hardware</b><span>Motors, bearings, screws and inserts from a parts catalog, placed at their real sizes.</span></li>
-              <li><b>Checked before printing</b><span>Interference and fit checks between every part in the model.</span></li>
+              <li><b>Describe it</b><span>Say what you want in plain words, from a bracket to a whole RC car. Claude plans it and builds it.</span></li>
+              <li><b>Give it your parts</b><span>Drop in your STEP, STL or SolidWorks files, or pick motors, bearings and screws from the catalog. It designs around them.</span></li>
+              <li><b>Get the full kit</b><span>The printed parts, the hardware list and a spec check that every hole fits the screw it was made for.</span></li>
+              <li><b>Model it yourself</b><span>Sketch, extrude, revolve, loft, fillet and pattern, in a feature tree you can roll back and edit.</span></li>
+              <li><b>Checked before printing</b><span>Interference and clearance between every part, section views, mass properties, and centre of gravity and pressure for rockets.</span></li>
               <li><b>Opens your files</b><span>STEP, IGES, STL, 3MF and OBJ in. STEP and one STL per printed part out.</span></li>
-              <li><b>Never freezes</b><span>Big parts rebuild in the background while you keep working.</span></li>
             </ul>
           </div>
-          <div class="cad-duo">
           <figure class="cad-item" data-reveal data-reveal-i="1">
-            <figcaption class="cad-item__head"><span>01</span>RC car, GT3 RS body kit</figcaption>
-            <button class="cad-reel" type="button" data-reel aria-label="Watch this reel large">
+            <button class="cad-reel" type="button" data-reel aria-label="Watch the CombineCAD reel large">
               <span class="tick tick--tl"></span><span class="tick tick--br"></span>
-              <video muted loop playsinline preload="none" poster="assets/img/cad/car-reel-7-poster.jpg"
-                data-src="assets/img/cad/car-reel-7.mp4" aria-label="Claude building the RC car in CombineCAD, every part and screw, its GT3 RS wheels and the body kit, then the GT3 RS body kit on the chassis steering through a turn, the body going see-through to show its four M3 mounts, the screws backing out and the shell lifting off to show the electronics and the gearbox"></video>
+              <video muted loop playsinline preload="none" poster="assets/img/cad/cad-showcase-1-poster.jpg"
+                data-src="assets/img/cad/cad-showcase-1.mp4" aria-label="CombineCAD at work: Claude builds a part one feature at a time, places real hardware, builds a guided rocket, checks every screw for fit, cuts a section view, places moving parts, shows the whole build and its gear train, and exports it for printing"></video>
               <span class="cad-reel__zoom" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7"/></svg>Watch large</span>
             </button>
-            <dl class="cad-spec">
-              <div><dt>Motor</dt><dd>Hobbywing QuicRun 3650 G2, 10.5T, 3600 kV</dd></div>
-              <div><dt>ESC</dt><dd>QuicRun 10BL120 G2, 120 A, BEC at 6.0 V</dd></div>
-              <div><dt>Battery</dt><dd>Spektrum Smart G2 2S 5000 mAh 100C</dd></div>
-              <div><dt>Radio</dt><dd>FlySky FS-iA6B on an AFHDS 2A transmitter</dd></div>
-              <div><dt>Steering</dt><dd>DS3218 20 kg servo, printed rack and knuckles</dd></div>
-              <div><dt>Gearing</dt><dd>15/60 then 18/40, 8.89:1, about 40 km/h</dd></div>
-              <div><dt>Body kit</dt><dd>992 GT3 RS shell printed as one closed piece, held by 4 M3 screws into heat-set inserts</dd></div>
-              <div><dt>Checks</dt><dd>Geometry valid, 0 clashes between every part pair</dd></div>
-            </dl>
           </figure>
-          <figure class="cad-item" data-reveal data-reveal-i="2">
-            <figcaption class="cad-item__head"><span>02</span>Rocket</figcaption>
-            <button class="cad-reel" type="button" data-reel aria-label="Watch this reel large">
-              <span class="tick tick--tl"></span><span class="tick tick--br"></span>
-              <video muted loop playsinline preload="none" poster="assets/img/cad/rocket-reel-3-poster.jpg"
-                data-src="assets/img/cad/rocket-reel-3.mp4" aria-label="Claude building the canard rocket in CombineCAD, then the rocket with its canards moving, a section cut naming its electronics, and stage separation"></video>
-              <span class="cad-reel__zoom" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7"/></svg>Watch large</span>
-            </button>
-            <dl class="cad-spec">
-              <div><dt>Airframe</dt><dd>BT-60 tubes, printed nose cone, fin can and canard bay</dd></div>
-              <div><dt>Motor</dt><dd>Estes E12-4, 24 mm</dd></div>
-              <div><dt>Guidance</dt><dd>2 SG90 servos on pitch and yaw canards</dd></div>
-              <div><dt>Flight computer</dt><dd>Seeed XIAO nRF52840 Sense with IMU</dd></div>
-              <div><dt>Power</dt><dd>1S LiPo and a Pololu U3V40F5 5 V boost</dd></div>
-              <div><dt>Recovery</dt><dd>24 in ripstop parachute, Kevlar and elastic cord</dd></div>
-              <div><dt>Stability</dt><dd>1.61 calibres static margin with the motor in</dd></div>
-              <div><dt>Build</dt><dd>131 features, every part named and placed</dd></div>
-            </dl>
-          </figure>
-          </div>
-          <p class="cad-reel__cap">Click a reel to watch it large. Both open on CombineCAD itself, sped up, while
-            Claude builds the part. Everything after that is rendered from the same CombineCAD files. The body kit is a
-            design study in the style of the 911 GT3 RS, not a product. Porsche and 911 GT3 RS are trademarks of Porsche AG.</p>
+          <p class="cad-reel__cap">Cut from two builds made in CombineCAD, an RC car and a guided rocket. Both started as a
+            sentence to Claude, and the views are rendered straight from the CombineCAD files.
+            <a href="shop.html#projects">See both builds with their full specs on the Hardware page.</a> The car's body kit is
+            a design study in the style of the 911 GT3 RS, not a product. Porsche and 911 GT3 RS are trademarks of Porsche AG.</p>
         </article>
 
         <div class="apps-pair demos">

@@ -130,6 +130,64 @@
     </section>
 
     <!-- ===============================================================
+         PROJECTS: the two builds designed in CombineCAD, moved here from the
+         Software page with their reels and full specs. The reels use the same
+         markup and #reel-modal as Software (initReel / initReelModal).
+         =============================================================== -->
+    <section class="section hw-projects" id="projects" data-sec="projects">
+      <div class="container">
+        <div class="sw-head" data-reveal>
+          <p class="kicker">Designed in CombineCAD</p>
+          <h2 class="sw-head__h">Two builds, <em>down to the last screw</em>.</h2>
+          <p class="sw-head__p">Both started as a sentence to Claude in CombineCAD. Every part is named, every screw sits at
+            its real size, and every view here is rendered from the same files. Click a reel to watch it large.</p>
+        </div>
+        <div class="cad-duo">
+          <figure class="cad-item" data-reveal data-reveal-i="1">
+            <figcaption class="cad-item__head"><span>01</span>RC car, GT3 RS body kit</figcaption>
+            <button class="cad-reel" type="button" data-reel aria-label="Watch this reel large">
+              <span class="tick tick--tl"></span><span class="tick tick--br"></span>
+              <video muted loop playsinline preload="none" poster="assets/img/cad/car-hw-1-poster.jpg"
+                data-src="assets/img/cad/car-hw-1.mp4" aria-label="The GT3 RS body kit on the chassis steering through a turn, the body going see-through to show its four M3 mounts, the screws backing out and the shell lifting off to show the electronics and the gearbox"></video>
+              <span class="cad-reel__zoom" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7"/></svg>Watch large</span>
+            </button>
+            <dl class="cad-spec">
+              <div><dt>Motor</dt><dd>Hobbywing QuicRun 3650 G2, 10.5T, 3600 kV</dd></div>
+              <div><dt>ESC</dt><dd>QuicRun 10BL120 G2, 120 A, BEC at 6.0 V</dd></div>
+              <div><dt>Battery</dt><dd>Spektrum Smart G2 2S 5000 mAh 100C</dd></div>
+              <div><dt>Radio</dt><dd>FlySky FS-iA6B on an AFHDS 2A transmitter</dd></div>
+              <div><dt>Steering</dt><dd>DS3218 20 kg servo, printed rack and knuckles</dd></div>
+              <div><dt>Gearing</dt><dd>15/60 then 18/40, 8.89:1, about 40 km/h</dd></div>
+              <div><dt>Body kit</dt><dd>992 GT3 RS shell printed as one closed piece, held by 4 M3 screws into heat-set inserts</dd></div>
+              <div><dt>Checks</dt><dd>Geometry valid, 0 clashes between every part pair</dd></div>
+            </dl>
+          </figure>
+          <figure class="cad-item" data-reveal data-reveal-i="2">
+            <figcaption class="cad-item__head"><span>02</span>Rocket</figcaption>
+            <button class="cad-reel" type="button" data-reel aria-label="Watch this reel large">
+              <span class="tick tick--tl"></span><span class="tick tick--br"></span>
+              <video muted loop playsinline preload="none" poster="assets/img/cad/rocket-hw-1-poster.jpg"
+                data-src="assets/img/cad/rocket-hw-1.mp4" aria-label="The canard rocket with its canards moving, a section cut naming its electronics, and stage separation"></video>
+              <span class="cad-reel__zoom" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7"/></svg>Watch large</span>
+            </button>
+            <dl class="cad-spec">
+              <div><dt>Airframe</dt><dd>BT-60 tubes, printed nose cone, fin can and canard bay</dd></div>
+              <div><dt>Motor</dt><dd>Estes E12-4, 24 mm</dd></div>
+              <div><dt>Guidance</dt><dd>2 SG90 servos on pitch and yaw canards</dd></div>
+              <div><dt>Flight computer</dt><dd>Seeed XIAO nRF52840 Sense with IMU</dd></div>
+              <div><dt>Power</dt><dd>1S LiPo and a Pololu U3V40F5 5 V boost</dd></div>
+              <div><dt>Recovery</dt><dd>24 in ripstop parachute, Kevlar and elastic cord</dd></div>
+              <div><dt>Stability</dt><dd>1.61 calibres static margin with the motor in</dd></div>
+              <div><dt>Build</dt><dd>131 features, every part named and placed</dd></div>
+            </dl>
+          </figure>
+          </div>
+        <p class="cad-reel__cap">Watch Claude build them in CombineCAD on the <a href="software.html#combinecad">Software page</a>. The body kit is
+          a design study in the style of the 911 GT3 RS, not a product. Porsche and 911 GT3 RS are trademarks of Porsche AG.</p>
+      </div>
+    </section>
+
+    <!-- ===============================================================
          01 · WHAT IS KEPT. Same dark ground as the opener, so the landing
          reads as one continuous page, the way Software does: a section
          head, then the four things as one hairline row.

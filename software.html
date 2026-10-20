@@ -243,8 +243,8 @@
 
     <!-- ===============================================================
          SOFTWARE: the programs, each with its own app icon. CombineCAD leads
-         with what it does and the two reels (main.js, initReel; a click opens
-         a reel large, initReelModal). The two web apps sit side by side with
+         with its reel beside what it does, one screen tall (main.js, initReel;
+         a click opens the reel large, initReelModal). The two web apps sit side by side with
          their live previews (initDemos).
          =============================================================== -->
     <section class="section sw" id="work" data-sec="work">
@@ -264,31 +264,35 @@
             </div>
             <span class="app__tag">Desktop app</span>
           </header>
-          <div class="app__pitch">
-            <p class="app__lead">Tell it what you want built and Claude designs it in front of you, one feature at a
-              time, and every step stays editable. Or model it yourself. Either way you end up with real CAD: every part
-              named, every screw at its real size, checked for fit and ready to print or send to a machine shop.</p>
-            <ul class="app__feats">
-              <li><b>Describe it</b><span>Say what you want in plain words, from a bracket to a whole RC car. Claude plans it and builds it.</span></li>
-              <li><b>Give it your parts</b><span>Drop in your STEP, STL or SolidWorks files, or pick motors, bearings and screws from the catalog. It designs around them.</span></li>
-              <li><b>Get the full kit</b><span>The printed parts, the hardware list and a spec check that every hole fits the screw it was made for.</span></li>
-              <li><b>Model it yourself</b><span>Sketch, extrude, revolve, loft, fillet and pattern, in a feature tree you can roll back and edit.</span></li>
-              <li><b>Checked before printing</b><span>Interference and clearance between every part, section views, mass properties, and centre of gravity and pressure for rockets.</span></li>
-              <li><b>Opens your files</b><span>STEP, IGES, STL, 3MF and OBJ in. STEP and one STL per printed part out.</span></li>
-            </ul>
+          <div class="app__body">
+            <div class="app__media">
+              <figure class="cad-item" data-reveal data-reveal-i="1">
+                <button class="cad-reel" type="button" data-reel aria-label="Watch the CombineCAD reel large">
+                  <span class="tick tick--tl"></span><span class="tick tick--br"></span>
+                  <video muted loop playsinline preload="none" poster="assets/img/cad/cad-showcase-2-poster.jpg"
+                    data-src="assets/img/cad/cad-showcase-2.mp4" aria-label="CombineCAD at work: Claude builds a part one feature at a time, places real hardware, builds a guided rocket, checks every screw for fit, cuts a section view, places moving parts, shows the whole build and its gear train, and exports it for printing"></video>
+                  <span class="cad-reel__zoom" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7"/></svg>Watch large</span>
+                </button>
+              </figure>
+              <p class="cad-reel__cap">Cut from two builds made in CombineCAD, an RC car and a guided rocket. Both started as a
+                sentence to Claude, and the views are rendered straight from the CombineCAD files.
+                <a href="shop.html#projects">See both builds with their full specs on the Hardware page.</a> The car's body kit is
+                a design study in the style of the 911 GT3 RS, not a product. Porsche and 911 GT3 RS are trademarks of Porsche AG.</p>
+  </div>
+            <div class="app__pitch">
+              <p class="app__lead">Tell it what you want built and Claude designs it in front of you, one feature at a
+                time, and every step stays editable. Or model it yourself. Either way you end up with real CAD: every part
+                named, every screw at its real size, checked for fit and ready to print or send to a machine shop.</p>
+              <ul class="app__feats">
+                <li><b>Describe it</b><span>Say what you want in plain words, from a bracket to a whole RC car. Claude plans it and builds it.</span></li>
+                <li><b>Give it your parts</b><span>Drop in your STEP, STL or SolidWorks files, or pick motors, bearings and screws from the catalog. It designs around them.</span></li>
+                <li><b>Get the full kit</b><span>The printed parts, the hardware list and a spec check that every hole fits the screw it was made for.</span></li>
+                <li><b>Model it yourself</b><span>Sketch, extrude, revolve, loft, fillet and pattern, in a feature tree you can roll back and edit.</span></li>
+                <li><b>Checked before printing</b><span>Interference and clearance between every part, section views, mass properties, and centre of gravity and pressure for rockets.</span></li>
+                <li><b>Opens your files</b><span>STEP, IGES, STL, 3MF and OBJ in. STEP and one STL per printed part out.</span></li>
+              </ul>
+            </div>
           </div>
-          <figure class="cad-item" data-reveal data-reveal-i="1">
-            <button class="cad-reel" type="button" data-reel aria-label="Watch the CombineCAD reel large">
-              <span class="tick tick--tl"></span><span class="tick tick--br"></span>
-              <video muted loop playsinline preload="none" poster="assets/img/cad/cad-showcase-2-poster.jpg"
-                data-src="assets/img/cad/cad-showcase-2.mp4" aria-label="CombineCAD at work: Claude builds a part one feature at a time, places real hardware, builds a guided rocket, checks every screw for fit, cuts a section view, places moving parts, shows the whole build and its gear train, and exports it for printing"></video>
-              <span class="cad-reel__zoom" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7"/></svg>Watch large</span>
-            </button>
-          </figure>
-          <p class="cad-reel__cap">Cut from two builds made in CombineCAD, an RC car and a guided rocket. Both started as a
-            sentence to Claude, and the views are rendered straight from the CombineCAD files.
-            <a href="shop.html#projects">See both builds with their full specs on the Hardware page.</a> The car's body kit is
-            a design study in the style of the 911 GT3 RS, not a product. Porsche and 911 GT3 RS are trademarks of Porsche AG.</p>
         </article>
 
         <div class="apps-pair demos">

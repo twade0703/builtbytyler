@@ -1102,6 +1102,15 @@ span.app__icon svg { width: 62%; height: 62%; fill: none; stroke: #fff; stroke-w
 .app__feats b { display: block; font-weight: 500; color: var(--ink); margin-bottom: 0.2rem; }
 .app__feats span { color: var(--muted); font-size: var(--fs-small); line-height: 1.45; }
 
+/* CombineCAD: the reel beside the pitch, so the lead app is one screen tall, not a page */
+.app__body { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: clamp(1.25rem, 3vw, 2.5rem); align-items: start; }
+.app__body .app__pitch { margin-bottom: 0; gap: 1rem; }
+.app__body .app__lead { font-size: 1rem; line-height: 1.5; }
+.app__body .app__feats { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 1.25rem; }
+.app__body .app__feats li { padding: 0.6rem 0 0.65rem; }
+.app__body .app__feats span { font-size: 0.82rem; line-height: 1.4; }
+.app__body .cad-reel__cap { margin-top: 0.9rem; padding-top: 0.7rem; font-size: 0.8rem; }
+
 .apps-pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(1.25rem, 3vw, 2.5rem); }
 .apps-pair .app { margin-top: 0; }
 
@@ -1156,13 +1165,13 @@ button.cad-reel:focus-visible { outline: 2px solid var(--accent); outline-offset
 
 @media (max-width: 900px) {
   .sw-head { grid-template-columns: minmax(0, 1fr); grid-template-areas: "k" "h" "p"; }
-  .app__pitch, .apps-pair { grid-template-columns: minmax(0, 1fr); }
+  .app__pitch, .apps-pair, .app__body { grid-template-columns: minmax(0, 1fr); }
   .app__feats, .hw-feats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 560px) {
   .app__head { grid-template-columns: auto minmax(0, 1fr); }
   .app__tag { display: none; }
-  .app__feats, .hw-feats { grid-template-columns: minmax(0, 1fr); }
+  .app__feats, .hw-feats, .app__body .app__feats { grid-template-columns: minmax(0, 1fr); }
   .app__icon { width: 52px; height: 52px; border-radius: 12px; }
   .site-show__arrow { width: 42px; height: 42px; margin-top: -21px; }
   .site-show__bar { flex-direction: column; align-items: flex-start; }

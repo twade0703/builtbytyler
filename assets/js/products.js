@@ -67,8 +67,8 @@ const PRODUCTS = [
     name: "3\" Mini FPV Quad",
     tagline: "The i4: a 3-inch ducted mini quad",
     holo: "drone",
-    reel: "assets/img/hw/i4-reel-4.mp4",
-    poster: "assets/img/hw/i4-reel-4-poster.jpg",
+    reel: "assets/img/hw/i4-reel-5.mp4",
+    poster: "assets/img/hw/i4-reel-5-poster.jpg",
     status: "In testing",
     featured: true,
     available: false,
@@ -77,19 +77,21 @@ const PRODUCTS = [
       "piece in carbon-fibre PLA or PLA Aero: four braced ducts, arms that run straight under each " +
       "motor, and a bumper band that takes the hit in a crash. It flies four XING2 1404 motors on " +
       "Gemfan Hurricane 3016 tri-blades, the quietest 3\" prop for its thrust, off a Hummingbird " +
-      "255 all-in-one flight controller and 50 A ESC. Video is a Caddx Ant camera into a Zeus Nano " +
-      "transmitter, control is ExpressLRS, and it runs on a 4S 650 mAh pack. It comes with the " +
+      "255 all-in-one flight controller and 50 A ESC. Video is a Caddx Ant camera, low in a nose cage between the front " +
+      "ducts, into a Zeus Nano transmitter, control is ExpressLRS, and it runs on a 4S 650 mAh pack. Every wire is " +
+      "routed: motor leads down channels in the arms under cable ties, one harness to the camera, " +
+      "video and receiver, and a 470 µF cap on the XT30 lead. It comes with the " +
       "STEP and STL files for every part, set up in Betaflight and bound to your remote.",
     specs: [
       { label: "Airframe", value: "One printed piece · PLA-CF or PLA Aero · 4 × 79 mm ducts" },
       { label: "Motors", value: "4 × iFlight XING2 1404 3800 kV · 1.5 mm shaft" },
-      { label: "Props", value: "Gemfan Hurricane 3016 tri-blade · 1.6 in pitch · 1.26 mm tip gap" },
+      { label: "Props", value: "Gemfan Hurricane 3016 tri-blade · 1.6 in pitch · 2 × M2 T-mount screws · 1.25 mm tip gap" },
       { label: "Flight controller + ESC", value: "Hummingbird 255 AIO · AT32F435 · AM32 50 A 4-in-1" },
-      { label: "Camera", value: "Caddx Ant Nano 1200TVL · WDR" },
+      { label: "Camera", value: "Caddx Ant Nano 1200TVL · WDR · nose cage, 10–40° tilt" },
       { label: "Video", value: "HGLRC Zeus Nano 350 mW · FlyFishRC Osprey 40 mm RHCP" },
-      { label: "Radio", value: "RadioMaster XR2 Nano · ExpressLRS 2.4 GHz" },
+      { label: "Radio", value: "RadioMaster XR2 Nano · ExpressLRS 2.4 GHz · on the left deck ear" },
       { label: "Battery", value: "Tattu 650 mAh 4S 75C · XT30 · 15 mm strap" },
-      { label: "Weight", value: "321 g ready to fly in PLA-CF · 261 g in PLA Aero" },
+      { label: "Weight", value: "319 g ready to fly in PLA-CF · 260 g in PLA Aero" },
       { label: "Hover time", value: "About 7 min in PLA-CF · 10 min in PLA Aero (calculated)" },
       { label: "Video range", value: "About 1 to 1.5 km line of sight (estimated)" },
       { label: "Goggles", value: "Pairs with Skyzone Cobra SD X V4 · RHCP" },

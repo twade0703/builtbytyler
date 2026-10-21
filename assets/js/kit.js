@@ -1,7 +1,7 @@
 /* Sensor Kit module page: the 3D bench (breadboard + ESP32 + 9 V power module) with this module wired to it,
    real Dupont jumpers drawn in one at a time, a pin list that highlights its wire, and Board / QR views.
    Data comes from <script type="application/json" id="mod-data"> (written by sensor-kit/tools/web_kit.py). */
-import { THREE, createViewer, ease, bench, jumper, loadBoard, BB, COARSE } from "./kit3d.js?v=72";
+import { THREE, createViewer, ease, bench, jumper, loadBoard, BB, COARSE } from "./kit3d.js?v=73";
 
 const data = JSON.parse(document.getElementById("mod-data").textContent);
 const host = document.querySelector("[data-mod-stage]");

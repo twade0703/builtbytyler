@@ -2,7 +2,7 @@
    Two foam layers per sensor-kit/packaging/layout.json: the top tray holds the 37 boards (baked into Draco meshes by
    sensor-kit/render/kitshot/bake.js), the bottom holds the ESP32 on the breadboard with the power module, the 9 V and
    the jumpers. Hover a board to lift it and see its name, click it to open its page, "Lift the tray" to see below. */
-import { THREE, createViewer, ease, mat, canvasTex, bench, battery9v, ribbon, BB, COARSE } from "./kit3d.js?v=72";
+import { THREE, createViewer, ease, mat, canvasTex, bench, battery9v, ribbon, BB, COARSE } from "./kit3d.js?v=73";
 import { RoundedBoxGeometry } from "../vendor/three/RoundedBoxGeometry.js";
 import { DRACOLoader } from "../vendor/three/DRACOLoader.js";
 

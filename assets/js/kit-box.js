@@ -1,11 +1,13 @@
-/* The Sensor Kit, boxed, in 3D (Hardware page + kit page). It starts CLOSED, matching the poster under it.
+/* The Sensor Kit, boxed, in 3D (Hardware page). It starts CLOSED, matching the poster under it.
    "Open the box" lifts the lid off and leans it on the back; the same button closes it. Once open, hover a board to
-   lift it and see its name, click it to open its page, and "Lift the tray" sets the top tray beside the box to show
-   the bottom layer: the ESP32 on the breadboard, the power module with the 9 V clipped in and plugged, the jumpers.
+   lift it and see its name, click it to open its page. The top layer is a lift-out compartment tray: every module in
+   its own walled cell on a foam pad with a finger scoop. "Lift the tray" sets it beside the box and centres the bottom
+   layer: breadboard, ESP32, power module, 9 V, its clip lead and the jumpers, each loose in its own foam pocket.
    Geometry follows sensor-kit/packaging/layout.json; boards are baked Draco meshes (sensor-kit/render/kitshot/bake.js). */
-import { THREE, createViewer, ease, mat, canvasTex, bench, batteryPlugged, ribbon, BB, BENCH_JACK, COARSE } from "./kit3d.js?v=79";
+import { THREE, createViewer, ease, mat, canvasTex, breadboard, esp32, powerModule, battery9v, snapClip, barrelLead, ribbon, NINE_V, COARSE } from "./kit3d.js?v=80";
 import { RoundedBoxGeometry } from "../vendor/three/RoundedBoxGeometry.js";
 import { DRACOLoader } from "../vendor/three/DRACOLoader.js";
+import { mergeGeometries } from "../vendor/three/BufferGeometryUtils.js";
 
 const BASE = "assets/img/kit/3d/";
 const D2R = THREE.MathUtils.degToRad;
@@ -26,7 +28,7 @@ async function build(fig) {
   const [layout, manifest] = await Promise.all([fetch(BASE + "layout.json").then((r) => r.json()), fetch(BASE + "kit-boards.json").then((r) => r.json())]);
   const T = { lidTop: tex(BASE + "lid-top.webp"), lidFront: tex(BASE + "lid-front.webp"), lidSide: tex(BASE + "lid-side.webp"),
     lidBack: tex(BASE + "lid-back.webp"), baseFront: tex(BASE + "base-front.webp"), baseSide: tex(BASE + "base-side.webp"),
-    baseBack: tex(BASE + "base-back.webp"), labels: tex(BASE + "foam-top-labels.webp"), card: tex(BASE + "card-front.webp") };
+    baseBack: tex(BASE + "base-back.webp"), labels: tex(BASE + "tray-labels.webp"), card: tex(BASE + "card-front.webp") };
   for (const k of Object.keys(T)) T[k] = await T[k];
 
   const tip = document.createElement("div");
@@ -91,61 +93,82 @@ async function build(fig) {
   basePick.userData.pick = { action: "open", name: "The Sensor Kit", chip: "Click to open the box" };
   kit.add(basePick);
 
-  // ---------------------------------------------------------------- foam (through-pockets, each with its own floor)
-  function foam(y0, thick, pockets, depth) {
-    const s = new THREE.Shape();
-    s.moveTo(0, 0); s.lineTo(IW, 0); s.lineTo(IW, -ID); s.lineTo(0, -ID); s.lineTo(0, 0);
-    for (const [x, z, w, d] of pockets) {
-      const p = new THREE.Path(), r = 1.6;
-      p.moveTo(x + r, -z); p.lineTo(x + w - r, -z); p.quadraticCurveTo(x + w, -z, x + w, -z - r); p.lineTo(x + w, -z - d + r);
-      p.quadraticCurveTo(x + w, -z - d, x + w - r, -z - d); p.lineTo(x + r, -z - d); p.quadraticCurveTo(x, -z - d, x, -z - d + r);
-      p.lineTo(x, -z - r); p.quadraticCurveTo(x, -z, x + r, -z);
-      s.holes.push(p);
-    }
-    const G = new THREE.Group();
-    const geo = new THREE.ExtrudeGeometry(s, { depth: thick, bevelEnabled: false, curveSegments: 4 });
-    geo.rotateX(-Math.PI / 2);
-    const top = new THREE.Mesh(geo, foamMat); top.position.y = y0; G.add(top);
-    for (const [x, z, w, d, dp] of pockets) {
-      const fh = thick - (dp || depth);
-      const f = new THREE.Mesh(new THREE.BoxGeometry(w + 0.2, fh, d + 0.2), foamMat);
-      f.position.set(x + w / 2, y0 + fh / 2, z + d / 2); G.add(f);
-    }
-    G.traverse((m) => { if (m.isMesh) m.receiveShadow = true; });
-    return G;
-  }
-  const B = layout.bottom, TP = layout.top;
+  // ---------------------------------------------------------------- foam: a slab with blind pockets (each pocket gets its own floor)
+  const rectPath = (x, z, w, d, r = 1.6) => {
+    const p = new THREE.Path();
+    p.moveTo(x + r, -z); p.lineTo(x + w - r, -z); p.quadraticCurveTo(x + w, -z, x + w, -z - r); p.lineTo(x + w, -z - d + r);
+    p.quadraticCurveTo(x + w, -z - d, x + w - r, -z - d); p.lineTo(x + r, -z - d); p.quadraticCurveTo(x, -z - d, x, -z - d + r);
+    p.lineTo(x, -z - r); p.quadraticCurveTo(x, -z, x + r, -z);
+    return p;
+  };
+  const slabGeo = (outline, holes, y0, thick) => {
+    const sh = new THREE.Shape(outline.map(([x, z]) => new THREE.Vector2(x, -z)));
+    holes.forEach((h) => sh.holes.push(h));
+    const geo = new THREE.ExtrudeGeometry(sh, { depth: thick, bevelEnabled: false, curveSegments: 6 });
+    geo.rotateX(-Math.PI / 2); geo.translate(0, y0, 0);
+    return geo;
+  };
+  const slab = (outline, holes, y0, thick, m) => {
+    const o = new THREE.Mesh(slabGeo(outline, holes, y0, thick), m); o.receiveShadow = true; o.castShadow = true;
+    return o;
+  };
+  const B = layout.bottom, TR = layout.tray, FLOOR = layout.base.floor;
+  const box = (w, h, d, m, x, y, z) => { const o = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m); o.position.set(x, y, z); o.castShadow = o.receiveShadow = true; return o; };
 
-  // ---------------------------------------------------------------- bottom layer
-  const BDEPTH = { breadboard: 22, battery: 18, jumpers: 10, card: 3 };
-  kit.add(foam(2.5, B.thickness, layout.bottom_layer.filter((c) => c.pocket).flatMap((c) => [c.pocket.concat([BDEPTH[c.kind]])]
-    .concat(c.lead_pocket ? [c.lead_pocket.concat([10])] : [])), 22));
-  const bbCell = layout.bottom_layer.find((c) => c.kind === "breadboard");
-  const benchKit = bench({ battery: false });
-  const benchG = benchKit.group;
-  const [bx, bz, bw, bd] = bbCell.breadboard;
-  benchG.rotation.y = bbCell.flip ? Math.PI : 0;
-  benchG.position.set(bx + bw / 2, B.top_z - 22, bz + bd / 2 + 1);
-  add(benchG);
-  benchG.updateMatrix();
-  const jack = BENCH_JACK.clone().applyMatrix4(benchG.matrix);                // kit frame
-  const batFloor = B.top_z - BDEPTH.battery;
-  const dirIn = new THREE.Vector3(bbCell.flip ? -1 : 1, 0, 0);               // plug pushes into the jack
-  const power = batteryPlugged(jack.clone().sub(new THREE.Vector3(0, batFloor, 0)), dirIn, 6);
-  power.position.y = batFloor;
-  add(power);
-  const jw = layout.bottom_layer.find((c) => c.kind === "jumpers");
-  const r1 = ribbon(40, 200, "M", "F"); r1.position.set(jw.pocket[0] + 96, B.top_z - 10, jw.pocket[1] + 31); add(r1);
-  const r2 = ribbon(20, 200, "M", "M"); r2.position.set(jw.pocket[0] + 96, B.top_z - 10 + 5.2, jw.pocket[1] + 16); add(r2);
-  // quick-start card, portrait in its recess
-  const cardCell = layout.bottom_layer.find((c) => c.kind === "card");
+  // ---------------------------------------------------------------- bottom layer: loose parts, each in its own pocket
+  const bot = layout.bottom_layer.filter((c) => c.pocket);
+  const bottom = new THREE.Group(); kit.add(bottom);
+  bottom.add(slab([[0, 0], [IW, 0], [IW, ID], [0, ID]], bot.map((c) => rectPath(...c.pocket)), FLOOR, B.thickness, foamMat));
+  bot.forEach((c) => { const [x, z, w, d] = c.pocket, fh = B.thickness - c.depth; bottom.add(box(w + 0.2, fh, d + 0.2, foamMat, x + w / 2, FLOOR + fh / 2, z + d / 2)); });
+  const cellOf = (k) => layout.bottom_layer.find((c) => c.kind === k);
+  const floorOf = (c) => B.top_z - c.depth;
+  const mid = (c) => [c.pocket[0] + c.pocket[2] / 2, c.pocket[1] + c.pocket[3] / 2];
+  const items = [];
+  // breadboard, empty
+  const bbC = cellOf("breadboard"), bbG = breadboard();
+  bbG.position.set(...[mid(bbC)[0], floorOf(bbC), mid(bbC)[1]]); add(bbG, bottom);
+  items.push([bbG, { name: "Breadboard", chip: "830 points, empty: you build on it" }]);
+  // ESP32 DevKit, loose: header plastic on the pocket floor, pins pressed into the foam
+  const espC = cellOf("esp32"), espG = esp32();
+  espG.position.set(mid(espC)[0], floorOf(espC) + 2.5, mid(espC)[1]); add(espG, bottom);
+  items.push([espG, { name: "ESP32 DevKit V1", chip: "WROOM-32, 30-pin · pins in anti-static foam" }]);
+  // MB102 power module, loose
+  const pmC = cellOf("power"), pmG = powerModule();
+  pmG.position.set(mid(pmC)[0], floorOf(pmC) - 7.25, mid(pmC)[1]); add(pmG, bottom);
+  items.push([pmG, { name: "MB102 power module", chip: "9 V in, 5 V and 3.3 V to the breadboard rails" }]);
+  // 9 V lying on its back, terminals toward +x under a plastic cap
+  const FLAT = new THREE.Matrix4().makeBasis(new THREE.Vector3(0, 0, 1), new THREE.Vector3(1, 0, 0), new THREE.Vector3(0, 1, 0));
+  const batC = cellOf("battery"), bat = battery9v();
+  const capM = new THREE.MeshPhysicalMaterial({ color: 0x2a2b2f, roughness: 0.35, clearcoat: 0.6 });
+  const cap = new THREE.Mesh(new RoundedBoxGeometry(NINE_V.W + 1.2, 7, NINE_V.D + 1.0, 3, 1.6), capM);
+  cap.position.set(0, NINE_V.H + 0.6, 0); bat.add(cap);
+  bat.setRotationFromMatrix(FLAT);
+  bat.position.set(batC.pocket[0] + 1.2, floorOf(batC) + (NINE_V.D + 1.0) / 2, mid(batC)[1]); add(bat, bottom);
+  items.push([bat, { name: "9 V battery", chip: "Terminal cap on: it ships unplugged" }]);
+  // snap clip + lead + barrel plug, loose in its own pocket
+  const clC = cellOf("clip"), clipG = new THREE.Group();
+  const clip = snapClip(), holder = new THREE.Group();
+  holder.add(clip.group); holder.setRotationFromMatrix(FLAT);
+  holder.position.set(-(NINE_V.H + 0.2), (NINE_V.D + 1.4) / 2, 0); holder.updateMatrix();
+  clipG.add(holder);
+  const exits = clip.exits.map((q) => q.clone().applyMatrix4(holder.matrix));
+  const dirX = new THREE.Vector3(1, 0, 0);
+  clipG.add(barrelLead(exits, dirX, new THREE.Vector3(exits[0].x + 50, 4.8, 0), dirX));
+  clipG.position.set(clC.pocket[0] + 2, floorOf(clC), mid(clC)[1]); add(clipG, bottom);
+  items.push([clipG, { name: "9 V clip to barrel plug", chip: "Snaps on the 9 V, plugs into the power module" }]);
+  // jumper ribbons, folded as they ship
+  const jw = cellOf("jumpers");
+  const r1 = ribbon(40, 200, "M", "F"); r1.position.set(jw.pocket[0] + 96, floorOf(jw), jw.pocket[1] + 31); add(r1, bottom);
+  const r2 = ribbon(20, 200, "M", "M"); r2.position.set(jw.pocket[0] + 96, floorOf(jw) + 5.8, jw.pocket[1] + 16); add(r2, bottom);
+  items.push([r1, { name: "Jumper wires", chip: "40 male-female + 20 male-male, 20 cm" }]);
+  // quick-start card
+  const cardCell = cellOf("card");
   if (cardCell) {
-    const [cx0, cz0, cw, cd] = cardCell.pocket;
     const cardM = T.card ? new THREE.MeshStandardMaterial({ map: T.card, roughness: 0.55 }) : mat("white");
     const qc = new THREE.Mesh(new THREE.BoxGeometry(152.4, 0.6, 101.6), [mat("white"), mat("white"), cardM, mat("white"), mat("white"), mat("white")]);
-    qc.rotation.y = -Math.PI / 2;
-    qc.position.set(cx0 + cw / 2, B.top_z - BDEPTH.card + 0.3, cz0 + cd / 2);
-    add(qc);
+    qc.position.set(mid(cardCell)[0], floorOf(cardCell) + 0.3, mid(cardCell)[1]);
+    add(qc, bottom);
+    items.push([qc, { name: "Quick-start card", chip: "Three steps, and a QR to every module's wiring + code" }]);
   }
   // screen-printed mark on the free floor
   const markCell = layout.bottom_layer.find((c) => c.kind === "print");
@@ -153,32 +176,81 @@ async function build(fig) {
     const [mx, mz, mw, md] = markCell.area, ppm = 8;
     const mark = canvasTex(Math.round(mw * ppm), Math.round(md * ppm), (g, w, h) => {
       g.clearRect(0, 0, w, h);
-      g.textBaseline = "middle"; g.textAlign = "left";
-      g.font = `700 ${34 * ppm}px Bahnschrift, "Segoe UI", sans-serif`;
-      const y = h * 0.42;
-      g.fillStyle = "#f26a1b"; g.fillText("{", 10 * ppm, y);
-      const wb = g.measureText("{").width;
-      g.fillStyle = "#efede8"; g.fillText("t", 10 * ppm + wb, y);
-      const wt = g.measureText("t").width;
-      g.fillStyle = "#f26a1b"; g.fillText("}", 10 * ppm + wb + wt, y);
-      g.fillStyle = "#efede8"; g.font = `700 ${7 * ppm}px Bahnschrift, sans-serif`; g.fillText("THE SENSOR KIT", 68 * ppm, h * 0.36);
-      g.fillStyle = "rgba(239,237,232,0.6)"; g.font = `600 ${4.2 * ppm}px Bahnschrift, sans-serif`;
-      g.fillText("Build anything.  builtbytyler.com/kit", 68 * ppm, h * 0.52);
+      g.textBaseline = "alphabetic"; g.textAlign = "left";
+      const x0 = 8 * ppm;
+      g.font = `700 ${40 * ppm}px Bahnschrift, "Segoe UI", sans-serif`;
+      let x = x0; const y = 52 * ppm;
+      for (const [ch, c] of [["{", "#f26a1b"], ["t", "#efede8"], ["}", "#f26a1b"]]) { g.fillStyle = c; g.fillText(ch, x, y); x += g.measureText(ch).width; }
+      g.fillStyle = "#efede8"; g.font = `700 ${8 * ppm}px Bahnschrift, sans-serif`; g.fillText("THE SENSOR KIT", x0, 74 * ppm);
+      g.fillStyle = "rgba(239,237,232,0.6)"; g.font = `600 ${5 * ppm}px Bahnschrift, sans-serif`;
+      g.fillText("Build anything.", x0, 86 * ppm); g.fillText("builtbytyler.com/kit", x0, 94 * ppm);
     });
     const mp = new THREE.Mesh(new THREE.PlaneGeometry(mw, md), new THREE.MeshStandardMaterial({ map: mark, transparent: true, roughness: 0.85, depthWrite: false }));
     mp.rotation.x = -Math.PI / 2; mp.position.set(mx + mw / 2, B.top_z + 0.05, mz + md / 2); mp.receiveShadow = true;
-    kit.add(mp);
+    bottom.add(mp);
   }
 
-  // ---------------------------------------------------------------- top tray: foam, printed labels, START card, boards
+  // ---------------------------------------------------------------- top layer: the compartment tray
   const tray = new THREE.Group();
   kit.add(tray);
-  tray.add(foam(B.top_z, TP.thickness, layout.top_layer.map((c) => c.pocket.concat([c.depth || (c.kind === "qr" ? 2 : c.kind === "lift" ? 6 : TP.pocket_depth)])), TP.pocket_depth));
+  const [TX, TZ] = TR.pos, [TW, TD] = TR.outer, T0 = TR.z0, TT = TR.top_z, TB = T0 + TR.base;
+  const board = new THREE.MeshStandardMaterial({ color: 0x151517, roughness: 0.82 });        // black chipboard
+  const wrapM = new THREE.MeshPhysicalMaterial({ color: 0x0d0d0f, roughness: 0.6, clearcoat: 0.2, clearcoatRoughness: 0.5 });
+  tray.add(box(TW, TR.base, TD, wrapM, TX + TW / 2, T0 + TR.base / 2, TZ + TD / 2));
+  const wh = TT - T0;
+  tray.add(box(TW, wh, TR.wall, wrapM, TX + TW / 2, T0 + wh / 2, TZ + TR.wall / 2));
+  tray.add(box(TW, wh, TR.wall, wrapM, TX + TW / 2, T0 + wh / 2, TZ + TD - TR.wall / 2));
+  tray.add(box(TR.wall, wh, TD - 2 * TR.wall, wrapM, TX + TR.wall / 2, T0 + wh / 2, TZ + TD / 2));
+  tray.add(box(TR.wall, wh, TD - 2 * TR.wall, wrapM, TX + TW - TR.wall / 2, T0 + wh / 2, TZ + TD / 2));
+  for (const dv of TR.dividers) {
+    const [x, z, w, d] = dv.rect;
+    tray.add(box(w, dv.height, d, board, x + w / 2, TB + dv.height / 2, z + d / 2));
+  }
+  // satin pull tabs: a ribbon up the outside of each end wall, folded over the top edge
+  const tabM = new THREE.MeshStandardMaterial({ color: 0x1b1b1f, roughness: 0.32, metalness: 0.1, side: THREE.DoubleSide });
+  TR.pull_tabs.forEach(([x, z], i) => {
+    const sx = i ? 1 : -1;                                     // -1 = left wall, +1 = right wall (outer face)
+    tray.add(box(0.5, 16, 14, tabM, x + sx * 0.25, TT - 6, z));
+    const fold = new THREE.Mesh(new THREE.CylinderGeometry(2.6, 2.6, 14, 16, 1, true, Math.PI / 2, Math.PI), tabM);
+    fold.rotation.x = Math.PI / 2;                             // axis along z, half pipe arching over the wall top
+    fold.position.set(x - sx * 2.35, TT + 2, z);
+    tray.add(fold);
+  });
+  // cell pads: 2 x 3 mm EVA, board pocket through the top sheet, finger scoop through both
+  const cells = layout.top_layer, padCells = cells.filter((c) => c.kind !== "lift");
+  const scoopPath = (c, withPocket) => {
+    const [x, z, w, d] = c.pocket, [sx, sz, r] = c.scoop, p = new THREE.Path();
+    if (withPocket) {
+      p.moveTo(x, -z); p.lineTo(x + w, -z); p.lineTo(x + w, -(z + d)); p.lineTo(sx + r, -(z + d));
+      p.absarc(sx, -sz, r, 0, -Math.PI, true); p.lineTo(x, -(z + d)); p.lineTo(x, -z);
+    } else {
+      p.moveTo(sx + r, -sz); p.absarc(sx, -sz, r, 0, -Math.PI, true); p.lineTo(sx + r, -sz);
+    }
+    return p;
+  };
+  const padRect = (c) => { const [x, z, w, d] = c.cell; return [[x + 0.25, z + 0.25], [x + w - 0.25, z + 0.25], [x + w - 0.25, z + d - 0.25], [x + 0.25, z + d - 0.25]]; };
+  const lower = TR.pad - TR.pocket_depth;
+  const padGeo = mergeGeometries([
+    ...padCells.map((c) => slabGeo(padRect(c), [scoopPath(c, false)], TB, lower)),
+    ...padCells.map((c) => slabGeo(padRect(c), [scoopPath(c, true)], TB + lower, TR.pocket_depth)),
+  ]);
+  const pads = new THREE.Mesh(padGeo, foamMat); pads.receiveShadow = pads.castShadow = true; tray.add(pads);
+  // the two finger wells: no pad, "LIFT" printed on the tray base
+  const liftTex = canvasTex(360, 480, (g, w, h) => {
+    g.clearRect(0, 0, w, h); g.fillStyle = "#efede8"; g.textAlign = "center"; g.textBaseline = "middle";
+    g.font = '700 64px Bahnschrift, sans-serif'; g.fillText("LIFT", w / 2, h / 2 - 34);
+    g.font = '600 40px Bahnschrift, sans-serif'; g.fillStyle = "rgba(239,237,232,0.7)"; g.fillText("\u2191", w / 2, h / 2 + 34);
+  });
+  cells.filter((c) => c.kind === "lift").forEach((c) => {
+    const [x, z, w, d] = c.cell;
+    const lp = new THREE.Mesh(new THREE.PlaneGeometry(w * 0.8, d * 0.8), new THREE.MeshStandardMaterial({ map: liftTex, transparent: true, roughness: 0.7, depthWrite: false }));
+    lp.rotation.x = -Math.PI / 2; lp.position.set(x + w / 2, TB + 0.05, z + d / 2); lp.receiveShadow = true; tray.add(lp);
+  });
   if (T.labels) {
     const lp = new THREE.Mesh(new THREE.PlaneGeometry(IW, ID), new THREE.MeshStandardMaterial({ map: T.labels, transparent: true, roughness: 0.8, depthWrite: false }));
-    lp.rotation.x = -Math.PI / 2; lp.position.set(IW / 2, TP.top_z + 0.05, ID / 2); lp.receiveShadow = true; tray.add(lp);
+    lp.rotation.x = -Math.PI / 2; lp.position.set(IW / 2, TR.pad_top + 0.05, ID / 2); lp.receiveShadow = true; tray.add(lp);
   }
-  const qrCell = layout.top_layer.find((c) => c.kind === "qr");
+  const qrCell = cells.find((c) => c.kind === "qr");
   const qrImg = new Image(); qrImg.src = BASE + "qr-kit.png";
   await new Promise((r) => { qrImg.onload = r; qrImg.onerror = r; });
   const card = canvasTex(600, 600, (g, w, h) => {
@@ -186,9 +258,8 @@ async function build(fig) {
     g.imageSmoothingEnabled = false; if (qrImg.width) g.drawImage(qrImg, 90, 40, 420, 420);
     g.fillStyle = "#101012"; g.textAlign = "center"; g.font = '700 54px Bahnschrift, sans-serif'; g.fillText("START HERE", w / 2, 535);
   });
-  const [qx, qz, qw, qd] = qrCell.pocket;
-  add(new THREE.Mesh(new THREE.BoxGeometry(qw - 1, 0.6, qd - 1), [mat("white"), mat("white"), new THREE.MeshStandardMaterial({ map: card, roughness: 0.6 }), mat("white"), mat("white"), mat("white")]), tray)
-    .position.set(qx + qw / 2, TP.top_z - 2 + 0.3, qz + qd / 2);
+  add(new THREE.Mesh(new THREE.BoxGeometry(32, 0.6, 32), [mat("white"), mat("white"), new THREE.MeshStandardMaterial({ map: card, roughness: 0.6 }), mat("white"), mat("white"), mat("white")]), tray)
+    .position.set(qrCell.board_center[0], TR.pcb_y + 0.3, qrCell.board_center[1]);
 
   const draco = new DRACOLoader().setDecoderPath("assets/vendor/three/draco/");
   const hoverU = { value: -1 };
@@ -211,9 +282,10 @@ async function build(fig) {
 
   const pickMat = new THREE.MeshBasicMaterial({ visible: false });
   const boardPicks = manifest.boards.map((b, i) => {
-    const [x, z, w, d] = b.pocket;
-    const box = new THREE.Mesh(new THREE.BoxGeometry(w + 4, 26, d + 10), pickMat);
-    box.position.set(x + w / 2, TP.top_z + 4, z + d / 2 + 3);
+    const c = cells.find((x) => x.id === b.id);
+    const [x, z, w, d] = c.cell;
+    const box = new THREE.Mesh(new THREE.BoxGeometry(w, TT - TR.pcb_y, d), pickMat);
+    box.position.set(x + w / 2, (TT + TR.pcb_y) / 2, z + d / 2);
     box.userData.pick = { idx: i, id: b.id, name: b.name, chip: b.chip, href: `kit-${b.id.toLowerCase()}.html` };
     tray.add(box);
     return box;
@@ -225,17 +297,13 @@ async function build(fig) {
     if (i === hovered) return;
     hovered = i; hoverU.value = i;
     if (i >= 0) {
-      const c = layout.top_layer.find((x) => x.id === manifest.boards[i].id);
+      const c = cells.find((x) => x.id === manifest.boards[i].id);
       const [x, z, w, d] = c.cell;
-      hl.scale.set(w - 2, d - 2, 1); hl.position.set(x + w / 2, TP.top_z + 0.2, z + d / 2); hl.visible = true;
+      hl.scale.set(w - 1, d - 1, 1); hl.position.set(x + w / 2, TR.pad_top + 0.2, z + d / 2); hl.visible = true;
     } else hl.visible = false;
     v.updateShadows();
   }
-  const bottomPicks = [
-    [benchG, { name: "ESP32 DevKit on the breadboard", chip: "ESP32-WROOM-32 · 830 points · MB102 power module" }],
-    [power, { name: "9 V battery, clipped in", chip: "Red +, black − into the power module: no USB needed" }],
-    [r1, { name: "Jumper wires", chip: "40 male-female + 20 male-male" }],
-  ].map(([o, p]) => {
+  const bottomPicks = items.map(([o, p]) => {
     const bb = new THREE.Box3().setFromObject(o), s = bb.getSize(new THREE.Vector3()), c = bb.getCenter(new THREE.Vector3());
     const m = new THREE.Mesh(new THREE.BoxGeometry(s.x, s.y + 6, s.z), pickMat);
     m.position.copy(kit.worldToLocal(c.clone())); m.userData.pick = p; kit.add(m);
@@ -253,14 +321,17 @@ async function build(fig) {
   skirt(LW, LWALL, 0, -LD / 2 + LWALL / 2, [paper, paper, paper, paper, inside, lidBackM]);
   skirt(LWALL, LD - 2 * LWALL, LW / 2 - LWALL / 2, 0, [lidSideM, inside, paper, paper, paper, paper]);
   skirt(LWALL, LD - 2 * LWALL, -LW / 2 + LWALL / 2, 0, [inside, lidSideM, paper, paper, paper, paper]);
+  const LINER = layout.lid.liner || 3;                           // EVA liner: presses the tray down, so nothing crosses a wall
+  const liner = new THREE.Mesh(new THREE.BoxGeometry(IW - 1, LINER, ID - 1), foamMat);
+  liner.position.set(0, -LT - LINER / 2, 0); lid.add(liner);
   lid.traverse((m) => { if (m.isMesh) { m.castShadow = true; m.receiveShadow = true; } });
   kit.add(lid);
   const lean = D2R(72);
   const POSE = {
-    lidClosed: { p: new THREE.Vector3(IW / 2, OH + 1.0, ID / 2), r: 0 },
+    lidClosed: { p: new THREE.Vector3(IW / 2, OH + LT, ID / 2), r: 0 },          // the lid panel rests on the base rim
     lidOpen: { p: new THREE.Vector3(IW / 2, (LD / 2) * Math.sin(lean) + LH * Math.cos(lean) + 0.2, -WALL - 2 - (LD / 2) * Math.cos(lean)), r: lean },
     trayIn: { p: new THREE.Vector3(0, 0, 0) },
-    trayOut: { p: new THREE.Vector3(IW + 2 * WALL + 36, -B.top_z, 0) },
+    trayOut: { p: new THREE.Vector3(IW + 2 * WALL + 36, -TR.z0, 0) },
   };
   lid.position.copy(POSE.lidClosed.p);
 
@@ -271,8 +342,9 @@ async function build(fig) {
   lid.position.copy(POSE.lidOpen.p); lid.rotation.x = POSE.lidOpen.r; lid.updateMatrixWorld(true);
   homes.open = v.frameObject(boxOf(floor, lid, tray), new THREE.Vector3(0.1, 1.3, 0.95), COARSE ? 0.9 : 0.78);
   tray.position.copy(POSE.trayOut.p); tray.updateMatrixWorld(true);
-  // the bottom layer; on a wide canvas the tray sits at the edge, on a narrow one it is kept in frame
-  homes.lifted = v.frameObject(v.camera.aspect < 1.3 ? boxOf(floor, tray) : boxOf(floor), new THREE.Vector3(0.05, 1.5, 0.95), COARSE ? 0.95 : 0.82);
+  // lifted: frame and centre the bottom layer on every screen; the tray beside the box may run out of frame
+  const bottomBox = new THREE.Box3().setFromObject(bottom);
+  homes.lifted = v.frameObject(bottomBox, new THREE.Vector3(0.0, 1.55, 0.8), COARSE ? 0.98 : 0.86);
   tray.position.copy(POSE.trayIn.p); lid.position.copy(POSE.lidClosed.p); lid.rotation.x = 0;
   v.goHome(homes.closed);
 

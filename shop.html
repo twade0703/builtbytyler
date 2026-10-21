@@ -113,12 +113,12 @@
          =============================================================== -->
     <section class="section hw-kit" id="kit" data-sec="top">
       <div class="container">
-        <div class="kshow" data-enter>
-          <figure class="ktray " data-k3d-kit style="aspect-ratio: 2048 / 1919">
-          <img src="assets/img/kit/kit-open.webp" srcset="assets/img/kit/kit-open-1200.webp 1200w, assets/img/kit/kit-open.webp 2048w"
-            sizes="(max-width: 900px) 100vw, 60vw" width="2048" height="1919" loading="lazy" decoding="async"
-            alt="The Sensor Kit open: 37 labelled sensor modules in a black foam tray, an ESP32 DevKit, a breadboard, jumper wires and a QR start card">
-          <svg viewBox="0 0 2048 1919" preserveAspectRatio="none" aria-label="Modules in the box"></svg>
+        <div class="kshow">
+          <figure class="ktray " data-k3d-kit style="aspect-ratio: 2048 / 1918">
+          <img src="assets/img/kit/kit-poster.webp" srcset="assets/img/kit/kit-poster-1200.webp 1200w, assets/img/kit/kit-poster.webp 2048w"
+            sizes="(max-width: 900px) 100vw, 60vw" width="2048" height="1918" loading="lazy" decoding="async"
+            alt="The Sensor Kit: a black box with the {t} logo. Open it to see 37 labelled sensor modules, an ESP32 on a breadboard, a 9 V battery and jumper wires.">
+          <svg viewBox="0 0 2048 1918" preserveAspectRatio="none" aria-label="Modules in the box"></svg>
         </figure>
           <div class="kshow__copy">
             <p class="kicker">The Sensor Kit</p>
@@ -166,6 +166,9 @@
     .ktray.is-live .k3d-ui { display: flex; }
     .k3d-btn { font-family: var(--font-mono); font-size: var(--fs-micro); letter-spacing: 0.14em; text-transform: uppercase; padding: 0.6rem 0.9rem; background: rgba(5,8,12,0.75); color: var(--ink); border: 1px solid var(--hairline-strong); cursor: pointer; backdrop-filter: blur(6px); }
     .k3d-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .k3d-btn--main { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+    .k3d-btn--main:hover { background: transparent; color: var(--accent); }
+    .k3d-btn[hidden] { display: none; }
     .k3d-hint { font-family: var(--font-mono); font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
     @media (max-width: 560px) { .k3d-hint { display: none; } }
     .ptab-head { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; flex-wrap: wrap; margin: clamp(3rem, 7vw, 5rem) 0 1.2rem; border-top: 1px solid var(--hairline); padding-top: 1.2rem; }

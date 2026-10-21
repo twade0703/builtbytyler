@@ -1166,13 +1166,13 @@
    "flip": true,
    "pocket": [
     8,
-    54,
+    14,
     177.1,
     56.6
    ],
    "breadboard": [
     10,
-    55,
+    15,
     165.1,
     54.6
    ]
@@ -1183,13 +1183,13 @@
    "name": "9 V battery, clipped in",
    "pocket": [
     222,
-    80,
+    42,
     56,
     29
    ],
    "lead_pocket": [
     186,
-    88,
+    50,
     38,
     14
    ]
@@ -1200,9 +1200,32 @@
    "name": "Jumper wires",
    "pocket": [
     8,
-    132,
-    230,
+    92,
+    168,
     62
+   ]
+  },
+  {
+   "kind": "card",
+   "id": "CARD",
+   "name": "Quick-start card",
+   "pocket": [
+    196,
+    92,
+    104,
+    154
+   ],
+   "rot": 90
+  },
+  {
+   "kind": "print",
+   "id": "MARK",
+   "name": "{t} The Sensor Kit",
+   "area": [
+    8,
+    166,
+    176,
+    90
    ]
   }
  ],

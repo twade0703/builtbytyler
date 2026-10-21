@@ -61,11 +61,11 @@ export function createViewer(host, opts = {}) {
   canvas.addEventListener("mousedown", (e) => { if (e.button === 1) e.preventDefault(); });   // no autoscroll on middle
 
   // --- render on demand
-  let pending = false, visible = true, animating = 0;
+  let pending = false, visible = true, animating = 0, ready = false;
   const tickers = new Set();
   function frame(t) {
     pending = false;
-    if (!visible) return;
+    if (!visible || !ready) return;
     const moving = controls.update();
     let busy = false;
     tickers.forEach((f) => { if (f(t) === true) busy = true; });
@@ -158,7 +158,8 @@ export function createViewer(host, opts = {}) {
     requestAnimationFrame(step);
   }
   resize();
-  return { renderer, scene, camera, controls, canvas, key, pickables, request, resize, frameObject, goHome, project,
+  function setReady() { ready = true; renderer.shadowMap.needsUpdate = true; request(); }
+  return { setReady, renderer, scene, camera, controls, canvas, key, pickables, request, resize, frameObject, goHome, project,
            updateShadows, animate, tickers };
 }
 
@@ -406,49 +407,93 @@ export function powerModule() {
   return G;
 }
 
-/* ------------------------------------------------------------------ 9 V battery + snap clip to barrel plug */
+/* ------------------------------------------------------------------ 9 V battery (6LR61) + snap clip
+   Local frame: standing, base at y = 0, terminals up; + (round stud) at x = -6.35, - (hex socket) at x = +6.35.
+   W 26.5 (x), H 48.5 (y), D 17.5 (z). */
+export const NINE_V = { W: 26.5, H: 48.5, D: 17.5, pitch: 12.7 };
 export function battery9v() {
-  const G = new THREE.Group(), H = 48.5, W = 26.5, D = 17.5;
-  const wrap = canvasTex(900, 600, (g, w, h) => {
+  const G = new THREE.Group(), { W, H, D } = NINE_V;
+  const wrap = canvasTex(1024, 1600, (g, w, h) => {
     g.fillStyle = "#111113"; g.fillRect(0, 0, w, h);
-    g.fillStyle = "#f26a1b"; g.fillRect(0, h * 0.72, w, h * 0.09);
+    g.fillStyle = "#f26a1b"; g.fillRect(0, h * 0.70, w, h * 0.07);
     g.fillStyle = "#f2f0ea"; g.textAlign = "center"; g.textBaseline = "middle";
-    g.font = `800 180px ${FONT}`; g.fillText("9V", w / 2, h * 0.4);
-    g.font = `600 44px ${FONT}`; g.fillText("ALKALINE", w / 2, h * 0.62);
+    g.font = `800 330px ${FONT}`; g.fillText("9V", w / 2, h * 0.38);
+    g.font = `600 78px ${FONT}`; g.fillText("ALKALINE", w / 2, h * 0.56);
+    g.font = `600 52px ${FONT}`; g.fillStyle = "rgba(242,240,234,0.65)"; g.fillText("6LR61 · 1604A", w / 2, h * 0.86);
   });
-  const side = new THREE.MeshStandardMaterial({ map: wrap, roughness: 0.45 });
-  const body = mesh(new RoundedBoxGeometry(W, H, D, 3, 1.6), [mat("blackGloss"), mat("blackGloss"), mat("tin"), mat("blackGloss"), side, side], 0, H / 2, 0);
-  body.userData.keep = true;
-  G.add(body);
-  G.add(mesh(new THREE.CylinderGeometry(3.0, 3.0, 2.6, 20), mat("tin"), -6.35, H + 1.3, 0));
-  G.add(mesh(new THREE.CylinderGeometry(4.2, 4.2, 2.6, 6), mat("tin"), 6.35, H + 1.3, 0));
-  G.userData.top = H;
+  const side = new THREE.MeshStandardMaterial({ map: wrap, roughness: 0.42 });
+  const plain = new THREE.MeshStandardMaterial({ color: 0x111113, roughness: 0.42 });
+  const bodyH = H - 3.2;
+  const body = mesh(new RoundedBoxGeometry(W, bodyH, D, 4, 2.2), [plain, plain, plain, plain, side, side], 0, 0.6 + bodyH / 2, 0);
+  body.userData.keep = true; G.add(body);
+  G.add(mesh(new RoundedBoxGeometry(W - 0.3, 0.8, D - 0.3, 3, 2.0), mat("tin"), 0, 0.4, 0));                     // bottom cap
+  G.add(mesh(new RoundedBoxGeometry(W - 0.3, 2.4, D - 0.3, 3, 2.0), mat("tin"), 0, H - 1.6, 0));                 // top cap
+  // + : round stud with a crown;  - : hexagonal socket
+  const top = H - 0.4;
+  G.add(mesh(new THREE.CylinderGeometry(2.9, 3.1, 2.6, 24), mat("tin"), -6.35, top + 1.3, 0));
+  G.add(mesh(new THREE.SphereGeometry(2.9, 24, 12, 0, Math.PI * 2, 0, Math.PI / 2).scale(1, 0.35, 1), mat("tin"), -6.35, top + 2.6, 0));
+  G.add(mesh(new THREE.CylinderGeometry(4.3, 4.3, 2.6, 6), mat("tin"), 6.35, top + 1.3, 0));
+  G.add(mesh(new THREE.CylinderGeometry(2.6, 2.6, 0.4, 20), mat("blackGloss"), 6.35, top + 2.62, 0));
+  G.userData.top = H + 2.6;
   return G;
 }
-export function batteryClip(from, to, opts = {}) {
-  /* clip on the battery top (from = battery top centre), red/black lead to a barrel plug ending at `to` (jack mouth),
-     plug axis along `dir` (pointing into the jack) */
+/* snap clip on the terminals (local battery frame), its two leads leaving the back of the cap: red from +, black from -.
+   Returns {group, exits: [redStart, blackStart] in the battery's local frame, dir (local +y)} */
+export function snapClip() {
+  const G = new THREE.Group(), { W, H, D } = NINE_V;
+  const capH = 7.5, y0 = H + 0.2;
+  G.add(mesh(new RoundedBoxGeometry(W + 1.4, capH, D + 1.4, 3, 2.2), mat("blackGloss"), 0, y0 + capH / 2, 0));
+  G.add(mesh(new RoundedBoxGeometry(10, 3, 6, 2, 1.2), mat("blackGloss"), 0, y0 + capH + 1.2, 0));               // strain relief
+  return { group: G, exits: [new THREE.Vector3(-1.1, y0 + capH + 2.6, 0), new THREE.Vector3(1.1, y0 + capH + 2.6, 0)] };
+}
+/* a twin lead from two points (red = +, black = -) to a barrel plug whose mouth sits at `jack`, pushed in along `dir` */
+export function barrelLead(starts, startDir, jack, dir) {
   const G = new THREE.Group();
-  const cap = box(26.5, 7, 17.5, mat("blackGloss"), from.x, from.y + 4.0, from.z, 1.2);
-  G.add(cap);
-  const dir = (opts.dir || new THREE.Vector3(1, 0, 0)).clone().normalize();
-  const plugBack = to.clone().sub(dir.clone().multiplyScalar(22));
-  const plug = mesh(new THREE.CylinderGeometry(4.4, 4.0, 16, 20), mat("blackGloss"));
-  plug.position.copy(to.clone().sub(dir.clone().multiplyScalar(13)));
+  dir = dir.clone().normalize();
+  const plug = mesh(new THREE.CylinderGeometry(4.6, 4.2, 15, 24), mat("blackGloss"));
+  plug.position.copy(jack.clone().sub(dir.clone().multiplyScalar(12.5)));
   plug.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir);
   G.add(plug);
-  const sleeve = mesh(new THREE.CylinderGeometry(2.75, 2.75, 6, 18), mat("metal"));
-  sleeve.position.copy(to.clone().sub(dir.clone().multiplyScalar(2.5)));
+  const boot = mesh(new THREE.CylinderGeometry(2.4, 3.6, 6, 16), mat("blackGloss"));
+  boot.position.copy(jack.clone().sub(dir.clone().multiplyScalar(23)));
+  boot.quaternion.copy(plug.quaternion);
+  G.add(boot);
+  const sleeve = mesh(new THREE.CylinderGeometry(2.75, 2.75, 5, 20), mat("metal"));
+  sleeve.position.copy(jack.clone().sub(dir.clone().multiplyScalar(2.5)));
   sleeve.quaternion.copy(plug.quaternion);
   G.add(sleeve);
-  const start = new THREE.Vector3(from.x, from.y + 7.5, from.z);
-  for (const [dz, m] of [[-0.75, mat("wireRed")], [0.75, mat("wireBlack")]]) {
-    const off = new THREE.Vector3(0, 0, dz);
-    const mid = start.clone().lerp(plugBack, 0.5).add(new THREE.Vector3(0, 10 + (opts.lift || 0), 0));
-    const curve = new THREE.CatmullRomCurve3([start.clone().add(off), start.clone().add(new THREE.Vector3(0, 8, 0)).add(off),
-      mid.add(off), plugBack.clone().sub(dir.clone().multiplyScalar(6)).add(off), plugBack.clone().add(off)], false, "centripetal");
-    G.add(mesh(new THREE.TubeGeometry(curve, 64, 0.75, 8), m));
-  }
+  const end = jack.clone().sub(dir.clone().multiplyScalar(26));
+  const side = new THREE.Vector3().crossVectors(dir, new THREE.Vector3(0, 1, 0)).normalize();
+  starts.forEach((st, i) => {
+    const off = side.clone().multiplyScalar(i ? 0.8 : -0.8);
+    const e = end.clone().add(off);
+    const len = st.distanceTo(e);
+    const c = new THREE.CubicBezierCurve3(st, st.clone().add(startDir.clone().multiplyScalar(len * 0.35)),
+      e.clone().sub(dir.clone().multiplyScalar(len * 0.35)), e);
+    G.add(mesh(new THREE.TubeGeometry(c, 48, 0.8, 10), i ? mat("wireBlack") : mat("wireRed")));
+  });
+  return G;
+}
+/* a 9 V lying on its back with the clip on, leads running straight to `jack` (world), plug pushed in along `dir`.
+   The battery's terminal end faces the jack. */
+export function batteryPlugged(jack, dir, gap = 30) {
+  const G = new THREE.Group();
+  const bat = battery9v();
+  const clip = snapClip();
+  bat.add(clip.group);
+  dir = dir.clone().normalize();
+  // local y (terminals) -> along dir (toward the jack), local z (depth) -> up, local x -> completes a right-handed frame
+  const ax = new THREE.Vector3().crossVectors(dir, new THREE.Vector3(0, 1, 0)).normalize();   // x = y × z keeps it right-handed
+  bat.setRotationFromMatrix(new THREE.Matrix4().makeBasis(ax, dir, new THREE.Vector3(0, 1, 0)));
+  const plugBack = jack.clone().sub(dir.clone().multiplyScalar(26));
+  const clipBack = NINE_V.H + 0.2 + 7.5 + 2.6;
+  const base = plugBack.clone().sub(dir.clone().multiplyScalar(gap + clipBack));
+  bat.position.set(base.x, NINE_V.D / 2, base.z);
+  G.add(bat);
+  bat.updateMatrixWorld(true);
+  const starts = clip.exits.map((p) => bat.localToWorld(p.clone()));
+  // leads leave the clip along dir at clip height, then rise to the plug
+  G.add(barrelLead(starts, dir, jack, dir));
   return G;
 }
 
@@ -505,6 +550,8 @@ export function ribbon(n, len, kindA, kindB) {
   return G;
 }
 
+export const BENCH_JACK = new THREE.Vector3(-BB.L / 2 + 12 - 17 - 1.0, 11.1 + 6.0, -13);   // power-module jack mouth (bench frame)
+
 /* ------------------------------------------------------------------ the bench: breadboard + ESP32 + power module + 9 V
    ESP pin 0 sits at breadboard column `espCol`. Returns {group, hole(name) -> world point of the free-row hole}. */
 export function bench({ espCol = 22, battery = true } = {}) {
@@ -522,14 +569,7 @@ export function bench({ espCol = 22, battery = true } = {}) {
   const at = (c, r) => BB.hole(c, r);
   G.add(shortJumper(at(vin.col, "a"), railHole("tp", vin.col - 1), 0xd8302a));
   G.add(shortJumper(at(gnd.col, "a"), railHole("tn", gnd.col + 1), 0x1d1d1f));
-  if (battery) {
-    const b = battery9v();
-    b.rotation.y = Math.PI / 2;
-    b.position.set(-BB.L / 2 - 40, 0, -52);
-    G.add(b);
-    const jack = new THREE.Vector3(-BB.L / 2 + 12 - 17 - 1.0, 11.1 + 6.0, -13);
-    G.add(batteryClip(new THREE.Vector3(-BB.L / 2 - 40, b.userData.top, -52), jack, { dir: new THREE.Vector3(1, 0, 0) }));
-  }
+  if (battery) G.add(batteryPlugged(BENCH_JACK.clone(), new THREE.Vector3(1, 0, 0), 22));
   return {
     group: G,
     hole: (name) => { const h = espHole(espCol, name); return h ? { ...h, p: at(h.col, h.row) } : null; },

@@ -120,10 +120,27 @@ export function createViewer(host, opts = {}) {
     canvas.addEventListener("pointerleave", () => { if (last) { last = null; opts.onHover(null); request(); } });
   }
 
+  // drop any orbit momentum left from a drag, so a camera move that follows is not carried on by it
+  function stopMotion() {
+    const damp = controls.enableDamping;
+    controls.enableDamping = false; controls.update(); controls.enableDamping = damp;
+  }
+  // `pad` scales the bounding-sphere distance (tight on a wide canvas); the corner fit underneath it keeps every
+  // corner of the box inside the frame at the canvas's real shape, so a narrow phone canvas never crops it
   function frameObject(box, dir, pad = 1.08) {
     const size = box.getSize(new THREE.Vector3()), c = box.getCenter(new THREE.Vector3());
     const r = size.length() / 2;
-    const dist = (r / Math.sin(THREE.MathUtils.degToRad(camera.fov / 2))) * pad / Math.min(1, camera.aspect * 0.95);
+    const d = dir.clone().normalize();
+    const right = new THREE.Vector3().crossVectors(new THREE.Vector3(0, 1, 0), d).normalize();
+    const up = new THREE.Vector3().crossVectors(d, right);
+    const tanV = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)), tanH = tanV * camera.aspect;
+    let fit = 0;
+    for (let i = 0; i < 8; i++) {
+      const p = new THREE.Vector3(i & 1 ? box.max.x : box.min.x, i & 2 ? box.max.y : box.min.y, i & 4 ? box.max.z : box.min.z).sub(c);
+      const z = p.dot(d);
+      fit = Math.max(fit, z + Math.abs(p.dot(right)) / tanH, z + Math.abs(p.dot(up)) / tanV);
+    }
+    const dist = Math.max((r / Math.sin(THREE.MathUtils.degToRad(camera.fov / 2))) * pad / Math.min(1, camera.aspect * 0.95), fit * 1.06);
     camera.position.copy(c).add(dir.clone().normalize().multiplyScalar(dist));
     camera.near = dist / 50; camera.far = dist * 8;
     camera.updateProjectionMatrix();
@@ -134,6 +151,7 @@ export function createViewer(host, opts = {}) {
     return { position: camera.position.clone(), target: c.clone(), min: controls.minDistance, max: controls.maxDistance };
   }
   function goHome(h) {
+    stopMotion();
     controls.minDistance = h.min; controls.maxDistance = h.max;
     camera.position.copy(h.position); controls.target.copy(h.target);
     camera.near = h.position.distanceTo(h.target) / 50; camera.far = h.position.distanceTo(h.target) * 8;
@@ -159,7 +177,7 @@ export function createViewer(host, opts = {}) {
   }
   resize();
   function setReady() { ready = true; renderer.shadowMap.needsUpdate = true; request(); }
-  return { setReady, renderer, scene, camera, controls, canvas, key, pickables, request, resize, frameObject, goHome, project,
+  return { setReady, renderer, scene, camera, controls, canvas, key, pickables, request, resize, frameObject, goHome, stopMotion, project,
            updateShadows, animate, tickers };
 }
 

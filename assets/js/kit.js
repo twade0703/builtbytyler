@@ -2,7 +2,7 @@
    list that highlights its wire, and 3D (the board alone, orbit all the way round) / QR views.
    Nothing is drawn until the board has loaded and the camera is framed, so there is no first-frame flash.
    Data comes from <script type="application/json" id="mod-data"> (written by sensor-kit/tools/web_kit.py). */
-import { THREE, createViewer, ease, bench, jumper, loadBoard, BB, COARSE } from "./kit3d.js?v=75";
+import { THREE, createViewer, ease, bench, jumper, loadBoard, BB, COARSE } from "./kit3d.js?v=76";
 
 const data = JSON.parse(document.getElementById("mod-data").textContent);
 const host = document.querySelector("[data-mod-stage]");
@@ -90,7 +90,13 @@ async function start() {
   used.forEach((h) => wireBox.expandByPoint(h.p));
   wireBox.expandByPoint(new THREE.Vector3(b.hole("VIN").p.x - 30, 30, -BB.W / 2));
   wireBox.expandByPoint(new THREE.Vector3(b.hole("D23").p.x + 20, 0, -BB.W / 2));
-  homes.wire = v.frameObject(wireBox, new THREE.Vector3(0.28, 1.0, 0.95), COARSE ? 0.95 : 0.82);
+  // a narrow (phone) canvas: the power module and the whole ESP32 in frame, fitted by the box corners, not the sphere
+  const narrow = v.camera.aspect < 1.3;
+  if (narrow) {
+    wireBox.expandByPoint(new THREE.Vector3(b.hole("VIN").p.x - 70, 25, -BB.W / 2 - 10));
+    wireBox.expandByPoint(new THREE.Vector3(b.hole("D23").p.x + 30, 0, -BB.W / 2));
+  }
+  homes.wire = v.frameObject(wireBox, new THREE.Vector3(0.28, 1.0, 0.95), narrow ? 0.5 : COARSE ? 0.95 : 0.82);
   moduleGroup.position.set(0, 0, 0); moduleGroup.rotation.y = 0; moduleGroup.updateMatrixWorld(true);
   homes.board = v.frameObject(new THREE.Box3().setFromObject(moduleGroup), new THREE.Vector3(0.5, 1.1, 0.9), 1.15);
   moduleGroup.position.copy(benchPos); moduleGroup.rotation.y = Math.PI;

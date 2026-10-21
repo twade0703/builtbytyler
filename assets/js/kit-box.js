@@ -3,7 +3,7 @@
    lift it and see its name, click it to open its page, and "Lift the tray" sets the top tray beside the box to show
    the bottom layer: the ESP32 on the breadboard, the power module with the 9 V clipped in and plugged, the jumpers.
    Geometry follows sensor-kit/packaging/layout.json; boards are baked Draco meshes (sensor-kit/render/kitshot/bake.js). */
-import { THREE, createViewer, ease, mat, canvasTex, bench, batteryPlugged, ribbon, BB, BENCH_JACK, COARSE } from "./kit3d.js?v=75";
+import { THREE, createViewer, ease, mat, canvasTex, bench, batteryPlugged, ribbon, BB, BENCH_JACK, COARSE } from "./kit3d.js?v=76";
 import { RoundedBoxGeometry } from "../vendor/three/RoundedBoxGeometry.js";
 import { DRACOLoader } from "../vendor/three/DRACOLoader.js";
 
@@ -260,11 +260,12 @@ async function build(fig) {
   // ---------------------------------------------------------------- camera homes for each state
   const homes = {};
   const boxOf = (...objs) => { const b = new THREE.Box3(); objs.forEach((o) => b.expandByObject(o)); return b; };
-  homes.closed = v.frameObject(boxOf(floor, lid), new THREE.Vector3(-0.62, 0.62, 1.0), COARSE ? 1.0 : 0.92);
+  homes.closed = v.frameObject(boxOf(floor, lid), new THREE.Vector3(-0.62, 0.62, 1.0), 0.5);   // corner fit only: the same frame on every device, so it matches the poster
   lid.position.copy(POSE.lidOpen.p); lid.rotation.x = POSE.lidOpen.r; lid.updateMatrixWorld(true);
   homes.open = v.frameObject(boxOf(floor, lid, tray), new THREE.Vector3(0.1, 1.3, 0.95), COARSE ? 0.9 : 0.78);
   tray.position.copy(POSE.trayOut.p); tray.updateMatrixWorld(true);
-  homes.lifted = v.frameObject(boxOf(floor), new THREE.Vector3(0.05, 1.5, 0.95), COARSE ? 0.95 : 0.82);   // the bottom layer; the tray sits at the edge
+  // the bottom layer; on a wide canvas the tray sits at the edge, on a narrow one it is kept in frame
+  homes.lifted = v.frameObject(v.camera.aspect < 1.3 ? boxOf(floor, tray) : boxOf(floor), new THREE.Vector3(0.05, 1.5, 0.95), COARSE ? 0.95 : 0.82);
   tray.position.copy(POSE.trayIn.p); lid.position.copy(POSE.lidClosed.p); lid.rotation.x = 0;
   v.goHome(homes.closed);
 
@@ -275,6 +276,7 @@ async function build(fig) {
   }
   setPicks();
   function glide(to, ms = 1100) {
+    v.stopMotion();
     const p0 = v.camera.position.clone(), t0 = v.controls.target.clone();
     v.controls.minDistance = Math.min(v.controls.minDistance, to.min); v.controls.maxDistance = Math.max(v.controls.maxDistance, to.max);
     v.animate(ms, (u) => { const k = ease(u); v.camera.position.lerpVectors(p0, to.position, k); v.controls.target.lerpVectors(t0, to.target, k); },

@@ -3,7 +3,7 @@
    lift it and see its name, click it to open its page, and "Lift the tray" sets the top tray beside the box to show
    the bottom layer: the ESP32 on the breadboard, the power module with the 9 V clipped in and plugged, the jumpers.
    Geometry follows sensor-kit/packaging/layout.json; boards are baked Draco meshes (sensor-kit/render/kitshot/bake.js). */
-import { THREE, createViewer, ease, mat, canvasTex, bench, batteryPlugged, ribbon, BB, BENCH_JACK, COARSE } from "./kit3d.js?v=76";
+import { THREE, createViewer, ease, mat, canvasTex, bench, batteryPlugged, ribbon, BB, BENCH_JACK, COARSE } from "./kit3d.js?v=77";
 import { RoundedBoxGeometry } from "../vendor/three/RoundedBoxGeometry.js";
 import { DRACOLoader } from "../vendor/three/DRACOLoader.js";
 
@@ -35,7 +35,7 @@ async function build(fig) {
   ui.className = "k3d-ui";
   ui.innerHTML = '<button type="button" class="k3d-btn k3d-btn--main" data-open>Open the box</button>' +
     '<button type="button" class="k3d-btn" data-lift hidden>Lift the tray</button>' +
-    '<span class="k3d-hint">' + (COARSE ? "Two fingers to turn" : "Drag to turn · scroll to zoom") + "</span>";
+    '<span class="k3d-hint">' + (COARSE ? "Drag to spin · two fingers to zoom" : "Drag to turn · scroll to zoom") + "</span>";
   fig.append(ui);
   const btnOpen = ui.querySelector("[data-open]"), btnLift = ui.querySelector("[data-lift]");
 

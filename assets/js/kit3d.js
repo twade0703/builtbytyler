@@ -2,8 +2,8 @@
    Used by kit-box.js (the boxed kit on the Hardware and kit pages) and kit.js (each module's wiring scene).
 
    Viewer: renders only when something changes (orbit, hover, animation), pauses off screen, caps the pixel ratio.
-   Mouse: left or middle drag orbits, right drag pans, wheel zooms, click picks. Touch: one finger scrolls the page,
-   two fingers orbit and zoom, a tap picks. */
+   Mouse: left or middle drag orbits, right drag pans, wheel zooms, click picks. Touch: one finger sideways spins (up/down scrolls the page),
+   two fingers tilt and zoom, a tap picks. */
 import * as THREE from "../vendor/three/three.module.min.js";
 import { OrbitControls } from "../vendor/three/OrbitControls.js";
 import { RoomEnvironment } from "../vendor/three/RoomEnvironment.js";
@@ -54,7 +54,8 @@ export function createViewer(host, opts = {}) {
   controls.zoomToCursor = true;
   controls.maxPolarAngle = THREE.MathUtils.degToRad(opts.maxPolar ?? 82);
   if (COARSE) {
-    controls.touches = { ONE: null, TWO: THREE.TOUCH.DOLLY_ROTATE };   // one finger = page scroll
+    // one finger sideways spins it; up/down is left to the browser (pan-y), so the page still scrolls over it
+    controls.touches = { ONE: THREE.TOUCH.ROTATE, TWO: THREE.TOUCH.DOLLY_ROTATE };
     canvas.style.touchAction = "pan-y";
   }
   canvas.addEventListener("contextmenu", (e) => e.preventDefault());

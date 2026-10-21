@@ -1,126 +1,154 @@
-/* Sensor Kit module pages: the three views (wire it / 3D / QR) and the 3D board viewer.
-   The viewer loads only when its tab is opened. Controls follow SolidWorks: drag with the left
-   or middle button to rotate, right-drag to pan, wheel to zoom, double-click to reset. */
-import * as THREE from "../vendor/three/three.module.min.js";
-import { OrbitControls } from "../vendor/three/OrbitControls.js";
-import { GLTFLoader } from "../vendor/three/GLTFLoader.js";
-import { RoomEnvironment } from "../vendor/three/RoomEnvironment.js";
+/* Sensor Kit module page: the 3D bench (breadboard + ESP32 + 9 V power module) with this module wired to it,
+   real Dupont jumpers drawn in one at a time, a pin list that highlights its wire, and Board / QR views.
+   Data comes from <script type="application/json" id="mod-data"> (written by sensor-kit/tools/web_kit.py). */
+import { THREE, createViewer, ease, bench, jumper, loadBoard, BB, COARSE } from "./kit3d.js?v=71";
 
-const tabs = document.querySelectorAll("[data-kit-tab]");
-const panes = document.querySelectorAll("[data-kit-pane]");
-let viewerStarted = false;
+const data = JSON.parse(document.getElementById("mod-data").textContent);
+const host = document.querySelector("[data-mod-stage]");
+const tabs = document.querySelectorAll("[data-mod-tab]");
+const rows = [...document.querySelectorAll("[data-wire]")];
+const status = host.querySelector(".mod-stage__status");
 
+let v = null, wires = [], moduleGroup = null, benchGroup = null, homes = {}, view = "wire", playing = 0;
+
+/* ---------------------------------------------------------------- tabs */
 function show(name) {
-  tabs.forEach((t) => t.setAttribute("aria-selected", t.dataset.kitTab === name ? "true" : "false"));
-  panes.forEach((p) => { p.hidden = p.dataset.kitPane !== name; });
-  if (name === "3d" && !viewerStarted) {
-    viewerStarted = true;
-    startViewer(document.querySelector("[data-kit-model]"));
-  }
+  view = name;
+  tabs.forEach((t) => t.setAttribute("aria-selected", t.dataset.modTab === name ? "true" : "false"));
+  document.querySelectorAll("[data-mod-pane]").forEach((p) => { p.hidden = p.dataset.modPane !== name; });
+  host.hidden = name === "qr";
+  if (name === "qr" || !v) return;
+  const wire = name === "wire";
+  benchGroup.visible = wire;
+  wires.forEach((w) => { w.group.visible = wire; });
+  moduleGroup.position.copy(wire ? moduleGroup.userData.benchPos : new THREE.Vector3(0, 0, 0));
+  moduleGroup.rotation.y = wire ? Math.PI : 0;
+  v.goHome(homes[name]);
+  v.updateShadows();
 }
-tabs.forEach((t) => t.addEventListener("click", () => show(t.dataset.kitTab)));
+tabs.forEach((t) => t.addEventListener("click", () => show(t.dataset.modTab)));
 
-/* the demo video under the wiring diagram */
-document.querySelectorAll("[data-kit-play]").forEach((btn) => {
-  btn.addEventListener("click", () => {
-    const v = document.getElementById(btn.dataset.kitPlay);
-    if (!v) return;
-    show("wire");
-    if (!v.src) v.src = v.dataset.src;
-    v.hidden = false;
-    btn.hidden = true;
-    v.play().catch(() => {});
+/* ---------------------------------------------------------------- pin list <-> wire highlight */
+function focus(i) {
+  wires.forEach((w, k) => {
+    const on = i === null || k === i;
+    w.material.opacity = on ? 1 : 0.18;
+    w.group.traverse((o) => { if (o.isMesh && o.material !== w.material) { o.material = on ? o.userData.mat0 || o.material : dimMat; } });
   });
+  rows.forEach((r, k) => r.classList.toggle("is-on", i !== null && k === i));
+  v && v.request();
+}
+const dimMat = new THREE.MeshStandardMaterial({ color: 0x18181a, transparent: true, opacity: 0.25 });
+rows.forEach((r, k) => {
+  r.addEventListener("mouseenter", () => { if (!playing) focus(k); });
+  r.addEventListener("mouseleave", () => { if (!playing) focus(null); });
+  r.addEventListener("focus", () => { if (!playing) focus(k); });
+  r.addEventListener("blur", () => { if (!playing) focus(null); });
 });
 
-function startViewer(host) {
-  if (!host) return;
-  const status = host.querySelector(".kit3d__status");
-  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-  renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.outputColorSpace = THREE.SRGBColorSpace;
-  host.prepend(renderer.domElement);
+/* ---------------------------------------------------------------- the wiring animation */
+function setGrow(w, u) {
+  const n = w.tube.geometry.index.count;
+  w.tube.geometry.setDrawRange(0, Math.max(0, Math.floor((n / 6) * u) * 6));
+  w.end.visible = u > 0.98;
+}
+function play() {
+  if (!v) return;
+  if (view !== "wire") show("wire");
+  playing++;
+  const run = playing;
+  wires.forEach((w) => setGrow(w, 0));
+  let k = 0;
+  const next = () => {
+    if (run !== playing) return;
+    if (k >= wires.length) { focus(null); playing = 0; return; }
+    const w = wires[k], idx = k;
+    focus(idx);
+    v.animate(520, (u) => setGrow(w, ease(u)), () => { k = idx + 1; setTimeout(next, 160); });
+  };
+  setTimeout(next, 250);
+}
+document.querySelector("[data-mod-replay]")?.addEventListener("click", play);
 
-  const scene = new THREE.Scene();
-  const pmrem = new THREE.PMREMGenerator(renderer);
-  scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
-  scene.add(new THREE.HemisphereLight(0xffffff, 0x223344, 0.6));
-  const key = new THREE.DirectionalLight(0xffffff, 1.6);
-  key.position.set(2, 4, 3);
-  scene.add(key);
+/* ---------------------------------------------------------------- build the scene */
+async function start() {
+  v = createViewer(host, { fov: 28, maxPolar: 84, shadowSize: 200, minDistance: 40 });
+  const b = bench({ espCol: 22 });
+  benchGroup = b.group;
+  v.scene.add(benchGroup);
 
-  const camera = new THREE.PerspectiveCamera(32, 1, 0.001, 100);
-  const controls = new OrbitControls(camera, renderer.domElement);
-  controls.enableDamping = true;
-  controls.dampingFactor = 0.08;
-  controls.mouseButtons = { LEFT: THREE.MOUSE.ROTATE, MIDDLE: THREE.MOUSE.ROTATE, RIGHT: THREE.MOUSE.PAN };
-  controls.touches = { ONE: THREE.TOUCH.ROTATE, TWO: THREE.TOUCH.DOLLY_PAN };
-  controls.zoomToCursor = true;
-  renderer.domElement.addEventListener("contextmenu", (e) => e.preventDefault());
-  renderer.domElement.addEventListener("mousedown", (e) => { if (e.button === 1) e.preventDefault(); });
+  const board = await loadBoard(data.glb);
+  // centre the board (KiCad absolute mm) on its own origin, PCB bottom on the table + header tails clearance
+  const cx = data.origin[0] + data.w / 2, cy = data.origin[1] + data.h / 2;
+  board.position.set(-cx, 0, -cy);
+  moduleGroup = new THREE.Group();
+  moduleGroup.add(board);
+  v.scene.add(moduleGroup);
 
-  let home = null;
-  function resize() {
-    const w = host.clientWidth, h = host.clientHeight;
-    renderer.setSize(w, h, false);
-    camera.aspect = w / h;
-    camera.updateProjectionMatrix();
-  }
-  window.addEventListener("resize", resize);
-  resize();
+  // module in front of the breadboard, header edge facing it (rotated 180 deg about y)
+  const used = data.pins.map((p) => p.esp && b.hole(p.esp)).filter(Boolean);
+  const midX = used.length ? used.reduce((s, h) => s + h.p.x, 0) / used.length : 0;
+  const benchPos = new THREE.Vector3(midX, 1.5, BB.W / 2 + 26 + data.h / 2);
+  moduleGroup.userData.benchPos = benchPos;
+  moduleGroup.position.copy(benchPos);
+  moduleGroup.rotation.y = Math.PI;
+  moduleGroup.updateMatrixWorld(true);
+  const toWorld = (p) => new THREE.Vector3(p.x - cx, 0, p.y - cy).applyAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI).add(benchPos);
 
-  new GLTFLoader().load(host.dataset.kitModel, (gltf) => {
-    const model = gltf.scene;
-    // KiCad's GLB has no top/bottom faces on the board body and a 95%-transparent solder mask, so
-    // the back silkscreen shows through from above. Make the mask an opaque matte black.
-    model.traverse((o) => {
-      if (!o.isMesh) return;
-      const m = o.material;
-      if (m.transparent && m.opacity > 0.5) {
-        m.transparent = false;
-        m.opacity = 1;
-        m.depthWrite = true;
-        m.color.setHex(0x0d0d0f);
-        m.roughness = 0.55;
-        m.metalness = 0;
-      }
-    });
-    const box = new THREE.Box3().setFromObject(model);
-    const size = box.getSize(new THREE.Vector3());
-    const center = box.getCenter(new THREE.Vector3());
-    model.position.sub(center);
-    scene.add(model);
-    const r = size.length() / 2;
-    const dist = r / Math.sin(THREE.MathUtils.degToRad(camera.fov / 2)) * 1.05;
-    // glTF is Y-up: KiCad's board lies in X-Z with its top face up. View it like a bench photo.
-    camera.up.set(0, 1, 0);
-    const dir = new THREE.Vector3(0.45, 0.95, 0.85);
-    camera.position.copy(dir.normalize().multiplyScalar(dist));
-    camera.near = dist / 100;
-    camera.far = dist * 20;
-    camera.updateProjectionMatrix();
-    controls.minDistance = r * 0.6;
-    controls.maxDistance = dist * 4;
-    controls.target.set(0, 0, 0);
-    controls.update();
-    home = camera.position.clone();
-    if (status) status.hidden = true;
-  }, undefined, () => { if (status) status.textContent = "3D model failed to load."; });
-
-  renderer.domElement.addEventListener("dblclick", () => {
-    if (!home) return;
-    camera.position.copy(home);
-    controls.target.set(0, 0, 0);
-    controls.update();
+  // jumpers: female housing on the module's header pin, male end in the ESP pin's free breadboard row
+  let ao = 0;
+  data.pins.forEach((p, i) => {
+    const a = toWorld(p).add(new THREE.Vector3(0, 1.6 + 2.5, 0));
+    let bpt, kindB = "M";
+    if (p.esp === "VIN") {                     // 5 V modules: the + rail (fed by the power module, tied to VIN)
+      bpt = b.rail("tp", b.hole("VIN").col + 4);
+    } else if (p.esp) {
+      bpt = b.hole(p.esp).p.clone();
+    } else {                                   // S38 A0-A3: loose ends, "to a sensor's AO"
+      bpt = a.clone().add(new THREE.Vector3((ao - 1.5) * 9, -4.1, 38));
+      ao++;
+    }
+    const w = jumper(a, bpt, p.color, { kindA: "F", kindB, lift: (i % 3) * 3 });
+    const g = w;
+    g.traverse((o) => { if (o.isMesh) o.userData.mat0 = o.material; });
+    const tube = g.userData.tube, material = g.userData.material;
+    material.transparent = true;
+    const end = g.children[1];
+    v.scene.add(g);
+    wires.push({ group: g, tube, material, end });
   });
 
-  (function loop() {
-    requestAnimationFrame(loop);
-    controls.update();
-    renderer.render(scene, camera);
-  })();
+  // camera homes
+  // frame the module, its wires and the ESP32 (the battery may sit at the edge of the frame)
+  const wireBox = new THREE.Box3().setFromObject(moduleGroup);
+  used.forEach((h) => wireBox.expandByPoint(h.p));
+  wireBox.expandByPoint(new THREE.Vector3(b.hole("VIN").p.x - 30, 30, -BB.W / 2));
+  wireBox.expandByPoint(new THREE.Vector3(b.hole("D23").p.x + 20, 0, -BB.W / 2));
+  homes.wire = v.frameObject(wireBox, new THREE.Vector3(0.28, 1.0, 0.95), COARSE ? 0.95 : 0.82);
+  moduleGroup.position.set(0, 0, 0); moduleGroup.rotation.y = 0; moduleGroup.updateMatrixWorld(true);
+  homes.board = v.frameObject(new THREE.Box3().setFromObject(moduleGroup), new THREE.Vector3(0.5, 1.1, 0.9), 1.15);
+  moduleGroup.position.copy(benchPos); moduleGroup.rotation.y = Math.PI;
+
+  v.renderer.domElement.addEventListener("dblclick", () => {
+    if (homes[view]) v.goHome(homes[view]);
+  });
+  if (status) status.hidden = true;
+  host.classList.add("is-live");
+  show(view);
+  play();
 }
 
-/* open the view named in the URL hash (#3d, #qr), otherwise "wire" */
-show(["wire", "3d", "qr"].includes(location.hash.slice(1)) ? location.hash.slice(1) : "wire");
+/* start when the stage is near the viewport; QR view needs no 3D */
+const io = new IntersectionObserver((es) => {
+  if (es[0].isIntersecting) { io.disconnect(); start().catch((e) => { console.error(e); if (status) status.textContent = "3D view failed to load."; }); }
+}, { rootMargin: "200px" });
+io.observe(host);
+
+/* ESP32 / Uno / Pi columns in the pin list */
+document.querySelectorAll("[data-mcu]").forEach((b) => b.addEventListener("click", () => {
+  document.querySelectorAll("[data-mcu]").forEach((x) => x.setAttribute("aria-pressed", x === b ? "true" : "false"));
+  rows.forEach((r) => { r.querySelector("[data-to]").textContent = r.dataset[b.dataset.mcu]; });
+}));
+
+const h = location.hash.slice(1);
+if (["wire", "board", "qr"].includes(h)) show(h);

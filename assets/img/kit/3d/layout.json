@@ -1,0 +1,1219 @@
+{
+ "units": "mm",
+ "base": {
+  "outer": [
+   320,
+   276,
+   72
+  ],
+  "wall": 4.0
+ },
+ "inner": [
+  312.0,
+  268.0
+ ],
+ "lid": {
+  "outer": [
+   326,
+   282,
+   30
+  ],
+  "wall": 2.5
+ },
+ "bottom": {
+  "thickness": 32.0,
+  "top_z": 34.5
+ },
+ "top": {
+  "thickness": 24.0,
+  "pocket_depth": 14.0,
+  "top_z": 58.5
+ },
+ "grid": {
+  "cols": 8,
+  "rows": 5,
+  "cell": [
+   38.0,
+   52.0
+  ],
+  "origin": [
+   4.0,
+   4.0
+  ]
+ },
+ "top_layer": [
+  {
+   "kind": "board",
+   "id": "S01",
+   "name": "Temp 1-Wire",
+   "chip": "DS18B20",
+   "cell": [
+    4.0,
+    4.0,
+    38.0,
+    52.0
+   ],
+   "rot": 0,
+   "depth": 14.0,
+   "pcb_y": 46.0,
+   "pocket": [
+    10.5,
+    14.5,
+    25.0,
+    25.0
+   ],
+   "board_center": [
+    23.0,
+    27.0
+   ],
+   "label": [
+    23.0,
+    51.2
+   ]
+  },
+  {
+   "kind": "board",
+   "id": "S02",
+   "name": "Power LED",
+   "chip": "1 W white emitter",
+   "cell": [
+    42.0,
+    4.0,
+    38.0,
+    52.0
+   ],
+   "rot": 0,
+   "depth": 14.0,
+   "pcb_y": 46.0,
+   "pocket": [
+    48.5,
+    10.5,
+    25.0,
+    33.0
+   ],
+   "board_center": [
+    61.0,
+    27.0
+   ],
+   "label": [
+    61.0,
+    51.2
+   ]
+  },
+  {
+   "kind": "board",
+   "id": "S03",
+   "name": "RGB LED 5 mm",
+   "chip": "Common cathode",
+   "cell": [
+    80.0,
+    4.0,
+    38.0,
+    52.0
+   ],
+   "rot": 0,
+   "depth": 14.0,
+   "pcb_y": 46.0,
+   "pocket": [
+    82.5,
+    14.5,
+    33.0,
+    25.0
+   ],
+   "board_center": [
+    99.0,
+    27.0
+   ],
+   "label": [
+    99.0,
+    51.2
+   ]
+  },
+  {
+   "kind": "board",
+   "id": "S04",
+   "name": "Relay 5V",
+   "chip": "SRD-05VDC-SL-C",
+   "cell": [
+    118.0,
+    4.0,
+    38.0,
+    52.0
+   ],
+   "rot": 90,
+   "depth": 14.0,
+   "pcb_y": 46.0,
+   "pocket": [
+    120.5,
+    6.5,
+    33.0,
+    41.0
+   ],
+   "board_center": [
+    137.0,
+    27.0
+   ],
+   "label": [
+    137.0,
+    51.2
+   ]
+  },
+  {
+   "kind": "board",
+   "id": "S05",
+   "name": "Accel 3-Axis",
+   "chip": "ADXL345",
+   "cell": [
+    156.0,
+    4.0,
+    38.0,
+    52.0
+   ],
+   "rot": 0,
+   "depth": 14.0,
+   "pcb_y": 46.0,
+   "pocket": [
+    158.5,
+    10.5,
+    33.0,
+    33.0
+   ],
+   "board_center": [
+    175.0,
+    27.0
+   ],
+   "label": [
+    175.0,
+    51.2
+   ]
+  },
+  {
+   "kind": "board",
+   "id": "S06",
+   "name": "Buzzer Active",
+   "chip": "12 mm, built-in oscillator",
+   "cell": [
+    194.0,
+    4.0,
+    38.0,
+    52.0
+   ],
+   "rot": 0,
+   "depth": 14.0,
+   "pcb_y": 46.0,
+   "pocket": [
+    200.5,
+    10.5,
+    25.0,
+    33.0
+   ],
+   "board_center": [
+    213.0,
+    27.0
+   ],
+   "label": [
+    213.0,
+    51.2
+   ]
+  },
+  {
+   "kind": "board",
+   "id": "S07",
+   "name": "Alcohol MQ-3",
+   "chip": "MQ-3",
+   "cell": [
+    232.0,
+    4.0,
+    38.0,
+    52.0
+   ],
+   "rot": 0,
+   "depth": 14.0,
+   "pcb_y": 46.0,
+   "pocket": [
+    234.5,
+    6.5,
+    33.0,
+    41.0
+   ],
+   "board_center": [
+    251.0,
+    27.0
+   ],
+   "label": [
+    251.0,
+    51.2
+   ]
+  },
+  {
+   "kind": "board",
+   "id": "S08",
+   "name": "Button",
+   "chip": "12 mm tactile + cap",
+   "cell": [
+    270.0,
+    4.0,
+    38.0,
+    52.0
+   ],
+   "rot": 0,
+   "depth": 14.0,
+   "pcb_y": 46.0,
+   "pocket": [
+    276.5,
+    10.5,
+    25.0,
+    33.0
+   ],
+   "board_center": [
+    289.0,
+    27.0
+   ],
+   "label": [
+    289.0,
+    51.2
+   ]
+  },
+  {
+   "kind": "board",
+   "id": "S09",
+   "name": "Touch",
+   "chip": "TTP223",
+   "cell": [
+    4.0,
+    56.0,
+    38.0,
+    52.0
+   ],
+   "rot": 0,
+   "depth": 14.0,
+   "pcb_y": 46.0,
+   "pocket": [
+    10.5,
+    62.5,
+    25.0,
+    33.0
+   ],
+   "board_center": [
+    23.0,
+    79.0
+   ],
+   "label": [
+    23.0,
+    103.2
+   ]
+  },
+  {
+   "kind": "board",
+   "id": "S10",
+   "name": "Crash Switch",
+   "chip": "Omron SS-5GL lever",
+   "cell": [
+    42.0,
+    56.0,
+    38.0,
+    52.0
+   ],
+   "rot": 0,
+   "depth": 14.0,
+   "pcb_y": 46.0,
+   "pocket": [
+    44.5,
+    62.5,
+    33.0,
+    33.0
+   ],
+   "board_center": [
+    61.0,
+    79.0
+   ],
+   "label": [
+    61.0,
+    103.2
+   ]
+  },
+  {
+   "kind": "board",
+   "id": "S11",
+   "name": "Temp + Humidity",
+   "chip": "DHT11",
+   "cell": [
+    80.0,
+    56.0,
+    38.0,
+    52.0
+   ],
+   "rot": 0,
+   "depth": 14.0,
+   "pcb_y": 46.0,
+   "pocket": [
+    86.5,
+    62.5,
+    25.0,
+    33.0
+   ],
+   "board_center": [
+    99.0,
+    79.0
+   ],
+   "label": [
+    99.0,
+    103.2
+   ]
+  },
+  {
+   "kind": "board",
+   "id": "S12",
+   "name": "IR Receiver",
+   "chip": "TSOP38238 38 kHz",
+   "cell": [
+    118.0,
+    56.0,
+    38.0,
+    52.0
+   ],
+   "rot": 0,
+   "depth": 14.0,
+   "pcb_y": 46.0,
+   "pocket": [
+    124.5,
+    66.5,
+    25.0,
+    25.0
+   ],
+   "board_center": [
+    137.0,
+    79.0
+   ],
+   "label": [
+    137.0,
+    103.2
+   ]
+  },
+  {
+   "kind": "board",
+   "id": "S13",
+   "name": "IR Transmitter",
+   "chip": "940 nm LED",
+   "cell": [
+    156.0,
+    56.0,
+    38.0,
+    52.0
+   ],
+   "rot": 0,
+   "depth": 14.0,
+   "pcb_y": 46.0,
+   "pocket": [
+    162.5,
+    66.5,
+    25.0,
+    25.0
+   ],
+   "board_center": [
+    175.0,
+    79.0
+   ],
+   "label": [
+    175.0,
+    103.2
+   ]
+  },
+  {
+   "kind": "board",
+   "id": "S14",
+   "name": "Tilt",
+   "chip": "Ball tilt switch",
+   "cell": [
+    194.0,
+    56.0,
+    38.0,
+    52.0
+   ],
+   "rot": 0,
+   "depth": 14.0,
+   "pcb_y": 46.0,
+   "pocket": [
+    200.5,
+    66.5,
+    25.0,
+    25.0
+   ],
+   "board_center": [
+    213.0,
+    79.0
+   ],
+   "label": [
+    213.0,
+    103.2
+   ]
+  },
+  {
+   "kind": "board",
+   "id": "S15",
+   "name": "2-Color LED",
+   "chip": "Red / green 5 mm",
+   "cell": [
+    232.0,
+    56.0,
+    38.0,
+    52.0
+   ],
+   "rot": 0,
+   "depth": 14.0,
+   "pcb_y": 46.0,
+   "pocket": [
+    238.5,
+    66.5,
+    25.0,
+    25.0
+   ],
+   "board_center": [
+    251.0,
+    79.0
+   ],
+   "label": [
+    251.0,
+    103.2
+   ]
+  },
+  {
+   "kind": "board",
+   "id": "S16",
+   "name": "Hall Magnet",
+   "chip": "DRV5033 omnipolar",
+   "cell": [
+    270.0,
+    56.0,
+    38.0,
+    52.0
+   ],
+   "rot": 0,
+   "depth": 14.0,
+   "pcb_y": 46.0,
+   "pocket": [
+    276.5,
+    66.5,
+    25.0,
+    25.0
+   ],
+   "board_center": [
+    289.0,
+    79.0
+   ],
+   "label": [
+    289.0,
+    103.2
+   ]
+  },
+  {
+   "kind": "board",
+   "id": "S17",
+   "name": "Joystick",
+   "chip": "ALPS RKJXV 2-axis + push",
+   "cell": [
+    4.0,
+    108.0,
+    38.0,
+    52.0
+   ],
+   "rot": 0,
+   "depth": 14.0,
+   "pcb_y": 46.0,
+   "pocket": [
+    6.5,
+    110.5,
+    33.0,
+    41.0
+   ],
+   "board_center": [
+    23.0,
+    131.0
+   ],
+   "label": [
+    23.0,
+    155.2
+   ]
+  },
+  {
+   "kind": "board",
+   "id": "S18",
+   "name": "Knock",
+   "chip": "Spring vibration switch",
+   "cell": [
+    42.0,
+    108.0,
+    38.0,
+    52.0
+   ],
+   "rot": 0,
+   "depth": 14.0,
+   "pcb_y": 46.0,
+   "pocket": [
+    48.5,
+    114.5,
+    25.0,
+    33.0
+   ],
+   "board_center": [
+    61.0,
+    131.0
+   ],
+   "label": [
+    61.0,
+    155.2
+   ]
+  },
+  {
+   "kind": "board",
+   "id": "S19",
+   "name": "Temp Analog",
+   "chip": "MCP9700A",
+   "cell": [
+    80.0,
+    108.0,
+    38.0,
+    52.0
+   ],
+   "rot": 0,
+   "depth": 14.0,
+   "pcb_y": 46.0,
+   "pocket": [
+    86.5,
+    114.5,
+    25.0,
+    33.0
+   ],
+   "board_center": [
+    99.0,
+    131.0
+   ],
+   "label": [
+    99.0,
+    155.2
+   ]
+  },
+  {
+   "kind": "board",
+   "id": "S20",
+   "name": "Laser 650 nm",
+   "chip": "Class 2 (<1 mW)",
+   "cell": [
+    118.0,
+    108.0,
+    38.0,
+    52.0
+   ],
+   "rot": 0,
+   "depth": 14.0,
+   "pcb_y": 46.0,
+   "pocket": [
+    124.5,
+    114.5,
+    25.0,
+    33.0
+   ],
+   "board_center": [
+    137.0,
+    131.0
+   ],
+   "label": [
+    137.0,
+    155.2
+   ]
+  },
+  {
+   "kind": "board",
+   "id": "S21",
+   "name": "Line Tracker",
+   "chip": "TCRT5000",
+   "cell": [
+    156.0,
+    108.0,
+    38.0,
+    52.0
+   ],
+   "rot": 0,
+   "depth": 14.0,
+   "pcb_y": 46.0,
+   "pocket": [
+    158.5,
+    114.5,
+    33.0,
+    33.0
+   ],
+   "board_center": [
+    175.0,
+    131.0
+   ],
+   "label": [
+    175.0,
+    155.2
+   ]
+  },
+  {
+   "kind": "board",
+   "id": "S22",
+   "name": "Gas / Smoke MQ-2",
+   "chip": "MQ-2",
+   "cell": [
+    194.0,
+    108.0,
+    38.0,
+    52.0
+   ],
+   "rot": 0,
+   "depth": 14.0,
+   "pcb_y": 46.0,
+   "pocket": [
+    196.5,
+    110.5,
+    33.0,
+    41.0
+   ],
+   "board_center": [
+    213.0,
+    131.0
+   ],
+   "label": [
+    213.0,
+    155.2
+   ]
+  },
+  {
+   "kind": "board",
+   "id": "S23",
+   "name": "Magic Cup",
+   "chip": "Tilt switch + LED",
+   "cell": [
+    232.0,
+    108.0,
+    38.0,
+    52.0
+   ],
+   "rot": 0,
+   "depth": 14.0,
+   "pcb_y": 46.0,
+   "pocket": [
+    234.5,
+    114.5,
+    33.0,
+    33.0
+   ],
+   "board_center": [
+    251.0,
+    131.0
+   ],
+   "label": [
+    251.0,
+    155.2
+   ]
+  },
+  {
+   "kind": "board",
+   "id": "S24",
+   "name": "Sound",
+   "chip": "Electret + MCP6002",
+   "cell": [
+    270.0,
+    108.0,
+    38.0,
+    52.0
+   ],
+   "rot": 0,
+   "depth": 14.0,
+   "pcb_y": 46.0,
+   "pocket": [
+    272.5,
+    114.5,
+    33.0,
+    33.0
+   ],
+   "board_center": [
+    289.0,
+    131.0
+   ],
+   "label": [
+    289.0,
+    155.2
+   ]
+  },
+  {
+   "kind": "board",
+   "id": "S25",
+   "name": "Obstacle IR",
+   "chip": "IR LED + phototransistor",
+   "cell": [
+    4.0,
+    160.0,
+    38.0,
+    52.0
+   ],
+   "rot": 0,
+   "depth": 14.0,
+   "pcb_y": 46.0,
+   "pocket": [
+    6.5,
+    166.5,
+    33.0,
+    33.0
+   ],
+   "board_center": [
+    23.0,
+    183.0
+   ],
+   "label": [
+    23.0,
+    207.2
+   ]
+  },
+  {
+   "kind": "board",
+   "id": "S26",
+   "name": "Motion PIR",
+   "chip": "AM312 digital pyro",
+   "cell": [
+    42.0,
+    160.0,
+    38.0,
+    52.0
+   ],
+   "rot": 0,
+   "depth": 14.0,
+   "pcb_y": 46.0,
+   "pocket": [
+    48.5,
+    170.5,
+    25.0,
+    25.0
+   ],
+   "board_center": [
+    61.0,
+    183.0
+   ],
+   "label": [
+    61.0,
+    207.2
+   ]
+  },
+  {
+   "kind": "board",
+   "id": "S27",
+   "name": "Buzzer Passive",
+   "chip": "12 mm magnetic transducer",
+   "cell": [
+    80.0,
+    160.0,
+    38.0,
+    52.0
+   ],
+   "rot": 0,
+   "depth": 14.0,
+   "pcb_y": 46.0,
+   "pocket": [
+    86.5,
+    166.5,
+    25.0,
+    33.0
+   ],
+   "board_center": [
+    99.0,
+    183.0
+   ],
+   "label": [
+    99.0,
+    207.2
+   ]
+  },
+  {
+   "kind": "board",
+   "id": "S28",
+   "name": "Photo Gate",
+   "chip": "ITR9608 slot",
+   "cell": [
+    118.0,
+    160.0,
+    38.0,
+    52.0
+   ],
+   "rot": 0,
+   "depth": 14.0,
+   "pcb_y": 46.0,
+   "pocket": [
+    124.5,
+    170.5,
+    25.0,
+    25.0
+   ],
+   "board_center": [
+    137.0,
+    183.0
+   ],
+   "label": [
+    137.0,
+    207.2
+   ]
+  },
+  {
+   "kind": "board",
+   "id": "S29",
+   "name": "Light LDR",
+   "chip": "GL5528 photocell",
+   "cell": [
+    156.0,
+    160.0,
+    38.0,
+    52.0
+   ],
+   "rot": 0,
+   "depth": 14.0,
+   "pcb_y": 46.0,
+   "pocket": [
+    162.5,
+    170.5,
+    25.0,
+    25.0
+   ],
+   "board_center": [
+    175.0,
+    183.0
+   ],
+   "label": [
+    175.0,
+    207.2
+   ]
+  },
+  {
+   "kind": "board",
+   "id": "S30",
+   "name": "Knob",
+   "chip": "10k rotary pot",
+   "cell": [
+    194.0,
+    160.0,
+    38.0,
+    52.0
+   ],
+   "rot": 0,
+   "depth": 18,
+   "pcb_y": 42.0,
+   "pocket": [
+    200.5,
+    166.5,
+    25.0,
+    33.0
+   ],
+   "board_center": [
+    213.0,
+    183.0
+   ],
+   "label": [
+    213.0,
+    207.2
+   ]
+  },
+  {
+   "kind": "board",
+   "id": "S31",
+   "name": "Pulse",
+   "chip": "Green LED + TEMT6000 + MCP6001",
+   "cell": [
+    232.0,
+    160.0,
+    38.0,
+    52.0
+   ],
+   "rot": 0,
+   "depth": 14.0,
+   "pcb_y": 46.0,
+   "pocket": [
+    238.5,
+    166.5,
+    25.0,
+    33.0
+   ],
+   "board_center": [
+    251.0,
+    183.0
+   ],
+   "label": [
+    251.0,
+    207.2
+   ]
+  },
+  {
+   "kind": "board",
+   "id": "S32",
+   "name": "RGB LED SMD",
+   "chip": "5050 RGB",
+   "cell": [
+    270.0,
+    160.0,
+    38.0,
+    52.0
+   ],
+   "rot": 0,
+   "depth": 14.0,
+   "pcb_y": 46.0,
+   "pocket": [
+    272.5,
+    170.5,
+    33.0,
+    25.0
+   ],
+   "board_center": [
+    289.0,
+    183.0
+   ],
+   "label": [
+    289.0,
+    207.2
+   ]
+  },
+  {
+   "kind": "board",
+   "id": "S33",
+   "name": "Reed Switch",
+   "chip": "Hamlin MDSR-4",
+   "cell": [
+    4.0,
+    212.0,
+    38.0,
+    52.0
+   ],
+   "rot": 0,
+   "depth": 14.0,
+   "pcb_y": 46.0,
+   "pocket": [
+    10.5,
+    222.5,
+    25.0,
+    25.0
+   ],
+   "board_center": [
+    23.0,
+    235.0
+   ],
+   "label": [
+    23.0,
+    259.2
+   ]
+  },
+  {
+   "kind": "board",
+   "id": "S34",
+   "name": "Rotary Encoder",
+   "chip": "EC11 + push",
+   "cell": [
+    42.0,
+    212.0,
+    38.0,
+    52.0
+   ],
+   "rot": 0,
+   "depth": 19,
+   "pcb_y": 41.0,
+   "pocket": [
+    44.5,
+    218.5,
+    33.0,
+    33.0
+   ],
+   "board_center": [
+    61.0,
+    235.0
+   ],
+   "label": [
+    61.0,
+    259.2
+   ]
+  },
+  {
+   "kind": "board",
+   "id": "S35",
+   "name": "Light TEMT6000",
+   "chip": "Vishay TEMT6000X01",
+   "cell": [
+    80.0,
+    212.0,
+    38.0,
+    52.0
+   ],
+   "rot": 0,
+   "depth": 14.0,
+   "pcb_y": 46.0,
+   "pocket": [
+    86.5,
+    222.5,
+    25.0,
+    25.0
+   ],
+   "board_center": [
+    99.0,
+    235.0
+   ],
+   "label": [
+    99.0,
+    259.2
+   ]
+  },
+  {
+   "kind": "board",
+   "id": "S36",
+   "name": "Thermistor",
+   "chip": "NTC 10k",
+   "cell": [
+    118.0,
+    212.0,
+    38.0,
+    52.0
+   ],
+   "rot": 0,
+   "depth": 14.0,
+   "pcb_y": 46.0,
+   "pocket": [
+    124.5,
+    222.5,
+    25.0,
+    25.0
+   ],
+   "board_center": [
+    137.0,
+    235.0
+   ],
+   "label": [
+    137.0,
+    259.2
+   ]
+  },
+  {
+   "kind": "board",
+   "id": "S38",
+   "name": "ADC 16-Bit",
+   "chip": "ADS1115",
+   "cell": [
+    156.0,
+    212.0,
+    38.0,
+    52.0
+   ],
+   "rot": 0,
+   "depth": 14.0,
+   "pcb_y": 46.0,
+   "pocket": [
+    158.5,
+    214.5,
+    33.0,
+    41.0
+   ],
+   "board_center": [
+    175.0,
+    235.0
+   ],
+   "label": [
+    175.0,
+    259.2
+   ]
+  },
+  {
+   "kind": "qr",
+   "id": "START",
+   "name": "Start here",
+   "cell": [
+    194.0,
+    212.0,
+    38.0,
+    52.0
+   ],
+   "pocket": [
+    197.0,
+    216.0,
+    32.0,
+    32.0
+   ],
+   "label": [
+    213.0,
+    259.2
+   ]
+  },
+  {
+   "kind": "lift",
+   "id": "LIFT",
+   "name": "Lift for ESP32 + breadboard",
+   "cell": [
+    232.0,
+    212.0,
+    76.0,
+    52.0
+   ],
+   "pocket": [
+    240.0,
+    226.0,
+    60.0,
+    22
+   ],
+   "label": [
+    270.0,
+    259.2
+   ]
+  }
+ ],
+ "bottom_layer": [
+  {
+   "kind": "breadboard",
+   "id": "BB",
+   "name": "Breadboard + ESP32 + power module",
+   "flip": true,
+   "pocket": [
+    8,
+    54,
+    177.1,
+    56.6
+   ],
+   "breadboard": [
+    10,
+    55,
+    165.1,
+    54.6
+   ]
+  },
+  {
+   "kind": "battery",
+   "id": "9V",
+   "name": "9 V battery, clipped in",
+   "pocket": [
+    222,
+    80,
+    56,
+    29
+   ],
+   "lead_pocket": [
+    186,
+    88,
+    38,
+    14
+   ]
+  },
+  {
+   "kind": "jumpers",
+   "id": "JW",
+   "name": "Jumper wires",
+   "pocket": [
+    8,
+    132,
+    230,
+    62
+   ]
+  }
+ ],
+ "card": {
+  "size": [
+   152.4,
+   101.6
+  ],
+  "pos": [
+   79.8,
+   83.2
+  ]
+ }
+}

@@ -23,7 +23,7 @@ Bump VERSION on any deploy that changes CSS or JS.
 """
 import hashlib, io, json, os, re, glob, sys
 
-VERSION = "69"
+VERSION = "71"
 os.chdir(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 ASSETS = [
@@ -35,6 +35,8 @@ ASSETS = [
     "assets/js/hologram.js",
     "assets/js/main.js",
     "assets/js/starfield.js",
+    "assets/js/kit.js",
+    "assets/js/kit-box.js",
 ]
 
 # checkout-test.html is self-contained by design and links nothing from assets/.
@@ -58,7 +60,10 @@ for f in pages:
 # Dependencies imported from INSIDE a module are linked from no page, so the
 # loop above never sees them and they need stamping here. There are none now:
 # the star field used to import a vendored three.js and no longer does.
-MODULE_IMPORTS = []
+MODULE_IMPORTS = [
+    ("assets/js/kit.js", "./kit3d.js"),       # the Sensor Kit 3D library, shared by the module pages
+    ("assets/js/kit-box.js", "./kit3d.js"),   # ... and the boxed kit on the Hardware and kit pages
+]
 
 for src, dep in MODULE_IMPORTS:
     if not os.path.exists(src):

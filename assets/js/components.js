@@ -51,7 +51,7 @@ function renderNav() {
   if (!host) return;
   const here = pageStem(window.location.pathname);
   // a build's own page lights "Hardware"
-  const activeFor = here === "product" ? "shop" : here;
+  const activeFor = here === "product" || here === "kit" || /^kit-s\d+$/.test(here) ? "shop" : here;
 
   const links = NAV_ITEMS.map(
     (item) =>

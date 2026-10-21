@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>S24 Sound · Hardware Kit · BuiltByTyler</title>
+  <meta name="description" content="S24 Sound (Electret + MCP6002): Real amplified audio on AO (centred at VCC/2, x101 gain), plus a clap/loud-sound detector on DO (HIGH = loud).">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500&family=Instrument+Sans:wght@400;500&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" sizes="48x48" href="/assets/img/icon-48.png">
+  <link rel="icon" type="image/png" sizes="96x96" href="/assets/img/icon-96.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="/assets/img/icon-192.png">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <meta name="theme-color" content="#121216">
+  <link rel="canonical" href="https://builtbytyler.com/kit-s24">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Built by Tyler">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:url" content="https://builtbytyler.com/kit-s24">
+  <meta property="og:title" content="S24 Sound · Hardware Kit · BuiltByTyler">
+  <meta property="og:description" content="S24 Sound (Electret + MCP6002): Real amplified audio on AO (centred at VCC/2, x101 gain), plus a clap/loud-sound detector on DO (HIGH = loud).">
+  <meta name="twitter:title" content="S24 Sound · Hardware Kit · BuiltByTyler">
+  <meta name="twitter:description" content="S24 Sound (Electret + MCP6002): Real amplified audio on AO (centred at VCC/2, x101 gain), plus a clap/loud-sound detector on DO (HIGH = loud).">
+  <meta property="og:image" content="https://builtbytyler.com/assets/img/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <script src="assets/js/boot.js?v=66"></script>
+  <link rel="stylesheet" href="assets/css/styles.css?v=66">
+  <link rel="stylesheet" href="assets/css/motion.css?v=66">
+
+<!-- Structured data. Every fact here is one this site already states in prose:
+       the entity, the city and the email come off contact.html. Nothing is
+       invented — a schema block with a made-up address is worse than none,
+       because Google cross-checks it against the Business Profile. -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "ProfessionalService",
+    "@id": "https://builtbytyler.com/#business",
+    "name": "BuiltByTyler",
+    "legalName": "BuiltByTyler LLC",
+    "alternateName": [
+      "Built by Tyler",
+      "Built By Tyler",
+      "BuiltByTyler LLC",
+      "Built by Tyler LLC"
+    ],
+    "url": "https://builtbytyler.com/",
+    "email": "twade@builtbytyler.com",
+    "telephone": "+12817398942",
+    "description": "An engineering studio in Monterey, California building websites and software for businesses and trades across the United States, plus mechanical products: robotics, drones and custom builds.",
+    "founder": { "@type": "Person", "name": "Tyler Wade" },
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "Monterey",
+      "addressRegion": "CA",
+      "addressCountry": "US"
+    },
+    "areaServed": { "@type": "Country", "name": "United States" },
+    "knowsAbout": [
+      "website design for contractors",
+      "local SEO for trades businesses",
+      "small business websites",
+      "custom software"
+    ],
+    "sameAs": [
+      "https://www.linkedin.com/in/tyler-wade1/",
+      "https://instagram.com/twade0703"
+    ]
+  }
+  </script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://builtbytyler.com/"},
+      {"@type": "ListItem", "position": 2, "name": "Hardware", "item": "https://builtbytyler.com/shop"},
+      {"@type": "ListItem", "position": 3, "name": "Hardware Kit", "item": "https://builtbytyler.com/kit"},
+      {"@type": "ListItem", "position": 4, "name": "S24 Sound", "item": "https://builtbytyler.com/kit-s24"}
+    ]
+  }
+  </script>
+  <style>
+    /* Hardware kit pages: page-local, built on the site tokens */
+    .kit-rules { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; border-top: 1px solid var(--hairline); margin: 0; padding: 0; list-style: none; }
+    .kit-rules li { padding: 1.1rem 1.2rem 1.2rem 0; border-bottom: 1px solid var(--hairline); }
+    .kit-rules b { display: block; font-family: var(--font-display); font-weight: 400; font-size: var(--fs-h3); margin: 0.35rem 0; }
+    .kit-rules span { color: var(--muted); font-size: var(--fs-small); line-height: 1.5; }
+    .kit-rules .n { font-family: var(--font-mono); font-size: var(--fs-micro); letter-spacing: 0.18em; color: var(--accent); }
+    .kit-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 1px; background: var(--hairline); border: 1px solid var(--hairline); }
+    .kit-card { display: flex; flex-direction: column; gap: 0.35rem; padding: 1rem 1rem 1.15rem; background: var(--bg); color: var(--ink); text-decoration: none; transition: background 0.25s; }
+    .kit-card:hover { background: var(--surface); }
+    .kit-card img { width: 100%; height: auto; aspect-ratio: 7 / 5.5; object-fit: contain; margin-bottom: 0.4rem; transition: transform 0.35s; }
+    .kit-card:hover img { transform: translateY(-4px) scale(1.03); }
+    .kit-card__id { font-family: var(--font-mono); font-size: var(--fs-micro); letter-spacing: 0.18em; color: var(--accent); }
+    .kit-card__name { font-family: var(--font-display); font-size: 1.2rem; letter-spacing: -0.01em; }
+    .kit-card__chip { color: var(--muted); font-size: var(--fs-small); }
+    .kit-card--soon { opacity: 0.55; pointer-events: none; }
+    .kit-crumbs { font-family: var(--font-mono); font-size: var(--fs-micro); letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); margin-bottom: 1.2rem; }
+    .kit-crumbs a { color: var(--muted); }
+    .kit-crumbs a:hover { color: var(--accent); }
+    .kit-detail { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: clamp(1.5rem, 4vw, 3rem); align-items: start; }
+    .kit-detail h1 { font-family: var(--font-display); font-size: var(--fs-h1); font-weight: 400; letter-spacing: -0.02em; margin: 0.2rem 0 0.6rem; }
+    .kit-detail .lead { color: var(--muted); font-size: 1.08rem; line-height: 1.55; max-width: 48ch; }
+    .kit-sides { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--hairline); border: 1px solid var(--hairline); margin-top: 1.25rem; }
+    .kit-sides figure { margin: 0; background: var(--bg); padding: 0.8rem; }
+    .kit-sides img { width: 100%; display: block; }
+    .kit-sides figcaption { font-family: var(--font-mono); font-size: var(--fs-micro); letter-spacing: 0.16em; color: var(--muted); text-transform: uppercase; margin-top: 0.5rem; }
+    .kit-h { font-family: var(--font-mono); font-size: var(--fs-micro); letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent); margin: 2rem 0 0.7rem; }
+    .kit-wire { width: 100%; border-collapse: collapse; font-size: var(--fs-small); }
+    .kit-wire th { text-align: left; font-family: var(--font-mono); font-size: var(--fs-micro); letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); font-weight: 400; padding: 0 0.8rem 0.5rem 0; border-bottom: 1px solid var(--hairline-strong); }
+    .kit-wire td { padding: 0.55rem 0.8rem 0.55rem 0; border-bottom: 1px solid var(--hairline); }
+    .kit-wire td:first-child { font-family: var(--font-mono); color: var(--ink); }
+    .kit-wire .dot { display: inline-block; width: 0.7em; height: 0.7em; border-radius: 50%; margin-right: 0.5em; vertical-align: -0.05em; box-shadow: 0 0 0 1px rgba(255,255,255,0.35); }
+    .kit-list { margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--hairline); }
+    .kit-list li { padding: 0.65rem 0; border-bottom: 1px solid var(--hairline); font-size: var(--fs-small); line-height: 1.5; }
+    .kit-code { margin: 0; padding: 1rem 1.1rem; background: #02050A; border: 1px solid var(--hairline); font-family: var(--font-mono); font-size: 0.82rem; line-height: 1.7; color: #CFE6FF; overflow-x: auto; }
+    .kit-nav { display: flex; justify-content: space-between; gap: 1rem; margin-top: clamp(2rem, 5vw, 3.5rem); padding-top: 1rem; border-top: 1px solid var(--hairline); font-family: var(--font-mono); font-size: var(--fs-small); }
+    .kit-nav a { color: var(--ink); }
+    .kit-nav a:hover { color: var(--accent); }
+    .kit-feature { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: clamp(1.5rem, 4vw, 3rem); align-items: center; }
+    .kit-feature img { width: 100%; display: block; border: 1px solid var(--hairline); }
+    @media (max-width: 900px) {
+      .kit-rules { grid-template-columns: 1fr 1fr; }
+      .kit-detail, .kit-feature { grid-template-columns: minmax(0, 1fr); }
+    }
+    @media (max-width: 520px) {
+      .kit-rules, .kit-sides { grid-template-columns: 1fr; }
+      .kit-grid { grid-template-columns: 1fr 1fr; }
+      .kit-card { padding: 0.7rem; }
+    }
+  </style>
+</head>
+<body>
+  <!-- The nav is in the HTML, with this page already marked, so it is there
+       on the first paint; components.js re-renders the same thing. -->
+  <header id="site-nav" class="site-nav">
+    <div class="container site-nav__inner">
+      <a href="index.html" class="brand">Built<b>ByTyler</b></a>
+      <nav aria-label="Primary"><ul class="nav-links" id="nav-links"><li><a href="index.html">Home</a></li><li><a href="software.html">Software</a></li><li><a href="shop.html" class="is-active" aria-current="page">Hardware</a></li><li><a href="games.html">Games</a></li><li><a href="about.html">About</a></li><li><a href="contact.html">Contact</a></li></ul></nav>
+      <div class="nav-actions"><button class="nav-toggle" id="nav-toggle" aria-label="Toggle menu" aria-expanded="false"><span></span><span></span><span></span></button></div>
+    </div>
+  </header>
+
+    <main>
+    <section class="section opener" data-sec="top">
+      <div class="container">
+        <p class="kit-crumbs"><a href="shop.html">Hardware</a> / <a href="kit.html">Hardware kit</a> / S24</p>
+        <div class="kit-detail">
+          <div>
+            <button class="cad-reel" type="button" data-reel aria-label="Watch the Sound demo large">
+              <span class="tick tick--tl"></span><span class="tick tick--br"></span>
+              <video muted loop playsinline preload="none" poster="assets/img/kit/s24-poster.jpg"
+                data-src="assets/img/kit/s24-demo.mp4" aria-label="Sound: soldering the header, wiring it to an ESP32, what it does, and the code"></video>
+              <span class="cad-reel__zoom" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7"/></svg>Watch large</span>
+            </button>
+            <div class="kit-sides">
+              <figure><img src="assets/img/kit/s24-top.webp" alt="Sound board, front" decoding="async"><figcaption>Front</figcaption></figure>
+              <figure><img src="assets/img/kit/s24-bottom.webp" alt="Sound board, back with the BUILT BY TYLER mark and QR code" decoding="async"><figcaption>Back</figcaption></figure>
+            </div>
+          </div>
+          <div>
+            <p class="kicker">Hardware kit <b>—</b> S24</p>
+            <h1>Sound</h1>
+            <p class="lead">Real amplified audio on AO (centred at VCC/2, x101 gain), plus a clap/loud-sound detector on DO (HIGH = loud).</p>
+            <dl class="cad-spec">
+              <div><dt>Main part</dt><dd>Electret + MCP6002</dd></div><div><dt>Supply</dt><dd>3.3 V or 5 V (use your board&#x27;s logic voltage)</dd></div><div><dt>Pins</dt><dd>GND · VCC · AO · DO</dd></div><div><dt>Board</dt><dd>32 x 32 mm, M3 holes on an 8 mm grid</dd></div><div><dt>Try it</dt><dd>Clap or speak near the mic</dd></div><div><dt>Libraries</dt><dd>analogRead(AO) for level/FFT, interrupt on DO for claps</dd></div>
+            </dl>
+            <p class="kit-h">Wire it</p>
+            <table class="kit-wire">
+              <thead><tr><th>Board</th><th>ESP32</th><th>Arduino Uno</th><th>Raspberry Pi</th></tr></thead>
+              <tbody><tr><td><span class="dot" style="background:#2a2a2a"></span>GND</td><td>GND</td><td>GND</td><td>GND (pin 6)</td></tr><tr><td><span class="dot" style="background:#e63232"></span>VCC</td><td>3V3</td><td>5V</td><td>3V3 (pin 1)</td></tr><tr><td><span class="dot" style="background:#fac81e"></span>AO</td><td>GPIO 34</td><td>A0</td><td>via S38 ADC</td></tr><tr><td><span class="dot" style="background:#3caaff"></span>DO</td><td>GPIO 4</td><td>D2</td><td>GPIO17</td></tr></tbody>
+            </table>
+            <p class="kit-h">Code (Arduino IDE, ESP32)</p>
+            <pre class="kit-code">int v = analogRead(34);   // AO
+int d = digitalRead(4);  // DO
+Serial.println(v);</pre>
+            <p class="kit-h">What is better about this one</p>
+            <ul class="kit-list"><li>Proper op-amp preamp: the stock module&#x27;s AO is an un-amplified few-mV signal</li><li>Rail-to-rail MCP6002, so it works at 3.3 V</li></ul>
+            <div class="opener__cta"><a class="btn" href="contact.html">Ask about the kit</a><a class="btn btn--ghost" href="kit.html">All 38 modules</a></div>
+          </div>
+        </div>
+        <nav class="kit-nav" aria-label="Kit modules"><a href="kit-s23.html">&larr; S23 Magic Cup</a><a href="kit-s25.html">S25 Obstacle IR &rarr;</a></nav>
+      </div>
+    </section>
+    <dialog class="reel-modal" id="reel-modal" aria-label="Reel">
+    <button class="demo-modal__close" type="button" aria-label="Close the reel">Close</button>
+    <video controls playsinline muted loop></video>
+  </dialog>
+</main>
+
+
+  <footer id="site-footer" data-year="2026">
+    <!-- Static fallback only. components.js overwrites this block on load, so
+         no visitor ever sees it. It exists because the nav and the footer are
+         BOTH rendered into empty hosts by JS, which left a non-executing
+         crawler with no internal links and no company name anywhere in the
+         served HTML. Keep the links here in step with NAV_ITEMS. -->
+    <div class="container site-footer__inner">
+      <address>
+        <strong>Built by Tyler</strong> &mdash; BuiltByTyler LLC<br>
+        Monterey, California<br>
+        <a href="tel:+12817398942">(281) 739-8942</a> &middot;
+        <a href="mailto:twade@builtbytyler.com">twade@builtbytyler.com</a>
+      </address>
+      <nav aria-label="Footer">
+        <a href="index.html">Home</a>
+        <a href="software.html">Websites &amp; software</a>
+        <a href="shop.html">Hardware</a>
+        <a href="games.html">Games</a>
+        <a href="about.html">About Tyler Wade</a>
+        <a href="contact.html">Contact</a>
+        <a href="policies.html">Lead times, shipping &amp; refunds</a>
+        <a href="terms.html">Website terms</a>
+      </nav>
+    </div>
+  </footer>
+
+  <!-- defer keeps execution order but stops these blocking first paint, which
+       was costing ~900 ms of the 4.6 s LCP. hologram.js stays: it is 64 KB and
+       looks unused here because the page ships no canvas[data-holo] in its
+       HTML, but main.js CREATES those canvases for the build plates. Removing
+       it blanks every hologram. If the 64 KB is ever worth reclaiming, the fix
+       is to load it on demand when a plate scrolls into view. -->
+  <script defer src="assets/js/products.js?v=66"></script>
+  <script defer src="assets/js/components.js?v=66"></script>
+  <script defer src="assets/js/hologram.js?v=66"></script>
+  <script defer src="assets/js/main.js?v=66"></script>
+  <!-- The star field: plain WebGL, one small module, no library behind it. -->
+  <script type="module" src="assets/js/starfield.js?v=66"></script>
+</body>
+</html>

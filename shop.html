@@ -28,9 +28,9 @@
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
-  <script src="assets/js/boot.js?v=65"></script>
-  <link rel="stylesheet" href="assets/css/styles.css?v=65">
-  <link rel="stylesheet" href="assets/css/motion.css?v=65">
+  <script src="assets/js/boot.js?v=66"></script>
+  <link rel="stylesheet" href="assets/css/styles.css?v=66">
+  <link rel="stylesheet" href="assets/css/motion.css?v=66">
 
 <!-- Structured data. Every fact here is one this site already states in prose:
        the entity, the city and the email come off contact.html. Nothing is
@@ -127,6 +127,35 @@
         </div>
         <div class="plates opener__plates" id="shop-grid" data-spans="plate--half,plate--half" data-specs></div>
       </div>
+    </section>
+
+    <!-- ===============================================================
+         HARDWARE KIT: the 38-module sensor kit. Its own page is kit.html,
+         one page per module at kit-sNN.html (the QR on each board lands there).
+         =============================================================== -->
+    <section class="section hw-kit" id="kit" data-sec="kit">
+      <div class="container">
+        <div class="sw-head" data-reveal>
+          <p class="kicker">Hardware kit</p>
+          <h2 class="sw-head__h">Thirty-eight sensor modules, <em>one black kit</em>.</h2>
+          <p class="sw-head__p">Every module redrawn from scratch: black boards, one pinout, 3.3 V or 5 V for ESP32,
+            Raspberry Pi and Arduino. Each has a demo, a wiring table and code, and a QR code on the back that opens them.</p>
+        </div>
+        <a class="hw-kit__strip" href="kit.html" data-reveal aria-label="See the hardware kit">
+          <img src="assets/img/kit/s07-iso.webp" alt="Alcohol sensor module" loading="lazy">
+          <img src="assets/img/kit/s04-iso.webp" alt="Relay module" loading="lazy">
+          <img src="assets/img/kit/s05-iso.webp" alt="Accelerometer module" loading="lazy">
+          <img src="assets/img/kit/s17-iso.webp" alt="Joystick module" loading="lazy">
+          <img src="assets/img/kit/s24-iso.webp" alt="Sound module" loading="lazy">
+        </a>
+        <div class="opener__cta"><a class="btn" href="kit.html">See the hardware kit</a><a class="btn btn--ghost" href="kit-s01.html">Start with S01</a></div>
+      </div>
+      <style>
+        .hw-kit__strip { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 1px; background: var(--hairline); border: 1px solid var(--hairline); }
+        .hw-kit__strip img { width: 100%; aspect-ratio: 1 / 0.8; object-fit: contain; background: var(--bg); padding: 0.8rem; transition: transform 0.35s; }
+        .hw-kit__strip:hover img { transform: translateY(-4px); }
+        @media (max-width: 700px) { .hw-kit__strip { grid-template-columns: repeat(3, minmax(0, 1fr)); } .hw-kit__strip img:nth-child(n+4) { display: none; } }
+      </style>
     </section>
 
     <!-- ===============================================================
@@ -268,11 +297,11 @@
        HTML, but main.js CREATES those canvases for the build plates. Removing
        it blanks every hologram. If the 64 KB is ever worth reclaiming, the fix
        is to load it on demand when a plate scrolls into view. -->
-  <script defer src="assets/js/products.js?v=65"></script>
-  <script defer src="assets/js/components.js?v=65"></script>
-  <script defer src="assets/js/hologram.js?v=65"></script>
-  <script defer src="assets/js/main.js?v=65"></script>
+  <script defer src="assets/js/products.js?v=66"></script>
+  <script defer src="assets/js/components.js?v=66"></script>
+  <script defer src="assets/js/hologram.js?v=66"></script>
+  <script defer src="assets/js/main.js?v=66"></script>
   <!-- The star field: plain WebGL, one small module, no library behind it. -->
-  <script type="module" src="assets/js/starfield.js?v=65"></script>
+  <script type="module" src="assets/js/starfield.js?v=66"></script>
 </body>
 </html>

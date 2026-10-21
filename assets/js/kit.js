@@ -2,7 +2,7 @@
    list that highlights its wire, and 3D (the board alone, orbit all the way round) / QR views.
    Nothing is drawn until the board has loaded and the camera is framed, so there is no first-frame flash.
    Data comes from <script type="application/json" id="mod-data"> (written by sensor-kit/tools/web_kit.py). */
-import { THREE, createViewer, ease, bench, jumper, loadBoard, BB, COARSE } from "./kit3d.js?v=74";
+import { THREE, createViewer, ease, bench, jumper, loadBoard, BB, COARSE } from "./kit3d.js?v=75";
 
 const data = JSON.parse(document.getElementById("mod-data").textContent);
 const host = document.querySelector("[data-mod-stage]");

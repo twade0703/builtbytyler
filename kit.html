@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Hardware Kit · BuiltByTyler</title>
-  <meta name="description" content="38 sensor and output modules on black boards with one pinout, for ESP32, Raspberry Pi and Arduino. Every board has a QR code to its own wiring guide and demo.">
+  <title>The Sensor Kit · BuiltByTyler</title>
+  <meta name="description" content="38 sensor modules on black boards with one pinout, for ESP32, Raspberry Pi and Arduino. $49.99.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500&family=Instrument+Sans:wght@400;500&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -20,10 +20,10 @@
   <meta property="og:site_name" content="Built by Tyler">
   <meta property="og:locale" content="en_US">
   <meta property="og:url" content="https://builtbytyler.com/kit">
-  <meta property="og:title" content="Hardware Kit · BuiltByTyler">
-  <meta property="og:description" content="38 sensor and output modules on black boards with one pinout, for ESP32, Raspberry Pi and Arduino. Every board has a QR code to its own wiring guide and demo.">
-  <meta name="twitter:title" content="Hardware Kit · BuiltByTyler">
-  <meta name="twitter:description" content="38 sensor and output modules on black boards with one pinout, for ESP32, Raspberry Pi and Arduino. Every board has a QR code to its own wiring guide and demo.">
+  <meta property="og:title" content="The Sensor Kit · BuiltByTyler">
+  <meta property="og:description" content="38 sensor modules on black boards with one pinout, for ESP32, Raspberry Pi and Arduino. $49.99.">
+  <meta name="twitter:title" content="The Sensor Kit · BuiltByTyler">
+  <meta name="twitter:description" content="38 sensor modules on black boards with one pinout, for ESP32, Raspberry Pi and Arduino. $49.99.">
   <meta property="og:image" content="https://builtbytyler.com/assets/img/og-image.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
@@ -81,58 +81,83 @@
     "itemListElement": [
       {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://builtbytyler.com/"},
       {"@type": "ListItem", "position": 2, "name": "Hardware", "item": "https://builtbytyler.com/shop"},
-      {"@type": "ListItem", "position": 3, "name": "Hardware Kit", "item": "https://builtbytyler.com/kit"}
+      {"@type": "ListItem", "position": 3, "name": "The Sensor Kit", "item": "https://builtbytyler.com/kit"}
     ]
   }
   </script>
   <style>
-    /* Hardware kit pages: page-local, built on the site tokens */
-    .kit-rules { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; border-top: 1px solid var(--hairline); margin: 0; padding: 0; list-style: none; }
-    .kit-rules li { padding: 1.1rem 1.2rem 1.2rem 0; border-bottom: 1px solid var(--hairline); }
-    .kit-rules b { display: block; font-family: var(--font-display); font-weight: 400; font-size: var(--fs-h3); margin: 0.35rem 0; }
-    .kit-rules span { color: var(--muted); font-size: var(--fs-small); line-height: 1.5; }
-    .kit-rules .n { font-family: var(--font-mono); font-size: var(--fs-micro); letter-spacing: 0.18em; color: var(--accent); }
-    .kit-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 1px; background: var(--hairline); border: 1px solid var(--hairline); }
-    .kit-card { display: flex; flex-direction: column; gap: 0.35rem; padding: 1rem 1rem 1.15rem; background: var(--bg); color: var(--ink); text-decoration: none; transition: background 0.25s; }
-    .kit-card:hover { background: var(--surface); }
-    .kit-card img { width: 100%; height: auto; aspect-ratio: 7 / 5.5; object-fit: contain; margin-bottom: 0.4rem; transition: transform 0.35s; }
-    .kit-card:hover img { transform: translateY(-4px) scale(1.03); }
-    .kit-card__id { font-family: var(--font-mono); font-size: var(--fs-micro); letter-spacing: 0.18em; color: var(--accent); }
-    .kit-card__name { font-family: var(--font-display); font-size: 1.2rem; letter-spacing: -0.01em; }
-    .kit-card__chip { color: var(--muted); font-size: var(--fs-small); }
-    .kit-card--soon { opacity: 0.55; pointer-events: none; }
-    .kit-crumbs { font-family: var(--font-mono); font-size: var(--fs-micro); letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); margin-bottom: 1.2rem; }
-    .kit-crumbs a { color: var(--muted); }
-    .kit-crumbs a:hover { color: var(--accent); }
-    .kit-detail { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: clamp(1.5rem, 4vw, 3rem); align-items: start; }
-    .kit-detail h1 { font-family: var(--font-display); font-size: var(--fs-h1); font-weight: 400; letter-spacing: -0.02em; margin: 0.2rem 0 0.6rem; }
-    .kit-detail .lead { color: var(--muted); font-size: 1.08rem; line-height: 1.55; max-width: 48ch; }
-    .kit-sides { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--hairline); border: 1px solid var(--hairline); margin-top: 1.25rem; }
-    .kit-sides figure { margin: 0; background: var(--bg); padding: 0.8rem; }
-    .kit-sides img { width: 100%; display: block; }
-    .kit-sides figcaption { font-family: var(--font-mono); font-size: var(--fs-micro); letter-spacing: 0.16em; color: var(--muted); text-transform: uppercase; margin-top: 0.5rem; }
-    .kit-h { font-family: var(--font-mono); font-size: var(--fs-micro); letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent); margin: 2rem 0 0.7rem; }
+    /* Sensor Kit pages: page-local, built on the site tokens */
+    .sk-hero { text-align: center; padding-top: clamp(5rem, 12vh, 8rem); }
+    .sk-hero h1 { font-family: var(--font-display); font-weight: 400; font-size: clamp(2.6rem, 7vw, 5.6rem); letter-spacing: -0.03em; margin: 0.4rem 0 0.6rem; }
+    .sk-hero h1 em { font-family: var(--font-accent); color: var(--accent); }
+    .sk-hero p { color: var(--muted); margin: 0 auto; max-width: 40ch; font-size: 1.1rem; }
+    .sk-buy { display: flex; justify-content: center; align-items: center; gap: 1.2rem; flex-wrap: wrap; margin: 1.8rem 0 0; }
+    .sk-price { font-family: var(--font-display); font-size: 2.2rem; letter-spacing: -0.02em; }
+    .sk-price small { display: block; font-family: var(--font-mono); font-size: var(--fs-micro); letter-spacing: 0.16em; color: var(--muted); text-transform: uppercase; }
+    /* the kit: every board in a compartment tray */
+    .sk-tray { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 10px; padding: 14px; margin-top: clamp(2.5rem, 6vw, 4.5rem);
+      background: linear-gradient(180deg, #0b0f15, #05080c); border: 1px solid var(--hairline-strong); box-shadow: 0 40px 120px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.05); }
+    .sk-cell { position: relative; display: block; aspect-ratio: 1 / 0.92; background: radial-gradient(120% 90% at 50% 35%, #121820, #070a0e 70%); border: 1px solid rgba(150,200,230,0.10);
+      box-shadow: inset 0 6px 14px rgba(0,0,0,0.75); color: var(--ink); text-decoration: none; overflow: hidden; }
+    .sk-cell img { position: absolute; inset: 8% 6% 16%; width: 88%; height: 76%; object-fit: contain; transition: transform 0.35s cubic-bezier(.2,.8,.2,1), filter 0.35s; filter: drop-shadow(0 10px 12px rgba(0,0,0,0.7)); }
+    .sk-cell:hover img { transform: translateY(-6px) scale(1.07); filter: drop-shadow(0 16px 20px rgba(0,0,0,0.8)) drop-shadow(0 0 18px rgba(95,230,255,0.18)); }
+    .sk-cell b { position: absolute; left: 8px; bottom: 6px; font-family: var(--font-mono); font-weight: 400; font-size: 0.68rem; letter-spacing: 0.14em; color: var(--accent); }
+    .sk-cell span { position: absolute; right: 8px; bottom: 6px; left: 44px; text-align: right; font-size: 0.72rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: 0; transition: opacity 0.25s; }
+    .sk-cell:hover span { opacity: 1; }
+    .sk-cell--soon { display: grid; place-items: center; color: var(--muted); font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.14em; text-align: center; }
+    .sk-strip { display: flex; justify-content: center; gap: clamp(1.5rem, 5vw, 4rem); flex-wrap: wrap; margin: clamp(2rem, 5vw, 3.5rem) 0 0; padding: 0; list-style: none;
+      font-family: var(--font-mono); font-size: var(--fs-micro); letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); }
+    .sk-strip b { color: var(--accent); font-weight: 400; margin-right: 0.5em; }
+    /* module page */
+    .sm-top { padding-top: clamp(4.5rem, 10vh, 6.5rem); }
+    .sm-crumbs { font-family: var(--font-mono); font-size: var(--fs-micro); letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); }
+    .sm-crumbs a { color: var(--muted); } .sm-crumbs a:hover { color: var(--accent); }
+    .sm-head { display: flex; align-items: end; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin: 0.6rem 0 1.2rem; }
+    .sm-head h1 { font-family: var(--font-display); font-weight: 400; font-size: clamp(2rem, 5vw, 3.4rem); letter-spacing: -0.02em; margin: 0; }
+    .sm-head h1 small { font-family: var(--font-mono); font-size: 0.9rem; letter-spacing: 0.14em; color: var(--accent); margin-right: 0.8rem; vertical-align: middle; }
+    .sm-tabs { display: inline-flex; border: 1px solid var(--hairline-strong); }
+    .sm-tabs button { font-family: var(--font-mono); font-size: var(--fs-micro); letter-spacing: 0.18em; text-transform: uppercase; padding: 0.8rem 1.2rem; background: transparent; color: var(--muted); border: 0; cursor: pointer; }
+    .sm-tabs button + button { border-left: 1px solid var(--hairline-strong); }
+    .sm-tabs button[aria-selected="true"] { background: var(--accent); color: var(--on-accent); }
+    .sm-view { position: relative; aspect-ratio: 16 / 9; background: #05080c; border: 1px solid var(--hairline); overflow: hidden; }
+    .sm-view[hidden] { display: none; }
+    .sm-view > img, .sm-view > video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+    .sm-view .btn { position: absolute; right: 1rem; bottom: 1rem; }
+    .kit3d { position: absolute; inset: 0; cursor: grab; touch-action: none; }
+    .kit3d:active { cursor: grabbing; }
+    .kit3d canvas { width: 100% !important; height: 100% !important; display: block; }
+    .kit3d__status, .kit3d__hint { position: absolute; left: 1rem; font-family: var(--font-mono); font-size: var(--fs-micro); letter-spacing: 0.14em; color: var(--muted); text-transform: uppercase; pointer-events: none; }
+    .kit3d__status { top: 1rem; } .kit3d__hint { bottom: 1rem; }
+    .sm-qr { display: grid; grid-template-columns: minmax(0, 1fr) auto; height: 100%; align-items: center; gap: 2rem; padding: 0 clamp(1rem, 4vw, 3rem); }
+    .sm-qr img { width: 100%; height: 100%; max-height: 100%; object-fit: contain; display: block; }
+    .sm-qr p { font-family: var(--font-display); font-size: clamp(1.2rem, 2.4vw, 1.8rem); max-width: 14ch; margin: 0; }
+    .sm-qr p b { display: block; font-family: var(--font-mono); font-size: var(--fs-micro); font-weight: 400; letter-spacing: 0.16em; color: var(--accent); margin-top: 0.8rem; }
+    .sm-more { margin-top: 1.4rem; border-top: 1px solid var(--hairline); }
+    .sm-more summary { cursor: pointer; padding: 1rem 0; font-family: var(--font-mono); font-size: var(--fs-micro); letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); }
+    .sm-more summary:hover { color: var(--accent); }
+    .sm-more__grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem 3rem; padding-bottom: 1.5rem; }
     .kit-wire { width: 100%; border-collapse: collapse; font-size: var(--fs-small); }
     .kit-wire th { text-align: left; font-family: var(--font-mono); font-size: var(--fs-micro); letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); font-weight: 400; padding: 0 0.8rem 0.5rem 0; border-bottom: 1px solid var(--hairline-strong); }
-    .kit-wire td { padding: 0.55rem 0.8rem 0.55rem 0; border-bottom: 1px solid var(--hairline); }
-    .kit-wire td:first-child { font-family: var(--font-mono); color: var(--ink); }
-    .kit-wire .dot { display: inline-block; width: 0.7em; height: 0.7em; border-radius: 50%; margin-right: 0.5em; vertical-align: -0.05em; box-shadow: 0 0 0 1px rgba(255,255,255,0.35); }
-    .kit-list { margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--hairline); }
-    .kit-list li { padding: 0.65rem 0; border-bottom: 1px solid var(--hairline); font-size: var(--fs-small); line-height: 1.5; }
-    .kit-code { margin: 0; padding: 1rem 1.1rem; background: #02050A; border: 1px solid var(--hairline); font-family: var(--font-mono); font-size: 0.82rem; line-height: 1.7; color: #CFE6FF; overflow-x: auto; }
-    .kit-nav { display: flex; justify-content: space-between; gap: 1rem; margin-top: clamp(2rem, 5vw, 3.5rem); padding-top: 1rem; border-top: 1px solid var(--hairline); font-family: var(--font-mono); font-size: var(--fs-small); }
-    .kit-nav a { color: var(--ink); }
-    .kit-nav a:hover { color: var(--accent); }
-    .kit-feature { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: clamp(1.5rem, 4vw, 3rem); align-items: center; }
-    .kit-feature img { width: 100%; display: block; border: 1px solid var(--hairline); }
+    .kit-wire td { padding: 0.5rem 0.8rem 0.5rem 0; border-bottom: 1px solid var(--hairline); }
+    .kit-wire td:first-child { font-family: var(--font-mono); }
+    .kit-wire .dot { display: inline-block; width: 0.7em; height: 0.7em; border-radius: 50%; margin-right: 0.5em; box-shadow: 0 0 0 1px rgba(255,255,255,0.35); }
+    .kit-code { margin: 0; padding: 0.9rem 1rem; background: #02050A; border: 1px solid var(--hairline); font-family: var(--font-mono); font-size: 0.8rem; line-height: 1.7; color: #CFE6FF; overflow-x: auto; }
+    .kit-list { margin: 0; padding-left: 1.1rem; color: var(--muted); font-size: var(--fs-small); line-height: 1.6; }
+    .sm-h { font-family: var(--font-mono); font-size: var(--fs-micro); letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent); margin: 0 0 0.6rem; }
+    .sm-h--gap { margin-top: 1.2rem; }
+    .sm-foot { display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; margin-top: 1.5rem; padding-top: 1.2rem; border-top: 1px solid var(--hairline); font-family: var(--font-mono); font-size: var(--fs-small); }
+    .sm-foot a:not(.btn) { color: var(--ink); } .sm-foot a:not(.btn):hover { color: var(--accent); }
     @media (max-width: 900px) {
-      .kit-rules { grid-template-columns: 1fr 1fr; }
-      .kit-detail, .kit-feature { grid-template-columns: minmax(0, 1fr); }
+      .sk-tray { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 7px; padding: 9px; }
+      .sm-more__grid { grid-template-columns: minmax(0, 1fr); }
+      .sm-view { aspect-ratio: 4 / 3; }
+      .sm-qr { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; padding: 1rem; gap: 0.6rem; text-align: center; }
+      .sm-qr p { max-width: none; font-size: 1.05rem; }
     }
     @media (max-width: 520px) {
-      .kit-rules, .kit-sides { grid-template-columns: 1fr; }
-      .kit-grid { grid-template-columns: 1fr 1fr; }
-      .kit-card { padding: 0.7rem; }
+      .sk-tray { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 5px; padding: 6px; }
+      .sk-cell b { font-size: 0.55rem; left: 5px; bottom: 3px; }
+      .sm-tabs { width: 100%; } .sm-tabs button { flex: 1; padding: 0.8rem 0.4rem; }
     }
   </style>
 </head>
@@ -148,296 +173,21 @@
   </header>
 
     <main>
-    <section class="section opener" data-sec="top">
-      <div class="container opener__stack" data-enter>
-        <div class="opener__head">
-          <p class="kicker">Hardware kit <b>—</b> 38 modules</p>
-          <h1 class="display" data-split>The sensor kit, <em>redrawn</em>.</h1>
-          <p class="opener__lead">Thirty-eight sensor and output modules, every one designed from scratch on a black
-            board with the same pinout. They run on 3.3 V or 5 V, so one kit works with an ESP32, a Raspberry Pi or an
-            Arduino. Scan the code on the back of any board for its wiring guide and demo.</p>
-          <div class="opener__cta">
-            <a class="btn" href="contact.html">Ask about the kit</a>
-            <a class="btn btn--ghost" href="#modules">See every module</a>
-          </div>
+    <section class="section sk-hero" data-sec="top">
+      <div class="container" data-enter>
+        <p class="kicker">BuiltByTyler <b>—</b> 38 modules</p>
+        <h1>The Sensor <em>Kit</em>.</h1>
+        <p>Every module redrawn. One pinout. ESP32, Raspberry Pi or Arduino.</p>
+        <div class="sk-buy">
+          <div class="sk-price">$49.99<small>The whole kit</small></div>
+          <a class="btn" href="contact.html?plan=sensor-kit">Reserve a kit</a>
         </div>
-      </div>
-    </section>
-
-    <section class="section" data-sec="included">
-      <div class="container">
-        <div class="sw-head" data-reveal>
-          <p class="kicker">Every board, the same rules</p>
-          <h2 class="sw-head__h">Plug in any module <em>the same way</em>.</h2>
-          <p class="sw-head__p">The usual cheap kits mix pin orders, assume 5 V and drive buzzers straight off a GPIO pin.
-            These do not.</p>
-        </div>
-        <ul class="kit-rules" data-reveal>
-          <li><span class="n">01</span><b>One pinout</b><span>GND is always pin 1 on the left, then power, then signals.
-            Names are printed on both sides.</span></li>
-          <li><span class="n">02</span><b>3.3 V or 5 V</b><span>Every board runs on either. The 5 V-only parts (gas
-            heaters, relay) still give 3.3 V-safe signals.</span></li>
-          <li><span class="n">03</span><b>Driven properly</b><span>Buzzers, relay, laser and IR run through a transistor
-            that stays off while your board boots.</span></li>
-          <li><span class="n">04</span><b>Scan for the guide</b><span>A QR code on the back of every board opens its
-            page: wiring for ESP32, Uno and Pi, a demo and the code.</span></li>
+        <div class="sk-tray"><a class="sk-cell" href="kit-s01.html" title="S01 Temp 1-Wire"><img src="assets/img/kit/s01-iso.webp" alt="Temp 1-Wire" loading="lazy" decoding="async" width="640" height="503"><b>S01</b><span>Temp 1-Wire</span></a><a class="sk-cell" href="kit-s02.html" title="S02 Power LED"><img src="assets/img/kit/s02-iso.webp" alt="Power LED" loading="lazy" decoding="async" width="640" height="503"><b>S02</b><span>Power LED</span></a><a class="sk-cell" href="kit-s03.html" title="S03 RGB LED 5 mm"><img src="assets/img/kit/s03-iso.webp" alt="RGB LED 5 mm" loading="lazy" decoding="async" width="640" height="503"><b>S03</b><span>RGB LED 5 mm</span></a><a class="sk-cell" href="kit-s04.html" title="S04 Relay 5V"><img src="assets/img/kit/s04-iso.webp" alt="Relay 5V" loading="lazy" decoding="async" width="640" height="503"><b>S04</b><span>Relay 5V</span></a><a class="sk-cell" href="kit-s05.html" title="S05 Accel 3-Axis"><img src="assets/img/kit/s05-iso.webp" alt="Accel 3-Axis" loading="lazy" decoding="async" width="640" height="503"><b>S05</b><span>Accel 3-Axis</span></a><a class="sk-cell" href="kit-s06.html" title="S06 Buzzer Active"><img src="assets/img/kit/s06-iso.webp" alt="Buzzer Active" loading="lazy" decoding="async" width="640" height="503"><b>S06</b><span>Buzzer Active</span></a><a class="sk-cell" href="kit-s07.html" title="S07 Alcohol MQ-3"><img src="assets/img/kit/s07-iso.webp" alt="Alcohol MQ-3" loading="lazy" decoding="async" width="640" height="503"><b>S07</b><span>Alcohol MQ-3</span></a><a class="sk-cell" href="kit-s08.html" title="S08 Button"><img src="assets/img/kit/s08-iso.webp" alt="Button" loading="lazy" decoding="async" width="640" height="503"><b>S08</b><span>Button</span></a><a class="sk-cell" href="kit-s09.html" title="S09 Touch"><img src="assets/img/kit/s09-iso.webp" alt="Touch" loading="lazy" decoding="async" width="640" height="503"><b>S09</b><span>Touch</span></a><a class="sk-cell" href="kit-s10.html" title="S10 Crash Switch"><img src="assets/img/kit/s10-iso.webp" alt="Crash Switch" loading="lazy" decoding="async" width="640" height="503"><b>S10</b><span>Crash Switch</span></a><a class="sk-cell" href="kit-s11.html" title="S11 Temp + Humidity"><img src="assets/img/kit/s11-iso.webp" alt="Temp + Humidity" loading="lazy" decoding="async" width="640" height="503"><b>S11</b><span>Temp + Humidity</span></a><a class="sk-cell" href="kit-s12.html" title="S12 IR Receiver"><img src="assets/img/kit/s12-iso.webp" alt="IR Receiver" loading="lazy" decoding="async" width="640" height="503"><b>S12</b><span>IR Receiver</span></a><a class="sk-cell" href="kit-s13.html" title="S13 IR Transmitter"><img src="assets/img/kit/s13-iso.webp" alt="IR Transmitter" loading="lazy" decoding="async" width="640" height="503"><b>S13</b><span>IR Transmitter</span></a><a class="sk-cell" href="kit-s14.html" title="S14 Tilt"><img src="assets/img/kit/s14-iso.webp" alt="Tilt" loading="lazy" decoding="async" width="640" height="503"><b>S14</b><span>Tilt</span></a><a class="sk-cell" href="kit-s15.html" title="S15 2-Color LED"><img src="assets/img/kit/s15-iso.webp" alt="2-Color LED" loading="lazy" decoding="async" width="640" height="503"><b>S15</b><span>2-Color LED</span></a><a class="sk-cell" href="kit-s16.html" title="S16 Hall Magnet"><img src="assets/img/kit/s16-iso.webp" alt="Hall Magnet" loading="lazy" decoding="async" width="640" height="503"><b>S16</b><span>Hall Magnet</span></a><a class="sk-cell" href="kit-s17.html" title="S17 Joystick"><img src="assets/img/kit/s17-iso.webp" alt="Joystick" loading="lazy" decoding="async" width="640" height="503"><b>S17</b><span>Joystick</span></a><a class="sk-cell" href="kit-s18.html" title="S18 Knock"><img src="assets/img/kit/s18-iso.webp" alt="Knock" loading="lazy" decoding="async" width="640" height="503"><b>S18</b><span>Knock</span></a><a class="sk-cell" href="kit-s19.html" title="S19 Temp Analog"><img src="assets/img/kit/s19-iso.webp" alt="Temp Analog" loading="lazy" decoding="async" width="640" height="503"><b>S19</b><span>Temp Analog</span></a><a class="sk-cell" href="kit-s20.html" title="S20 Laser 650 nm"><img src="assets/img/kit/s20-iso.webp" alt="Laser 650 nm" loading="lazy" decoding="async" width="640" height="503"><b>S20</b><span>Laser 650 nm</span></a><a class="sk-cell" href="kit-s21.html" title="S21 Line Tracker"><img src="assets/img/kit/s21-iso.webp" alt="Line Tracker" loading="lazy" decoding="async" width="640" height="503"><b>S21</b><span>Line Tracker</span></a><a class="sk-cell" href="kit-s22.html" title="S22 Gas / Smoke MQ-2"><img src="assets/img/kit/s22-iso.webp" alt="Gas / Smoke MQ-2" loading="lazy" decoding="async" width="640" height="503"><b>S22</b><span>Gas / Smoke MQ-2</span></a><a class="sk-cell" href="kit-s23.html" title="S23 Magic Cup"><img src="assets/img/kit/s23-iso.webp" alt="Magic Cup" loading="lazy" decoding="async" width="640" height="503"><b>S23</b><span>Magic Cup</span></a><a class="sk-cell" href="kit-s24.html" title="S24 Sound"><img src="assets/img/kit/s24-iso.webp" alt="Sound" loading="lazy" decoding="async" width="640" height="503"><b>S24</b><span>Sound</span></a><a class="sk-cell" href="kit-s25.html" title="S25 Obstacle IR"><img src="assets/img/kit/s25-iso.webp" alt="Obstacle IR" loading="lazy" decoding="async" width="640" height="503"><b>S25</b><span>Obstacle IR</span></a><a class="sk-cell" href="kit-s26.html" title="S26 Motion PIR"><img src="assets/img/kit/s26-iso.webp" alt="Motion PIR" loading="lazy" decoding="async" width="640" height="503"><b>S26</b><span>Motion PIR</span></a><a class="sk-cell" href="kit-s27.html" title="S27 Buzzer Passive"><img src="assets/img/kit/s27-iso.webp" alt="Buzzer Passive" loading="lazy" decoding="async" width="640" height="503"><b>S27</b><span>Buzzer Passive</span></a><a class="sk-cell" href="kit-s28.html" title="S28 Photo Gate"><img src="assets/img/kit/s28-iso.webp" alt="Photo Gate" loading="lazy" decoding="async" width="640" height="503"><b>S28</b><span>Photo Gate</span></a><a class="sk-cell" href="kit-s29.html" title="S29 Light LDR"><img src="assets/img/kit/s29-iso.webp" alt="Light LDR" loading="lazy" decoding="async" width="640" height="503"><b>S29</b><span>Light LDR</span></a><a class="sk-cell" href="kit-s30.html" title="S30 Knob"><img src="assets/img/kit/s30-iso.webp" alt="Knob" loading="lazy" decoding="async" width="640" height="503"><b>S30</b><span>Knob</span></a><a class="sk-cell" href="kit-s31.html" title="S31 Pulse"><img src="assets/img/kit/s31-iso.webp" alt="Pulse" loading="lazy" decoding="async" width="640" height="503"><b>S31</b><span>Pulse</span></a><a class="sk-cell" href="kit-s32.html" title="S32 RGB LED SMD"><img src="assets/img/kit/s32-iso.webp" alt="RGB LED SMD" loading="lazy" decoding="async" width="640" height="503"><b>S32</b><span>RGB LED SMD</span></a><a class="sk-cell" href="kit-s33.html" title="S33 Reed Switch"><img src="assets/img/kit/s33-iso.webp" alt="Reed Switch" loading="lazy" decoding="async" width="640" height="503"><b>S33</b><span>Reed Switch</span></a><a class="sk-cell" href="kit-s34.html" title="S34 Rotary Encoder"><img src="assets/img/kit/s34-iso.webp" alt="Rotary Encoder" loading="lazy" decoding="async" width="640" height="503"><b>S34</b><span>Rotary Encoder</span></a><a class="sk-cell" href="kit-s35.html" title="S35 Light TEMT6000"><img src="assets/img/kit/s35-iso.webp" alt="Light TEMT6000" loading="lazy" decoding="async" width="640" height="503"><b>S35</b><span>Light TEMT6000</span></a><a class="sk-cell" href="kit-s36.html" title="S36 Thermistor"><img src="assets/img/kit/s36-iso.webp" alt="Thermistor" loading="lazy" decoding="async" width="640" height="503"><b>S36</b><span>Thermistor</span></a><div class="sk-cell sk-cell--soon" title="S37 Ultrasonic, in design">S37<br>SOON</div><a class="sk-cell" href="kit-s38.html" title="S38 ADC 16-Bit"><img src="assets/img/kit/s38-iso.webp" alt="ADC 16-Bit" loading="lazy" decoding="async" width="640" height="503"><b>S38</b><span>ADC 16-Bit</span></a></div>
+        <ul class="sk-strip">
+          <li><b>01</b>GND always first</li>
+          <li><b>02</b>3.3 V or 5 V</li>
+          <li><b>03</b>Scan the back for the guide</li>
         </ul>
-      </div>
-    </section>
-
-    <section class="section" id="modules" data-sec="projects">
-      <div class="container">
-        <div class="sw-head" data-reveal>
-          <p class="kicker">The modules</p>
-          <h2 class="sw-head__h">Thirty-eight boards, <em>one look</em>.</h2>
-          <p class="sw-head__p">Click any module for its demo video, wiring table and code.</p>
-        </div>
-        <div class="kit-grid">
-          <a class="kit-card" href="kit-s01.html">
-            <img src="assets/img/kit/s01-iso.webp" alt="Temp 1-Wire module" loading="lazy" width="640" height="503">
-            <span class="kit-card__id">S01</span>
-            <span class="kit-card__name">Temp 1-Wire</span>
-            <span class="kit-card__chip">DS18B20</span>
-          </a>
-          <a class="kit-card" href="kit-s02.html">
-            <img src="assets/img/kit/s02-iso.webp" alt="Power LED module" loading="lazy" width="640" height="503">
-            <span class="kit-card__id">S02</span>
-            <span class="kit-card__name">Power LED</span>
-            <span class="kit-card__chip">1 W white emitter</span>
-          </a>
-          <a class="kit-card" href="kit-s03.html">
-            <img src="assets/img/kit/s03-iso.webp" alt="RGB LED 5 mm module" loading="lazy" width="640" height="503">
-            <span class="kit-card__id">S03</span>
-            <span class="kit-card__name">RGB LED 5 mm</span>
-            <span class="kit-card__chip">Common cathode</span>
-          </a>
-          <a class="kit-card" href="kit-s04.html">
-            <img src="assets/img/kit/s04-iso.webp" alt="Relay 5V module" loading="lazy" width="640" height="503">
-            <span class="kit-card__id">S04</span>
-            <span class="kit-card__name">Relay 5V</span>
-            <span class="kit-card__chip">SRD-05VDC-SL-C</span>
-          </a>
-          <a class="kit-card" href="kit-s05.html">
-            <img src="assets/img/kit/s05-iso.webp" alt="Accel 3-Axis module" loading="lazy" width="640" height="503">
-            <span class="kit-card__id">S05</span>
-            <span class="kit-card__name">Accel 3-Axis</span>
-            <span class="kit-card__chip">ADXL345</span>
-          </a>
-          <a class="kit-card" href="kit-s06.html">
-            <img src="assets/img/kit/s06-iso.webp" alt="Buzzer Active module" loading="lazy" width="640" height="503">
-            <span class="kit-card__id">S06</span>
-            <span class="kit-card__name">Buzzer Active</span>
-            <span class="kit-card__chip">12 mm, built-in oscillator</span>
-          </a>
-          <a class="kit-card" href="kit-s07.html">
-            <img src="assets/img/kit/s07-iso.webp" alt="Alcohol MQ-3 module" loading="lazy" width="640" height="503">
-            <span class="kit-card__id">S07</span>
-            <span class="kit-card__name">Alcohol MQ-3</span>
-            <span class="kit-card__chip">MQ-3</span>
-          </a>
-          <a class="kit-card" href="kit-s08.html">
-            <img src="assets/img/kit/s08-iso.webp" alt="Button module" loading="lazy" width="640" height="503">
-            <span class="kit-card__id">S08</span>
-            <span class="kit-card__name">Button</span>
-            <span class="kit-card__chip">12 mm tactile + cap</span>
-          </a>
-          <a class="kit-card" href="kit-s09.html">
-            <img src="assets/img/kit/s09-iso.webp" alt="Touch module" loading="lazy" width="640" height="503">
-            <span class="kit-card__id">S09</span>
-            <span class="kit-card__name">Touch</span>
-            <span class="kit-card__chip">TTP223</span>
-          </a>
-          <a class="kit-card" href="kit-s10.html">
-            <img src="assets/img/kit/s10-iso.webp" alt="Crash Switch module" loading="lazy" width="640" height="503">
-            <span class="kit-card__id">S10</span>
-            <span class="kit-card__name">Crash Switch</span>
-            <span class="kit-card__chip">Omron SS-5GL lever</span>
-          </a>
-          <a class="kit-card" href="kit-s11.html">
-            <img src="assets/img/kit/s11-iso.webp" alt="Temp + Humidity module" loading="lazy" width="640" height="503">
-            <span class="kit-card__id">S11</span>
-            <span class="kit-card__name">Temp + Humidity</span>
-            <span class="kit-card__chip">DHT11</span>
-          </a>
-          <a class="kit-card" href="kit-s12.html">
-            <img src="assets/img/kit/s12-iso.webp" alt="IR Receiver module" loading="lazy" width="640" height="503">
-            <span class="kit-card__id">S12</span>
-            <span class="kit-card__name">IR Receiver</span>
-            <span class="kit-card__chip">TSOP38238 38 kHz</span>
-          </a>
-          <a class="kit-card" href="kit-s13.html">
-            <img src="assets/img/kit/s13-iso.webp" alt="IR Transmitter module" loading="lazy" width="640" height="503">
-            <span class="kit-card__id">S13</span>
-            <span class="kit-card__name">IR Transmitter</span>
-            <span class="kit-card__chip">940 nm LED</span>
-          </a>
-          <a class="kit-card" href="kit-s14.html">
-            <img src="assets/img/kit/s14-iso.webp" alt="Tilt module" loading="lazy" width="640" height="503">
-            <span class="kit-card__id">S14</span>
-            <span class="kit-card__name">Tilt</span>
-            <span class="kit-card__chip">Ball tilt switch</span>
-          </a>
-          <a class="kit-card" href="kit-s15.html">
-            <img src="assets/img/kit/s15-iso.webp" alt="2-Color LED module" loading="lazy" width="640" height="503">
-            <span class="kit-card__id">S15</span>
-            <span class="kit-card__name">2-Color LED</span>
-            <span class="kit-card__chip">Red / green 5 mm</span>
-          </a>
-          <a class="kit-card" href="kit-s16.html">
-            <img src="assets/img/kit/s16-iso.webp" alt="Hall Magnet module" loading="lazy" width="640" height="503">
-            <span class="kit-card__id">S16</span>
-            <span class="kit-card__name">Hall Magnet</span>
-            <span class="kit-card__chip">DRV5033 omnipolar</span>
-          </a>
-          <a class="kit-card" href="kit-s17.html">
-            <img src="assets/img/kit/s17-iso.webp" alt="Joystick module" loading="lazy" width="640" height="503">
-            <span class="kit-card__id">S17</span>
-            <span class="kit-card__name">Joystick</span>
-            <span class="kit-card__chip">ALPS RKJXV 2-axis + push</span>
-          </a>
-          <a class="kit-card" href="kit-s18.html">
-            <img src="assets/img/kit/s18-iso.webp" alt="Knock module" loading="lazy" width="640" height="503">
-            <span class="kit-card__id">S18</span>
-            <span class="kit-card__name">Knock</span>
-            <span class="kit-card__chip">Spring vibration switch</span>
-          </a>
-          <a class="kit-card" href="kit-s19.html">
-            <img src="assets/img/kit/s19-iso.webp" alt="Temp Analog module" loading="lazy" width="640" height="503">
-            <span class="kit-card__id">S19</span>
-            <span class="kit-card__name">Temp Analog</span>
-            <span class="kit-card__chip">MCP9700A</span>
-          </a>
-          <a class="kit-card" href="kit-s20.html">
-            <img src="assets/img/kit/s20-iso.webp" alt="Laser 650 nm module" loading="lazy" width="640" height="503">
-            <span class="kit-card__id">S20</span>
-            <span class="kit-card__name">Laser 650 nm</span>
-            <span class="kit-card__chip">Class 2 (&lt;1 mW)</span>
-          </a>
-          <a class="kit-card" href="kit-s21.html">
-            <img src="assets/img/kit/s21-iso.webp" alt="Line Tracker module" loading="lazy" width="640" height="503">
-            <span class="kit-card__id">S21</span>
-            <span class="kit-card__name">Line Tracker</span>
-            <span class="kit-card__chip">TCRT5000</span>
-          </a>
-          <a class="kit-card" href="kit-s22.html">
-            <img src="assets/img/kit/s22-iso.webp" alt="Gas / Smoke MQ-2 module" loading="lazy" width="640" height="503">
-            <span class="kit-card__id">S22</span>
-            <span class="kit-card__name">Gas / Smoke MQ-2</span>
-            <span class="kit-card__chip">MQ-2</span>
-          </a>
-          <a class="kit-card" href="kit-s23.html">
-            <img src="assets/img/kit/s23-iso.webp" alt="Magic Cup module" loading="lazy" width="640" height="503">
-            <span class="kit-card__id">S23</span>
-            <span class="kit-card__name">Magic Cup</span>
-            <span class="kit-card__chip">Tilt switch + LED</span>
-          </a>
-          <a class="kit-card" href="kit-s24.html">
-            <img src="assets/img/kit/s24-iso.webp" alt="Sound module" loading="lazy" width="640" height="503">
-            <span class="kit-card__id">S24</span>
-            <span class="kit-card__name">Sound</span>
-            <span class="kit-card__chip">Electret + MCP6002</span>
-          </a>
-          <a class="kit-card" href="kit-s25.html">
-            <img src="assets/img/kit/s25-iso.webp" alt="Obstacle IR module" loading="lazy" width="640" height="503">
-            <span class="kit-card__id">S25</span>
-            <span class="kit-card__name">Obstacle IR</span>
-            <span class="kit-card__chip">IR LED + phototransistor</span>
-          </a>
-          <a class="kit-card" href="kit-s26.html">
-            <img src="assets/img/kit/s26-iso.webp" alt="Motion PIR module" loading="lazy" width="640" height="503">
-            <span class="kit-card__id">S26</span>
-            <span class="kit-card__name">Motion PIR</span>
-            <span class="kit-card__chip">AM312 digital pyro</span>
-          </a>
-          <a class="kit-card" href="kit-s27.html">
-            <img src="assets/img/kit/s27-iso.webp" alt="Buzzer Passive module" loading="lazy" width="640" height="503">
-            <span class="kit-card__id">S27</span>
-            <span class="kit-card__name">Buzzer Passive</span>
-            <span class="kit-card__chip">12 mm magnetic transducer</span>
-          </a>
-          <a class="kit-card" href="kit-s28.html">
-            <img src="assets/img/kit/s28-iso.webp" alt="Photo Gate module" loading="lazy" width="640" height="503">
-            <span class="kit-card__id">S28</span>
-            <span class="kit-card__name">Photo Gate</span>
-            <span class="kit-card__chip">ITR9608 slot</span>
-          </a>
-          <a class="kit-card" href="kit-s29.html">
-            <img src="assets/img/kit/s29-iso.webp" alt="Light LDR module" loading="lazy" width="640" height="503">
-            <span class="kit-card__id">S29</span>
-            <span class="kit-card__name">Light LDR</span>
-            <span class="kit-card__chip">GL5528 photocell</span>
-          </a>
-          <a class="kit-card" href="kit-s30.html">
-            <img src="assets/img/kit/s30-iso.webp" alt="Knob module" loading="lazy" width="640" height="503">
-            <span class="kit-card__id">S30</span>
-            <span class="kit-card__name">Knob</span>
-            <span class="kit-card__chip">10k rotary pot</span>
-          </a>
-          <a class="kit-card" href="kit-s31.html">
-            <img src="assets/img/kit/s31-iso.webp" alt="Pulse module" loading="lazy" width="640" height="503">
-            <span class="kit-card__id">S31</span>
-            <span class="kit-card__name">Pulse</span>
-            <span class="kit-card__chip">Green LED + TEMT6000 + MCP6001</span>
-          </a>
-          <a class="kit-card" href="kit-s32.html">
-            <img src="assets/img/kit/s32-iso.webp" alt="RGB LED SMD module" loading="lazy" width="640" height="503">
-            <span class="kit-card__id">S32</span>
-            <span class="kit-card__name">RGB LED SMD</span>
-            <span class="kit-card__chip">5050 RGB</span>
-          </a>
-          <a class="kit-card" href="kit-s33.html">
-            <img src="assets/img/kit/s33-iso.webp" alt="Reed Switch module" loading="lazy" width="640" height="503">
-            <span class="kit-card__id">S33</span>
-            <span class="kit-card__name">Reed Switch</span>
-            <span class="kit-card__chip">Hamlin MDSR-4</span>
-          </a>
-          <a class="kit-card" href="kit-s34.html">
-            <img src="assets/img/kit/s34-iso.webp" alt="Rotary Encoder module" loading="lazy" width="640" height="503">
-            <span class="kit-card__id">S34</span>
-            <span class="kit-card__name">Rotary Encoder</span>
-            <span class="kit-card__chip">EC11 + push</span>
-          </a>
-          <a class="kit-card" href="kit-s35.html">
-            <img src="assets/img/kit/s35-iso.webp" alt="Light TEMT6000 module" loading="lazy" width="640" height="503">
-            <span class="kit-card__id">S35</span>
-            <span class="kit-card__name">Light TEMT6000</span>
-            <span class="kit-card__chip">Vishay TEMT6000X01</span>
-          </a>
-          <a class="kit-card" href="kit-s36.html">
-            <img src="assets/img/kit/s36-iso.webp" alt="Thermistor module" loading="lazy" width="640" height="503">
-            <span class="kit-card__id">S36</span>
-            <span class="kit-card__name">Thermistor</span>
-            <span class="kit-card__chip">NTC 10k</span>
-          </a>
-          <div class="kit-card kit-card--soon">
-            <span class="kit-card__id">S37</span>
-            <span class="kit-card__name">Ultrasonic</span>
-            <span class="kit-card__chip">Distance, 2-400 cm. Board in design.</span>
-          </div>
-          <a class="kit-card" href="kit-s38.html">
-            <img src="assets/img/kit/s38-iso.webp" alt="ADC 16-Bit module" loading="lazy" width="640" height="503">
-            <span class="kit-card__id">S38</span>
-            <span class="kit-card__name">ADC 16-Bit</span>
-            <span class="kit-card__chip">ADS1115</span>
-          </a>
-        </div>
-      </div>
-    </section>
-
-    <section class="section" id="next" data-sec="next">
-      <div class="container">
-        <div class="close close--quiet" data-reveal>
-          <span class="close__n">02</span>
-          <h2>Want a kit, or a module on its own?</h2>
-          <div class="close__side">
-            <p>The kit is being prepared for sale now. Tell me what you are building and which modules you need, and I
-              will let you know when they ship.</p>
-            <div class="close__actions">
-              <a class="btn" href="contact.html">Ask about the kit</a>
-              <a class="btn btn--ghost" href="shop.html">Back to hardware</a>
-            </div>
-          </div>
-        </div>
       </div>
     </section>
   </main>

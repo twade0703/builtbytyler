@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>S38 ADC 16-Bit · Hardware Kit · BuiltByTyler</title>
-  <meta name="description" content="S38 ADC 16-Bit (ADS1115): Four analog inputs over I2C (0x48). Gives the Raspberry Pi the analog pins it doesn&#x27;t have.">
+  <title>S38 ADC 16-Bit · The Sensor Kit · BuiltByTyler</title>
+  <meta name="description" content="S38 ADC 16-Bit: how to wire it, a 3D model and code. Part of the BuiltByTyler Sensor Kit.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500&family=Instrument+Sans:wght@400;500&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -20,10 +20,10 @@
   <meta property="og:site_name" content="Built by Tyler">
   <meta property="og:locale" content="en_US">
   <meta property="og:url" content="https://builtbytyler.com/kit-s38">
-  <meta property="og:title" content="S38 ADC 16-Bit · Hardware Kit · BuiltByTyler">
-  <meta property="og:description" content="S38 ADC 16-Bit (ADS1115): Four analog inputs over I2C (0x48). Gives the Raspberry Pi the analog pins it doesn&#x27;t have.">
-  <meta name="twitter:title" content="S38 ADC 16-Bit · Hardware Kit · BuiltByTyler">
-  <meta name="twitter:description" content="S38 ADC 16-Bit (ADS1115): Four analog inputs over I2C (0x48). Gives the Raspberry Pi the analog pins it doesn&#x27;t have.">
+  <meta property="og:title" content="S38 ADC 16-Bit · The Sensor Kit · BuiltByTyler">
+  <meta property="og:description" content="S38 ADC 16-Bit: how to wire it, a 3D model and code. Part of the BuiltByTyler Sensor Kit.">
+  <meta name="twitter:title" content="S38 ADC 16-Bit · The Sensor Kit · BuiltByTyler">
+  <meta name="twitter:description" content="S38 ADC 16-Bit: how to wire it, a 3D model and code. Part of the BuiltByTyler Sensor Kit.">
   <meta property="og:image" content="https://builtbytyler.com/assets/img/og-image.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
@@ -81,59 +81,84 @@
     "itemListElement": [
       {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://builtbytyler.com/"},
       {"@type": "ListItem", "position": 2, "name": "Hardware", "item": "https://builtbytyler.com/shop"},
-      {"@type": "ListItem", "position": 3, "name": "Hardware Kit", "item": "https://builtbytyler.com/kit"},
+      {"@type": "ListItem", "position": 3, "name": "The Sensor Kit", "item": "https://builtbytyler.com/kit"},
       {"@type": "ListItem", "position": 4, "name": "S38 ADC 16-Bit", "item": "https://builtbytyler.com/kit-s38"}
     ]
   }
   </script>
   <style>
-    /* Hardware kit pages: page-local, built on the site tokens */
-    .kit-rules { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; border-top: 1px solid var(--hairline); margin: 0; padding: 0; list-style: none; }
-    .kit-rules li { padding: 1.1rem 1.2rem 1.2rem 0; border-bottom: 1px solid var(--hairline); }
-    .kit-rules b { display: block; font-family: var(--font-display); font-weight: 400; font-size: var(--fs-h3); margin: 0.35rem 0; }
-    .kit-rules span { color: var(--muted); font-size: var(--fs-small); line-height: 1.5; }
-    .kit-rules .n { font-family: var(--font-mono); font-size: var(--fs-micro); letter-spacing: 0.18em; color: var(--accent); }
-    .kit-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 1px; background: var(--hairline); border: 1px solid var(--hairline); }
-    .kit-card { display: flex; flex-direction: column; gap: 0.35rem; padding: 1rem 1rem 1.15rem; background: var(--bg); color: var(--ink); text-decoration: none; transition: background 0.25s; }
-    .kit-card:hover { background: var(--surface); }
-    .kit-card img { width: 100%; height: auto; aspect-ratio: 7 / 5.5; object-fit: contain; margin-bottom: 0.4rem; transition: transform 0.35s; }
-    .kit-card:hover img { transform: translateY(-4px) scale(1.03); }
-    .kit-card__id { font-family: var(--font-mono); font-size: var(--fs-micro); letter-spacing: 0.18em; color: var(--accent); }
-    .kit-card__name { font-family: var(--font-display); font-size: 1.2rem; letter-spacing: -0.01em; }
-    .kit-card__chip { color: var(--muted); font-size: var(--fs-small); }
-    .kit-card--soon { opacity: 0.55; pointer-events: none; }
-    .kit-crumbs { font-family: var(--font-mono); font-size: var(--fs-micro); letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); margin-bottom: 1.2rem; }
-    .kit-crumbs a { color: var(--muted); }
-    .kit-crumbs a:hover { color: var(--accent); }
-    .kit-detail { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: clamp(1.5rem, 4vw, 3rem); align-items: start; }
-    .kit-detail h1 { font-family: var(--font-display); font-size: var(--fs-h1); font-weight: 400; letter-spacing: -0.02em; margin: 0.2rem 0 0.6rem; }
-    .kit-detail .lead { color: var(--muted); font-size: 1.08rem; line-height: 1.55; max-width: 48ch; }
-    .kit-sides { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--hairline); border: 1px solid var(--hairline); margin-top: 1.25rem; }
-    .kit-sides figure { margin: 0; background: var(--bg); padding: 0.8rem; }
-    .kit-sides img { width: 100%; display: block; }
-    .kit-sides figcaption { font-family: var(--font-mono); font-size: var(--fs-micro); letter-spacing: 0.16em; color: var(--muted); text-transform: uppercase; margin-top: 0.5rem; }
-    .kit-h { font-family: var(--font-mono); font-size: var(--fs-micro); letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent); margin: 2rem 0 0.7rem; }
+    /* Sensor Kit pages: page-local, built on the site tokens */
+    .sk-hero { text-align: center; padding-top: clamp(5rem, 12vh, 8rem); }
+    .sk-hero h1 { font-family: var(--font-display); font-weight: 400; font-size: clamp(2.6rem, 7vw, 5.6rem); letter-spacing: -0.03em; margin: 0.4rem 0 0.6rem; }
+    .sk-hero h1 em { font-family: var(--font-accent); color: var(--accent); }
+    .sk-hero p { color: var(--muted); margin: 0 auto; max-width: 40ch; font-size: 1.1rem; }
+    .sk-buy { display: flex; justify-content: center; align-items: center; gap: 1.2rem; flex-wrap: wrap; margin: 1.8rem 0 0; }
+    .sk-price { font-family: var(--font-display); font-size: 2.2rem; letter-spacing: -0.02em; }
+    .sk-price small { display: block; font-family: var(--font-mono); font-size: var(--fs-micro); letter-spacing: 0.16em; color: var(--muted); text-transform: uppercase; }
+    /* the kit: every board in a compartment tray */
+    .sk-tray { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 10px; padding: 14px; margin-top: clamp(2.5rem, 6vw, 4.5rem);
+      background: linear-gradient(180deg, #0b0f15, #05080c); border: 1px solid var(--hairline-strong); box-shadow: 0 40px 120px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.05); }
+    .sk-cell { position: relative; display: block; aspect-ratio: 1 / 0.92; background: radial-gradient(120% 90% at 50% 35%, #121820, #070a0e 70%); border: 1px solid rgba(150,200,230,0.10);
+      box-shadow: inset 0 6px 14px rgba(0,0,0,0.75); color: var(--ink); text-decoration: none; overflow: hidden; }
+    .sk-cell img { position: absolute; inset: 8% 6% 16%; width: 88%; height: 76%; object-fit: contain; transition: transform 0.35s cubic-bezier(.2,.8,.2,1), filter 0.35s; filter: drop-shadow(0 10px 12px rgba(0,0,0,0.7)); }
+    .sk-cell:hover img { transform: translateY(-6px) scale(1.07); filter: drop-shadow(0 16px 20px rgba(0,0,0,0.8)) drop-shadow(0 0 18px rgba(95,230,255,0.18)); }
+    .sk-cell b { position: absolute; left: 8px; bottom: 6px; font-family: var(--font-mono); font-weight: 400; font-size: 0.68rem; letter-spacing: 0.14em; color: var(--accent); }
+    .sk-cell span { position: absolute; right: 8px; bottom: 6px; left: 44px; text-align: right; font-size: 0.72rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: 0; transition: opacity 0.25s; }
+    .sk-cell:hover span { opacity: 1; }
+    .sk-cell--soon { display: grid; place-items: center; color: var(--muted); font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.14em; text-align: center; }
+    .sk-strip { display: flex; justify-content: center; gap: clamp(1.5rem, 5vw, 4rem); flex-wrap: wrap; margin: clamp(2rem, 5vw, 3.5rem) 0 0; padding: 0; list-style: none;
+      font-family: var(--font-mono); font-size: var(--fs-micro); letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); }
+    .sk-strip b { color: var(--accent); font-weight: 400; margin-right: 0.5em; }
+    /* module page */
+    .sm-top { padding-top: clamp(4.5rem, 10vh, 6.5rem); }
+    .sm-crumbs { font-family: var(--font-mono); font-size: var(--fs-micro); letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); }
+    .sm-crumbs a { color: var(--muted); } .sm-crumbs a:hover { color: var(--accent); }
+    .sm-head { display: flex; align-items: end; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin: 0.6rem 0 1.2rem; }
+    .sm-head h1 { font-family: var(--font-display); font-weight: 400; font-size: clamp(2rem, 5vw, 3.4rem); letter-spacing: -0.02em; margin: 0; }
+    .sm-head h1 small { font-family: var(--font-mono); font-size: 0.9rem; letter-spacing: 0.14em; color: var(--accent); margin-right: 0.8rem; vertical-align: middle; }
+    .sm-tabs { display: inline-flex; border: 1px solid var(--hairline-strong); }
+    .sm-tabs button { font-family: var(--font-mono); font-size: var(--fs-micro); letter-spacing: 0.18em; text-transform: uppercase; padding: 0.8rem 1.2rem; background: transparent; color: var(--muted); border: 0; cursor: pointer; }
+    .sm-tabs button + button { border-left: 1px solid var(--hairline-strong); }
+    .sm-tabs button[aria-selected="true"] { background: var(--accent); color: var(--on-accent); }
+    .sm-view { position: relative; aspect-ratio: 16 / 9; background: #05080c; border: 1px solid var(--hairline); overflow: hidden; }
+    .sm-view[hidden] { display: none; }
+    .sm-view > img, .sm-view > video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+    .sm-view .btn { position: absolute; right: 1rem; bottom: 1rem; }
+    .kit3d { position: absolute; inset: 0; cursor: grab; touch-action: none; }
+    .kit3d:active { cursor: grabbing; }
+    .kit3d canvas { width: 100% !important; height: 100% !important; display: block; }
+    .kit3d__status, .kit3d__hint { position: absolute; left: 1rem; font-family: var(--font-mono); font-size: var(--fs-micro); letter-spacing: 0.14em; color: var(--muted); text-transform: uppercase; pointer-events: none; }
+    .kit3d__status { top: 1rem; } .kit3d__hint { bottom: 1rem; }
+    .sm-qr { display: grid; grid-template-columns: minmax(0, 1fr) auto; height: 100%; align-items: center; gap: 2rem; padding: 0 clamp(1rem, 4vw, 3rem); }
+    .sm-qr img { width: 100%; height: 100%; max-height: 100%; object-fit: contain; display: block; }
+    .sm-qr p { font-family: var(--font-display); font-size: clamp(1.2rem, 2.4vw, 1.8rem); max-width: 14ch; margin: 0; }
+    .sm-qr p b { display: block; font-family: var(--font-mono); font-size: var(--fs-micro); font-weight: 400; letter-spacing: 0.16em; color: var(--accent); margin-top: 0.8rem; }
+    .sm-more { margin-top: 1.4rem; border-top: 1px solid var(--hairline); }
+    .sm-more summary { cursor: pointer; padding: 1rem 0; font-family: var(--font-mono); font-size: var(--fs-micro); letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); }
+    .sm-more summary:hover { color: var(--accent); }
+    .sm-more__grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem 3rem; padding-bottom: 1.5rem; }
     .kit-wire { width: 100%; border-collapse: collapse; font-size: var(--fs-small); }
     .kit-wire th { text-align: left; font-family: var(--font-mono); font-size: var(--fs-micro); letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); font-weight: 400; padding: 0 0.8rem 0.5rem 0; border-bottom: 1px solid var(--hairline-strong); }
-    .kit-wire td { padding: 0.55rem 0.8rem 0.55rem 0; border-bottom: 1px solid var(--hairline); }
-    .kit-wire td:first-child { font-family: var(--font-mono); color: var(--ink); }
-    .kit-wire .dot { display: inline-block; width: 0.7em; height: 0.7em; border-radius: 50%; margin-right: 0.5em; vertical-align: -0.05em; box-shadow: 0 0 0 1px rgba(255,255,255,0.35); }
-    .kit-list { margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--hairline); }
-    .kit-list li { padding: 0.65rem 0; border-bottom: 1px solid var(--hairline); font-size: var(--fs-small); line-height: 1.5; }
-    .kit-code { margin: 0; padding: 1rem 1.1rem; background: #02050A; border: 1px solid var(--hairline); font-family: var(--font-mono); font-size: 0.82rem; line-height: 1.7; color: #CFE6FF; overflow-x: auto; }
-    .kit-nav { display: flex; justify-content: space-between; gap: 1rem; margin-top: clamp(2rem, 5vw, 3.5rem); padding-top: 1rem; border-top: 1px solid var(--hairline); font-family: var(--font-mono); font-size: var(--fs-small); }
-    .kit-nav a { color: var(--ink); }
-    .kit-nav a:hover { color: var(--accent); }
-    .kit-feature { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: clamp(1.5rem, 4vw, 3rem); align-items: center; }
-    .kit-feature img { width: 100%; display: block; border: 1px solid var(--hairline); }
+    .kit-wire td { padding: 0.5rem 0.8rem 0.5rem 0; border-bottom: 1px solid var(--hairline); }
+    .kit-wire td:first-child { font-family: var(--font-mono); }
+    .kit-wire .dot { display: inline-block; width: 0.7em; height: 0.7em; border-radius: 50%; margin-right: 0.5em; box-shadow: 0 0 0 1px rgba(255,255,255,0.35); }
+    .kit-code { margin: 0; padding: 0.9rem 1rem; background: #02050A; border: 1px solid var(--hairline); font-family: var(--font-mono); font-size: 0.8rem; line-height: 1.7; color: #CFE6FF; overflow-x: auto; }
+    .kit-list { margin: 0; padding-left: 1.1rem; color: var(--muted); font-size: var(--fs-small); line-height: 1.6; }
+    .sm-h { font-family: var(--font-mono); font-size: var(--fs-micro); letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent); margin: 0 0 0.6rem; }
+    .sm-h--gap { margin-top: 1.2rem; }
+    .sm-foot { display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; margin-top: 1.5rem; padding-top: 1.2rem; border-top: 1px solid var(--hairline); font-family: var(--font-mono); font-size: var(--fs-small); }
+    .sm-foot a:not(.btn) { color: var(--ink); } .sm-foot a:not(.btn):hover { color: var(--accent); }
     @media (max-width: 900px) {
-      .kit-rules { grid-template-columns: 1fr 1fr; }
-      .kit-detail, .kit-feature { grid-template-columns: minmax(0, 1fr); }
+      .sk-tray { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 7px; padding: 9px; }
+      .sm-more__grid { grid-template-columns: minmax(0, 1fr); }
+      .sm-view { aspect-ratio: 4 / 3; }
+      .sm-qr { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; padding: 1rem; gap: 0.6rem; text-align: center; }
+      .sm-qr p { max-width: none; font-size: 1.05rem; }
     }
     @media (max-width: 520px) {
-      .kit-rules, .kit-sides { grid-template-columns: 1fr; }
-      .kit-grid { grid-template-columns: 1fr 1fr; }
-      .kit-card { padding: 0.7rem; }
+      .sk-tray { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 5px; padding: 6px; }
+      .sk-cell b { font-size: 0.55rem; left: 5px; bottom: 3px; }
+      .sm-tabs { width: 100%; } .sm-tabs button { flex: 1; padding: 0.8rem 0.4rem; }
     }
   </style>
 </head>
@@ -149,51 +174,56 @@
   </header>
 
     <main>
-    <section class="section opener" data-sec="top">
+    <section class="section sm-top" data-sec="top">
       <div class="container">
-        <p class="kit-crumbs"><a href="shop.html">Hardware</a> / <a href="kit.html">Hardware kit</a> / S38</p>
-        <div class="kit-detail">
-          <div>
-            <button class="cad-reel" type="button" data-reel aria-label="Watch the ADC 16-Bit demo large">
-              <span class="tick tick--tl"></span><span class="tick tick--br"></span>
-              <video muted loop playsinline preload="none" poster="assets/img/kit/s38-poster.jpg"
-                data-src="assets/img/kit/s38-demo.mp4" aria-label="ADC 16-Bit: soldering the header, wiring it to an ESP32, what it does, and the code"></video>
-              <span class="cad-reel__zoom" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7"/></svg>Watch large</span>
-            </button>
-            <div class="kit-sides">
-              <figure><img src="assets/img/kit/s38-top.webp" alt="ADC 16-Bit board, front" decoding="async"><figcaption>Front</figcaption></figure>
-              <figure><img src="assets/img/kit/s38-bottom.webp" alt="ADC 16-Bit board, back with the BUILT BY TYLER mark and QR code" decoding="async"><figcaption>Back</figcaption></figure>
-            </div>
-          </div>
-          <div>
-            <p class="kicker">Hardware kit <b>—</b> S38</p>
-            <h1>ADC 16-Bit</h1>
-            <p class="lead">Four analog inputs over I2C (0x48). Gives the Raspberry Pi the analog pins it doesn&#x27;t have.</p>
-            <dl class="cad-spec">
-              <div><dt>Main part</dt><dd>ADS1115</dd></div><div><dt>Supply</dt><dd>3.3 V or 5 V (use your board&#x27;s logic voltage)</dd></div><div><dt>Pins</dt><dd>GND · VCC · SDA · SCL · ALRT / top: A0 · A1 · A2 · A3</dd></div><div><dt>Qwiic</dt><dd>Yes, STEMMA QT / Qwiic connector</dd></div><div><dt>Board</dt><dd>32 x 40 mm, M3 holes on an 8 mm grid</dd></div><div><dt>Try it</dt><dd>Feed analog sensors into A0-A3</dd></div><div><dt>Libraries</dt><dd>Adafruit_ADS1X15 / adafruit-circuitpython-ads1x15</dd></div>
-            </dl>
-            <p class="kit-h">Wire it</p>
-            <table class="kit-wire">
-              <thead><tr><th>Board</th><th>ESP32</th><th>Arduino Uno</th><th>Raspberry Pi</th></tr></thead>
-              <tbody><tr><td><span class="dot" style="background:#2a2a2a"></span>GND</td><td>GND</td><td>GND</td><td>GND (pin 6)</td></tr><tr><td><span class="dot" style="background:#e63232"></span>VCC</td><td>3V3</td><td>5V</td><td>3V3 (pin 1)</td></tr><tr><td><span class="dot" style="background:#fac81e"></span>SDA</td><td>GPIO 21</td><td>A4</td><td>GPIO2 (pin 3)</td></tr><tr><td><span class="dot" style="background:#3caaff"></span>SCL</td><td>GPIO 22</td><td>A5</td><td>GPIO3 (pin 5)</td></tr><tr><td><span class="dot" style="background:#5adc78"></span>ALRT</td><td>GPIO 4</td><td>D2</td><td>GPIO17</td></tr><tr><td><span class="dot" style="background:#ff8c28"></span>A0</td><td>sensor AO</td><td>sensor AO</td><td>sensor AO</td></tr><tr><td><span class="dot" style="background:#c878ff"></span>A1</td><td>sensor AO</td><td>sensor AO</td><td>sensor AO</td></tr><tr><td><span class="dot" style="background:#fac81e"></span>A2</td><td>sensor AO</td><td>sensor AO</td><td>sensor AO</td></tr><tr><td><span class="dot" style="background:#3caaff"></span>A3</td><td>sensor AO</td><td>sensor AO</td><td>sensor AO</td></tr></tbody>
-            </table>
-            <p class="kit-h">Code (Arduino IDE, ESP32)</p>
-            <pre class="kit-code">#include &lt;Adafruit_ADS1X15.h&gt;
-ads.begin();
-Serial.println(ads.computeVolts(ads.readADC_SingleEnded(0)));</pre>
-            <p class="kit-h">What is better about this one</p>
-            <ul class="kit-list"><li>New board: the kit&#x27;s analog sensors (MQ, LDR, sound, pot...) can&#x27;t be read on a Pi without an ADC</li><li>Runs from 3.3 V or 5 V, Qwiic connector</li></ul>
-            <div class="opener__cta"><a class="btn" href="contact.html">Ask about the kit</a><a class="btn btn--ghost" href="kit.html">All 38 modules</a></div>
+        <p class="sm-crumbs"><a href="shop.html">Hardware</a> / <a href="kit.html">The Sensor Kit</a></p>
+        <div class="sm-head">
+          <h1><small>S38</small>ADC 16-Bit</h1>
+          <div class="sm-tabs" role="tablist" aria-label="Views">
+            <button type="button" role="tab" data-kit-tab="wire" aria-selected="true">Wire it</button>
+            <button type="button" role="tab" data-kit-tab="3d" aria-selected="false">3D</button>
+            <button type="button" role="tab" data-kit-tab="qr" aria-selected="false">QR</button>
           </div>
         </div>
-        <nav class="kit-nav" aria-label="Kit modules"><a href="kit-s36.html">&larr; S36 Thermistor</a><a href="kit.html">All modules &rarr;</a></nav>
+        <div class="sm-view" data-kit-pane="wire">
+          <img src="assets/img/kit/s38-wire.webp" alt="How to wire the ADC 16-Bit: header pins to ESP32, Arduino Uno and Raspberry Pi pins" decoding="async">
+          <video id="demo-s38" data-src="assets/img/kit/s38-demo.mp4" controls playsinline muted hidden></video>
+          <button class="btn" type="button" data-kit-play="demo-s38">Play the demo</button>
+        </div>
+        <div class="sm-view" data-kit-pane="3d" hidden>
+          <div class="kit3d" data-kit-model="assets/img/kit/s38.glb">
+            <span class="kit3d__status">Loading 3D model</span>
+            <span class="kit3d__hint">Drag to spin · right-drag to pan · scroll to zoom · double-click to reset</span>
+          </div>
+        </div>
+        <div class="sm-view" data-kit-pane="qr" hidden>
+          <div class="sm-qr">
+            <img src="assets/img/kit/s38-bottom.webp" alt="The back of the ADC 16-Bit board with its QR code" loading="lazy" decoding="async">
+            <p>Scan the back of the board to open this page.<b>builtbytyler.com/S38</b></p>
+          </div>
+        </div>
+        <details class="sm-more">
+          <summary>Pins, code and details</summary>
+          <div class="sm-more__grid">
+            <div>
+              <p class="sm-h">Pins</p>
+              <table class="kit-wire"><thead><tr><th>Board</th><th>ESP32</th><th>Uno</th><th>Pi</th></tr></thead>
+              <tbody><tr><td><span class="dot" style="background:#2a2a2a"></span>GND</td><td>GND</td><td>GND</td><td>GND (pin 6)</td></tr><tr><td><span class="dot" style="background:#e63232"></span>VCC</td><td>3V3</td><td>5V</td><td>3V3 (pin 1)</td></tr><tr><td><span class="dot" style="background:#fac81e"></span>SDA</td><td>GPIO 21</td><td>A4</td><td>GPIO2 (pin 3)</td></tr><tr><td><span class="dot" style="background:#3caaff"></span>SCL</td><td>GPIO 22</td><td>A5</td><td>GPIO3 (pin 5)</td></tr><tr><td><span class="dot" style="background:#5adc78"></span>ALRT</td><td>GPIO 4</td><td>D2</td><td>GPIO17</td></tr><tr><td><span class="dot" style="background:#ff8c28"></span>A0</td><td>sensor AO</td><td>sensor AO</td><td>sensor AO</td></tr><tr><td><span class="dot" style="background:#c878ff"></span>A1</td><td>sensor AO</td><td>sensor AO</td><td>sensor AO</td></tr><tr><td><span class="dot" style="background:#fac81e"></span>A2</td><td>sensor AO</td><td>sensor AO</td><td>sensor AO</td></tr><tr><td><span class="dot" style="background:#3caaff"></span>A3</td><td>sensor AO</td><td>sensor AO</td><td>sensor AO</td></tr></tbody></table>
+            </div>
+            <div>
+              <p class="sm-h">Code</p>
+              <pre class="kit-code">#include &lt;Adafruit_ADS1X15.h&gt;
+ads.begin();
+Serial.println(ads.computeVolts(ads.readADC_SingleEnded(0)));</pre>
+              <p class="sm-h sm-h--gap">About it</p>
+              <ul class="kit-list"><li>Four analog inputs over I2C (0x48). Gives the Raspberry Pi the analog pins it doesn&#x27;t have.</li><li>New board: the kit&#x27;s analog sensors (MQ, LDR, sound, pot...) can&#x27;t be read on a Pi without an ADC</li><li>Runs from 3.3 V or 5 V, Qwiic connector</li></ul>
+            </div>
+          </div>
+        </details>
+        <div class="sm-foot"><a href="kit-s36.html">&larr; S36</a><a class="btn" href="kit.html">The Sensor Kit · $49.99</a><a href="kit.html">Kit &rarr;</a></div>
       </div>
     </section>
-    <dialog class="reel-modal" id="reel-modal" aria-label="Reel">
-    <button class="demo-modal__close" type="button" aria-label="Close the reel">Close</button>
-    <video controls playsinline muted loop></video>
-  </dialog>
-</main>
+  </main>
 
 
   <footer id="site-footer" data-year="2026">
@@ -234,5 +264,6 @@ Serial.println(ads.computeVolts(ads.readADC_SingleEnded(0)));</pre>
   <script defer src="assets/js/main.js?v=67"></script>
   <!-- The star field: plain WebGL, one small module, no library behind it. -->
   <script type="module" src="assets/js/starfield.js?v=67"></script>
+  <script type="module" src="assets/js/kit.js?v=67"></script>
 </body>
 </html>

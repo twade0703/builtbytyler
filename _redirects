@@ -32,7 +32,7 @@
 /reverse-engineering /games 301
 /reverse-engineering.html /games 301
 
-# Hardware kit QR codes. The back of every board encodes BUILTBYTYLER.COM/S07 (QR alphanumeric
+# Sensor Kit QR codes. The back of every board encodes BUILTBYTYLER.COM/S07 (QR alphanumeric
 # mode is upper case only), so both cases go to the module page.
 /S01 /kit-s01 301
 /s01 /kit-s01 301

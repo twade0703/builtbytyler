@@ -28,9 +28,9 @@
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
-  <script src="assets/js/boot.js?v=68"></script>
-  <link rel="stylesheet" href="assets/css/styles.css?v=68">
-  <link rel="stylesheet" href="assets/css/motion.css?v=68">
+  <script src="assets/js/boot.js?v=69"></script>
+  <link rel="stylesheet" href="assets/css/styles.css?v=69">
+  <link rel="stylesheet" href="assets/css/motion.css?v=69">
 
 <!-- Structured data. Every fact here is one this site already states in prose:
        the entity, the city and the email come off contact.html. Nothing is
@@ -164,6 +164,56 @@
       .sk-cell b { font-size: 0.55rem; left: 5px; bottom: 3px; }
       .sm-tabs { width: 100%; } .sm-tabs button { flex: 1; padding: 0.8rem 0.4rem; }
     }
+
+    /* ---- The Sensor Kit showcase (sensor-kit/tools/web_kit_show.py) ---- */
+    .kshow-sec { padding-top: clamp(5rem, 12vh, 8rem); }
+    .kshow { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: clamp(1.5rem, 4vw, 4rem); align-items: center; }
+    .kshow__copy .kicker { margin-bottom: 0.6rem; }
+    .kshow__h { font-family: var(--font-display); font-weight: 400; font-size: clamp(2.4rem, 5vw, 4.2rem); letter-spacing: -0.03em; line-height: 1; margin: 0 0 0.9rem; }
+    .kshow__h em { font-family: var(--font-accent); color: var(--accent); }
+    .kshow__p { color: var(--muted); font-size: 1.1rem; margin: 0 0 1.6rem; max-width: 28ch; }
+    .kshow__buy { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+    .kshow__price { font-family: var(--font-display); font-size: 2.6rem; letter-spacing: -0.02em; line-height: 1; margin-right: 0.4rem; }
+    .kshow__ship { margin: 1rem 0 0; font-family: var(--font-mono); font-size: var(--fs-micro); letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+    .kshow__box { display: flex; flex-wrap: wrap; gap: 0.4rem; list-style: none; padding: 0; margin: 1.6rem 0 0; }
+    .kshow__box li { font-family: var(--font-mono); font-size: var(--fs-micro); letter-spacing: 0.1em; text-transform: uppercase; padding: 0.45rem 0.7rem; border: 1px solid var(--hairline-strong); color: var(--ink); }
+    .kshow__closed { width: 100%; height: auto; display: block; filter: drop-shadow(0 40px 60px rgba(0,0,0,0.55)); }
+    .ktray { position: relative; margin: 0; }
+    .ktray img { display: block; width: 100%; height: auto; filter: drop-shadow(0 50px 70px rgba(0,0,0,0.6)); }
+    .ktray svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+    .ktray polygon { fill: transparent; stroke: transparent; stroke-width: 5; transition: fill 0.2s, stroke 0.2s; vector-effect: non-scaling-stroke; }
+    .ktray a:hover polygon, .ktray a:focus-visible polygon, .ktray__part:hover polygon { fill: rgba(95, 230, 255, 0.10); stroke: var(--accent); stroke-width: 2; }
+    .ktray__tip { opacity: 0; transition: opacity 0.18s; pointer-events: none; }
+    .ktray__tip rect { fill: var(--ink); }
+    .ktray__tip text { fill: var(--on-accent); font-family: var(--font-mono); font-size: 40px; letter-spacing: 1px; }
+    .ktray a:hover .ktray__tip, .ktray a:focus-visible .ktray__tip, .ktray__part:hover .ktray__tip, .ktray__part:focus .ktray__tip { opacity: 1; }
+    .ktray a { cursor: pointer; outline: none; }
+    .ptab-head { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; flex-wrap: wrap; margin: clamp(3rem, 7vw, 5rem) 0 1.2rem; border-top: 1px solid var(--hairline); padding-top: 1.2rem; }
+    .ptab-head p { margin: 0; font-family: var(--font-mono); font-size: var(--fs-micro); letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); }
+    .ptab-head b { color: var(--ink); font-weight: 400; }
+    .ptab { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: clamp(0.8rem, 1.6vw, 1.4rem); align-items: start; }
+    .ptab__h { display: flex; align-items: center; gap: 0.5rem; margin: 0 0 0.6rem; font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink); }
+    .ptab__h i { width: 0.6rem; height: 0.6rem; background: var(--c); box-shadow: 0 0 12px var(--c); flex: none; }
+    .ptab__h em { margin-left: auto; font-style: normal; color: var(--muted); }
+    .ptab__grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+    .ptab__t { position: relative; display: flex; flex-direction: column; aspect-ratio: 1 / 1.12; padding: 0.45rem 0.5rem 0.55rem; text-decoration: none; color: var(--ink);
+      background: linear-gradient(180deg, #0d1218, #070a0e); border: 1px solid rgba(150, 200, 230, 0.12); border-top: 2px solid var(--c);
+      transition: transform 0.25s cubic-bezier(.2,.8,.2,1), border-color 0.25s, box-shadow 0.25s; }
+    .ptab__t b { font-family: var(--font-mono); font-weight: 400; font-size: 0.68rem; letter-spacing: 0.1em; color: var(--c); }
+    .ptab__t img { flex: 1; min-height: 0; width: 100%; object-fit: contain; padding: 4% 8%; transition: transform 0.3s cubic-bezier(.2,.8,.2,1); filter: drop-shadow(0 6px 8px rgba(0,0,0,0.6)); }
+    .ptab__t span { font-size: 0.78rem; font-weight: 600; line-height: 1.15; }
+    .ptab__t small { font-size: 0.62rem; color: var(--muted); line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .ptab__t:hover, .ptab__t:focus-visible { transform: translateY(-4px); border-color: var(--c); box-shadow: 0 14px 30px rgba(0,0,0,0.55), 0 0 0 1px var(--c), 0 0 24px color-mix(in srgb, var(--c) 30%, transparent); z-index: 1; }
+    .ptab__t:hover img { transform: scale(1.1) rotate(-3deg); }
+    @media (max-width: 1000px) {
+      .kshow { grid-template-columns: minmax(0, 1fr); }
+      .ptab { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 560px) {
+      .ptab { grid-template-columns: minmax(0, 1fr); }
+      .ptab__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .ktray__tip { display: none; }
+    }
   </style>
 </head>
 <body>
@@ -265,12 +315,12 @@ Serial.println(dht.readTemperature());</pre>
        HTML, but main.js CREATES those canvases for the build plates. Removing
        it blanks every hologram. If the 64 KB is ever worth reclaiming, the fix
        is to load it on demand when a plate scrolls into view. -->
-  <script defer src="assets/js/products.js?v=68"></script>
-  <script defer src="assets/js/components.js?v=68"></script>
-  <script defer src="assets/js/hologram.js?v=68"></script>
-  <script defer src="assets/js/main.js?v=68"></script>
+  <script defer src="assets/js/products.js?v=69"></script>
+  <script defer src="assets/js/components.js?v=69"></script>
+  <script defer src="assets/js/hologram.js?v=69"></script>
+  <script defer src="assets/js/main.js?v=69"></script>
   <!-- The star field: plain WebGL, one small module, no library behind it. -->
-  <script type="module" src="assets/js/starfield.js?v=68"></script>
-  <script type="module" src="assets/js/kit.js?v=68"></script>
+  <script type="module" src="assets/js/starfield.js?v=69"></script>
+  <script type="module" src="assets/js/kit.js?v=69"></script>
 </body>
 </html>

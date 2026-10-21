@@ -65,7 +65,7 @@
           <span class="plate__price">${status}</span>
           <p class="plate__tag">${p.tagline}</p>
         </div>
-        ${withSpecs && p.specs ? `<dl class="cad-spec plate__spec">${p.specs.map((x) => `<div><dt>${x.label}</dt><dd>${x.value}</dd></div>`).join("")}</dl>` : ""}
+        ${withSpecs && p.keys ? `<ul class="plate__keys">${p.keys.map((k) => `<li>${k}</li>`).join("")}<li><a href="${href}">Full specs &rarr;</a></li></ul>` : ""}
       </article>`;
   }
 
@@ -83,7 +83,7 @@
       return;
     }
     const custom = (grid.getAttribute("data-spans") || "").split(",").map((v) => v.trim());
-    const specs = grid.hasAttribute("data-specs");             // the Hardware page lists the full system under each build
+    const specs = grid.hasAttribute("data-keys");              // the Hardware page shows three facts; the full specs live on the build's page
     grid.innerHTML = list
       .map((p, i) => plateHTML(p, i, custom[i] !== undefined && custom[i] !== "" ? (custom[i] === "-" ? "" : custom[i]) : SPANS[i] || "", specs))
       .join("");

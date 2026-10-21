@@ -1746,3 +1746,9 @@ body::before {
 }
 .is-reel:hover .plate__open, .is-reel:focus-visible .plate__open { opacity: 1; transform: none; }
 @media (hover: none) { .plate__open { opacity: 1; transform: none; } }
+
+/* Hardware page: three short facts under each build (main.js plateHTML, data-keys) */
+.plate__keys { list-style: none; display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0.9rem 0 0; padding: 0; }
+.plate__keys li { font-family: var(--font-mono); font-size: var(--fs-micro); letter-spacing: 0.1em; text-transform: uppercase; padding: 0.42rem 0.65rem; border: 1px solid var(--hairline-strong); color: var(--ink); }
+.plate__keys li:last-child { border-color: transparent; padding-left: 0.2rem; }
+.plate__keys a { color: var(--accent); }

@@ -23,6 +23,7 @@
      featured    show on the home page
      available   true = buyable now, false = sold via a build package
      description paragraph for the detail page
+     keys        3 short facts shown under the build on the Hardware page
      specs       [{ label, value }] rows on the detail page
    ================================================================= */
 
@@ -35,6 +36,7 @@ const PRODUCTS = [
     reel: "assets/img/hw/nemo-reel-7.mp4",
     poster: "assets/img/hw/nemo-reel-7-poster.jpg",
     status: "In design",
+    keys: ["1 m camera rail", "4 cycloid joints", "1 kg payload"],
     featured: true,
     available: false,
     description:
@@ -71,6 +73,7 @@ const PRODUCTS = [
     reel: "assets/img/hw/i4-reel-5.mp4",
     poster: "assets/img/hw/i4-reel-5-poster.jpg",
     status: "In testing",
+    keys: ["3-inch ducted", "319 g ready to fly", "About 7 min hover"],
     featured: true,
     available: false,
     description:

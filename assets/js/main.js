@@ -551,13 +551,25 @@
     const vids = document.querySelectorAll("[data-reel] video");
     if (!vids.length) return;
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const load = (v) => { if (!v.getAttribute("src")) { v.src = v.dataset.src; } };
+    const load = (v) => {
+      if (v.getAttribute("src")) return;
+      v.src = v.dataset.src;
+      if (v._resume) { const t = v._resume; v.addEventListener("loadedmetadata", () => { v.currentTime = t; }, { once: true }); }
+    };
+    // A reel scrolled past stops downloading, or the 10-20 MB reels above starve the one on
+    // screen (a phone waited 15.8 s for the rocket). It picks up where it was when it returns.
+    const unload = (v) => {
+      if (!v.paused) v.pause();
+      const b = v.buffered, done = b.length && b.end(b.length - 1) >= (v.duration || Infinity) - 0.5;
+      if (!v.getAttribute("src") || done) return;
+      v._resume = v.currentTime; v.removeAttribute("src"); v.load();
+    };
     vids.forEach((v) => {
       if (reduce) { v.controls = true; v.preload = "metadata"; load(v); return; }
       if (!("IntersectionObserver" in window)) { load(v); v.play().catch(() => {}); return; }
       new IntersectionObserver((es) => {
         const on = es[0].isIntersecting;
-        if (on) { load(v); v.play().catch(() => {}); } else if (!v.paused) v.pause();
+        if (on) { load(v); v.play().catch(() => {}); } else unload(v);
       }, { rootMargin: "200px 0px", threshold: 0.01 }).observe(v);
     });
   }

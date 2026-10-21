@@ -28,9 +28,9 @@
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
-  <script src="assets/js/boot.js?v=67"></script>
-  <link rel="stylesheet" href="assets/css/styles.css?v=67">
-  <link rel="stylesheet" href="assets/css/motion.css?v=67">
+  <script src="assets/js/boot.js?v=68"></script>
+  <link rel="stylesheet" href="assets/css/styles.css?v=68">
+  <link rel="stylesheet" href="assets/css/motion.css?v=68">
 
 <!-- Structured data. Every fact here is one this site already states in prose:
        the entity, the city and the email come off contact.html. Nothing is
@@ -94,6 +94,11 @@
     .sk-hero p { color: var(--muted); margin: 0 auto; max-width: 40ch; font-size: 1.1rem; }
     .sk-buy { display: flex; justify-content: center; align-items: center; gap: 1.2rem; flex-wrap: wrap; margin: 1.8rem 0 0; }
     .sk-price { font-family: var(--font-display); font-size: 2.2rem; letter-spacing: -0.02em; }
+    .sk-ship { max-width: none !important; margin: 0.9rem auto 0 !important; font-family: var(--font-mono); font-size: var(--fs-micro) !important; letter-spacing: 0.12em; text-transform: uppercase; }
+    .sk-box { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.5rem 1.4rem; list-style: none; padding: 0; margin: 1.4rem auto 0; color: var(--muted); font-size: 0.95rem; }
+    .sk-box li::before { content: "+ "; color: var(--accent); }
+    .sk-box a { color: inherit; }
+    .sm-actions { display: flex; gap: 0.8rem; flex-wrap: wrap; justify-content: center; margin-top: 1rem; }
     .sk-price small { display: block; font-family: var(--font-mono); font-size: var(--fs-micro); letter-spacing: 0.16em; color: var(--muted); text-transform: uppercase; }
     /* the kit: every board in a compartment tray */
     .sk-tray { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 10px; padding: 14px; margin-top: clamp(2.5rem, 6vw, 4.5rem);
@@ -123,7 +128,6 @@
     .sm-view { position: relative; aspect-ratio: 16 / 9; background: #05080c; border: 1px solid var(--hairline); overflow: hidden; }
     .sm-view[hidden] { display: none; }
     .sm-view > img, .sm-view > video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
-    .sm-view .btn { position: absolute; right: 1rem; bottom: 1rem; }
     .kit3d { position: absolute; inset: 0; cursor: grab; touch-action: none; }
     .kit3d:active { cursor: grabbing; }
     .kit3d canvas { width: 100% !important; height: 100% !important; display: block; }
@@ -186,9 +190,8 @@
           </div>
         </div>
         <div class="sm-view" data-kit-pane="wire">
-          <img src="assets/img/kit/s27-wire.webp" alt="How to wire the Buzzer Passive: header pins to ESP32, Arduino Uno and Raspberry Pi pins" decoding="async">
+          <img src="assets/img/kit/s27-wire.webp" alt="How to wire the Buzzer Passive to an ESP32 DevKit: each header pin and the ESP32 pin it goes to" decoding="async">
           <video id="demo-s27" data-src="assets/img/kit/s27-demo.mp4" controls playsinline muted hidden></video>
-          <button class="btn" type="button" data-kit-play="demo-s27">Play the demo</button>
         </div>
         <div class="sm-view" data-kit-pane="3d" hidden>
           <div class="kit3d" data-kit-model="assets/img/kit/s27.glb">
@@ -201,6 +204,10 @@
             <img src="assets/img/kit/s27-bottom.webp" alt="The back of the Buzzer Passive board with its QR code" loading="lazy" decoding="async">
             <p>Scan the back of the board to open this page.<b>builtbytyler.com/S27</b></p>
           </div>
+        </div>
+        <div class="sm-actions">
+          <button class="btn" type="button" data-kit-play="demo-s27">Play the demo</button>
+          <a class="btn btn--ghost" href="assets/kit-code/S27_Buzzer_Passive.ino" download>Download the code</a>
         </div>
         <details class="sm-more">
           <summary>Pins, code and details</summary>
@@ -220,7 +227,7 @@ noTone(18);</pre>
             </div>
           </div>
         </details>
-        <div class="sm-foot"><a href="kit-s26.html">&larr; S26</a><a class="btn" href="kit.html">The Sensor Kit · $49.99</a><a href="kit-s28.html">S28 &rarr;</a></div>
+        <div class="sm-foot"><a href="kit-s26.html">&larr; S26</a><a class="btn" href="https://buy.stripe.com/6oUaEY6Qm94N3yq9B4gIo05">Buy the kit · $50</a><a href="kit-s28.html">S28 &rarr;</a></div>
       </div>
     </section>
   </main>
@@ -258,12 +265,12 @@ noTone(18);</pre>
        HTML, but main.js CREATES those canvases for the build plates. Removing
        it blanks every hologram. If the 64 KB is ever worth reclaiming, the fix
        is to load it on demand when a plate scrolls into view. -->
-  <script defer src="assets/js/products.js?v=67"></script>
-  <script defer src="assets/js/components.js?v=67"></script>
-  <script defer src="assets/js/hologram.js?v=67"></script>
-  <script defer src="assets/js/main.js?v=67"></script>
+  <script defer src="assets/js/products.js?v=68"></script>
+  <script defer src="assets/js/components.js?v=68"></script>
+  <script defer src="assets/js/hologram.js?v=68"></script>
+  <script defer src="assets/js/main.js?v=68"></script>
   <!-- The star field: plain WebGL, one small module, no library behind it. -->
-  <script type="module" src="assets/js/starfield.js?v=67"></script>
-  <script type="module" src="assets/js/kit.js?v=67"></script>
+  <script type="module" src="assets/js/starfield.js?v=68"></script>
+  <script type="module" src="assets/js/kit.js?v=68"></script>
 </body>
 </html>

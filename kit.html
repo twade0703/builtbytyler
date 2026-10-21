@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>The Sensor Kit · BuiltByTyler</title>
-  <meta name="description" content="38 sensor modules on black boards with one pinout, for ESP32, Raspberry Pi and Arduino. $49.99.">
+  <meta name="description" content="38 sensor modules on black boards with one pinout, for ESP32, Raspberry Pi and Arduino. $50.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500&family=Instrument+Sans:wght@400;500&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -21,16 +21,16 @@
   <meta property="og:locale" content="en_US">
   <meta property="og:url" content="https://builtbytyler.com/kit">
   <meta property="og:title" content="The Sensor Kit · BuiltByTyler">
-  <meta property="og:description" content="38 sensor modules on black boards with one pinout, for ESP32, Raspberry Pi and Arduino. $49.99.">
+  <meta property="og:description" content="38 sensor modules on black boards with one pinout, for ESP32, Raspberry Pi and Arduino. $50.">
   <meta name="twitter:title" content="The Sensor Kit · BuiltByTyler">
-  <meta name="twitter:description" content="38 sensor modules on black boards with one pinout, for ESP32, Raspberry Pi and Arduino. $49.99.">
+  <meta name="twitter:description" content="38 sensor modules on black boards with one pinout, for ESP32, Raspberry Pi and Arduino. $50.">
   <meta property="og:image" content="https://builtbytyler.com/assets/img/og-image.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
-  <script src="assets/js/boot.js?v=67"></script>
-  <link rel="stylesheet" href="assets/css/styles.css?v=67">
-  <link rel="stylesheet" href="assets/css/motion.css?v=67">
+  <script src="assets/js/boot.js?v=68"></script>
+  <link rel="stylesheet" href="assets/css/styles.css?v=68">
+  <link rel="stylesheet" href="assets/css/motion.css?v=68">
 
 <!-- Structured data. Every fact here is one this site already states in prose:
        the entity, the city and the email come off contact.html. Nothing is
@@ -93,6 +93,11 @@
     .sk-hero p { color: var(--muted); margin: 0 auto; max-width: 40ch; font-size: 1.1rem; }
     .sk-buy { display: flex; justify-content: center; align-items: center; gap: 1.2rem; flex-wrap: wrap; margin: 1.8rem 0 0; }
     .sk-price { font-family: var(--font-display); font-size: 2.2rem; letter-spacing: -0.02em; }
+    .sk-ship { max-width: none !important; margin: 0.9rem auto 0 !important; font-family: var(--font-mono); font-size: var(--fs-micro) !important; letter-spacing: 0.12em; text-transform: uppercase; }
+    .sk-box { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.5rem 1.4rem; list-style: none; padding: 0; margin: 1.4rem auto 0; color: var(--muted); font-size: 0.95rem; }
+    .sk-box li::before { content: "+ "; color: var(--accent); }
+    .sk-box a { color: inherit; }
+    .sm-actions { display: flex; gap: 0.8rem; flex-wrap: wrap; justify-content: center; margin-top: 1rem; }
     .sk-price small { display: block; font-family: var(--font-mono); font-size: var(--fs-micro); letter-spacing: 0.16em; color: var(--muted); text-transform: uppercase; }
     /* the kit: every board in a compartment tray */
     .sk-tray { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 10px; padding: 14px; margin-top: clamp(2.5rem, 6vw, 4.5rem);
@@ -122,7 +127,6 @@
     .sm-view { position: relative; aspect-ratio: 16 / 9; background: #05080c; border: 1px solid var(--hairline); overflow: hidden; }
     .sm-view[hidden] { display: none; }
     .sm-view > img, .sm-view > video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
-    .sm-view .btn { position: absolute; right: 1rem; bottom: 1rem; }
     .kit3d { position: absolute; inset: 0; cursor: grab; touch-action: none; }
     .kit3d:active { cursor: grabbing; }
     .kit3d canvas { width: 100% !important; height: 100% !important; display: block; }
@@ -179,9 +183,11 @@
         <h1>The Sensor <em>Kit</em>.</h1>
         <p>Every module redrawn. One pinout. ESP32, Raspberry Pi or Arduino.</p>
         <div class="sk-buy">
-          <div class="sk-price">$49.99<small>The whole kit</small></div>
-          <a class="btn" href="contact.html?plan=sensor-kit">Reserve a kit</a>
+          <div class="sk-price">$50<small>The whole kit</small></div>
+          <a class="btn" href="https://buy.stripe.com/6oUaEY6Qm94N3yq9B4gIo05">Buy the kit</a>
         </div>
+        <p class="sk-ship">Pre-order · ships in 6–8 weeks · full refund any time before it ships</p>
+        <ul class="sk-box"><li>37 sensor modules + ADC board</li><li>ESP32-WROOM-32 DevKit</li><li>830-hole breadboard</li><li>Jumper wires</li><li><a href="assets/kit-code/BTT-Sensor-Kit-Code.zip" download>Code for every module</a></li></ul>
         <div class="sk-tray"><a class="sk-cell" href="kit-s01.html" title="S01 Temp 1-Wire"><img src="assets/img/kit/s01-iso.webp" alt="Temp 1-Wire" loading="lazy" decoding="async" width="640" height="503"><b>S01</b><span>Temp 1-Wire</span></a><a class="sk-cell" href="kit-s02.html" title="S02 Power LED"><img src="assets/img/kit/s02-iso.webp" alt="Power LED" loading="lazy" decoding="async" width="640" height="503"><b>S02</b><span>Power LED</span></a><a class="sk-cell" href="kit-s03.html" title="S03 RGB LED 5 mm"><img src="assets/img/kit/s03-iso.webp" alt="RGB LED 5 mm" loading="lazy" decoding="async" width="640" height="503"><b>S03</b><span>RGB LED 5 mm</span></a><a class="sk-cell" href="kit-s04.html" title="S04 Relay 5V"><img src="assets/img/kit/s04-iso.webp" alt="Relay 5V" loading="lazy" decoding="async" width="640" height="503"><b>S04</b><span>Relay 5V</span></a><a class="sk-cell" href="kit-s05.html" title="S05 Accel 3-Axis"><img src="assets/img/kit/s05-iso.webp" alt="Accel 3-Axis" loading="lazy" decoding="async" width="640" height="503"><b>S05</b><span>Accel 3-Axis</span></a><a class="sk-cell" href="kit-s06.html" title="S06 Buzzer Active"><img src="assets/img/kit/s06-iso.webp" alt="Buzzer Active" loading="lazy" decoding="async" width="640" height="503"><b>S06</b><span>Buzzer Active</span></a><a class="sk-cell" href="kit-s07.html" title="S07 Alcohol MQ-3"><img src="assets/img/kit/s07-iso.webp" alt="Alcohol MQ-3" loading="lazy" decoding="async" width="640" height="503"><b>S07</b><span>Alcohol MQ-3</span></a><a class="sk-cell" href="kit-s08.html" title="S08 Button"><img src="assets/img/kit/s08-iso.webp" alt="Button" loading="lazy" decoding="async" width="640" height="503"><b>S08</b><span>Button</span></a><a class="sk-cell" href="kit-s09.html" title="S09 Touch"><img src="assets/img/kit/s09-iso.webp" alt="Touch" loading="lazy" decoding="async" width="640" height="503"><b>S09</b><span>Touch</span></a><a class="sk-cell" href="kit-s10.html" title="S10 Crash Switch"><img src="assets/img/kit/s10-iso.webp" alt="Crash Switch" loading="lazy" decoding="async" width="640" height="503"><b>S10</b><span>Crash Switch</span></a><a class="sk-cell" href="kit-s11.html" title="S11 Temp + Humidity"><img src="assets/img/kit/s11-iso.webp" alt="Temp + Humidity" loading="lazy" decoding="async" width="640" height="503"><b>S11</b><span>Temp + Humidity</span></a><a class="sk-cell" href="kit-s12.html" title="S12 IR Receiver"><img src="assets/img/kit/s12-iso.webp" alt="IR Receiver" loading="lazy" decoding="async" width="640" height="503"><b>S12</b><span>IR Receiver</span></a><a class="sk-cell" href="kit-s13.html" title="S13 IR Transmitter"><img src="assets/img/kit/s13-iso.webp" alt="IR Transmitter" loading="lazy" decoding="async" width="640" height="503"><b>S13</b><span>IR Transmitter</span></a><a class="sk-cell" href="kit-s14.html" title="S14 Tilt"><img src="assets/img/kit/s14-iso.webp" alt="Tilt" loading="lazy" decoding="async" width="640" height="503"><b>S14</b><span>Tilt</span></a><a class="sk-cell" href="kit-s15.html" title="S15 2-Color LED"><img src="assets/img/kit/s15-iso.webp" alt="2-Color LED" loading="lazy" decoding="async" width="640" height="503"><b>S15</b><span>2-Color LED</span></a><a class="sk-cell" href="kit-s16.html" title="S16 Hall Magnet"><img src="assets/img/kit/s16-iso.webp" alt="Hall Magnet" loading="lazy" decoding="async" width="640" height="503"><b>S16</b><span>Hall Magnet</span></a><a class="sk-cell" href="kit-s17.html" title="S17 Joystick"><img src="assets/img/kit/s17-iso.webp" alt="Joystick" loading="lazy" decoding="async" width="640" height="503"><b>S17</b><span>Joystick</span></a><a class="sk-cell" href="kit-s18.html" title="S18 Knock"><img src="assets/img/kit/s18-iso.webp" alt="Knock" loading="lazy" decoding="async" width="640" height="503"><b>S18</b><span>Knock</span></a><a class="sk-cell" href="kit-s19.html" title="S19 Temp Analog"><img src="assets/img/kit/s19-iso.webp" alt="Temp Analog" loading="lazy" decoding="async" width="640" height="503"><b>S19</b><span>Temp Analog</span></a><a class="sk-cell" href="kit-s20.html" title="S20 Laser 650 nm"><img src="assets/img/kit/s20-iso.webp" alt="Laser 650 nm" loading="lazy" decoding="async" width="640" height="503"><b>S20</b><span>Laser 650 nm</span></a><a class="sk-cell" href="kit-s21.html" title="S21 Line Tracker"><img src="assets/img/kit/s21-iso.webp" alt="Line Tracker" loading="lazy" decoding="async" width="640" height="503"><b>S21</b><span>Line Tracker</span></a><a class="sk-cell" href="kit-s22.html" title="S22 Gas / Smoke MQ-2"><img src="assets/img/kit/s22-iso.webp" alt="Gas / Smoke MQ-2" loading="lazy" decoding="async" width="640" height="503"><b>S22</b><span>Gas / Smoke MQ-2</span></a><a class="sk-cell" href="kit-s23.html" title="S23 Magic Cup"><img src="assets/img/kit/s23-iso.webp" alt="Magic Cup" loading="lazy" decoding="async" width="640" height="503"><b>S23</b><span>Magic Cup</span></a><a class="sk-cell" href="kit-s24.html" title="S24 Sound"><img src="assets/img/kit/s24-iso.webp" alt="Sound" loading="lazy" decoding="async" width="640" height="503"><b>S24</b><span>Sound</span></a><a class="sk-cell" href="kit-s25.html" title="S25 Obstacle IR"><img src="assets/img/kit/s25-iso.webp" alt="Obstacle IR" loading="lazy" decoding="async" width="640" height="503"><b>S25</b><span>Obstacle IR</span></a><a class="sk-cell" href="kit-s26.html" title="S26 Motion PIR"><img src="assets/img/kit/s26-iso.webp" alt="Motion PIR" loading="lazy" decoding="async" width="640" height="503"><b>S26</b><span>Motion PIR</span></a><a class="sk-cell" href="kit-s27.html" title="S27 Buzzer Passive"><img src="assets/img/kit/s27-iso.webp" alt="Buzzer Passive" loading="lazy" decoding="async" width="640" height="503"><b>S27</b><span>Buzzer Passive</span></a><a class="sk-cell" href="kit-s28.html" title="S28 Photo Gate"><img src="assets/img/kit/s28-iso.webp" alt="Photo Gate" loading="lazy" decoding="async" width="640" height="503"><b>S28</b><span>Photo Gate</span></a><a class="sk-cell" href="kit-s29.html" title="S29 Light LDR"><img src="assets/img/kit/s29-iso.webp" alt="Light LDR" loading="lazy" decoding="async" width="640" height="503"><b>S29</b><span>Light LDR</span></a><a class="sk-cell" href="kit-s30.html" title="S30 Knob"><img src="assets/img/kit/s30-iso.webp" alt="Knob" loading="lazy" decoding="async" width="640" height="503"><b>S30</b><span>Knob</span></a><a class="sk-cell" href="kit-s31.html" title="S31 Pulse"><img src="assets/img/kit/s31-iso.webp" alt="Pulse" loading="lazy" decoding="async" width="640" height="503"><b>S31</b><span>Pulse</span></a><a class="sk-cell" href="kit-s32.html" title="S32 RGB LED SMD"><img src="assets/img/kit/s32-iso.webp" alt="RGB LED SMD" loading="lazy" decoding="async" width="640" height="503"><b>S32</b><span>RGB LED SMD</span></a><a class="sk-cell" href="kit-s33.html" title="S33 Reed Switch"><img src="assets/img/kit/s33-iso.webp" alt="Reed Switch" loading="lazy" decoding="async" width="640" height="503"><b>S33</b><span>Reed Switch</span></a><a class="sk-cell" href="kit-s34.html" title="S34 Rotary Encoder"><img src="assets/img/kit/s34-iso.webp" alt="Rotary Encoder" loading="lazy" decoding="async" width="640" height="503"><b>S34</b><span>Rotary Encoder</span></a><a class="sk-cell" href="kit-s35.html" title="S35 Light TEMT6000"><img src="assets/img/kit/s35-iso.webp" alt="Light TEMT6000" loading="lazy" decoding="async" width="640" height="503"><b>S35</b><span>Light TEMT6000</span></a><a class="sk-cell" href="kit-s36.html" title="S36 Thermistor"><img src="assets/img/kit/s36-iso.webp" alt="Thermistor" loading="lazy" decoding="async" width="640" height="503"><b>S36</b><span>Thermistor</span></a><div class="sk-cell sk-cell--soon" title="S37 Ultrasonic, in design">S37<br>SOON</div><a class="sk-cell" href="kit-s38.html" title="S38 ADC 16-Bit"><img src="assets/img/kit/s38-iso.webp" alt="ADC 16-Bit" loading="lazy" decoding="async" width="640" height="503"><b>S38</b><span>ADC 16-Bit</span></a></div>
         <ul class="sk-strip">
           <li><b>01</b>GND always first</li>
@@ -225,11 +231,11 @@
        HTML, but main.js CREATES those canvases for the build plates. Removing
        it blanks every hologram. If the 64 KB is ever worth reclaiming, the fix
        is to load it on demand when a plate scrolls into view. -->
-  <script defer src="assets/js/products.js?v=67"></script>
-  <script defer src="assets/js/components.js?v=67"></script>
-  <script defer src="assets/js/hologram.js?v=67"></script>
-  <script defer src="assets/js/main.js?v=67"></script>
+  <script defer src="assets/js/products.js?v=68"></script>
+  <script defer src="assets/js/components.js?v=68"></script>
+  <script defer src="assets/js/hologram.js?v=68"></script>
+  <script defer src="assets/js/main.js?v=68"></script>
   <!-- The star field: plain WebGL, one small module, no library behind it. -->
-  <script type="module" src="assets/js/starfield.js?v=67"></script>
+  <script type="module" src="assets/js/starfield.js?v=68"></script>
 </body>
 </html>

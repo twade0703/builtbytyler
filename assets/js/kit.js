@@ -25,6 +25,7 @@ document.querySelectorAll("[data-kit-play]").forEach((btn) => {
   btn.addEventListener("click", () => {
     const v = document.getElementById(btn.dataset.kitPlay);
     if (!v) return;
+    show("wire");
     if (!v.src) v.src = v.dataset.src;
     v.hidden = false;
     btn.hidden = true;

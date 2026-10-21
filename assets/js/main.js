@@ -271,7 +271,8 @@
     const blocks = document.querySelectorAll("[data-confirm]");
     if (!blocks.length) return;
     const params = new URLSearchParams(window.location.search);
-    const want = params.get("type") === "hardware" ? "hardware" : "software";
+    const type = params.get("type");
+    const want = type === "hardware" || type === "kit" ? type : "software";
     blocks.forEach((b) => { b.hidden = b.getAttribute("data-confirm") !== want; });
   }
 

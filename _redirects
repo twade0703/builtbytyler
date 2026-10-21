@@ -108,5 +108,9 @@
 /s36 /kit-s36 301
 /S38 /kit-s38 301
 /s38 /kit-s38 301
-/S37 /kit 302
-/s37 /kit 302
+/S37 /shop#kit 302
+/s37 /shop#kit 302
+
+# The kit has no page of its own: it lives on the Hardware page.
+/kit /shop#kit 301
+/kit.html /shop#kit 301

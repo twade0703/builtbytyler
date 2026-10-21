@@ -2,7 +2,7 @@
    list that highlights its wire, and 3D (the board alone, orbit all the way round) / QR views.
    Nothing is drawn until the board has loaded and the camera is framed, so there is no first-frame flash.
    Data comes from <script type="application/json" id="mod-data"> (written by sensor-kit/tools/web_kit.py). */
-import { THREE, createViewer, ease, bench, jumper, loadBoard, BB, COARSE } from "./kit3d.js?v=78";
+import { THREE, createViewer, ease, bench, jumper, loadBoard, BB, COARSE } from "./kit3d.js?v=79";
 
 const data = JSON.parse(document.getElementById("mod-data").textContent);
 const host = document.querySelector("[data-mod-stage]");
@@ -52,6 +52,10 @@ async function start() {
   v = createViewer(host, { fov: 28, maxPolar: 180, shadowSize: 200, minDistance: 40 });
   const b = bench({ espCol: 22 });
   benchGroup = b.group;
+  // a soft contact shadow on the bench so nothing floats (shadow-only plane, invisible from below)
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(1600, 1600), new THREE.ShadowMaterial({ opacity: 0.38 }));
+  ground.rotation.x = -Math.PI / 2; ground.position.y = -0.05; ground.receiveShadow = true;
+  benchGroup.add(ground);
   v.scene.add(benchGroup);
 
   const board = await loadBoard(data.glb);

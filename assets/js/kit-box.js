@@ -3,7 +3,7 @@
    lift it and see its name, click it to open its page, and "Lift the tray" sets the top tray beside the box to show
    the bottom layer: the ESP32 on the breadboard, the power module with the 9 V clipped in and plugged, the jumpers.
    Geometry follows sensor-kit/packaging/layout.json; boards are baked Draco meshes (sensor-kit/render/kitshot/bake.js). */
-import { THREE, createViewer, ease, mat, canvasTex, bench, batteryPlugged, ribbon, BB, BENCH_JACK, COARSE } from "./kit3d.js?v=78";
+import { THREE, createViewer, ease, mat, canvasTex, bench, batteryPlugged, ribbon, BB, BENCH_JACK, COARSE } from "./kit3d.js?v=79";
 import { RoundedBoxGeometry } from "../vendor/three/RoundedBoxGeometry.js";
 import { DRACOLoader } from "../vendor/three/DRACOLoader.js";
 
@@ -36,7 +36,7 @@ async function build(fig) {
   ui.innerHTML = '<button type="button" class="k3d-btn k3d-btn--main" data-open>Open the box</button>' +
     '<button type="button" class="k3d-btn" data-lift hidden>Lift the tray</button>' +
     '<span class="k3d-hint">' + (COARSE ? "Drag to spin · two fingers to zoom" : "Drag to turn · scroll to zoom") + "</span>";
-  fig.append(ui);
+  (fig.parentElement.classList.contains("kstage") ? fig.parentElement : fig).append(ui);
   const btnOpen = ui.querySelector("[data-open]"), btnLift = ui.querySelector("[data-lift]");
 
   let state = "closed", busy = false, hovered = -1;
@@ -65,7 +65,14 @@ async function build(fig) {
   v.scene.add(kit);
   const paper = new THREE.MeshPhysicalMaterial({ color: 0x0b0b0d, roughness: 0.7, clearcoat: 0.25, clearcoatRoughness: 0.5 });
   const inside = new THREE.MeshStandardMaterial({ color: 0x141416, roughness: 0.9 });
-  const foamMat = new THREE.MeshStandardMaterial({ color: 0x1c1c20, roughness: 0.95 });
+  const grain = canvasTex(256, 256, (g, w, h) => {
+    const im = g.createImageData(w, h);
+    for (let i = 0; i < w * h; i++) { const v = 118 + Math.random() * 30; im.data.set([v, v, v, 255], i * 4); }
+    g.putImageData(im, 0, 0);
+  }, { srgb: false });
+  grain.wrapS = grain.wrapT = THREE.RepeatWrapping;
+  grain.repeat.set(0.12, 0.12);                                // extrude caps carry mm UVs
+  const foamMat = new THREE.MeshStandardMaterial({ color: 0x232327, roughness: 0.96, bumpMap: grain, bumpScale: 0.6 });
   const printed = (t) => (t ? new THREE.MeshStandardMaterial({ map: t, roughness: 0.62 }) : paper);
   const add = (o, parent = kit) => { o.traverse((m) => { if (m.isMesh) { m.castShadow = true; m.receiveShadow = true; } }); parent.add(o); return o; };
 
@@ -329,7 +336,7 @@ async function build(fig) {
   v.setReady();
   fig.classList.add("is-live");
 
-  // local only: /kit.html?poster saves the poster (the closed box, this exact framing) to the render server
+  // local only: /shop.html?poster saves the poster (the closed box, this exact framing) to the render server
   if (location.hostname === "localhost" && new URLSearchParams(location.search).has("poster")) {
     v.renderer.setPixelRatio(2.5); v.resize();
     v.controls.update(); v.renderer.shadowMap.needsUpdate = true; v.renderer.render(v.scene, v.camera);

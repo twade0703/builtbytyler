@@ -15,7 +15,7 @@ export const COARSE = window.matchMedia("(pointer: coarse)").matches;
 
 /* ------------------------------------------------------------------ viewer */
 export function createViewer(host, opts = {}) {
-  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance", logarithmicDepthBuffer: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, opts.maxDpr || 1.75));
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = opts.exposure || 1.0;
@@ -68,6 +68,11 @@ export function createViewer(host, opts = {}) {
     pending = false;
     if (!visible || !ready) return;
     const moving = controls.update();
+    const d = camera.position.distanceTo(controls.target);
+    const near = Math.max(0.05, d / 200), far = d * 60;
+    if (Math.abs(camera.near - near) > near * 0.05 || Math.abs(camera.far - far) > far * 0.05) {
+      camera.near = near; camera.far = far; camera.updateProjectionMatrix();
+    }
     let busy = false;
     tickers.forEach((f) => { if (f(t) === true) busy = true; });
     renderer.render(scene, camera);
@@ -538,7 +543,7 @@ export function jumper(a, b, color, { kindA = "F", kindB = "M", lift = 0, sag = 
   const dist = p0.distanceTo(p3);
   const up = 10 + dist * 0.32 + lift;
   const curve = new THREE.CubicBezierCurve3(p0, p0.clone().add(new THREE.Vector3(0, up, 0)), p3.clone().add(new THREE.Vector3(0, up - sag, 0)), p3);
-  const m = new THREE.MeshStandardMaterial({ color, roughness: 0.38 });
+  const m = new THREE.MeshStandardMaterial({ color, roughness: 0.38, side: THREE.DoubleSide });
   const tube = mesh(new THREE.TubeGeometry(curve, 72, 0.68, 10), m);
   G.add(tube);
   G.userData = { curve, tube, material: m };
@@ -557,12 +562,14 @@ export function ribbon(n, len, kindA, kindB) {
     for (let k = 1; k < 12; k++) { const a = Math.PI * k / 12; pts.push(new THREE.Vector3(half * 0.42 + Math.sin(a) * R, r + R - Math.cos(a) * R, z)); }
     for (let k = 0; k <= 10; k++) pts.push(new THREE.Vector3(half * 0.42 - (k / 10) * half * 0.84, r + 2 * R, z));
     const c = new THREE.CatmullRomCurve3(pts);
-    const m = new THREE.MeshStandardMaterial({ color: COL[i % 10], roughness: 0.4 });
+    const m = new THREE.MeshStandardMaterial({ color: COL[i % 10], roughness: 0.4, side: THREE.DoubleSide });
     G.add(mesh(new THREE.TubeGeometry(c, 60, r, 8), m));
+    // housing turned so its crimp boot swallows the wire end and the pin points outward
+    const tubeEnd = -half * 0.42;
     for (const [y, kind] of [[r, kindA], [r + 2 * R, kindB]]) {
       const h = housing(kind);
-      h.rotation.z = Math.PI / 2;
-      h.position.set(-half * 0.42 - 2.2, y, z);
+      h.rotation.z = -Math.PI / 2;                       // local +y (pin -> boot) runs along +x, toward the wire
+      h.position.set(tubeEnd - (HOUSING + 1.6), y, z);
       G.add(h);
     }
   }
@@ -602,6 +609,7 @@ export function shortJumper(a, b, color) {
   const h = 2.2;
   const curve = new THREE.CatmullRomCurve3([a.clone().add(new THREE.Vector3(0, -1, 0)), a.clone().add(new THREE.Vector3(0, h, 0)),
     a.clone().lerp(b, 0.5).add(new THREE.Vector3(0, h + 1.2, 0)), b.clone().add(new THREE.Vector3(0, h, 0)), b.clone().add(new THREE.Vector3(0, -1, 0))]);
+  m.side = THREE.DoubleSide;
   G.add(mesh(new THREE.TubeGeometry(curve, 40, 0.55, 8), m));
   return G;
 }
@@ -614,8 +622,16 @@ export async function loadBoard(url) {
   root.traverse((o) => {
     if (!o.isMesh) return;
     const m = o.material;
+    let layer = 0;
     if (m.transparent && m.opacity > 0.5) {               // KiCad's 95% mask -> opaque matte black
       m.transparent = false; m.opacity = 1; m.depthWrite = true; m.color.setHex(0x0d0d0f); m.roughness = 0.5; m.metalness = 0;
+      layer = 1;
+    }
+    o.geometry.computeBoundingBox();
+    const bb = o.geometry.boundingBox;
+    if (bb.max.y - bb.min.y < 0.00012) {                  // a flat layer (metres): silk, copper, mask
+      if (!layer) layer = m.color.r > 0.85 && m.color.g > 0.85 ? 3 : 2;
+      m.polygonOffset = true; m.polygonOffsetFactor = -layer; m.polygonOffsetUnits = -layer * 2;
     }
   });
   root.scale.setScalar(1000);                             // KiCad GLB is in metres

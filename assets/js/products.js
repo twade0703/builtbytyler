@@ -17,7 +17,10 @@
      holo        hologram model: "arm" | "drone" | "evtol"
                  (see hologram.js; omit for a clean placeholder panel)
      reel        product reel (mp4), rendered from the CombineCAD build; when set
-                 it replaces the hologram, plays when on screen and opens large
+                 it replaces the hologram, plays when on screen and opens large.
+                 Keep the inline reel at 1280x720: two 2880x1620 reels decoding at once
+                 dropped the page from 144 to ~94 fps on first scroll (2026-10-22)
+     reelLarge   the full-size reel the "Watch it large" dialog plays (optional)
      poster      the reel's still frame
      status      the line under the name, e.g. "In testing" (defaults to "In progress")
      featured    show on the home page
@@ -33,8 +36,9 @@ const PRODUCTS = [
     name: "NEMO Robotic Arm",
     tagline: "A camera robot on its own rail",
     holo: "arm",
-    reel: "assets/img/hw/nemo-reel-8.mp4",
-    poster: "assets/img/hw/nemo-reel-8-poster.jpg",
+    reel: "assets/img/hw/nemo-reel-8-720.mp4",
+    reelLarge: "assets/img/hw/nemo-reel-8.mp4",
+    poster: "assets/img/hw/nemo-reel-8-poster-720.jpg",
     status: "In design",
     keys: ["1 m camera rail", "4 cycloid joints", "1 kg payload"],
     featured: true,
@@ -70,8 +74,9 @@ const PRODUCTS = [
     name: "3\" Mini FPV Quad",
     tagline: "The i4: a 3-inch ducted mini quad",
     holo: "drone",
-    reel: "assets/img/hw/i4-reel-7.mp4",
-    poster: "assets/img/hw/i4-reel-7-poster.jpg",
+    reel: "assets/img/hw/i4-reel-7-720.mp4",
+    reelLarge: "assets/img/hw/i4-reel-7.mp4",
+    poster: "assets/img/hw/i4-reel-7-poster-720.jpg",
     status: "In testing",
     keys: ["3-inch ducted", "319 g ready to fly", "About 7 min hover"],
     featured: true,

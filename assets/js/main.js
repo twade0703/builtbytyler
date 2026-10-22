@@ -37,7 +37,7 @@
 
   /* A product reel: no src until it comes near the screen (initReel). */
   const reelVideo = (p) =>
-    `<video muted loop playsinline preload="none" poster="${p.poster || ""}" data-src="${p.reel}" aria-label="${p.name}: product reel"></video>
+    `<video muted loop playsinline preload="none" poster="${p.poster || ""}" data-src="${p.reel}"${p.reelLarge ? ` data-full="${p.reelLarge}"` : ""} aria-label="${p.name}: product reel"></video>
      <span class="plate__open">Watch it large</span>`;
 
   function plateHTML(p, index, span, withSpecs) {
@@ -583,7 +583,7 @@
     const big = modal.querySelector("video");
     buttons.forEach((b) => b.addEventListener("click", () => {
       const v = b.querySelector("video");
-      big.src = v.dataset.src; big.poster = v.getAttribute("poster") || "";
+      big.src = v.dataset.full || v.dataset.src; big.poster = v.getAttribute("poster") || "";   // inline plays a 720p cut; large gets the full file
       big.currentTime = 0;
       modal.showModal();
       big.play().catch(() => {});

@@ -17,6 +17,8 @@ export const COARSE = window.matchMedia("(pointer: coarse)").matches;
 export function createViewer(host, opts = {}) {
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance", logarithmicDepthBuffer: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, opts.maxDpr || 1.75));
+  // shader compile/link logs are a blocking round trip to the GPU process per call; only fetch them while developing
+  renderer.debug.checkShaderErrors = location.hostname === "localhost";
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = opts.exposure || 1.0;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -29,9 +31,15 @@ export function createViewer(host, opts = {}) {
   host.prepend(canvas);
 
   const scene = new THREE.Scene();
-  const pmrem = new THREE.PMREMGenerator(renderer);
-  scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
-  scene.environmentIntensity = opts.env ?? 0.6;
+  // the environment map compiles and renders a few shaders on the spot; deferEnv lets the caller run it in its own task
+  const makeEnv = () => {
+    if (scene.environment) return;
+    const pmrem = new THREE.PMREMGenerator(renderer);
+    scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+    scene.environmentIntensity = opts.env ?? 0.6;
+    pmrem.dispose();
+  };
+  if (!opts.deferEnv) makeEnv();
   const key = new THREE.DirectionalLight(0xfff3e6, opts.key ?? 2.3);
   key.position.set(-220, 420, 260);
   key.castShadow = true;
@@ -184,7 +192,7 @@ export function createViewer(host, opts = {}) {
   resize();
   function setReady() { ready = true; renderer.shadowMap.needsUpdate = true; request(); }
   return { setReady, renderer, scene, camera, controls, canvas, key, pickables, request, resize, frameObject, goHome, stopMotion, project,
-           updateShadows, animate, tickers };
+           updateShadows, animate, tickers, makeEnv };
 }
 
 export const ease = (u) => (u < 0.5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2);

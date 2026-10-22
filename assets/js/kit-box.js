@@ -4,7 +4,7 @@
    its own walled cell on a foam pad with a finger scoop. "Lift the tray" sets it beside the box and centres the bottom
    layer: breadboard, ESP32, power module, 9 V, its clip lead and the jumpers, each loose in its own foam pocket.
    Geometry follows sensor-kit/packaging/layout.json; boards are baked Draco meshes (sensor-kit/render/kitshot/bake.js). */
-import { THREE, createViewer, ease, mat, canvasTex, breadboard, esp32, powerModule, battery9v, snapClip, barrelLead, ribbon, NINE_V, COARSE } from "./kit3d.js?v=82";
+import { THREE, createViewer, ease, mat, canvasTex, breadboard, esp32, powerModule, battery9v, snapClip, barrelLead, ribbon, NINE_V, COARSE } from "./kit3d.js?v=83";
 import { RoundedBoxGeometry } from "../vendor/three/RoundedBoxGeometry.js";
 import { DRACOLoader } from "../vendor/three/DRACOLoader.js";
 import { mergeGeometries } from "../vendor/three/BufferGeometryUtils.js";
@@ -13,13 +13,29 @@ const BASE = "assets/img/kit/3d/";
 const D2R = THREE.MathUtils.degToRad;
 
 function tex(url) {
-  return new Promise((res) => {
+  // Decoded off the main thread as an ImageBitmap, already flipped the way WebGL wants it. An <img> handed to WebGL is
+  // decoded again inside the upload, on the main thread (135 ms for one panel), whatever img.decode() did first.
+  const done = (src, flip) => { const t = new THREE.Texture(src); t.flipY = flip; t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; t.needsUpdate = true; return t; };
+  const viaImg = () => new Promise((res) => {
     const img = new Image();
-    img.onload = () => { const t = new THREE.Texture(img); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; t.needsUpdate = true; res(t); };
+    img.onload = () => res(done(img, true));
     img.onerror = () => res(null);
     img.src = url;
   });
+  if (typeof createImageBitmap !== "function") return viaImg();
+  return fetch(url).then((r) => (r.ok ? r.blob() : Promise.reject()))
+    .then((b) => createImageBitmap(b, { imageOrientation: "flipY", premultiplyAlpha: "none", colorSpaceConversion: "none" }))
+    .then((bmp) => done(bmp, false), viaImg);
 }
+// The build is split into steps, and each step waits until the box is on screen and the page has not scrolled for a
+// moment: the heavy ones (the renderer and its environment map, the geometry, the first frame) then never land in the
+// middle of a scroll, and nothing is built for a box nobody is looking at.
+let lastScroll = -1e9, CALM_FIG = null;
+addEventListener("scroll", () => { lastScroll = performance.now(); }, { passive: true });
+const calm = () => new Promise((r) => {
+  const check = () => (CALM_FIG && CALM_FIG._on && performance.now() - lastScroll > 220 ? r() : setTimeout(check, 90));
+  setTimeout(check, 0);
+});
 function supportsWebGL() {
   try { const c = document.createElement("canvas"); return !!(c.getContext("webgl2") || c.getContext("webgl")); } catch { return false; }
 }
@@ -28,8 +44,9 @@ async function build(fig) {
   const [layout, manifest] = await Promise.all([fetch(BASE + "layout.json").then((r) => r.json()), fetch(BASE + "kit-boards.json").then((r) => r.json())]);
   const T = { lidTop: tex(BASE + "lid-top.webp"), lidFront: tex(BASE + "lid-front.webp"), lidSide: tex(BASE + "lid-side.webp"),
     lidBack: tex(BASE + "lid-back.webp"), baseFront: tex(BASE + "base-front.webp"), baseSide: tex(BASE + "base-side.webp"),
-    baseBack: tex(BASE + "base-back.webp"), frame: tex(BASE + "tray-frame.webp"), card: tex(BASE + "card-front.webp") };
+    baseBack: tex(BASE + "base-back-2.webp"), frame: tex(BASE + "tray-frame.webp"), card: tex(BASE + "card-front.webp") };
   for (const k of Object.keys(T)) T[k] = await T[k];
+  await calm();
 
   const tip = document.createElement("div");
   tip.className = "k3d-tip"; tip.hidden = true; fig.append(tip);
@@ -37,13 +54,14 @@ async function build(fig) {
   ui.className = "k3d-ui";
   ui.innerHTML = '<button type="button" class="k3d-btn k3d-btn--main" data-open>Open the box</button>' +
     '<button type="button" class="k3d-btn" data-lift hidden>Lift the tray</button>' +
+    '<button type="button" class="k3d-btn" data-back>See the back</button>' +
     '<span class="k3d-hint">' + (COARSE ? "Drag to spin · two fingers to zoom" : "Drag to turn · scroll to zoom") + "</span>";
-  (fig.parentElement.classList.contains("kstage") ? fig.parentElement : fig).append(ui);
-  const btnOpen = ui.querySelector("[data-open]"), btnLift = ui.querySelector("[data-lift]");
+  if (fig.parentElement.classList.contains("kstage")) fig.after(ui); else fig.append(ui);   // straight under the 3D, above the flat back panel
+  const btnOpen = ui.querySelector("[data-open]"), btnLift = ui.querySelector("[data-lift]"), btnBack = ui.querySelector("[data-back]");
 
-  let state = "closed", busy = false, hovered = -1;
+  let state = "closed", busy = false, hovered = -1, backView = false;
   const v = createViewer(fig, {
-    fov: 26, maxPolar: 82, shadowSize: 300, exposure: 1.05,
+    fov: 26, maxPolar: 82, shadowSize: 300, exposure: 1.05, deferEnv: true,
     onPick: (p) => {
       if (!p) return;
       if (p.href) location.href = p.href;
@@ -78,8 +96,13 @@ async function build(fig) {
   const printed = (t) => (t ? new THREE.MeshStandardMaterial({ map: t, roughness: 0.62 }) : paper);
   const add = (o, parent = kit) => { o.traverse((m) => { if (m.isMesh) { m.castShadow = true; m.receiveShadow = true; } }); parent.add(o); return o; };
 
+  await calm();
+  v.makeEnv();
+  await calm();
+
   // ---------------------------------------------------------------- base: floor, walls, printed wrap
-  const floor = new THREE.Mesh(new RoundedBoxGeometry(OW, 2.5, OD, 2, 1), paper);
+  // 0.3 mm inside the walls: at full size its sides lay in the same plane as the walls' printed faces (a flickering strip)
+  const floor = new THREE.Mesh(new RoundedBoxGeometry(OW - 0.6, 2.5, OD - 0.6, 2, 1), paper);
   floor.position.set(IW / 2, 1.25, ID / 2); add(floor);
   const wall = (w, d, x, z, faces) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w, OH, d), faces); m.position.set(x, OH / 2, z); add(m); };
   const pf = printed(T.baseFront), ps = printed(T.baseSide), pb = printed(T.baseBack);
@@ -189,6 +212,8 @@ async function build(fig) {
     mp.rotation.x = -Math.PI / 2; mp.position.set(mx + mw / 2, B.top_z + 0.05, mz + md / 2); mp.receiveShadow = true;
     bottom.add(mp);
   }
+
+  await calm();
 
   // ---------------------------------------------------------------- top layer: the compartment tray
   const tray = new THREE.Group();
@@ -308,6 +333,8 @@ async function build(fig) {
     return m;
   });
 
+  await calm();
+
   // ---------------------------------------------------------------- lid: a real telescoping lid (top panel + skirt)
   const [LW, LD, LH] = layout.lid.outer, LT = 2.5, LWALL = layout.lid.wall || 2.5;
   const lid = new THREE.Group();                                 // origin = centre of the top face
@@ -333,10 +360,41 @@ async function build(fig) {
   };
   lid.position.copy(POSE.lidClosed.p);
 
+  // ---------------------------------------------------------------- warm-up before the first frame
+  // The first render used to compile every shader and upload every texture in one animation frame: a 1.8 s freeze
+  // on a fast Windows PC (ANGLE links each program synchronously), right when people scroll on to NEMO and the i4.
+  // Upload the textures one per task, then let the driver compile the programs in parallel (KHR_parallel_shader_compile)
+  // and only draw once they are ready. The poster stays up the whole time, so nothing visible changes.
+  // between steps, give the GPU process a frame to drain what it has queued, so an upload never waits on it
+  const breathe = () => new Promise((r) => requestAnimationFrame(() => setTimeout(r, 0)));
+  async function warm() {
+    const R = v.renderer, texs = new Set();
+    v.scene.traverse((o) => { if (o.material) [].concat(o.material).forEach((m) => ["map", "bumpMap"].forEach((k) => m[k] && texs.add(m[k]))); });
+    await breathe();
+    for (const t of texs) { await calm(); R.initTexture(t); await breathe(); }
+    if (!R.compileAsync) return;
+    const ready = R.compileAsync(v.scene, v.camera);
+    // the shadow pass draws with depth materials into a render target; their programs are keyed by that target,
+    // so compile look-alikes against a target too (FrontSide meshes cast with BackSide, DoubleSide stays DoubleSide)
+    const rt = new THREE.WebGLRenderTarget(4, 4), dscene = new THREE.Scene(), dg = new THREE.PlaneGeometry(1, 1);
+    [THREE.BackSide, THREE.DoubleSide].forEach((side) => dscene.add(new THREE.Mesh(dg, new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, side }))));
+    v.scene.traverse((o) => { if (o.isLight) dscene.add(o.clone()); });              // program keys count the lights too
+    const prev = R.getRenderTarget();
+    R.setRenderTarget(rt);
+    const depthReady = R.compileAsync(dscene, v.camera);
+    R.setRenderTarget(prev);
+    await Promise.all([ready, depthReady]);
+    rt.dispose();
+  }
+
   // ---------------------------------------------------------------- camera homes for each state
   const homes = {};
   const boxOf = (...objs) => { const b = new THREE.Box3(); objs.forEach((o) => b.expandByObject(o)); return b; };
   homes.closed = v.frameObject(boxOf(floor, lid), new THREE.Vector3(-0.62, 0.62, 1.0), 0.5);   // corner fit only: the same frame on every device, so it matches the poster
+  {                                                              // the back panel, nearly square on and filling the frame
+    const zb = -ID / 2 - WALL - 3;
+    homes.back = v.frameObject(new THREE.Box3(new THREE.Vector3(-LW / 2, 0, zb), new THREE.Vector3(LW / 2, OH + LT, zb + 30)), new THREE.Vector3(0.12, 0.22, -1.0), 0.5);
+  }
   lid.position.copy(POSE.lidOpen.p); lid.rotation.x = POSE.lidOpen.r; lid.updateMatrixWorld(true);
   homes.open = v.frameObject(boxOf(floor, lid, tray), new THREE.Vector3(0.1, 1.3, 0.95), COARSE ? 0.9 : 0.78);
   tray.position.copy(POSE.trayOut.p); tray.updateMatrixWorld(true);
@@ -359,52 +417,93 @@ async function build(fig) {
     v.animate(ms, (u) => { const k = ease(u); v.camera.position.lerpVectors(p0, to.position, k); v.controls.target.lerpVectors(t0, to.target, k); },
       () => { v.controls.minDistance = to.min; v.controls.maxDistance = to.max; });
   }
-  function moveLid(open, done) {
-    const a = open ? POSE.lidClosed : POSE.lidOpen, b = open ? POSE.lidOpen : POSE.lidClosed;
-    v.animate(1200, (u) => {
+  // Lid and tray paths. Both used to lerp straight from pose to pose with a sine hop, so the lid's skirt swung down
+  // through the front wall and the tray while it turned (up to 34 mm deep), and the tray slid sideways through the
+  // right wall before it had risen clear (22 mm): two printed surfaces drawn through each other, the "overlapping
+  // textures". Now each is lifted straight up clear of the walls first, carried over with its lowest edge held above
+  // the rim, and set down where nothing is under it. Checked against the box geometry in 2D at every step
+  // (sensor-kit SHOP-FIX-2026-10-22: 0 mm of overlap either way, closest pass 2 mm).
+  const sm = (t) => { t = Math.min(1, Math.max(0, t)); return t * t * t * (t * (6 * t - 15) + 10); };
+  const LIP = OH + 10;                                             // the lid's lowest edge while it crosses the box
+  function lidPose(u) {                                            // u 0 = closed .. 1 = leaning open
+    const s1 = sm(u / 0.3), s2 = sm((u - 0.22) / 0.53), s3 = sm((u - 0.72) / 0.28);
+    const r = POSE.lidOpen.r * s2;
+    const hold = LIP + LH * Math.cos(r) + (LD / 2) * Math.sin(r); // keeps the front skirt's lip at LIP while it turns
+    let y = POSE.lidClosed.p.y + (hold - POSE.lidClosed.p.y) * s1;
+    y += (POSE.lidOpen.p.y - y) * s3;
+    lid.position.set(POSE.lidClosed.p.x, y, POSE.lidClosed.p.z + (POSE.lidOpen.p.z - POSE.lidClosed.p.z) * s2);
+    lid.rotation.x = r;
+  }
+  // turning to the back walks the camera round the box on a circle (a straight line would cut across the lid)
+  function orbit(to, ms = 1400) {
+    v.stopMotion();
+    const t0 = v.controls.target.clone(), a = new THREE.Spherical().setFromVector3(v.camera.position.clone().sub(t0));
+    const b = new THREE.Spherical().setFromVector3(to.position.clone().sub(to.target));
+    let dt = b.theta - a.theta; dt -= Math.round(dt / (2 * Math.PI)) * 2 * Math.PI;
+    v.controls.minDistance = Math.min(v.controls.minDistance, to.min); v.controls.maxDistance = Math.max(v.controls.maxDistance, to.max);
+    const sp = new THREE.Spherical();
+    v.animate(ms, (u) => {
       const k = ease(u);
-      lid.position.lerpVectors(a.p, b.p, k);
-      lid.position.y += Math.sin(Math.PI * k) * 70;                    // lift off, then set down
-      lid.rotation.x = a.r + (b.r - a.r) * k;
-    }, done);
+      v.controls.target.lerpVectors(t0, to.target, k);
+      sp.set(a.radius + (b.radius - a.radius) * k, a.phi + (b.phi - a.phi) * k, a.theta + dt * k);
+      v.camera.position.setFromSpherical(sp).add(v.controls.target);
+    }, () => { v.controls.minDistance = to.min; v.controls.maxDistance = to.max; });
+  }
+  function moveLid(open, done) {
+    v.animate(1500, (u) => lidPose(open ? u : 1 - u), done);
+  }
+  const TRAY_LIFT = OH + 6 - TR.z0;                                 // tray floor 6 mm over the rim before it moves sideways
+  function trayPose(u) {                                           // u 0 = in the box .. 1 = set down beside it
+    const s1 = sm(u / 0.32), s2 = sm((u - 0.26) / 0.48), s3 = sm((u - 0.68) / 0.32);
+    let y = TRAY_LIFT * s1;
+    y += (POSE.trayOut.p.y - y) * s3;
+    tray.position.set(POSE.trayOut.p.x * s2, y, 0);
   }
   function moveTray(out, done) {
-    const a = out ? POSE.trayIn.p : POSE.trayOut.p, b = out ? POSE.trayOut.p : POSE.trayIn.p;
-    v.animate(1200, (u) => {
-      const k = ease(u);
-      tray.position.lerpVectors(a, b, k);
-      tray.position.y += Math.sin(Math.PI * k) * 90;
-    }, done);
+    v.animate(1400, (u) => trayPose(out ? u : 1 - u), done);
   }
   function sync() {
     btnOpen.textContent = state === "closed" ? "Open the box" : "Close the box";
+    btnBack.hidden = state !== "closed";
+    btnBack.textContent = backView ? "See the front" : "See the back";
     btnLift.hidden = state === "closed";
     btnLift.textContent = state === "lifted" ? "Put the tray back" : "Lift the tray";
     setPicks();
   }
   function toggleOpen() {
     if (busy) return;
-    busy = true; tip.hidden = true; setHover(-1);
+    busy = true; tip.hidden = true; setHover(-1); backView = false;
     if (state === "closed") {
-      glide(homes.open, 1200);
+      glide(homes.open, 1500);
       moveLid(true, () => { state = "open"; busy = false; sync(); });
     } else {
-      const close = () => { glide(homes.closed, 1200); moveLid(false, () => { state = "closed"; busy = false; sync(); }); };
+      const close = () => { glide(homes.closed, 1500); moveLid(false, () => { state = "closed"; busy = false; sync(); }); };
       if (state === "lifted") moveTray(false, close); else close();
     }
   }
   btnOpen.addEventListener("click", toggleOpen);
+  btnBack.addEventListener("click", () => {
+    if (busy || state !== "closed") return;
+    backView = !backView;
+    orbit(backView ? homes.back : homes.closed, 1600);
+    sync();
+  });
   btnLift.addEventListener("click", () => {
     if (busy || state === "closed") return;
     busy = true; tip.hidden = true; setHover(-1);
     const out = state === "open";
-    glide(out ? homes.lifted : homes.open, 1200);
+    glide(out ? homes.lifted : homes.open, 1400);
     moveTray(out, () => { state = out ? "lifted" : "open"; busy = false; sync(); });
   });
-  v.renderer.domElement.addEventListener("dblclick", () => v.goHome(homes[state]));
+  v.renderer.domElement.addEventListener("dblclick", () => v.goHome(homes[state === "closed" && backView ? "back" : state]));
   sync();
+  await warm();
+  await calm();
   v.setReady();
   fig.classList.add("is-live");
+
+  // local only: a handle for stepping the lid and tray frame by frame while checking the motion
+  if (location.hostname === "localhost") window.__kitBox = { lidPose, trayPose, render: () => { v.renderer.shadowMap.needsUpdate = true; v.request(); }, homes, v };
 
   // local only: /shop.html?poster saves the poster (the closed box, this exact framing) to the render server
   if (location.hostname === "localhost" && new URLSearchParams(location.search).has("poster")) {
@@ -416,12 +515,20 @@ async function build(fig) {
   }
 }
 
+// Build the 3D only when the box is on screen and the page has been still for a moment. Building it compiles shaders
+// and uploads textures; started mid-scroll it competed with the NEMO and i4 reels for the GPU and stalled the scroll.
+// The poster under it is the same picture, so waiting costs nothing visible.
 document.querySelectorAll("[data-k3d-kit]").forEach((fig) => {
-  if (!supportsWebGL()) return;
-  const io = new IntersectionObserver((es) => {
-    if (!es[0].isIntersecting) return;
-    io.disconnect();
+  if (!supportsWebGL() || CALM_FIG) return;
+  CALM_FIG = fig; fig._on = false;
+  let started = false, timer = 0;
+  const idle = window.requestIdleCallback || ((f) => setTimeout(f, 1));
+  const go = () => {
+    if (started || !fig._on) return;
+    started = true; removeEventListener("scroll", arm);
     build(fig).catch((e) => { console.error("kit 3D:", e); fig.classList.remove("is-live"); });
-  }, { rootMargin: "300px" });
-  io.observe(fig);
+  };
+  function arm() { clearTimeout(timer); if (fig._on && !started) timer = setTimeout(() => idle(go, { timeout: 1500 }), 450); }
+  new IntersectionObserver((es) => { fig._on = es[0].isIntersecting; arm(); }, { rootMargin: "120px" }).observe(fig);
+  addEventListener("scroll", arm, { passive: true });
 });

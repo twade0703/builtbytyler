@@ -28,9 +28,9 @@
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
-  <script src="assets/js/boot.js?v=82"></script>
-  <link rel="stylesheet" href="assets/css/styles.css?v=82">
-  <link rel="stylesheet" href="assets/css/motion.css?v=82">
+  <script src="assets/js/boot.js?v=83"></script>
+  <link rel="stylesheet" href="assets/css/styles.css?v=83">
+  <link rel="stylesheet" href="assets/css/motion.css?v=83">
 
 <!-- Structured data. Every fact here is one this site already states in prose:
        the entity, the city and the email come off contact.html. Nothing is
@@ -316,6 +316,8 @@
     .mod-dl { display: inline-flex !important; align-items: center; gap: 0.55rem; }
     .mod-dl .mod-ico { width: 1.25em; height: 1.25em; }
     .mod-code { margin: 0; max-height: 26rem; overflow: auto; padding: 1rem 1.1rem; background: #02050a; border: 1px solid var(--hairline); font-family: var(--font-mono); font-size: 0.78rem; line-height: 1.65; color: #cfe6ff; }
+    .mod-fcc { margin: 1rem 0 0; max-width: 72ch; color: var(--muted); font-size: 0.8rem; line-height: 1.5; }
+    .mod-fcc b { color: var(--ink); font-weight: 600; }
     .mod-foot { display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; margin-top: 2rem; }
     @media (max-width: 960px) {
       .mod-stage-wrap { grid-template-columns: minmax(0, 1fr); }
@@ -429,6 +431,7 @@ void loop() {
         <a class="mod-back" href="shop.html#kit-modules"><svg viewBox="0 0 24 24" aria-hidden="true" class="mod-ico"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span>All modules</span></a>
         <a class="btn" href="https://buy.stripe.com/cNidRa8Yu5SBc4W28CgIo06">Buy the kit · $79 shipped</a>
       </div>
+      <p class="mod-fcc"><b>FCC notice.</b> This kit includes a radio (the ESP32 board's Wi-Fi and Bluetooth), so it is subject to the rules of the Federal Communications Commission, and it has not been through FCC equipment authorization yet. Delivery is conditional on that process being completed successfully, and no kit ships until it is. FCC rules do not address whether consumer protection, contract or other federal or state laws apply to this sale. If the authorization can't be completed, BuiltByTyler LLC refunds everything you paid, and you can cancel for a full refund any time before your kit ships.</p>
     </div>
     <script type="application/json" id="mod-data">{"id": "S28", "glb": "assets/img/kit/s28.glb", "w": 24, "h": 24, "origin": [99.95, 99.95], "pins": [{"label": "GND", "x": 109.46, "y": 122.0, "esp": "GND", "color": 1907999}, {"label": "VCC", "x": 112.0, "y": 122.0, "esp": "3V3", "color": 14168106}, {"label": "OUT", "x": 114.54, "y": 122.0, "esp": "D4", "color": 15909912}]}</script>
   </main>
@@ -466,13 +469,13 @@ void loop() {
        HTML, but main.js CREATES those canvases for the build plates. Removing
        it blanks every hologram. If the 64 KB is ever worth reclaiming, the fix
        is to load it on demand when a plate scrolls into view. -->
-  <script defer src="assets/js/products.js?v=82"></script>
-  <script defer src="assets/js/components.js?v=82"></script>
-  <script defer src="assets/js/hologram.js?v=82"></script>
-  <script defer src="assets/js/main.js?v=82"></script>
+  <script defer src="assets/js/products.js?v=83"></script>
+  <script defer src="assets/js/components.js?v=83"></script>
+  <script defer src="assets/js/hologram.js?v=83"></script>
+  <script defer src="assets/js/main.js?v=83"></script>
   <!-- The star field: plain WebGL, one small module, no library behind it. -->
-  <script type="module" src="assets/js/starfield.js?v=82"></script>
-  <script type="module" src="assets/js/kit-box.js?v=82"></script>
-  <script type="module" src="assets/js/kit.js?v=82"></script>
+  <script type="module" src="assets/js/starfield.js?v=83"></script>
+  <script type="module" src="assets/js/kit-box.js?v=83"></script>
+  <script type="module" src="assets/js/kit.js?v=83"></script>
 </body>
 </html>

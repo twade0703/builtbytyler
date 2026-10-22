@@ -28,9 +28,9 @@
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
-  <script src="assets/js/boot.js?v=82"></script>
-  <link rel="stylesheet" href="assets/css/styles.css?v=82">
-  <link rel="stylesheet" href="assets/css/motion.css?v=82">
+  <script src="assets/js/boot.js?v=83"></script>
+  <link rel="stylesheet" href="assets/css/styles.css?v=83">
+  <link rel="stylesheet" href="assets/css/motion.css?v=83">
 
 <!-- Structured data. Every fact here is one this site already states in prose:
        the entity, the city and the email come off contact.html. Nothing is
@@ -119,7 +119,8 @@
             sizes="(max-width: 900px) 100vw, 60vw" width="2048" height="1920" loading="lazy" decoding="async"
             alt="The Sensor Kit: a black box with the {t} logo. Open it to see 37 labelled sensor modules, an ESP32 on a breadboard, a 9 V battery and jumper wires.">
           <svg viewBox="0 0 2048 1920" preserveAspectRatio="none" aria-label="Modules in the box"></svg>
-        </figure></div>
+        </figure>
+          <figure class="kback" id="box-back"><a href="assets/img/kit/box-back.webp" target="_blank" rel="noopener"><img src="assets/img/kit/box-back.webp" width="2400" height="323" loading="lazy" decoding="async" alt="The back of the Sensor Kit box: contents, Ages 14+, safety warnings, who makes it, recycling and a QR code to the wiring and code."></a><figcaption><b>The back of the box</b>, as it will print. Draft: lines in orange are placeholders, not final. Click to open it full size.</figcaption></figure></div>
           <div class="kshow__copy">
             <p class="kicker">The Sensor Kit</p>
             <h1 class="kshow__h">37 sensors. <em>One box.</em></h1>
@@ -127,6 +128,7 @@
             <div class="kshow__buy"><span class="kshow__price">$79</span><a class="btn" href="https://buy.stripe.com/cNidRa8Yu5SBc4W28CgIo06">Buy the kit</a></div>
             <a class="kshow__more" href="#kit-modules">See all 37 modules</a>
             <p class="kshow__ship">Free shipping · pre-order · ships in 6–8 weeks · full refund any time before it ships</p>
+            <p class="kshow__fcc"><b>FCC notice.</b> This kit includes a radio (the ESP32 board's Wi-Fi and Bluetooth), so it is subject to the rules of the Federal Communications Commission, and it has not been through FCC equipment authorization yet. Delivery is conditional on that process being completed successfully, and no kit ships until it is. FCC rules do not address whether consumer protection, contract or other federal or state laws apply to this sale. If the authorization can't be completed, BuiltByTyler LLC refunds everything you paid, and you can cancel for a full refund any time before your kit ships.</p>
           </div>
         </div>
         <div class="ptab-head" id="kit-modules"><p><b>Every module</b></p><p>Click one for wiring, 3D and code</p></div>
@@ -165,6 +167,13 @@
     .k3d-tip b { font-family: var(--font-mono); font-size: 0.78rem; font-weight: 400; letter-spacing: 0.04em; }
     .k3d-tip span { font-size: 0.72rem; opacity: 0.7; }
     .kstage { min-width: 0; }
+    .kshow__fcc { margin: 1.1rem 0 0; padding: 0.75rem 0.9rem; border-left: 2px solid var(--accent); background: rgba(95, 230, 255, 0.05); color: var(--muted); font-size: 0.82rem; line-height: 1.5; max-width: 44ch; }
+    .kshow__fcc b { color: var(--ink); font-weight: 600; }
+    .kback { margin: 1.2rem 0 0; }
+    .kback a { display: block; border: 1px solid var(--hairline-strong); }
+    .kback img { display: block; width: 100%; height: auto; }
+    .kback figcaption { margin-top: 0.55rem; font-size: 0.78rem; color: var(--muted); line-height: 1.45; }
+    .kback figcaption b { color: var(--ink); font-weight: 600; }
     .k3d-ui { display: flex; align-items: center; flex-wrap: wrap; gap: 0.6rem 0.8rem; margin-top: 0.9rem; }
     .k3d-btn { font-family: var(--font-mono); font-size: var(--fs-micro); letter-spacing: 0.14em; text-transform: uppercase; padding: 0.6rem 0.9rem; background: rgba(5,8,12,0.75); color: var(--ink); border: 1px solid var(--hairline-strong); cursor: pointer; backdrop-filter: blur(6px); }
     .k3d-btn:hover { border-color: var(--accent); color: var(--accent); }
@@ -403,12 +412,12 @@
        HTML, but main.js CREATES those canvases for the build plates. Removing
        it blanks every hologram. If the 64 KB is ever worth reclaiming, the fix
        is to load it on demand when a plate scrolls into view. -->
-  <script defer src="assets/js/products.js?v=82"></script>
-  <script defer src="assets/js/components.js?v=82"></script>
-  <script defer src="assets/js/hologram.js?v=82"></script>
-  <script defer src="assets/js/main.js?v=82"></script>
+  <script defer src="assets/js/products.js?v=83"></script>
+  <script defer src="assets/js/components.js?v=83"></script>
+  <script defer src="assets/js/hologram.js?v=83"></script>
+  <script defer src="assets/js/main.js?v=83"></script>
   <!-- The star field: plain WebGL, one small module, no library behind it. -->
-  <script type="module" src="assets/js/starfield.js?v=82"></script>
-  <script type="module" src="assets/js/kit-box.js?v=82"></script>
+  <script type="module" src="assets/js/starfield.js?v=83"></script>
+  <script type="module" src="assets/js/kit-box.js?v=83"></script>
 </body>
 </html>

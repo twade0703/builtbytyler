@@ -117,19 +117,28 @@ const PRODUCTS = [
    an enquiry. Nothing else needs editing to switch a tier on.
 
    HOW TO CREATE EACH LINK (Stripe Dashboard → Payment links → New):
-     1. Add a product for the build fee — one-time, e.g. "Launch — build",
-        $500.
+     1. Add a product for the start fee — one-time, $500. It builds the
+        site AND covers the first month ("Website build, with your first
+        month").
      2. Add a SECOND line item for the care plan — recurring monthly,
-        e.g. "Launch — care plan", $50/month.
-        Stripe bills the one-time fee on the first invoice and the
-        monthly from then on, which is exactly the published offer.
-     3. Under "After payment", choose "Don't show confirmation page" and
+        $50/month ("Website Care Plan").
+     3. Set a 30-day free trial on the subscription
+        (subscription_data.trial_period_days = 30). Stripe then charges the
+        one-time $500 at checkout and the $50 monthly from 30 days later,
+        which is exactly the published offer: $500 to start, first month
+        included, then $50 a month from month two. (Since 2026-10-21. The
+        old links charged $550 on day one.)
+     4. Require terms of service acceptance, and put the plain price above
+        the pay button (custom text): "You pay $500 today. That builds
+        your site and covers your first month. Then $50 a month starting
+        next month, until you cancel. ..."
+     5. Under "After payment", choose "Don't show confirmation page" and
         redirect to:
             https://builtbytyler.com/order-confirmed.html?type=software
         The ?type=software is what switches that page's copy from build
         talk to software talk. Without it the payer is told their
         hardware is in the queue.
-     4. Copy the https://buy.stripe.com/... URL into `paymentLink` below.
+     6. Copy the https://buy.stripe.com/... URL into `paymentLink` below.
 
    The `setup` and `monthly` numbers here must match what software.html
    prints. They are not what renders the price — the page does that in
@@ -143,8 +152,9 @@ const SOFTWARE_PLANS = [
     name: "Launch",
     setup: 500,
     monthly: 50,
-        // Charges $550 today (build + first month), then $50/month.
-    paymentLink: "https://buy.stripe.com/4gMdRa1w2dl3glc6oSgIo01",
+        // Charges $500 today (build + first month), then $50/month from
+        // 30 days later. plink_1UTDPvKIfcK0fVAnITLU4boi, made 2026-10-21.
+    paymentLink: "https://buy.stripe.com/5kQ7sM2A694Nfh800ugIo07",
   },
   {
     id: "product",
@@ -178,7 +188,8 @@ function getPlanById(id) {
   return SOFTWARE_PLANS.find((p) => p.id === id) || null;
 }
 
-/* "$500 build + $50/mo" — used in the contact.html handoff and in the
+/* "$500 to start (first month included), then $50/mo" — used in the
+   contact.html handoff and in the
    enquiry email, so the figure a visitor was just looking at is the
    figure that reaches the inbox. A consultation tier says "from", because
    its number is a starting point rather than a price. */
@@ -187,7 +198,7 @@ function formatPlanPrice(plan) {
   const money = (n) => "$" + Number(n).toLocaleString("en-US");
   if (plan.consultOnly) return "by consultation";
   if (plan.monthly == null) return money(plan.setup);
-  return `${money(plan.setup)} build + ${money(plan.monthly)}/mo`;
+  return `${money(plan.setup)} to start (first month included), then ${money(plan.monthly)}/mo`;
 }
 
 

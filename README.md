@@ -256,7 +256,9 @@ Prices live in the markup of `software.html` (`#pricing`), in the four stat
 tiles near the top of that page, and in the `PLANS` map in `main.js`, which
 carries the tier across to `contact.html?plan=…`. **Change all three.**
 
-Current: Launch $500 + $50/mo · Product by consultation. The Growth tier was
+Current: Launch $500 to start (first month included), then $50/mo from month two ·
+Product by consultation. (2026-10-21, Tyler: "500 first month free, and then 50 after
+that.") The Growth tier was
 withdrawn on 2026-09-26; its features will come back as Launch add-ons.
 
 These are deliberately below the rates in `00 Framework/BENCHMARK.md`. The
@@ -274,7 +276,7 @@ the enquiry flow instead of dead-ending.
 
 | Tier | Charged today | Then | Stripe line items |
 |---|---|---|---|
-| Launch | $550 | $50/mo | Launch build (one-off) + Website Care Plan (monthly) |
+| Launch | $500 (first month included) | $50/mo from 30 days later | Website build, with your first month (one-off $500) + Website Care Plan ($50/mo, 30-day trial) |
 
 Product is **consultation only** and deliberately has no link or number; the
 tier reads "By consultation" and its button is "Book a call". A

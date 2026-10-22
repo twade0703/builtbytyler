@@ -4,7 +4,7 @@
    its own walled cell on a foam pad with a finger scoop. "Lift the tray" sets it beside the box and centres the bottom
    layer: breadboard, ESP32, power module, 9 V, its clip lead and the jumpers, each loose in its own foam pocket.
    Geometry follows sensor-kit/packaging/layout.json; boards are baked Draco meshes (sensor-kit/render/kitshot/bake.js). */
-import { THREE, createViewer, ease, mat, canvasTex, breadboard, esp32, powerModule, battery9v, snapClip, barrelLead, ribbon, NINE_V, COARSE } from "./kit3d.js?v=80";
+import { THREE, createViewer, ease, mat, canvasTex, breadboard, esp32, powerModule, battery9v, snapClip, barrelLead, ribbon, NINE_V, COARSE } from "./kit3d.js?v=81";
 import { RoundedBoxGeometry } from "../vendor/three/RoundedBoxGeometry.js";
 import { DRACOLoader } from "../vendor/three/DRACOLoader.js";
 import { mergeGeometries } from "../vendor/three/BufferGeometryUtils.js";
@@ -28,7 +28,7 @@ async function build(fig) {
   const [layout, manifest] = await Promise.all([fetch(BASE + "layout.json").then((r) => r.json()), fetch(BASE + "kit-boards.json").then((r) => r.json())]);
   const T = { lidTop: tex(BASE + "lid-top.webp"), lidFront: tex(BASE + "lid-front.webp"), lidSide: tex(BASE + "lid-side.webp"),
     lidBack: tex(BASE + "lid-back.webp"), baseFront: tex(BASE + "base-front.webp"), baseSide: tex(BASE + "base-side.webp"),
-    baseBack: tex(BASE + "base-back.webp"), labels: tex(BASE + "tray-labels.webp"), card: tex(BASE + "card-front.webp") };
+    baseBack: tex(BASE + "base-back.webp"), frame: tex(BASE + "tray-frame.webp"), card: tex(BASE + "card-front.webp") };
   for (const k of Object.keys(T)) T[k] = await T[k];
 
   const tip = document.createElement("div");
@@ -197,7 +197,7 @@ async function build(fig) {
   const board = new THREE.MeshStandardMaterial({ color: 0x151517, roughness: 0.82 });        // black chipboard
   const wrapM = new THREE.MeshPhysicalMaterial({ color: 0x0d0d0f, roughness: 0.6, clearcoat: 0.2, clearcoatRoughness: 0.5 });
   tray.add(box(TW, TR.base, TD, wrapM, TX + TW / 2, T0 + TR.base / 2, TZ + TD / 2));
-  const wh = TT - T0;
+  const FR = TR.frame.thickness, wh = TT - FR - T0;                 // walls + dividers stop under the frame card
   tray.add(box(TW, wh, TR.wall, wrapM, TX + TW / 2, T0 + wh / 2, TZ + TR.wall / 2));
   tray.add(box(TW, wh, TR.wall, wrapM, TX + TW / 2, T0 + wh / 2, TZ + TD - TR.wall / 2));
   tray.add(box(TR.wall, wh, TD - 2 * TR.wall, wrapM, TX + TR.wall / 2, T0 + wh / 2, TZ + TD / 2));
@@ -235,20 +235,18 @@ async function build(fig) {
     ...padCells.map((c) => slabGeo(padRect(c), [scoopPath(c, true)], TB + lower, TR.pocket_depth)),
   ]);
   const pads = new THREE.Mesh(padGeo, foamMat); pads.receiveShadow = pads.castShadow = true; tray.add(pads);
-  // the two finger wells: no pad, "LIFT" printed on the tray base
-  const liftTex = canvasTex(360, 480, (g, w, h) => {
-    g.clearRect(0, 0, w, h); g.fillStyle = "#efede8"; g.textAlign = "center"; g.textBaseline = "middle";
-    g.font = '700 64px Bahnschrift, sans-serif'; g.fillText("LIFT", w / 2, h / 2 - 34);
-    g.font = '600 40px Bahnschrift, sans-serif'; g.fillStyle = "rgba(239,237,232,0.7)"; g.fillText("\u2191", w / 2, h / 2 + 34);
-  });
-  cells.filter((c) => c.kind === "lift").forEach((c) => {
-    const [x, z, w, d] = c.cell;
-    const lp = new THREE.Mesh(new THREE.PlaneGeometry(w * 0.8, d * 0.8), new THREE.MeshStandardMaterial({ map: liftTex, transparent: true, roughness: 0.7, depthWrite: false }));
-    lp.rotation.x = -Math.PI / 2; lp.position.set(x + w / 2, TB + 0.05, z + d / 2); lp.receiveShadow = true; tray.add(lp);
-  });
-  if (T.labels) {
-    const lp = new THREE.Mesh(new THREE.PlaneGeometry(IW, ID), new THREE.MeshStandardMaterial({ map: T.labels, transparent: true, roughness: 0.8, depthWrite: false }));
-    lp.rotation.x = -Math.PI / 2; lp.position.set(IW / 2, TR.pad_top + 0.05, ID / 2); lp.receiveShadow = true; tray.add(lp);
+  // the frame card glued on top: a window per cell, a white label on each cell's front bar (ID big, name small)
+  {
+    const outline = [[TX, TZ], [TX + TW, TZ], [TX + TW, TZ + TD], [TX, TZ + TD]];
+    const holes = cells.map((c) => rectPath(...c.window, 0.8));
+    const geo = slabGeo(outline, holes, TT - FR, FR);
+    const cap = T.frame ? new THREE.MeshStandardMaterial({ map: T.frame, roughness: 0.55 }) : board;
+    if (T.frame) {                                             // cap UVs are shape coords (x, -z) in mm
+      T.frame.repeat.set(1 / TW, 1 / TD); T.frame.offset.set(-TX / TW, (TZ + TD) / TD);
+      T.frame.anisotropy = v.renderer.capabilities.getMaxAnisotropy();
+    }
+    const frame = new THREE.Mesh(geo, [cap, board]); frame.castShadow = frame.receiveShadow = true;
+    tray.add(frame);
   }
   const qrCell = cells.find((c) => c.kind === "qr");
   const qrImg = new Image(); qrImg.src = BASE + "qr-kit.png";

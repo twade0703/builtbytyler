@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sell for Built by Tyler &middot; Commission sales reps</title>
+  <meta name="description" content="Remote, commission-only sales reps for BuiltByTyler LLC: websites for local trade businesses, and an AI phone receptionist. Apply in about five minutes.">
+  <!-- Reached from the job boards, not the site's own navigation. Kept out of
+       search so a prospect looking us up finds the business, not the hiring. -->
+  <meta name="robots" content="noindex">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500&family=Instrument+Sans:wght@400;500&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" sizes="48x48" href="/assets/img/icon-48.png">
+  <link rel="icon" type="image/png" sizes="96x96" href="/assets/img/icon-96.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="/assets/img/icon-192.png">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <meta name="theme-color" content="#121216">
+  <link rel="canonical" href="https://builtbytyler.com/apply">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Built by Tyler">
+  <meta property="og:url" content="https://builtbytyler.com/apply">
+  <meta property="og:title" content="Sell for Built by Tyler · Commission sales reps">
+  <meta property="og:description" content="Remote, commission-only. Websites for local trades, or an AI phone receptionist. Apply in about five minutes.">
+  <meta property="og:image" content="https://builtbytyler.com/assets/img/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <script src="assets/js/boot.js?v=86"></script>
+  <link rel="stylesheet" href="assets/css/styles.css?v=86">
+  <link rel="stylesheet" href="assets/css/motion.css?v=86">
+  <style>
+    /* Page-local: the site has no form styles anywhere else. Same tokens,
+       same square corners and hairlines as the rest of the site. */
+    .apply { max-width: 860px; }
+    .apply-top { margin-bottom: clamp(2rem, 5vw, 3.25rem); }
+    .apply-top .display { margin-bottom: 0.9rem; }
+    .apply-top__lead { color: var(--muted); max-width: 640px; font-size: 1.08rem; line-height: 1.6; }
+    .apply fieldset { border: 0; margin: 0 0 clamp(2rem, 4vw, 2.75rem); padding: 0; min-width: 0; }
+    .apply legend { padding: 0; margin-bottom: 1rem; }
+    .apply .step { font-family: var(--font-mono); font-size: var(--fs-micro); letter-spacing: 0.12em;
+      text-transform: uppercase; color: var(--accent); display: block; margin-bottom: 0.35rem; }
+    .apply .step-title { font-family: var(--font-display); font-weight: 400; font-size: var(--fs-h3); color: var(--ink); }
+
+    .roles { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .role { position: relative; display: block; cursor: pointer; padding: 1.25rem 1.25rem 1.1rem;
+      border: 1px solid var(--hairline); background: var(--glass); backdrop-filter: var(--blur);
+      -webkit-backdrop-filter: var(--blur); transition: border-color .2s var(--ease), background .2s var(--ease); }
+    .role:hover { border-color: var(--hairline-strong); }
+    .role input { position: absolute; opacity: 0; pointer-events: none; }
+    .role:has(input:checked) { border-color: var(--accent); background: var(--accent-soft); }
+    .role:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .role__no { font-family: var(--font-mono); font-size: var(--fs-micro); color: var(--muted); letter-spacing: .1em; }
+    .role h3 { font-family: var(--font-display); font-weight: 400; font-size: 1.35rem; margin: .35rem 0 .45rem; }
+    .role p { color: var(--muted); font-size: var(--fs-small); line-height: 1.55; margin: 0 0 .7rem; }
+    .role__pay { font-family: var(--font-mono); font-size: var(--fs-micro); letter-spacing: .06em; color: var(--ink); }
+    .role-either { display: inline-flex; gap: .55rem; align-items: center; margin-top: .9rem; color: var(--muted);
+      font-size: var(--fs-small); cursor: pointer; }
+
+    .paybox { margin-top: 1rem; padding: 1rem 1.15rem; border-left: 2px solid var(--accent);
+      background: var(--surface-alt); color: var(--ink); font-size: var(--fs-small); line-height: 1.65; }
+    .paybox p { margin: 0; }
+    .paybox p + p { margin-top: .55rem; color: var(--muted); }
+
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem 1.1rem; }
+    .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem 1.1rem; }
+    .field { display: flex; flex-direction: column; gap: .4rem; margin-bottom: 1.1rem; min-width: 0; }
+    .grid2 .field, .grid3 .field { margin-bottom: 0; }
+    .field > span, .q { font-size: var(--fs-small); color: var(--ink); line-height: 1.5; }
+    .field small, .hint { color: var(--muted); font-size: var(--fs-small); line-height: 1.5; }
+    .apply input[type=text], .apply input[type=email], .apply input[type=tel], .apply select, .apply textarea {
+      width: 100%; font: inherit; font-size: 1rem; color: var(--ink); background: var(--surface-alt);
+      border: 1px solid var(--hairline); border-radius: var(--radius); padding: .7rem .8rem; }
+    .apply textarea { min-height: 5.5rem; resize: vertical; line-height: 1.5; }
+    .apply select { appearance: none; -webkit-appearance: none; padding-right: 2rem;
+      background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%), linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+      background-position: calc(100% - 16px) 52%, calc(100% - 11px) 52%; background-size: 5px 5px; background-repeat: no-repeat; }
+    .apply input:focus, .apply select:focus, .apply textarea:focus { outline: none; border-color: var(--accent); }
+    .apply input[aria-invalid=true], .apply select[aria-invalid=true], .apply textarea[aria-invalid=true] { border-color: #ff8f8f; }
+
+    .yn { display: flex; gap: .5rem; flex-wrap: wrap; }
+    .yn label { cursor: pointer; }
+    .yn input { position: absolute; opacity: 0; pointer-events: none; }
+    .yn span { display: inline-block; padding: .5rem 1rem; border: 1px solid var(--hairline); font-size: var(--fs-small);
+      color: var(--muted); background: var(--surface-alt); transition: all .15s var(--ease); }
+    .yn input:checked + span { border-color: var(--accent); color: var(--ink); background: var(--accent-soft); }
+    .yn input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+    .stop { margin: .2rem 0 1.1rem; padding: .85rem 1rem; border: 1px solid rgba(255,143,143,.45);
+      background: rgba(255,143,143,.07); color: var(--ink); font-size: var(--fs-small); line-height: 1.55; }
+
+    .memo-brief { padding: 1.1rem 1.2rem; border: 1px solid var(--hairline); background: var(--glass);
+      backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); margin-bottom: 1rem; }
+    .memo-brief p, .memo-brief li { font-size: var(--fs-small); line-height: 1.6; color: var(--ink); }
+    .memo-brief ul { margin: .5rem 0 .2rem 1.1rem; padding: 0; }
+    .memo-brief .quote { font-family: var(--font-accent); font-style: italic; font-size: 1.05rem; color: var(--ink); }
+    .memo-brief .warn { color: var(--muted); margin-top: .6rem; }
+    .recorder { display: flex; align-items: center; gap: .9rem; flex-wrap: wrap; padding: 1rem 1.1rem;
+      border: 1px solid var(--hairline); background: var(--surface-alt); }
+    .rec-btn { display: inline-flex; align-items: center; gap: .6rem; font: inherit; font-size: var(--fs-small);
+      color: var(--ink); background: transparent; border: 1px solid var(--hairline-strong); padding: .6rem 1rem; cursor: pointer; }
+    .rec-btn:hover { border-color: var(--accent); }
+    .rec-btn .dot { width: 10px; height: 10px; border-radius: 50%; background: #ff5f5f; }
+    .rec-btn[data-state=recording] .dot { animation: recpulse 1s infinite; }
+    .rec-btn[data-state=recording] .dot { border-radius: 2px; }
+    @keyframes recpulse { 50% { opacity: .35; } }
+    .rec-time { font-family: var(--font-mono); font-size: var(--fs-small); color: var(--muted); min-width: 5.5ch; }
+    .rec-bar { flex: 1 1 120px; height: 2px; background: var(--hairline); position: relative; min-width: 80px; }
+    .rec-bar i { position: absolute; inset: 0 auto 0 0; width: 0; background: var(--accent); }
+    .recorder audio { width: 100%; max-width: 420px; height: 38px; }
+    .upload-alt { margin-top: .7rem; font-size: var(--fs-small); color: var(--muted); }
+    .upload-alt button { font: inherit; color: var(--accent); background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+    .upload-alt input[type=file] { margin-top: .6rem; color: var(--muted); font-size: var(--fs-small); }
+
+    .checks label { display: flex; gap: .7rem; align-items: flex-start; font-size: var(--fs-small); line-height: 1.55;
+      color: var(--ink); margin-bottom: .75rem; cursor: pointer; }
+    .checks input { margin-top: .25rem; accent-color: var(--accent); width: 16px; height: 16px; flex: none; }
+    .apply .checks a, .apply .fine a, .apply .role a, .memo-brief a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+    .hp { position: absolute !important; left: -9999px !important; width: 1px; height: 1px; overflow: hidden; }
+
+    .submit-row { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+    .form-msg { font-size: var(--fs-small); color: #ff9d9d; line-height: 1.5; }
+    .done { padding: clamp(1.5rem, 4vw, 2.5rem); border: 1px solid var(--accent); background: var(--accent-soft); }
+    .done h2 { font-family: var(--font-display); font-weight: 400; font-size: var(--fs-h2); margin: 0 0 .6rem; }
+    .done p { color: var(--ink); line-height: 1.6; margin: 0 0 .6rem; }
+    .done .ref { font-family: var(--font-mono); color: var(--accent); }
+    .fine { color: var(--muted); font-size: var(--fs-small); line-height: 1.6; margin-top: 1.25rem; }
+
+    @media (max-width: 720px) {
+      .roles, .grid2, .grid3 { grid-template-columns: 1fr; }
+      .grid2 .field, .grid3 .field { margin-bottom: 1.1rem; }
+    }
+  </style>
+</head>
+<body>
+  <header id="site-nav" class="site-nav">
+    <div class="container site-nav__inner">
+      <a href="index.html" class="brand">Built<b>ByTyler</b></a>
+      <nav aria-label="Primary"><ul class="nav-links" id="nav-links"><li><a href="index.html">Home</a></li><li><a href="software.html">Software</a></li><li><a href="shop.html">Hardware</a></li><li><a href="games.html">Games</a></li><li><a href="about.html">About</a></li><li><a href="contact.html">Contact</a></li></ul></nav>
+      <div class="nav-actions"><button class="nav-toggle" id="nav-toggle" aria-label="Toggle menu" aria-expanded="false"><span></span><span></span><span></span></button></div>
+    </div>
+  </header>
+
+  <main>
+    <section class="section">
+      <div class="container apply">
+
+        <div class="apply-top" data-enter>
+          <p class="eyebrow">Hiring &middot; commission sales reps</p>
+          <h1 class="display" data-split>Sell for us</h1>
+          <p class="apply-top__lead">Two roles. Both remote, both commission only, both independent
+            contractor (1099). Pick one, answer a few short questions and record a 60-second practice
+            pitch right here. About five minutes.</p>
+        </div>
+
+        <form id="apply-form" novalidate>
+          <input type="hidden" name="t0" id="t0">
+
+          <!-- 1. Role -->
+          <fieldset>
+            <legend><span class="step">01</span><span class="step-title">What do you want to sell?</span></legend>
+            <div class="roles" role="radiogroup" aria-label="Role">
+              <label class="role">
+                <input type="radio" name="role" value="websites" required>
+                <span class="role__no">REP 1</span>
+                <h3>Websites</h3>
+                <p>The Website Plan for local trade businesses: plumbers, roofers, landscapers. $500 to
+                  start, which covers the first month, then $50 a month until they cancel.</p>
+                <span class="role__pay">$210 a sale + $10 a month, 12 months</span>
+              </label>
+              <label class="role">
+                <input type="radio" name="role" value="front-desk">
+                <span class="role__no">REP 2</span>
+                <h3>AI Front Desk</h3>
+                <p>An AI receptionist that answers the calls a business misses, books the job and tells
+                  the team. Hear it: <a href="tel:+18312302743">(831) 230-2743</a>.</p>
+                <span class="role__pay">$210 a sale + $20 a month, 12 months</span>
+              </label>
+            </div>
+            <label class="role-either"><input type="radio" name="role" value="either"> Either one is fine with me</label>
+
+            <div class="paybox" id="paybox" hidden>
+              <p id="pay-words"></p>
+              <p>We pay every Friday, by bank transfer, with a statement of every sale.</p>
+            </div>
+          </fieldset>
+
+          <!-- 2. You -->
+          <fieldset>
+            <legend><span class="step">02</span><span class="step-title">About you</span></legend>
+            <div class="grid3">
+              <label class="field"><span>Full name</span><input type="text" name="name" autocomplete="name" maxlength="120" required></label>
+              <label class="field"><span>Email</span><input type="email" name="email" autocomplete="email" maxlength="160" required></label>
+              <label class="field"><span>Mobile</span><input type="tel" name="phone" autocomplete="tel" maxlength="40" required></label>
+            </div>
+          </fieldset>
+
+          <!-- 3. Where -->
+          <fieldset>
+            <legend><span class="step">03</span><span class="step-title">Where you are</span></legend>
+            <div class="grid2">
+              <label class="field"><span>Which US state do you live in?</span>
+                <select name="state" id="state" required><option value="">Choose&hellip;</option></select>
+              </label>
+              <div class="field"><span class="q">Will you do the work from there?</span>
+                <div class="yn"><label><input type="radio" name="works_there" value="yes" required><span>Yes</span></label><label><input type="radio" name="works_there" value="no"><span>No</span></label></div>
+              </div>
+            </div>
+            <p class="stop" id="stop-state" hidden>Thanks for your interest. We can't work with anyone who
+              lives or works in California, or outside the United States, so we can't take an application
+              from you. We're sorry.</p>
+            <p class="hint" style="margin:.9rem 0 1.1rem">Not every state is open yet. Apply anyway and we'll tell you about yours.</p>
+            <div class="grid2">
+              <div class="field"><span class="q">Can you give us an IRS Form W-9? (US citizen, or US resident for tax purposes)</span>
+                <div class="yn"><label><input type="radio" name="w9" value="yes" required><span>Yes</span></label><label><input type="radio" name="w9" value="no"><span>No</span></label></div>
+              </div>
+              <div class="field"><span class="q">Are you 18 or over?</span>
+                <div class="yn"><label><input type="radio" name="adult" value="yes" required><span>Yes</span></label><label><input type="radio" name="adult" value="no"><span>No</span></label></div>
+              </div>
+            </div>
+            <p class="stop" id="stop-age" hidden>You need to be 18 or over to sell for us, so we can't take an
+              application yet. Thanks for your interest.</p>
+          </fieldset>
+
+          <!-- 4. Selling -->
+          <fieldset>
+            <legend><span class="step">04</span><span class="step-title">Your selling</span></legend>
+            <label class="field"><span>Your commission sales experience. What did you sell, to whom, for how long? Commission only or base plus commission? Phone, door to door or in person?</span>
+              <textarea name="experience" maxlength="2000" required></textarea></label>
+            <label class="field"><span>Have you sold to small business owners before? Websites, marketing, software, phone systems, anything. One or two lines.</span>
+              <textarea name="smb" maxlength="1000" rows="2"></textarea></label>
+            <label class="field"><span>Do you sell for anyone else right now, or run your own business? Either answer is fine.</span>
+              <input type="text" name="other_work" maxlength="300"></label>
+            <div class="grid2">
+              <label class="field"><span>Does any agreement you've signed stop you from selling websites or phone software (a non-compete or similar)?</span>
+                <select name="noncompete" required><option value="">Choose&hellip;</option><option>No</option><option>Yes</option><option>Not sure</option></select></label>
+              <div class="field"><span class="q">Have you ever been named in a complaint, lawsuit or regulator action about sales calls or texts? A yes isn't an automatic no.</span>
+                <div class="yn"><label><input type="radio" name="complaint" value="no" required><span>No</span></label><label><input type="radio" name="complaint" value="yes"><span>Yes</span></label></div>
+              </div>
+            </div>
+            <label class="field" id="complaint-detail-wrap" hidden style="margin-top:1rem"><span>One line on what happened.</span>
+              <input type="text" name="complaint_detail" maxlength="400"></label>
+          </fieldset>
+
+          <!-- 5. One question -->
+          <fieldset>
+            <legend><span class="step">05</span><span class="step-title">One quick question</span></legend>
+            <label class="field"><span id="q-scenario">An owner asks: &ldquo;Will this get me more customers?&rdquo; What do you say? One or two sentences, in your own words.</span>
+              <textarea name="scenario" maxlength="800" rows="3" required></textarea></label>
+          </fieldset>
+
+          <!-- 6. Voice memo -->
+          <fieldset>
+            <legend><span class="step">06</span><span class="step-title">Your 60-second practice pitch</span></legend>
+            <div class="memo-brief" id="memo-brief"></div>
+            <div class="recorder" id="recorder">
+              <button type="button" class="rec-btn" id="rec-btn" data-state="idle"><span class="dot"></span><span id="rec-label">Start recording</span></button>
+              <span class="rec-time" id="rec-time">0:00 / 1:00</span>
+              <span class="rec-bar" aria-hidden="true"><i id="rec-fill"></i></span>
+              <audio id="rec-play" controls hidden></audio>
+            </div>
+            <p class="upload-alt" id="upload-alt">Can't record here? <button type="button" id="show-upload">Upload a recording instead</button> (MP3, M4A, WAV or WebM, 60 seconds or less).
+              <input type="file" id="memo-file" accept="audio/*,.m4a,.mp3,.wav,.webm" hidden></p>
+          </fieldset>
+
+          <!-- 7. Last bits -->
+          <fieldset>
+            <legend><span class="step">07</span><span class="step-title">Last thing</span></legend>
+            <label class="field" style="max-width:380px"><span>Where did you see this job?</span>
+              <select name="source" required>
+                <option value="">Choose&hellip;</option><option>CommissionCrowd</option><option>Indeed</option><option>LinkedIn</option><option>Facebook</option><option>A friend</option><option>Somewhere else</option>
+              </select></label>
+            <div class="checks">
+              <label><input type="checkbox" name="truthful" value="yes" required><span>Everything I've written here is true.</span></label>
+              <label><input type="checkbox" name="privacy_ok" value="yes" required><span>I've read <a href="privacy.html#applicants" target="_blank" rel="noopener">how BuiltByTyler uses applications</a>: only to decide on mine, and deleted within 12 months if we don't work together.</span></label>
+            </div>
+            <div class="hp" aria-hidden="true"><label>Company website <input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>
+            <p class="hint" style="margin-bottom:1.25rem">Don't send your Social Security number, ID or bank details. We never ask for those until you've signed, and then only through a secure upload.</p>
+            <div class="submit-row">
+              <button class="btn" type="submit" id="submit-btn">Send my application</button>
+              <span class="form-msg" id="form-msg" role="alert"></span>
+            </div>
+          </fieldset>
+        </form>
+
+        <div class="done" id="done" hidden tabindex="-1">
+          <h2>Got it. Thank you.</h2>
+          <p>Your reference is <span class="ref" id="done-ref"></span>. Tyler listens to every pitch himself.</p>
+          <p>You'll get a yes or no by email within 7 days. If it's a yes, the next step is a 10-minute call.</p>
+          <p class="fine" style="margin-top:.4rem">There's no fee at any step. You never pay us anything.</p>
+        </div>
+
+        <p class="fine">BuiltByTyler LLC &middot; Monterey, California. Commission-only independent contractor
+          roles. No base pay and no expenses paid. These are new roles and nobody has sold them yet, so we
+          can't tell you what a typical week pays. Questions: <a href="mailto:twade@builtbytyler.com?subject=Rep%20question">twade@builtbytyler.com</a>.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer id="site-footer" data-year="2026">
+    <div class="container site-footer__inner">
+      <address>
+        <strong>Built by Tyler</strong> &mdash; BuiltByTyler LLC<br>
+        Monterey, California<br>
+        <a href="tel:+18312302743">(831) 230-2743</a> &middot;
+        <a href="mailto:twade@builtbytyler.com">twade@builtbytyler.com</a>
+      </address>
+      <nav aria-label="Footer">
+        <a href="index.html">Home</a>
+        <a href="software.html">Websites &amp; software</a>
+        <a href="shop.html">Hardware</a>
+        <a href="games.html">Games</a>
+        <a href="about.html">About Tyler Wade</a>
+        <a href="contact.html">Contact</a>
+        <a href="policies.html">Lead times, shipping &amp; refunds</a>
+        <a href="terms.html">Website terms</a>
+        <a href="privacy.html">Privacy</a>
+      </nav>
+    </div>
+  </footer>
+
+  <script src="assets/js/products.js?v=86"></script>
+  <script src="assets/js/components.js?v=86"></script>
+  <script src="assets/js/main.js?v=86"></script>
+  <script src="assets/js/apply.js?v=86"></script>
+  <script type="module" src="assets/js/starfield.js?v=86"></script>
+</body>
+</html>

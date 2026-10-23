@@ -4,7 +4,7 @@
    its own walled cell on a foam pad with a finger scoop. "Lift the tray" sets it beside the box and centres the bottom
    layer: breadboard, ESP32, power module, 9 V, its clip lead and the jumpers, each loose in its own foam pocket.
    Geometry follows sensor-kit/packaging/layout.json; boards are baked Draco meshes (sensor-kit/render/kitshot/bake.js). */
-import { THREE, createViewer, ease, mat, canvasTex, breadboard, esp32, powerModule, battery9v, snapClip, barrelLead, ribbon, NINE_V, COARSE } from "./kit3d.js?v=83";
+import { THREE, createViewer, ease, mat, canvasTex, breadboard, esp32, powerModule, battery9v, snapClip, barrelLead, ribbon, NINE_V, COARSE } from "./kit3d.js?v=84";
 import { RoundedBoxGeometry } from "../vendor/three/RoundedBoxGeometry.js";
 import { DRACOLoader } from "../vendor/three/DRACOLoader.js";
 import { mergeGeometries } from "../vendor/three/BufferGeometryUtils.js";
@@ -54,10 +54,10 @@ async function build(fig) {
   ui.className = "k3d-ui";
   ui.innerHTML = '<button type="button" class="k3d-btn k3d-btn--main" data-open>Open the box</button>' +
     '<button type="button" class="k3d-btn" data-lift hidden>Lift the tray</button>' +
-    '<button type="button" class="k3d-btn" data-back>See the back</button>' +
     '<span class="k3d-hint">' + (COARSE ? "Drag to spin · two fingers to zoom" : "Drag to turn · scroll to zoom") + "</span>";
-  if (fig.parentElement.classList.contains("kstage")) fig.after(ui); else fig.append(ui);   // straight under the 3D, above the flat back panel
-  const btnOpen = ui.querySelector("[data-open]"), btnLift = ui.querySelector("[data-lift]"), btnBack = ui.querySelector("[data-back]");
+  // Tyler, 2026-10-22: no "See the back" button ("I'll just spin it around"); drag turns the box any way
+  if (fig.parentElement.classList.contains("kstage")) fig.after(ui); else fig.append(ui);   // straight under the 3D
+  const btnOpen = ui.querySelector("[data-open]"), btnLift = ui.querySelector("[data-lift]");
 
   let state = "closed", busy = false, hovered = -1, backView = false;
   const v = createViewer(fig, {
@@ -464,8 +464,6 @@ async function build(fig) {
   }
   function sync() {
     btnOpen.textContent = state === "closed" ? "Open the box" : "Close the box";
-    btnBack.hidden = state !== "closed";
-    btnBack.textContent = backView ? "See the front" : "See the back";
     btnLift.hidden = state === "closed";
     btnLift.textContent = state === "lifted" ? "Put the tray back" : "Lift the tray";
     setPicks();
@@ -482,12 +480,6 @@ async function build(fig) {
     }
   }
   btnOpen.addEventListener("click", toggleOpen);
-  btnBack.addEventListener("click", () => {
-    if (busy || state !== "closed") return;
-    backView = !backView;
-    orbit(backView ? homes.back : homes.closed, 1600);
-    sync();
-  });
   btnLift.addEventListener("click", () => {
     if (busy || state === "closed") return;
     busy = true; tip.hidden = true; setHover(-1);

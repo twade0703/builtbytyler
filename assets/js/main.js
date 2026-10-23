@@ -670,3 +670,17 @@
     init();
   }
 })();
+
+/* Hardware: "See all 37 modules" opens the folded module table it points to (the table starts closed so the
+   kit doesn't take half the page; Tyler, 2026-10-22). */
+(function () {
+  document.addEventListener("click", function (e) {
+    var a = e.target.closest && e.target.closest('a[href="#kit-modules"]');
+    var d = document.getElementById("kit-modules");
+    if (a && d && d.tagName === "DETAILS") d.open = true;
+  });
+  if (location.hash === "#kit-modules") {
+    var d = document.getElementById("kit-modules");
+    if (d && d.tagName === "DETAILS") d.open = true;
+  }
+})();

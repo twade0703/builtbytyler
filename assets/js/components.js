@@ -124,7 +124,7 @@ function renderFooter() {
       <a href="index.html" class="brand">Built<b>ByTyler</b></a>
       <div class="footer-meta">
         <span>BuiltByTyler LLC &middot; Monterey, California</span>
-        <a href="tel:+12817398942">(281) 739-8942</a>
+        <a href="tel:+18312302743">(831) 230-2743</a>
         <a href="mailto:twade@builtbytyler.com">twade@builtbytyler.com</a>
         <span>&copy; ${year} BuiltByTyler</span>
         <a href="contact.html">Contact</a>

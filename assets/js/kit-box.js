@@ -4,7 +4,7 @@
    its own walled cell on a foam pad with a finger scoop. "Lift the tray" sets it beside the box and centres the bottom
    layer: breadboard, ESP32, power module, 9 V, its clip lead and the jumpers, each loose in its own foam pocket.
    Geometry follows sensor-kit/packaging/layout.json; boards are baked Draco meshes (sensor-kit/render/kitshot/bake.js). */
-import { THREE, createViewer, ease, mat, canvasTex, breadboard, esp32, powerModule, battery9v, snapClip, barrelLead, ribbon, NINE_V, COARSE } from "./kit3d.js?v=84";
+import { THREE, createViewer, ease, mat, canvasTex, breadboard, esp32, powerModule, battery9v, snapClip, barrelLead, ribbon, NINE_V, COARSE } from "./kit3d.js?v=85";
 import { RoundedBoxGeometry } from "../vendor/three/RoundedBoxGeometry.js";
 import { DRACOLoader } from "../vendor/three/DRACOLoader.js";
 import { mergeGeometries } from "../vendor/three/BufferGeometryUtils.js";

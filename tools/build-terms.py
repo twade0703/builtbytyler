@@ -90,6 +90,7 @@ TAIL = """      </div>
         <a href="contact.html">Contact</a>
         <a href="policies.html">Lead times, shipping &amp; refunds</a>
         <a href="terms.html">Website terms</a>
+        <a href="privacy.html">Privacy</a>
       </nav>
     </div>
   </footer>

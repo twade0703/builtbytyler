@@ -26,7 +26,7 @@
   </url>
   <url>
     <loc>https://builtbytyler.com/terms</loc>
-    <lastmod>2026-09-26</lastmod>
+    <lastmod>2026-10-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
@@ -97,4 +97,10 @@
   <url><loc>https://builtbytyler.com/kit-s35</loc></url>
   <url><loc>https://builtbytyler.com/kit-s36</loc></url>
   <url><loc>https://builtbytyler.com/kit-s38</loc></url>
+  <url>
+    <loc>https://builtbytyler.com/text-consent</loc>
+    <lastmod>2026-10-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.3</priority>
+  </url>
 </urlset>

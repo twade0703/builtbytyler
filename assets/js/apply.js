@@ -21,6 +21,11 @@
     "After that it's $50 a month, starting next month, until you cancel. You cancel by email, " +
     "and there's no fee.”";
 
+  // Front Desk price words: REGISTER.md D13, the same words repdesk.json gives a Front Desk seat.
+  var FD_PRICE_WORDS = "“You pay $500 today. That sets up your AI Front Desk and covers your first month. " +
+    "Then it's $100 a month, starting next month, until you cancel. Cancel any time by emailing " +
+    "twade@builtbytyler.com. No fee.”";
+
   var ROLES = {
     websites: {
       pay: "Pay is commission only. You earn $210 for each website sale, plus $10 for each monthly " +
@@ -52,8 +57,9 @@
         "<li>say your name, that you're calling for BuiltByTyler in Monterey, California, and why;</li>" +
         "<li>say what Front Desk does, in plain words, and that it's an AI;</li>" +
         "<li>tell them they can call (831) 230-2743 to hear it for themselves;</li>" +
+        "<li>give the price in exactly these words: <span class=\"quote\">" + FD_PRICE_WORDS + "</span></li>" +
         "<li>end on a question.</li></ul>" +
-        "<p class=\"warn\">Don't give a price (you get the exact words when you start), and don't " +
+        "<p class=\"warn\">Don't " +
         "promise more jobs, more money or anything that “pays for itself”. We're listening " +
         "for whether you sound like someone an owner would keep talking to, and whether you tell the truth.</p>"
     }

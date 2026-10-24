@@ -40,9 +40,9 @@
         "would keep talking to, and whether you tell the truth.</p>"
     },
     "front-desk": {
-      pay: "Pay is commission only. You earn $210 for each Front Desk sale, plus $20 for each monthly " +
-        "payment that customer makes, for up to 12 months. There's a $250 bonus in any month you " +
-        "make 10 sales. There's no base pay and no expenses paid. This is a new role and nobody has " +
+      pay: "Pay is commission only. You earn $250 for each Front Desk sale, plus $20 for each monthly " +
+        "payment that customer makes, for as long as they keep paying. There's a $250 bonus in any month you " +
+        "make 10 sales. Each new AI product comes with its own commission, in writing, before it opens to you. There's no base pay and no expenses paid. This is a new role and nobody has " +
         "sold it yet, so we can't tell you what a typical week pays. You never pay us anything.",
       scenario: "An owner asks: “So my customers will think they're talking to a real person?” What do you say? One or two sentences, in your own words.",
       brief:
@@ -93,7 +93,7 @@
     var pay = $("pay-words");
     pay.textContent = "";
     if (role === "either") {
-      pay.textContent = ROLES.websites.pay + " Front Desk pays the same way, with $20 instead of $10 for each monthly payment.";
+      pay.textContent = ROLES.websites.pay + " AI Front Desk pays $250 a sale plus $20 for each monthly payment, for as long as the customer keeps paying.";
     } else {
       pay.textContent = main.pay;
     }

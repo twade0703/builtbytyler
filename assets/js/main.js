@@ -272,7 +272,7 @@
     if (!blocks.length) return;
     const params = new URLSearchParams(window.location.search);
     const type = params.get("type");
-    const want = type === "hardware" || type === "kit" ? type : "software";
+    const want = type === "hardware" || type === "kit" || type === "frontdesk" ? type : "software";
     blocks.forEach((b) => { b.hidden = b.getAttribute("data-confirm") !== want; });
   }
 

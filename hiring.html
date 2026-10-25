@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Applicants &middot; Built by Tyler</title>
+  <!-- Tyler's private applicant board. Opened from a link he was texted; the
+       data needs the key after the # in that link (functions/api/hiring-board.js). -->
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="referrer" content="no-referrer">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <meta name="theme-color" content="#0B0C10">
+  <meta name="apple-mobile-web-app-title" content="Applicants">
+  <style>
+    :root{--bg:#0B0C10;--card:#14161C;--card2:#1A1D25;--line:rgba(255,255,255,.08);--tx:#ECEEF3;--mu:#99A1B3;--dim:#646C7E;
+      --blue:#60A5FA;--violet:#A78BFA;--green:#4ADE80;--amber:#FBBF24;--red:#F87171;--slate:#64748B}
+    *{box-sizing:border-box}
+    html{-webkit-text-size-adjust:100%}
+    body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.45 "Instrument Sans",system-ui,-apple-system,sans-serif;
+      padding:env(safe-area-inset-top) 0 calc(env(safe-area-inset-bottom) + 24px)}
+    button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+    a{color:var(--blue)}
+    .wrap{max-width:720px;margin:0 auto;padding:18px 16px 0}
+    .top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
+    .brand{display:flex;flex-direction:column;gap:2px}
+    .brand b{font:600 22px/1.1 "Bricolage Grotesque",system-ui,sans-serif;letter-spacing:-.02em}
+    .brand span{font:12px "JetBrains Mono",ui-monospace,monospace;color:var(--mu)}
+    .brand span.stale{color:var(--amber)}
+    .refresh{display:flex;align-items:center;gap:7px;padding:9px 13px;border-radius:999px;border:1px solid var(--line);background:var(--card);font-size:13px;font-weight:500}
+    .refresh svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+    .refresh.spin svg{animation:spin .8s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    .hero{display:grid;grid-template-columns:1.25fr 1fr 1fr;gap:8px;margin-bottom:14px}
+    .stat{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 13px}
+    .stat b{display:block;font:500 30px/1 "JetBrains Mono",ui-monospace,monospace;letter-spacing:-.04em}
+    .stat u{display:block;text-decoration:none;font-size:12px;color:var(--mu);margin-top:7px}
+    .stat.big b{font-size:40px}
+
+    .tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:5px;border-radius:16px;background:var(--card);border:1px solid var(--line);margin-bottom:14px;position:sticky;top:max(8px,env(safe-area-inset-top));z-index:5}
+    .tab{--c:var(--blue);display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:10px 12px;border-radius:12px;text-align:left;transition:background .15s}
+    .tab b{font-size:15px;font-weight:600}
+    .tab u{text-decoration:none;font-size:12px;color:var(--mu)}
+    .tab em{font:normal 500 20px/1 "JetBrains Mono",ui-monospace,monospace;color:var(--mu)}
+    .tab .row{display:flex;justify-content:space-between;align-items:baseline;width:100%}
+    .tab.on{background:color-mix(in srgb,var(--c) 18%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--c) 45%,transparent)}
+    .tab.on em,.tab.on b{color:var(--c)}
+
+    .chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+    .chip{display:flex;align-items:center;gap:7px;padding:7px 11px;border-radius:999px;background:var(--card);border:1px solid var(--line);font-size:13px}
+    .chip i{width:8px;height:8px;border-radius:50%;background:var(--t,var(--mu))}
+    .chip b{font-family:"JetBrains Mono",ui-monospace,monospace;font-weight:500}
+
+    .chart{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 12px 6px;margin-bottom:14px}
+    .chart h3{margin:0 0 6px;font-size:13px;font-weight:600}
+    .chart h3 span{font-weight:400;color:var(--mu)}
+    .chart svg{display:block;width:100%;height:120px}
+    .ax{fill:var(--dim);font:10px "JetBrains Mono",ui-monospace,monospace}
+
+    .list{display:flex;flex-direction:column;gap:8px}
+    .app{--t:var(--blue);background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+    .app.on{border-color:color-mix(in srgb,var(--t) 45%,transparent)}
+    .app>button{width:100%;display:grid;grid-template-columns:10px minmax(0,1fr) auto;gap:4px 11px;align-items:start;padding:13px 14px;text-align:left}
+    .dot{width:10px;height:10px;border-radius:50%;background:var(--t);margin-top:5px;box-shadow:0 0 10px color-mix(in srgb,var(--t) 70%,transparent)}
+    .who b{display:block;font-size:15.5px;font-weight:600;text-transform:capitalize}
+    .who span{display:block;font-size:12.5px;color:var(--mu)}
+    .who p{margin:5px 0 0;font-size:13px;color:var(--tx);opacity:.85}
+    .side{display:flex;flex-direction:column;align-items:flex-end;gap:5px}
+    .tier{font-size:11.5px;font-weight:600;padding:3px 8px;border-radius:8px;color:var(--t);background:color-mix(in srgb,var(--t) 14%,transparent)}
+    .ago{font:11px "JetBrains Mono",ui-monospace,monospace;color:var(--dim)}
+    .badges{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}
+    .bdg{font-size:11px;padding:2px 7px;border-radius:999px;border:1px solid var(--line);color:var(--mu)}
+    .bdg.p{color:#DDD6FE;border-color:rgba(167,139,250,.45);background:rgba(167,139,250,.12)}
+    .bdg.x{color:#FCA5A5;border-color:rgba(248,113,113,.4)}
+    .more{padding:0 14px 14px 35px;display:flex;flex-direction:column;gap:11px;font-size:14px}
+    .more ul{margin:0;padding-left:18px}
+    .lbl{font:10px "JetBrains Mono",ui-monospace,monospace;letter-spacing:.14em;text-transform:uppercase;color:var(--mu);margin-bottom:4px}
+    .note{padding:10px 12px;border-radius:12px;background:color-mix(in srgb,var(--t) 10%,transparent);border:1px solid color-mix(in srgb,var(--t) 25%,transparent)}
+    .ans div{padding:6px 0;border-top:1px solid var(--line)}
+    .ans b{display:block;font-size:12px;font-weight:500;color:var(--mu)}
+    details.res summary{list-style:none;cursor:pointer;color:var(--blue);font-weight:500}
+    details.res summary::-webkit-details-marker{display:none}
+    .res pre{margin:8px 0 0;padding:12px;border-radius:12px;background:var(--card2);border:1px solid var(--line);white-space:pre-wrap;word-break:break-word;
+      font:12.5px/1.55 "Instrument Sans",system-ui,sans-serif;max-height:60vh;overflow:auto}
+    .indeed{display:inline-flex;align-items:center;gap:6px;align-self:flex-start;padding:9px 13px;border-radius:999px;border:1px solid rgba(96,165,250,.4);background:rgba(96,165,250,.1);color:#BFDBFE;text-decoration:none;font-size:13px;font-weight:500}
+    .empty,.gate{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px 18px;color:var(--mu);text-align:center}
+    .gate b{display:block;color:var(--tx);font-size:17px;margin-bottom:6px}
+    .foot{margin:20px 0 0;font-size:12px;color:var(--dim);text-align:center}
+    @media (max-width:380px){ .hero{grid-template-columns:1fr 1fr} .stat.big{grid-column:1 / -1} }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="top">
+      <div class="brand"><b>Applicants</b><span id="upd">Loading…</span></div>
+      <button class="refresh" id="refresh" type="button" aria-label="Refresh"><svg viewBox="0 0 16 16"><path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9M13.5 2.5v3h-3"/></svg>Refresh</button>
+    </header>
+    <main id="app"></main>
+    <p class="foot">Private to Tyler. Don't forward this link: anyone with it can see this page.</p>
+  </div>
+  <script src="assets/js/hiring-board.js?v=90"></script>
+</body>
+</html>

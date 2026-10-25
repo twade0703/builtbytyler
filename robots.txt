@@ -8,6 +8,8 @@ Allow: /
 # test page in search results is the kind of thing a prospect notices.
 Disallow: /checkout-test
 Disallow: /checkout-test.html
+Disallow: /hiring
+Disallow: /hiring.html
 Disallow: /order-confirmed
 Disallow: /order-confirmed.html
 Disallow: /tools/

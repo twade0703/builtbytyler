@@ -21,8 +21,8 @@
     "After that it's $50 a month, starting next month, until you cancel. You cancel by email, " +
     "and there's no fee.”";
 
-  // Front Desk price words: REGISTER.md D13, the same words repdesk.json gives a Front Desk seat.
-  var FD_PRICE_WORDS = "“You pay $500 today. That sets up your AI Front Desk and covers your first month. " +
+  // AI Receptionist price words: REGISTER.md D13, the same words repdesk.json gives an AI Receptionist seat.
+  var FD_PRICE_WORDS = "“You pay $500 today. That sets up your AI Receptionist and covers your first month. " +
     "Then it's $100 a month, starting next month, until you cancel. Cancel any time by emailing " +
     "twade@builtbytyler.com. No fee.”";
 
@@ -45,17 +45,17 @@
         "would keep talking to, and whether you tell the truth.</p>"
     },
     "front-desk": {
-      pay: "Pay is commission only. You earn $250 for each Front Desk sale, plus $20 for each monthly " +
+      pay: "Pay is commission only. You earn $250 for each AI Receptionist sale, plus $20 for each monthly " +
         "payment that customer makes, for as long as they keep paying. There's a $250 bonus in any month you " +
         "make 10 sales. Each new AI product comes with its own commission, in writing, before it opens to you. There's no base pay and no expenses paid. This is a new role and nobody has " +
         "sold it yet, so we can't tell you what a typical week pays. You never pay us anything.",
       scenario: "An owner asks: “So my customers will think they're talking to a real person?” What do you say? One or two sentences, in your own words.",
       brief:
-        "<p>First, call <a href=\"tel:+18312302743\">(831) 230-2743</a> and hear Front Desk answer. " +
+        "<p>First, call <a href=\"tel:+18312302743\">(831) 230-2743</a> and hear the AI Receptionist answer. " +
         "Then pretend the owner of <b>Acme Roofing</b> just picked up: a made-up roofer who's up on " +
         "roofs all day and misses calls. In 60 seconds or less:</p><ul>" +
         "<li>say your name, that you're calling for BuiltByTyler in Monterey, California, and why;</li>" +
-        "<li>say what Front Desk does, in plain words, and that it's an AI;</li>" +
+        "<li>say what the AI Receptionist does, in plain words, and that it's an AI;</li>" +
         "<li>tell them they can call (831) 230-2743 to hear it for themselves;</li>" +
         "<li>give the price in exactly these words: <span class=\"quote\">" + FD_PRICE_WORDS + "</span></li>" +
         "<li>end on a question.</li></ul>" +
@@ -99,7 +99,7 @@
     var pay = $("pay-words");
     pay.textContent = "";
     if (role === "either") {
-      pay.textContent = ROLES.websites.pay + " AI Front Desk pays $250 a sale plus $20 for each monthly payment, for as long as the customer keeps paying.";
+      pay.textContent = ROLES.websites.pay + " AI Receptionist pays $250 a sale plus $20 for each monthly payment, for as long as the customer keeps paying.";
     } else {
       pay.textContent = main.pay;
     }

@@ -1,4 +1,4 @@
-/* Front Desk demo: an AI phone assistant for a trades business, told as a self-playing story.
+/* AI Receptionist demo: an AI phone assistant for a trades business, told as a self-playing story.
    Everything is fictional: the business, the callers (555-01xx numbers), the week. No network calls. */
 (()=>{
 "use strict";
@@ -175,14 +175,14 @@ function sms(kind,text,t){const th=$("thread"),trim=()=>{while(th.children.lengt
 const PHONE_ICO=`<svg width="11" height="11" viewBox="0 0 16 16"><path d="M4.2 1.5l2 3.3-1.4 1.6c.9 1.9 2.5 3.5 4.4 4.4l1.6-1.4 3.3 2-1 2.9C7.7 14.5 1.5 8.3 1.3 2.5z" fill="#fff"/></svg>`;
 function resetOwner(time,date){$("lkT").textContent=time;$("lkD").textContent=date||"Monday, September 28";$("notes").innerHTML="";$("chIn").innerHTML=""}
 function note(title,body,ago="now"){const n=document.createElement("div");n.className="note";
-  n.innerHTML=`<header><i>${PHONE_ICO}</i>Front Desk<span>${ago}</span></header><b>${title}</b>${Array.isArray(body)?`<ul>${body.map(x=>`<li>${x}</li>`).join("")}</ul>`:`<p>${body}</p>`}`;
+  n.innerHTML=`<header><i>${PHONE_ICO}</i>AI Receptionist<span>${ago}</span></header><b>${title}</b>${Array.isArray(body)?`<ul>${body.map(x=>`<li>${x}</li>`).join("")}</ul>`:`<p>${body}</p>`}`;
   $("notes").prepend(n);while($("notes").children.length>3)$("notes").lastChild.remove()}
 function chatMode(m){const c=$("chat");c.classList.toggle("teams",m==="teams");
   $("chName").textContent=m==="teams"?"Dispatch  ›  New jobs":"# new-jobs";$("chSub").textContent=m==="teams"?"Microsoft Teams":"Slack";
   $("chSeg").querySelectorAll("button").forEach(b=>b.classList.toggle("on",b.dataset.c===m));lightTool(m==="teams"?"Teams":"Slack")}
 $("chSeg").querySelectorAll("button").forEach(b=>b.onclick=()=>chatMode(b.dataset.c));
 function post(text,fields,acts,time="now"){const p=document.createElement("div");p.className="post";
-  p.innerHTML=`<div class="pav">FD</div><div><header><b>Front Desk</b><em>APP</em><span>${time}</span></header><p>${text}</p>
+  p.innerHTML=`<div class="pav">AI</div><div><header><b>AI Receptionist</b><em>APP</em><span>${time}</span></header><p>${text}</p>
     ${fields?`<div class="att">${fields.map(([k,v])=>`<div><small>${k}</small><span>${v}</span></div>`).join("")}</div>`:""}
     ${acts?`<div class="acts">${acts.map((a,i)=>`<button class="${i?"":"pri"}">${a}</button>`).join("")}</div>`:""}</div>`;
   p.querySelectorAll(".acts button").forEach(b=>b.onclick=()=>{b.classList.remove("pri");b.classList.add("did");b.textContent="✓ "+b.textContent.replace(/^Assign to/,"Assigned to")});
@@ -363,7 +363,7 @@ let _errs=0;
 function frame(now){
   try{const dt=Math.min(now-last,100);last=now;_w=now-_wAt>=66;if(_w)_wAt=now;if(!st.paused)step(dt);
   if(st.hold){st.idle+=dt;if(st.idle>6500){st.hold=false;st.paused=false;setPlay();focus(storyFocus)}}tickK();drawWave(now);}
-  catch(e){if(_errs++<3&&window.console)console.error("front desk demo: a frame failed and was skipped",e)}
+  catch(e){if(_errs++<3&&window.console)console.error("AI receptionist demo: a frame failed and was skipped",e)}
   gate()}
 /* for checking a moment without waiting for it: demoSeek(story, ms) */
 window.demoSeek=(i,ms)=>{start(i);for(let e=0;e<ms;e+=40)step(40)};

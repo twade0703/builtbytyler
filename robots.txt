@@ -10,6 +10,8 @@ Disallow: /checkout-test
 Disallow: /checkout-test.html
 Disallow: /hiring
 Disallow: /hiring.html
+Disallow: /plan
+Disallow: /plan.html
 Disallow: /order-confirmed
 Disallow: /order-confirmed.html
 Disallow: /tools/

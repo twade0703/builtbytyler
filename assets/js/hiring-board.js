@@ -46,9 +46,11 @@
     return Math.round(m / 1440) + " d ago";
   }
   function good(p) { return p.tier === "top" || p.tier === "strong"; }
-  // Counts match Indeed's: anyone rejected on Indeed is left out of every number and chart,
-  // and listed last under its own heading (2026-10-25).
+  // Tyler, 2026-10-26: "Shows 39 but I was told we have 41 ... show them here". The totals count
+  // everyone who applied, rejected included, and say how many of them were rejected. The list still
+  // puts rejected people last, under their own heading.
   function people(role) { return (board ? board.people : []).filter(function (p) { return (!role || p.role === role) && !p.rejected; }); }
+  function everyone(role) { return (board ? board.people : []).filter(function (p) { return !role || p.role === role; }); }
   function rejected(role) { return (board ? board.people : []).filter(function (p) { return p.role === role && p.rejected; }); }
   function tierOf(p) { return TIER[p.tier] || TIER["new"]; }
 
@@ -96,26 +98,26 @@
 
   function render() {
     if (!board) return;
-    var all = people(), day = Date.now() - 864e5, hrs = Math.max(1, (Date.now() - t(board.posted)) / 36e5);
+    var all = everyone(), rej = all.filter(function (p) { return p.rejected; }).length, day = Date.now() - 864e5, hrs = Math.max(1, (Date.now() - t(board.posted)) / 36e5);
     var list = people(tab).slice().sort(function (a, b) { return (tierOf(a)[2] - tierOf(b)[2]) || (t(b.applied) - t(a.applied)); });
     var tiers = Object.keys(TIER).map(function (k) {
       var n = list.filter(function (p) { return p.tier === k; }).length;
       return n ? '<span class="chip" style="--t:' + TIER[k][1] + '"><i></i>' + TIER[k][0] + " <b>" + n + "</b></span>" : "";
     }).join("");
     var tabs = Object.keys(ROLE).map(function (k) {
-      var L = people(k), R = ROLE[k];
+      var L = everyone(k), R = ROLE[k];
       return '<button type="button" role="tab" class="tab' + (k === tab ? " on" : "") + '" style="--c:' + R.c + '" data-tab="' + k + '" aria-selected="' + (k === tab) + '">' +
-        '<div class="row"><b>' + R.t + "</b><em>" + L.length + "</em></div><u>" + L.filter(good).length + " worth a call</u></button>";
+        '<div class="row"><b>' + R.t + "</b><em>" + L.length + "</em></div><u>" + L.filter(function (p) { return good(p) && !p.rejected; }).length + " worth a call" + (rejected(k).length ? " · " + rejected(k).length + " rejected" : "") + "</u></button>";
     }).join("");
     app.innerHTML =
-      '<section class="hero"><div class="stat big"><b>' + all.length + '</b><u>Applicants, both jobs</u></div>' +
+      '<section class="hero"><div class="stat big"><b>' + all.length + '</b><u>Applicants, both jobs' + (rej ? " · " + rej + " rejected" : "") + '</u></div>' +
       '<div class="stat"><b>' + all.filter(function (p) { return t(p.applied) > day; }).length + '</b><u>Last 24 hours</u></div>' +
       '<div class="stat"><b>' + (all.length / hrs * 24).toFixed(1) + '</b><u>A day, average</u></div></section>' +
       '<nav class="tabs" role="tablist" aria-label="Which job">' + tabs + "</nav>" +
       '<div class="chips">' + tiers + "</div>" +
       '<section class="chart"><h3>' + ROLE[tab].t + " applicants <span>since the post went up</span></h3>" + chart(tab) + "</section>" +
       '<section class="list">' + (list.map(card).join("") || '<div class="empty">Nobody yet.</div>') +
-      (rejected(tab).length ? '<h3 class="rej">Rejected on Indeed <span>not counted, same as Indeed</span></h3>' + rejected(tab).map(card).join("") : "") + "</section>";
+      (rejected(tab).length ? '<h3 class="rej">Rejected on Indeed <span>counted in the totals above</span></h3>' + rejected(tab).map(card).join("") : "") + "</section>";
   }
 
   function stamp() {

@@ -164,7 +164,10 @@
       '<div class="stat g"><b>+' + $k(lo.mo1) + ' <em>to</em> ' + $k(hi.mo1) + '</b><u>Added every month after</u></div>' +
       '<div class="stat"><b>' + $(x.cost.total) + '</b><u>Cash to get ready</u></div>' +
       '<div class="stat v"><b>' + x.days2 + ' <em>to</em> ' + x.days1 + ' days</b><u>To build them (2 or 1 Claude lanes)</u></div></div>' +
-      '<p class="note">The ' + N(x.webHave) + ' you already have are the same demos the reps\' pages list (Rep 1 and Rep 2). They are counted here, not extra.</p>' +
+      '<p class="note">' + (S.codes === "free"
+        ? "The demos on your reps' lists (Rep 1 and Rep 2) are already counted, not extra. " + N(D.web.callable) + " are built in California and Nevada, but only " + N(x.webHave) +
+          " are inside the 5 free area codes, the only ones a closer can call once the Do Not Call list is in. So \"have\" is " + N(x.webHave) + "."
+        : "The demos on your reps' lists (Rep 1 and Rep 2) are the " + N(x.webHave) + " counted here, not extra.") + "</p>" +
       buildHtml(x);
     var dialsHtml =
       '<details class="adv"><summary><h2 id="dials">Assumptions<small>Tap to change closers, calls, pickup or close rates. The page redoes the math.</small></h2></summary><div class="card">' + DIALS.map(dial).join("") +

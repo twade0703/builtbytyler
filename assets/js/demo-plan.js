@@ -16,7 +16,7 @@
  */
 (function () {
   "use strict";
-  var KEY_STORE = "bbt-hire-k", DIAL_STORE = "bbt-plan-dials";
+  var KEY_STORE = "bbt-hire-k", DIAL_STORE = "bbt-plan-dials-v2";
   var app = document.getElementById("app"), upd = document.getElementById("upd"), btn = document.getElementById("refresh");
   var D = null, S = null, loading = false;
 
@@ -88,9 +88,11 @@
       builds: toBuild * per, dnc: paidCodes * D.dnc.per_code, lines: extraLines * 1.15, minutes: calls * 2 * 0.014,
     };
     cost.total = cost.builds + cost.dnc + cost.lines + cost.minutes;
+    var B = D.build_status || {}, perDay = (B.per_lane_week || 300) / 7;
+    var days1 = Math.ceil(toBuild / perDay), days2 = Math.ceil(toBuild / (2 * perDay));
     return { r: r, p: p, webNeed: webNeed, aiNeed: aiNeed, webHave: webHave, aiHave: aiHave, toBuild: toBuild, builds: Math.ceil(toBuild / D.build.pass),
       worst: S.calls * S.days * S.web, nCodes: nCodes, paidCodes: paidCodes, extraLines: extraLines, calls: calls, cost: cost,
-      lo: money(S.lo), hi: money(S.hi) };
+      lo: money(S.lo), hi: money(S.hi), days1: days1, days2: days2 };
   }
 
   /* ---------------- drawing ---------------- */
@@ -153,20 +155,23 @@
     var c = D.costs;
     var top =
       '<p class="lead">' + esc(D.week.label) + " · " + S.web + " website + " + S.ai + " AI Receptionist closer" + (seats === 1 ? "" : "s") + " · " + S.calls + " calls a day · " + S.days + " days</p>" +
-      '<nav class="nav"><a href="#answer">Answer</a><a href="#dials">Assumptions</a><a href="#recalls">Recalls</a><a href="#demos">Demos</a><a href="#money">Money</a><a href="#costs">Costs</a><a href="#status">Status</a></nav>' +
+      '<nav class="nav"><a href="#answer">Answer</a><a href="#build">Build tonight</a><a href="#money">Money</a><a href="#demos">Demos</a><a href="#recalls">Recalls</a><a href="#costs">Costs</a><a href="#status">Status</a><a href="#dials">Assumptions</a></nav>' +
 
       '<h2 id="answer">The short answer</h2><div class="grid">' +
       '<div class="stat bl"><b>' + N(x.webNeed) + '</b><u>Website demos needed</u></div>' +
       '<div class="stat a"><b>' + N(x.toBuild) + '</b><u>Still to build (have ' + N(x.webHave) + ")</u></div>" +
       '<div class="stat"><b>' + $k(lo.pocket) + ' <em>to</em> ' + $k(hi.pocket) + '</b><u>You pocket from the week (' + S.lo + "% to " + S.hi + "%)</u></div>" +
       '<div class="stat g"><b>+' + $k(lo.mo1) + ' <em>to</em> ' + $k(hi.mo1) + '</b><u>Added every month after</u></div>' +
-      '<div class="stat wide"><b>' + $(x.cost.total) + '</b><u>Cash to get ready (demo builds, extra area codes, phone lines, call minutes). Details under Costs.</u></div></div>';
+      '<div class="stat"><b>' + $(x.cost.total) + '</b><u>Cash to get ready</u></div>' +
+      '<div class="stat v"><b>' + x.days2 + ' <em>to</em> ' + x.days1 + ' days</b><u>To build them (2 or 1 Claude lanes)</u></div></div>' +
+      '<p class="note">The ' + N(x.webHave) + ' you already have are the same demos the reps\' pages list (Rep 1 and Rep 2). They are counted here, not extra.</p>' +
+      buildHtml(x);
     var dialsHtml =
-      '<h2 id="dials">Assumptions<small>Move any of these. The page redoes the math.</small></h2><div class="card">' + DIALS.map(dial).join("") +
+      '<details class="adv"><summary><h2 id="dials">Assumptions<small>Tap to change closers, calls, pickup or close rates. The page redoes the math.</small></h2></summary><div class="card">' + DIALS.map(dial).join("") +
       seg("codes", [["free", "Free 5 area codes"], ["all", "All of CA and NV"]], "Where they can call",
         "The Do Not Call download is the 5 free area codes (" + D.dnc.free.join(", ") + "). All of California and Nevada is " + x.nCodes + " area codes, $" + D.dnc.per_code + " each a year after the first 5.") +
       seg("route", [["apify", "Apify route, ~$" + D.build.apify.toFixed(2)], ["google", "Google route, ~$" + D.build.google.toFixed(2)]], "Demo build cost, per demo",
-        "Measured on past runs. About 3 in 10 builds pass every check, and the cost is per demo that passes.") + "</div>";
+        "Measured on past runs. About 3 in 10 builds pass every check, and the cost is per demo that passes.") + "</div></details>";
     var rest =
       '<h2 id="recalls">Calls and recalls<small>One closer\'s week. A business that doesn\'t pick up gets called again the next day, up to ' + S.tries + " tries.</small></h2>" +
       '<div class="card"><table><thead><tr><th></th><th>Each closer</th><th>All ' + seats + "</th></tr></thead><tbody>" +
@@ -223,7 +228,7 @@
       '<div class="card" style="margin-top:8px"><ul class="open">' + D.open.map(function (o) { return "<li>" + esc(o) + "</li>"; }).join("") + "</ul>" +
       '<p class="note"><a href="/hiring">See every applicant</a></p></div>';
     if (!dialsOnly || !document.getElementById("p-top")) {
-      app.innerHTML = '<div id="p-top"></div><div id="p-dials"></div><div id="p-rest"></div>';
+      app.innerHTML = '<div id="p-top"></div><div id="p-rest"></div><div id="p-dials"></div>';
       document.getElementById("p-dials").innerHTML = dialsHtml;
     } else {
       DIALS.forEach(function (d) { var o = document.getElementById("o-" + d[0]), i = document.getElementById("d-" + d[0]);
@@ -232,6 +237,32 @@
     }
     document.getElementById("p-top").innerHTML = top;
     document.getElementById("p-rest").innerHTML = rest;
+  }
+  /* Build tonight (2026-10-26). Tyler: "if I wanted to kick it off tonight, what do I need to do?"
+     Live from his PC: Apify room, Claude lanes, the city queue, disk, whether the runner is on. */
+  function buildHtml(x) {
+    var B = D.build_status || {}, A = B.apify || {}, C = B.cities || {}, cost = x.cost.builds;
+    var need = Math.max(0, cost - (A.left || 0)), raiseTo = Math.ceil(((A.used || 0) + cost + 20) / 50) * 50;
+    var chip = function (ok, label, val) { return '<div class="bchip ' + (ok ? "ok" : "no") + '"><i></i><span>' + label + "</span><b>" + val + "</b></div>"; };
+    var codes = Object.keys(C.by_code || {}).map(function (k) { return k + " (" + C.by_code[k] + ")"; }).join(", ");
+    var aiShort = Math.max(0, x.aiNeed - x.aiHave);
+    return '<h2 id="build">Build the demos tonight<small>' + N(x.toBuild) + " demos, about " + $(cost) + ". What has to be true, live from your PC.</small></h2>" +
+      '<div class="card bchips">' +
+      chip((A.left || 0) >= cost, "Apify money left this month", A.left != null ? $(A.left) + " of " + $(A.limit) : "?") +
+      chip(B.lanes_ready >= 2, "Claude lanes signed in", (B.lanes_ready || 1) + " of 2") +
+      chip((C.free_code || 0) > 0, "Cities queued (free area codes)", N(C.free_code || 0)) +
+      chip((B.disk_gb || 0) >= 10, "Free disk space", (B.disk_gb != null ? B.disk_gb + " GB" : "?")) +
+      chip(!!B.running, "Build running now", B.running ? "Yes" : "No") + "</div>" +
+      '<div class="card"><ol class="steps">' +
+      '<li><b>Raise the Apify limit to about ' + $(raiseTo) + ".</b> You do this one: Apify, then Settings, then Billing, then the monthly usage limit. Only " + $(A.left || 0) +
+        " is left until it resets " + esc(A.resets || "Oct 31") + ". This build needs about " + $(cost) + (need > 0 ? ", so about " + $(need) + " more." : ".") + "</li>" +
+      '<li><b>Optional, twice as fast: sign your second Claude account into lane 2.</b> One command in PowerShell, then sign in. One lane takes about ' + x.days1 + " days, two lanes about " + x.days2 + ".</li>" +
+      '<li><b>Tell Claude "start the build".</b> It runs the ' + N(C.free_code || 0) + " queued cities, all inside the free area codes: " + esc(codes) + ". Nothing starts or spends until you say so.</li>" +
+      "<li><b>Leave the PC on.</b> A restart stops the build. The counts on this page update as demos pass.</li></ol>" +
+      (S.ai ? '<p class="note">AI Receptionist: ' + N(x.aiHave) + " leads ready in the free area codes, " + N(x.aiNeed) + " needed for " + S.ai + " closers" +
+        (aiShort ? ". Short " + N(aiShort) + ". Another 1,000 leads is a small Apify pull, no demos, and can run alongside the build." : ". Enough.") + "</p>" : "") +
+      (S.web > 2 ? '<div class="warn">You have 2 website areas today: Rep 1 Southern California, Rep 2 Northern California and Nevada. A third website closer needs their own area so nobody calls the same business. For example: Rep 1 the 818 area, Rep 2 the 408 and 209 areas, Rep 3 the 619 and 702 areas.</div>' : "") +
+      "</div>";
   }
   function cost(a, b, note) { return '<div class="costrow"><b>' + esc(a) + "</b><span>" + esc(b) + "</span><p>" + esc(note) + "</p></div>"; }
 

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Demo week &middot; Built by Tyler</title>
+  <!-- Tyler's private demo-week plan. Same private key as /hiring (after the # in his link);
+       data from /api/hiring-board?doc=plan, published by 04 Legal/reps/hiring/demo_week.py. -->
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="referrer" content="no-referrer">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <meta name="theme-color" content="#0B0C10">
+  <meta name="apple-mobile-web-app-title" content="Demo week">
+  <style>
+    :root{--bg:#0B0C10;--card:#14161C;--card2:#1A1D25;--line:rgba(255,255,255,.08);--tx:#ECEEF3;--mu:#99A1B3;--dim:#646C7E;
+      --blue:#60A5FA;--violet:#A78BFA;--green:#4ADE80;--amber:#FBBF24;--red:#F87171;--teal:#2DD4BF}
+    *{box-sizing:border-box}
+    html{-webkit-text-size-adjust:100%}
+    body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.45 "Instrument Sans",system-ui,-apple-system,sans-serif;
+      padding:env(safe-area-inset-top) 0 calc(env(safe-area-inset-bottom) + 24px)}
+    button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+    a{color:var(--blue)}
+    .wrap{max-width:720px;margin:0 auto;padding:18px 16px 0}
+    .top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:6px}
+    .brand b{display:block;font:600 22px/1.1 "Bricolage Grotesque",system-ui,sans-serif;letter-spacing:-.02em}
+    .brand span{font:12px "JetBrains Mono",ui-monospace,monospace;color:var(--mu)}
+    .refresh{display:flex;align-items:center;gap:7px;padding:9px 13px;border-radius:999px;border:1px solid var(--line);background:var(--card);font-size:13px;font-weight:500}
+    .refresh svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+    .refresh.spin svg{animation:spin .8s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .lead{margin:0 0 14px;color:var(--mu);font-size:13.5px}
+    .nav{display:flex;gap:6px;overflow-x:auto;padding:4px 0 12px;margin:0 -16px;padding-left:16px;padding-right:16px;scrollbar-width:none;position:sticky;top:0;z-index:5;background:linear-gradient(var(--bg) 80%,transparent)}
+    .nav::-webkit-scrollbar{display:none}
+    .nav a{flex:none;padding:7px 12px;border-radius:999px;background:var(--card);border:1px solid var(--line);color:var(--tx);text-decoration:none;font-size:13px}
+
+    h2{margin:22px 0 10px;font:600 18px/1.2 "Bricolage Grotesque",system-ui,sans-serif;letter-spacing:-.01em;scroll-margin-top:56px}
+    h2 small{display:block;font:400 12.5px "Instrument Sans",sans-serif;color:var(--mu);margin-top:3px;letter-spacing:0}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .stat{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 13px}
+    .stat b{display:block;font:500 28px/1 "JetBrains Mono",ui-monospace,monospace;letter-spacing:-.04em}
+    .stat u{display:block;text-decoration:none;font-size:12px;color:var(--mu);margin-top:7px}
+    .stat.wide{grid-column:1 / -1}
+    .stat.g b{color:var(--green)} .stat.a b{color:var(--amber)} .stat.v b{color:var(--violet)} .stat.bl b{color:var(--blue)}
+    .stat em{font-style:normal;font-size:12px;color:var(--mu);font-family:"Instrument Sans",sans-serif;letter-spacing:0}
+
+    .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px}
+    .card+.card{margin-top:8px}
+    .dial{display:grid;grid-template-columns:1fr auto;gap:2px 10px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
+    .dial:first-child{border-top:0;padding-top:0}
+    .dial label{font-size:14px;font-weight:500}
+    .dial output{font:500 15px "JetBrains Mono",ui-monospace,monospace;color:var(--blue)}
+    .dial input[type=range]{grid-column:1 / -1;width:100%;accent-color:var(--blue);height:28px}
+    .dial p{grid-column:1 / -1;margin:0;font-size:12px;color:var(--mu)}
+    .seg{grid-column:1 / -1;display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px}
+    .seg button{padding:9px 8px;border-radius:10px;border:1px solid var(--line);font-size:13px;color:var(--mu)}
+    .seg button.on{border-color:rgba(96,165,250,.55);background:rgba(96,165,250,.14);color:var(--tx)}
+
+    table{width:100%;border-collapse:collapse;font-size:13.5px}
+    th,td{padding:8px 6px;text-align:right;border-top:1px solid var(--line);font-variant-numeric:tabular-nums}
+    th:first-child,td:first-child{text-align:left;color:var(--mu);font-weight:400}
+    thead th{border-top:0;font:600 12px "JetBrains Mono",ui-monospace,monospace;color:var(--mu)}
+    thead th.lo{color:var(--amber)} thead th.hi{color:var(--green)}
+    tr.big td{font-weight:600;color:var(--tx);font-size:15px}
+    tr.big td:first-child{color:var(--tx)}
+    td.g{color:var(--green)}
+    .note{margin:8px 0 0;font-size:12.5px;color:var(--mu)}
+    .warn{margin-top:8px;padding:10px 12px;border-radius:12px;background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.3);font-size:13px}
+    svg.ch{display:block;width:100%;height:150px;margin-top:6px}
+    .ax{fill:var(--dim);font:10px "JetBrains Mono",ui-monospace,monospace}
+    .key{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--mu);margin-top:4px}
+    .key i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+    ul.open{margin:0;padding-left:18px}
+    ul.open li{margin:5px 0}
+    .costrow{display:grid;grid-template-columns:1fr auto;gap:2px 10px;padding:9px 0;border-top:1px solid var(--line)}
+    .costrow:first-child{border-top:0}
+    .costrow b{font-weight:500;font-size:14px}
+    .costrow span{font:500 14px "JetBrains Mono",ui-monospace,monospace;text-align:right}
+    .costrow p{grid-column:1 / -1;margin:0;font-size:12px;color:var(--mu)}
+    .gate{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px 18px;color:var(--mu);text-align:center;margin-top:12px}
+    .gate b{display:block;color:var(--tx);font-size:17px;margin-bottom:6px}
+    .foot{margin:22px 0 0;font-size:12px;color:var(--dim);text-align:center}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="top">
+      <div class="brand"><b>Demo week</b><span id="upd">Loading…</span></div>
+      <button class="refresh" id="refresh" type="button" aria-label="Refresh"><svg viewBox="0 0 16 16"><path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9M13.5 2.5v3h-3"/></svg>Refresh</button>
+    </header>
+    <main id="app"></main>
+    <p class="foot">Private to Tyler. Counts update from your PC every 3 hours. Moving a slider only changes this phone's view.</p>
+  </div>
+  <script src="assets/js/demo-plan.js?v=90"></script>
+</body>
+</html>

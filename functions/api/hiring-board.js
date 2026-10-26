@@ -5,6 +5,8 @@
  *                            Needs "Authorization: Bearer <APPLY_ADMIN_KEY>".
  *                            Body: { board: {...}, view_hash: "<sha256 hex of the view key>" }
  *   GET  /api/hiring-board   The page reads it. Needs "Authorization: Bearer <view key>".
+ *   ?doc=plan / body.doc "plan": the demo-week plan behind /plan (demo_week.py publish),
+ *                            same keys, its own KV entry.
  *
  * The view key lives only in the link Tyler was texted (after the #, so it is
  * never sent in a URL or written to a log) and in his browser's storage. KV
@@ -13,7 +15,7 @@
  * number, email or street address (hiring_store.py strips them before upload).
  */
 
-const BOARD = "board:latest";
+const DOCS = { board: "board:latest", plan: "plan:latest" };   // /hiring and /plan
 const VIEW = "board:viewhash";
 const json = (obj, status = 200) =>
   new Response(JSON.stringify(obj), {
@@ -45,10 +47,12 @@ export async function onRequestPost({ request, env }) {
   } catch (e) {
     return json({ ok: false, error: "bad json" }, 400);
   }
-  if (!body || typeof body.board !== "object" || !Array.isArray(body.board.people)) return json({ ok: false, error: "no board" }, 400);
+  if (!body || typeof body.board !== "object" || (body.doc !== "plan" && !Array.isArray(body.board.people))) return json({ ok: false, error: "no board" }, 400);
   if (body.view_hash && !/^[0-9a-f]{64}$/.test(body.view_hash)) return json({ ok: false, error: "bad view_hash" }, 400);
+  const doc = DOCS[body.doc || "board"];
+  if (!doc) return json({ ok: false, error: "bad doc" }, 400);
   body.board.published = new Date().toISOString();
-  await env.APPLY.put(BOARD, JSON.stringify(body.board));
+  await env.APPLY.put(doc, JSON.stringify(body.board));
   if (body.view_hash) await env.APPLY.put(VIEW, body.view_hash);
   return json({ ok: true, people: body.board.people.length, published: body.board.published });
 }
@@ -58,7 +62,9 @@ export async function onRequestGet({ request, env }) {
   const key = bearer(request);
   const hash = await env.APPLY.get(VIEW);
   if (!hash || key.length < 24 || !same(await sha256hex(key), hash)) return json({ ok: false }, 401);
-  const board = await env.APPLY.get(BOARD, { type: "json" });
+  const doc = DOCS[new URL(request.url).searchParams.get("doc") || "board"];
+  if (!doc) return json({ ok: false }, 400);
+  const board = await env.APPLY.get(doc, { type: "json" });
   if (!board) return json({ ok: false, error: "nothing published yet" }, 404);
   return json({ ok: true, board });
 }

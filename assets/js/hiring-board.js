@@ -46,7 +46,10 @@
     return Math.round(m / 1440) + " d ago";
   }
   function good(p) { return p.tier === "top" || p.tier === "strong"; }
-  function people(role) { return (board ? board.people : []).filter(function (p) { return !role || p.role === role; }); }
+  // Counts match Indeed's: anyone rejected on Indeed is left out of every number and chart,
+  // and listed last under its own heading (2026-10-25).
+  function people(role) { return (board ? board.people : []).filter(function (p) { return (!role || p.role === role) && !p.rejected; }); }
+  function rejected(role) { return (board ? board.people : []).filter(function (p) { return p.role === role && p.rejected; }); }
   function tierOf(p) { return TIER[p.tier] || TIER["new"]; }
 
   function chart(role) {
@@ -111,7 +114,8 @@
       '<nav class="tabs" role="tablist" aria-label="Which job">' + tabs + "</nav>" +
       '<div class="chips">' + tiers + "</div>" +
       '<section class="chart"><h3>' + ROLE[tab].t + " applicants <span>since the post went up</span></h3>" + chart(tab) + "</section>" +
-      '<section class="list">' + (list.map(card).join("") || '<div class="empty">Nobody yet.</div>') + "</section>";
+      '<section class="list">' + (list.map(card).join("") || '<div class="empty">Nobody yet.</div>') +
+      (rejected(tab).length ? '<h3 class="rej">Rejected on Indeed <span>not counted, same as Indeed</span></h3>' + rejected(tab).map(card).join("") : "") + "</section>";
   }
 
   function stamp() {

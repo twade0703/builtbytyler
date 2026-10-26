@@ -257,8 +257,14 @@
       chip((B.disk_gb || 0) >= 10, "Free disk space", (B.disk_gb != null ? B.disk_gb + " GB" : "?")) +
       chip(!!B.running, "Build running now", B.running ? "Yes" : "No") + "</div>" +
       '<div class="card"><ol class="steps">' +
-      '<li><b>Raise the Apify limit to about ' + $(raiseTo) + ".</b> You do this one: Apify, then Settings, then Billing, then the monthly usage limit. Only " + $(A.left || 0) +
-        " is left until it resets " + esc(A.resets || "Oct 31") + ". This build needs about " + $(cost) + (need > 0 ? ", so about " + $(need) + " more." : ".") + "</li>" +
+      /* Apify's Starter plan can't spend past $100 a month (help.apify.com "Reaching platform limits",
+         checked 2026-10-26); Scale ($199) goes to $1,000 and its $199 is prepaid usage, not a fee on top. */
+      (need > 0 && (A.limit || 0) <= 100
+        ? '<li><b>Upgrade Apify to the Scale plan ($199), then set the limit to about ' + $(raiseTo) + ".</b> You do this one. Your Starter plan can't go past $100 a month, and only " + $(A.left || 0) +
+          " is left. In Apify: Billing, then Subscription, then Upgrade (you pay only the days left in this cycle). Then Billing, then Limits, then Edit limit. The $199 is prepaid usage the build spends, not a fee on top. This build needs about " +
+          $(cost) + ". Drop back to Starter once the demos are built.</li>"
+        : '<li><b>Raise the Apify limit to about ' + $(raiseTo) + ".</b> You do this one: Apify, then Billing, then Limits. Only " + $(A.left || 0) +
+          " is left until it resets " + esc(A.resets || "Oct 31") + ". This build needs about " + $(cost) + (need > 0 ? ", so about " + $(need) + " more." : ".") + "</li>") +
       '<li><b>Optional, twice as fast: sign your second Claude account into lane 2.</b> One command in PowerShell, then sign in. One lane takes about ' + x.days1 + " days, two lanes about " + x.days2 + ".</li>" +
       '<li><b>Tell Claude "start the build".</b> It runs the ' + N(C.free_code || 0) + " queued cities, all inside the free area codes: " + esc(codes) + ". Nothing starts or spends until you say so.</li>" +
       "<li><b>Leave the PC on.</b> A restart stops the build. The counts on this page update as demos pass.</li></ol>" +

@@ -54,7 +54,7 @@ export async function onRequestPost({ request, env }) {
   body.board.published = new Date().toISOString();
   await env.APPLY.put(doc, JSON.stringify(body.board));
   if (body.view_hash) await env.APPLY.put(VIEW, body.view_hash);
-  return json({ ok: true, people: body.board.people.length, published: body.board.published });
+  return json({ ok: true, doc: body.doc || "board", people: (body.board.people || []).length, published: body.board.published });
 }
 
 export async function onRequestGet({ request, env }) {

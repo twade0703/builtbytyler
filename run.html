@@ -142,6 +142,27 @@
     .bar1.on i{background:linear-gradient(90deg,var(--s1),#7fb3f0,var(--s1));background-size:200% 100%;animation:flow 1.6s linear infinite}
     @keyframes flow{to{background-position:-200% 0}}
     @media (prefers-reduced-motion:reduce){.livepill.on i,.bar1.on i{animation:none}}
+
+    /* moving parts (2026-10-27, Tyler: "I need to see something moving ... telling me that it's working ... a status check") */
+    .beat{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:10px;font:500 11.5px var(--mono);color:var(--mu)}
+    .beat b{color:var(--tx);font-weight:600;font-variant-numeric:tabular-nums}
+    .hb{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--s1);margin-right:8px;vertical-align:1px;animation:pulse 1s ease-in-out infinite}
+    .steps{display:flex;gap:6px;margin-top:12px;flex-wrap:wrap}
+    .steps span{flex:1;min-width:70px;text-align:center;padding:7px 6px;border-radius:8px;border:1px solid var(--edge2);font:600 10px var(--mono);letter-spacing:.06em;color:var(--dim)}
+    .steps span.done{color:#8fbaf0;border-color:rgba(57,135,229,.35);background:rgba(57,135,229,.08)}
+    .steps span.now{color:#fff;border-color:var(--s1);background:rgba(57,135,229,.22);animation:glow 1.6s ease-in-out infinite}
+    @keyframes glow{0%,100%{box-shadow:0 0 0 0 rgba(57,135,229,0)}50%{box-shadow:0 0 0 4px rgba(57,135,229,.25)}}
+    .feed{margin-top:12px;max-height:150px;overflow:hidden;border-radius:9px;border:1px solid var(--edge);background:rgba(0,0,0,.28);padding:8px 10px}
+    .feed div{font:11px/1.6 var(--mono);color:#9fb4d8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .feed div:first-child{color:#fff}
+    .feed div.new{animation:fadein .8s ease-out}
+    @keyframes fadein{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+    .chk{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:14px;padding:12px 14px}
+    .chk > b{font:700 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;margin-right:4px}
+    .chk span{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:7px;border:1px solid;font:500 11.5px var(--mono)}
+    .chk span.ok{color:#5fd35f;border-color:rgba(12,163,12,.4);background:rgba(12,163,12,.08)}
+    .chk span.bad{color:#f0a07c;border-color:rgba(217,89,38,.5);background:rgba(217,89,38,.1)}
+    @media (prefers-reduced-motion:reduce){.hb,.steps span.now,.feed div.new{animation:none}}
   </style>
 </head>
 <body>
@@ -155,14 +176,17 @@
       <div class="bign"><b id="orbn">–</b><u id="orbl">DEMOS PASSED THIS RUN</u><span id="orbs"></span></div>
       <div class="lv"><span class="livepill" id="lvpill"><i></i><span id="lvstate">LOADING</span></span>
         <h3 id="lvcity">–</h3><div class="stage" id="lvstage"></div>
+        <div class="beat"><span><i class="hb"></i><b id="lvclock">0:00:00</b> on this city</span><span id="lvbeat">checking…</span></div>
+        <div class="steps" id="lvsteps"></div>
         <div class="bar1" id="lvbar"><i style="width:0%"></i></div><div class="small" id="lvprog"></div>
         <div class="lvc"><div><b id="lvf">–</b><u>Found here</u></div><div><b id="lvn">–</b><u>No website</u></div><div><b id="lvb">–</b><u>Built</u></div><div><b id="lvp">–</b><u>Passed</u></div></div>
-        <div class="tick" id="lvtick">waiting for the runner…</div></div>
+        <div class="feed" id="lvfeed"><div>waiting for the runner…</div></div></div>
     </section>
+    <section class="panel chk" id="checks" aria-label="System check"></section>
     <main id="app"></main>
     <footer class="foot"><span>Private to Tyler · your PC sends numbers every minute · this page checks every 30 seconds</span><span>Data: lead folders, Apify meter, Google estimate, Claude meter, reps' app</span></footer>
   </div>
   <div class="tip" id="tip" role="status" aria-live="polite"></div>
-  <script src="assets/js/run-board.js?v=10"></script>
+  <script src="assets/js/run-board.js?v=11"></script>
 </body>
 </html>

@@ -159,7 +159,20 @@
       '<div style="max-width:300px;margin:0 auto">' + svg + '</div><p class="small" style="text-align:center;margin:6px 0 0">Past runs: about 1 in 3. Van Nuys lost most to too few photos of their own.</p>');
   }
 
-  /* ---------- 5. Rep 1 vs Rep 2, grouped bars ---------- */
+  /* ---------- 5. pace: how fast the factory is going ---------- */
+  function rates(b) {
+    var r = b.rates || {}, t = b.totals || {}, tile = function (v, l, sub) { return "<div><b>" + v + "</b><u>" + esc(l) + "</u>" + (sub ? '<em style="display:block;font-style:normal;font-size:11px;color:var(--dim);margin-top:2px">' + esc(sub) + "</em>" : "") + "</div>"; };
+    var perday = function (x) { return x == null ? "–" : num(Math.round(x * 24)); };
+    return panel("c4 half", "Pace", "Per hour of running · " + (r.hours != null ? r.hours.toFixed(1) : "–") + " h so far", "",
+      '<div class="stock" style="margin-top:0">' +
+      tile(r.passed_per_hour == null ? "–" : r.passed_per_hour, "Demos passed an hour", "about " + perday(r.passed_per_hour) + " a day") +
+      tile(r.built_per_hour == null ? "–" : r.built_per_hour, "Sites built an hour", "about " + perday(r.built_per_hour) + " a day") +
+      tile(r.found_per_hour == null ? "–" : num(r.found_per_hour), "Businesses found an hour", num(t.found) + " so far") +
+      tile(t.built ? pct(t.passed, t.built) : "–", "Pass rate", num(t.passed) + " of " + num(t.built) + " built") + "</div>" +
+      '<p class="small" style="margin-top:10px">Building is the slow step: a big city spends about 2 hours finding businesses before its first site is built.</p>');
+  }
+
+  /* ---------- 5b. Rep 1 vs Rep 2 (no longer on this page) ---------- */
   var RM = [["called", "Called", "Called"], ["reached", "Reached", "Reached someone"], ["owner", "Owner", "Reached the owner"],
             ["callbacks", "Call-backs", "Call-backs set"], ["demos_texted", "Texted", "Demos texted"], ["sold", "Sold", "Sold"]];
   function reps(rs) {
@@ -248,10 +261,33 @@
     setText("lvprog", now && now.to_build ? num(now.built) + " of " + num(now.to_build) + " sites built here" : on ? "Scraping and checking: building starts after the list is ready" : "");
     setText("lvf", now ? num(now.found) : "–"); setText("lvn", now ? num(now.no_site) : "–");
     setText("lvb", now ? num(now.built) : "–"); setText("lvp", now ? num(now.passed) : "–");
-    var lg = (b.activity && b.activity.length) ? b.activity : (b.log || []); setText("lvtick", lg.length ? lg[lg.length - 1].replace(/^\d{4}-\d\d-\d\d /, "").trim() : "waiting for the runner…");
+    LIVE = { at: Date.now(), started: b.now_started ? new Date(b.now_started).getTime() : null, beat: b.heartbeat_s, updated: new Date(b.updated).getTime() };
+    var st = now ? now.stage : null, order = ["F1", "F2", "F4", "F5", "F7", "F8"], names = ["SCRAPE", "RANK", "PICK", "PHOTOS", "BUILD", "NOTES"];
+    var pos = st === "F3" ? 1 : st === "F6" ? 3 : st === "F9" || st === "done" ? 6 : order.indexOf(st);
+    var steps = document.getElementById("lvsteps");
+    if (steps) steps.innerHTML = names.map(function (n, i) { return '<span class="' + (i < pos ? "done" : i === pos ? "now" : "") + '">' + (i < pos ? "✓ " : i === pos ? "● " : "") + n + "</span>"; }).join("");
+    var feed = document.getElementById("lvfeed"), lines = (b.feed || []).slice().reverse();
+    if (feed && lines.length) {
+      var seen = {}; [].forEach.call(feed.children, function (d) { seen[d.textContent] = 1; });
+      feed.innerHTML = lines.map(function (l) { var x = l.trim(); return '<div class="' + (seen[x] ? "" : "new") + '">' + esc(x) + "</div>"; }).join("");
+    }
+    var ck = document.getElementById("checks");
+    if (ck) ck.innerHTML = "<b>System check</b>" + (b.checks || []).map(function (c) { return '<span class="' + (c.ok ? "ok" : "bad") + '">' + (c.ok ? "✓ " : "⚠ ") + esc(c.k) + ": " + esc(c.v) + "</span>"; }).join("") +
+      '<span class="ok" id="lvfresh">✓ Page: updated just now</span>';
+    tick();
   }
 
   /* ---------- header KPIs ---------- */
+  var LIVE = null;
+  function hms(ms) { var sec = Math.max(0, Math.floor(ms / 1000)), h = Math.floor(sec / 3600), m = Math.floor(sec % 3600 / 60), x = sec % 60; return h + ":" + String(m).padStart(2, "0") + ":" + String(x).padStart(2, "0"); }
+  function tick() {
+    if (!LIVE) return;
+    var el = document.getElementById("lvclock"); if (el) el.textContent = LIVE.started ? hms(Date.now() - LIVE.started) : "–";
+    var since = (Date.now() - LIVE.at) / 1000, bt = document.getElementById("lvbeat");
+    if (bt) bt.textContent = LIVE.beat == null ? "no city running" : "last activity " + Math.round(LIVE.beat + since) + "s ago";
+    var fr = document.getElementById("lvfresh"); if (fr) fr.textContent = "✓ Page: data " + Math.round((Date.now() - LIVE.updated) / 1000) + "s old";
+  }
+  setInterval(tick, 1000);
   function header(b) {
     var t = b.totals || {}, s = b.stock || {}, m = b.money || {}, hist = b.history || [], today = hist.length ? hist[hist.length - 1].passed : 0;
     var spent = ((m.apify && m.apify.spent_run) || 0) + ((m.google && m.google.usd) || 0);
@@ -267,8 +303,8 @@
     var d = donut(b.totals || {}, b.reasons || {});
     app.innerHTML = '<div class="g">' + cities(b.cities || []).replace('class="panel c8"', 'class="panel c12"') + "</div>" +
       '<div class="g">' + areaChart(hist) + d.html + "</div>" +
-      '<div class="g">' + spend(b.money || {}) + gauge(b.totals || {}) + reps(b.reps) + "</div>";
-    bindArea(hist); bindDonut(d); bindReps(b.reps);
+      '<div class="g">' + rates(b) + spend(b.money || {}) + gauge(b.totals || {}) + "</div>";
+    bindArea(hist); bindDonut(d);
   }
 
   function gate(t, s) { app.innerHTML = '<div class="panel gate"><b>' + esc(t) + "</b>" + esc(s) + "</div>"; }

@@ -32,6 +32,26 @@
     return load(KEY_STORE);
   }
   function esc(s) {
+
+  /* A resume, laid out (2026-10-26): the same blocks RAGER draws (control/resumefmt.py): section headers,
+     each job as title / dates / company and place with its bullets, skills as tags. */
+  function resumeHTML(p) {
+    var out = [], ul = [];
+    function flush() { if (ul.length) { out.push("<ul>" + ul.map(function (t) { return "<li>" + esc(t) + "</li>"; }).join("") + "</ul>"); ul = []; } }
+    (p.resume_doc || []).forEach(function (b) {
+      if (b.li != null) { ul.push(b.li); return; }
+      flush();
+      if (b.h) out.push("<h4>" + esc(b.h) + "</h4>");
+      else if (b.hr) out.push('<div class="rs-hr"><span>' + esc(b.hr) + "</span></div>");
+      else if (b.job) {
+        var j = b.job, sub = [j.org, j.where].filter(Boolean).join(" · ");
+        out.push('<div class="rs-job"><div class="rs-jt"><b>' + esc(j.title) + "</b>" + (j.when ? "<em>" + esc(j.when) + "</em>" : "") + "</div>" + (sub ? '<div class="rs-jo">' + esc(sub) + "</div>" : "") + "</div>");
+      } else if (b.chips) out.push('<div class="rs-chips">' + b.chips.map(function (c) { return "<span>" + esc(c) + "</span>"; }).join("") + "</div>");
+      else if (b.p) out.push("<p>" + esc(b.p) + "</p>");
+    });
+    flush();
+    return '<article class="rs"><header><b>' + esc(p.name || "") + "</b>" + (p.headline ? "<span>" + esc(p.headline) + "</span>" : "") + (p.where ? "<em>" + esc(p.where) + "</em>" : "") + "</header>" + out.join("") + "</article>";
+  }
     return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
       return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
     });
@@ -85,7 +105,7 @@
         ((p.evidence || []).length ? "<ul>" + p.evidence.map(function (e) { return "<li>" + esc(e) + "</li>"; }).join("") + "</ul>" : "") +
         (p.note ? '<div class="note"><div class="lbl">Claude\'s read</div>' + esc(p.note) + "</div>" : "") +
         ((p.answers || []).length ? '<div class="ans"><div class="lbl">Their apply-page answers</div>' + p.answers.map(function (a) { return "<div><b>" + esc(a[0]) + "</b>" + esc(a[1]) + "</div>"; }).join("") + "</div>" : "") +
-        (p.resume ? '<details class="res"><summary>Read the resume</summary><pre>' + esc(p.resume) + "</pre></details>" : "") +
+        (p.resume ? '<details class="res"><summary>Read the resume</summary>' + ((p.resume_doc || []).length ? resumeHTML(p) : "<pre>" + esc(p.resume) + "</pre>") + "</details>" : "") +
         (p.profile_url ? '<a class="indeed" href="' + esc(p.profile_url) + '" target="_blank" rel="noopener noreferrer">Open on Indeed: message or call</a>' : "") +
         "</div>";
     }

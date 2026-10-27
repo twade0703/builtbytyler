@@ -135,11 +135,16 @@
       return '<div class="pr"><div class="h"><span style="font-family:inherit">' + esc(label) + "</span><span>" + esc(val) + '</span></div><div class="t" role="img" aria-label="' + esc(label + " " + val) +
         '"><i style="width:' + (Math.min(1, Math.max(0, f)) * 100).toFixed(1) + '%"></i>' + (stop != null ? '<em style="left:' + (Math.min(1, stop) * 100).toFixed(1) + '%"></em>' : "") + "</div><p>" + note + "</p></div>";
     };
-    return panel("c4 half", "Spending against the stop lines", "White tick = the run stops itself", "",
+    var r = m.run || {}, tile = function (v, l, sub) { return "<div><b>" + v + "</b><u>" + esc(l) + "</u>" + (sub ? '<em style="display:block;font-style:normal;font-size:11px;color:var(--dim);margin-top:2px">' + esc(sub) + "</em>" : "") + "</div>"; };
+    /* what this run has cost, all services (Tyler, 2026-10-27: "did we really spend a hundred dollars on 140 demos?") */
+    var head = '<div class="stock" style="margin:0 0 12px">' +
+      tile(r.total == null ? "–" : usd(r.total), "Spent this run", "Apify " + usd(r.apify) + " + Google " + usd(r.google)) +
+      tile(r.per_demo == null ? "–" : usd(r.per_demo), "Per passed demo", num(r.passed) + " passed so far") + "</div>";
+    return panel("c4 half", "Spending against the stop lines", "White tick = the run stops itself", "", head +
       pr("Apify (scraping)", pct(a.used || 0, a.account_limit || 199), (a.used || 0) / (a.account_limit || 199), (a.stop_at || 190) / (a.account_limit || 199),
         esc(usd(a.spent_run) + " this run · " + usd(a.used) + " of " + usd(a.account_limit) + " this month · stops " + usd(a.stop_at))) +
       pr("Google (photos, reviews)", pct(g.usd || 0, g.cap || 50), (g.usd || 0) / (g.cap || 50), 1,
-        esc("~" + usd(g.usd) + " of $" + num(g.cap) + " · " + num(g.leads) + " businesses at ~" + usd(g.per_lead) + " · estimate")) +
+        esc(usd(g.usd) + " of $" + num(g.cap) + " cap · " + num(g.leads) + " listings × $" + g.details_usd + " + " + num(g.photos) + " photos × $" + g.photo_usd + " · counted from calls at list price")) +
       pr("Claude (weekly limit)", c.weekly == null ? "–" : c.weekly + "%", (c.weekly || 0) / 100, (c.stop_at || 70) / 100,
         esc("started " + num(c.start) + "% · stops " + (c.stop_at || 70) + "% · checked " + ago(c.at) + " · resets " + (c.resets || ""))));
   }

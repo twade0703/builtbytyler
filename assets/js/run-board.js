@@ -248,8 +248,10 @@
       cv.width = Math.max(1, w * d); cv.height = Math.max(1, h * d); ctx.setTransform(d, 0, 0, d, 0, 0);
     }
     addEventListener("resize", fit); fit();
+    if (window.ResizeObserver) new ResizeObserver(fit).observe(cv);    // re-measure once the page has laid out
     var L = [];
     function frame(now) {
+      if (cv.clientWidth !== w || cv.clientHeight !== h) fit();
       var t = (now - t0) / 1000, run = mode === "run", wait = mode === "wait";
       var spin = run ? 0.32 : wait ? 0.12 : 0.05, ripple = run ? 0.11 : wait ? 0.05 : 0.025, flip = run ? 0.025 : wait ? 0.006 : 0.0015;
       var ay = t * spin, ax = 0.35 * Math.sin(t * 0.17), cy = Math.cos(ay), sy = Math.sin(ay), cx = Math.cos(ax), sx = Math.sin(ax);

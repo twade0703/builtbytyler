@@ -12,6 +12,8 @@ Disallow: /hiring
 Disallow: /hiring.html
 Disallow: /plan
 Disallow: /plan.html
+Disallow: /run
+Disallow: /run.html
 Disallow: /order-confirmed
 Disallow: /order-confirmed.html
 Disallow: /tools/

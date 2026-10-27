@@ -78,6 +78,18 @@
   Cache-Control: no-store
   Referrer-Policy: no-referrer
   X-Robots-Tag: noindex, nofollow
+/run
+  ! Cache-Control
+  ! Referrer-Policy
+  Cache-Control: no-store
+  Referrer-Policy: no-referrer
+  X-Robots-Tag: noindex, nofollow
+/run.html
+  ! Cache-Control
+  ! Referrer-Policy
+  Cache-Control: no-store
+  Referrer-Policy: no-referrer
+  X-Robots-Tag: noindex, nofollow
 
 # The rep application records a 60-second voice memo in the browser. Only this
 # page may use the microphone (microphone=(self)), and only it may play the

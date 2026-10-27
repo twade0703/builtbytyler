@@ -6,6 +6,8 @@
  *                            Body: { board: {...}, view_hash: "<sha256 hex of the view key>" }
  *   GET  /api/hiring-board   The page reads it. Needs "Authorization: Bearer <view key>".
  *   ?doc=plan / body.doc "plan": the demo-week plan behind /plan (demo_week.py publish),
+ *   ?doc=run / body.doc "run": the live demo-factory run behind /run (leads/night/run_board.py),
+ *                            counts and dollars only.
  *                            same keys, its own KV entry.
  *
  * The view key lives only in the link Tyler was texted (after the #, so it is
@@ -15,7 +17,7 @@
  * number, email or street address (hiring_store.py strips them before upload).
  */
 
-const DOCS = { board: "board:latest", plan: "plan:latest" };   // /hiring and /plan
+const DOCS = { board: "board:latest", plan: "plan:latest", run: "run:latest" };   // /hiring, /plan and /run
 const VIEW = "board:viewhash";
 const json = (obj, status = 200) =>
   new Response(JSON.stringify(obj), {
@@ -47,7 +49,7 @@ export async function onRequestPost({ request, env }) {
   } catch (e) {
     return json({ ok: false, error: "bad json" }, 400);
   }
-  if (!body || typeof body.board !== "object" || (body.doc !== "plan" && !Array.isArray(body.board.people))) return json({ ok: false, error: "no board" }, 400);
+  if (!body || typeof body.board !== "object" || (!["plan", "run"].includes(body.doc) && !Array.isArray(body.board.people))) return json({ ok: false, error: "no board" }, 400);
   if (body.view_hash && !/^[0-9a-f]{64}$/.test(body.view_hash)) return json({ ok: false, error: "bad view_hash" }, 400);
   const doc = DOCS[body.doc || "board"];
   if (!doc) return json({ ok: false, error: "bad doc" }, 400);

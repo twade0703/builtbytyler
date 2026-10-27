@@ -16,7 +16,7 @@
  */
 (function () {
   "use strict";
-  var KEY_STORE = "bbt-hire-k", DIAL_STORE = "bbt-plan-dials-v2";
+  var KEY_STORE = "bbt-hire-k", DIAL_STORE = "bbt-plan-dials-v3";
   var app = document.getElementById("app"), upd = document.getElementById("upd"), btn = document.getElementById("refresh");
   var D = null, S = null, loading = false;
 
@@ -56,11 +56,12 @@
   }
 
   function money(c) {
-    var P = D.price, per = S.calls * S.days * c / 100;
+    /* website and AI closers dial at their own pace (2026-10-27: AI 150-200 a day, websites 100) */
+    var P = D.price, per = S.calls * S.days * c / 100, perA = S.aiCalls * S.days * c / 100;
     var st = function (amt) { return amt * P.stripe_pct / 100 + P.stripe_fixed; };
-    var w = per * S.web, a = per * S.ai, sales = w + a;
-    var bonusEach = per >= P.bonus_at ? P.bonus : 0;
-    var comm = w * P.web.comm + a * P.ai.comm, bonus = bonusEach * (S.web + S.ai);
+    var w = per * S.web, a = perA * S.ai, sales = w + a;
+    var bonusEach = per >= P.bonus_at ? P.bonus : 0, bonusAi = perA >= P.bonus_at ? P.bonus : 0;
+    var comm = w * P.web.comm + a * P.ai.comm, bonus = bonusEach * S.web + bonusAi * S.ai;
     var gross = sales * 500, stripe = sales * st(500);
     var keepWeb = P.web.mo - P.web.resid - st(P.web.mo), keepAi = P.ai.mo - P.ai.resid - st(P.ai.mo);
     var keepWeb2 = P.web.mo - st(P.web.mo);
@@ -72,18 +73,18 @@
     }
     return { per: per, web: w, ai: a, sales: sales, gross: gross, comm: comm, bonus: bonus, stripe: stripe,
       pocket: gross - comm - bonus - stripe, mo1: w * keepWeb + a * keepAi, year: months.reduce(function (s, x) { return s + x.kept; }, 0),
-      months: months, webTake: per * P.web.comm + bonusEach, aiTake: per * P.ai.comm + bonusEach };
+      months: months, webTake: per * P.web.comm + bonusEach, aiTake: perA * P.ai.comm + bonusAi, perA: perA };
   }
 
   function plan() {
-    var p = S.pickup / 100, r = sim(S.calls, S.days, p, S.tries);
+    var p = S.pickup / 100, r = sim(S.calls, S.days, p, S.tries), rA = sim(S.aiCalls, S.days, p, S.tries);
     var buf = 1 + S.buffer / 100, free = S.codes === "free";
-    var webNeed = Math.ceil(r.fresh * S.web * buf), aiNeed = Math.ceil(r.fresh * S.ai * buf);
+    var webNeed = Math.ceil(r.fresh * S.web * buf), aiNeed = Math.ceil(rA.fresh * S.ai * buf);
     var webHave = free ? D.web.in_codes : D.web.callable, aiHave = free ? D.ai.in_codes : D.ai.callable;
     var toBuild = Math.max(0, webNeed - webHave), per = D.build[S.route];
     var codes = {}; Object.keys(D.web.area_codes).concat(Object.keys(D.ai.area_codes)).forEach(function (c) { codes[c] = 1; });
     var nCodes = Object.keys(codes).length, paidCodes = free ? 0 : Math.max(0, nCodes - D.dnc.free.length);
-    var seats = S.web + S.ai, extraLines = Math.max(0, seats - 3), calls = S.calls * S.days * seats;
+    var seats = S.web + S.ai, extraLines = Math.max(0, seats - 3), calls = (S.calls * S.web + S.aiCalls * S.ai) * S.days;
     var cost = {
       builds: toBuild * per, dnc: paidCodes * D.dnc.per_code, lines: extraLines * 1.15, minutes: calls * 2 * 0.014,
     };
@@ -99,7 +100,8 @@
   var DIALS = [
     ["web", "Website closers", 0, 6, 1, "", "Each needs a demo for every new business they call."],
     ["ai", "AI Receptionist closers", 0, 3, 1, "", "They call from the AI Receptionist list, no demos needed."],
-    ["calls", "Calls a day, each", 20, 200, 5, "", "Every dial counts, answered or not."],
+    ["calls", "Website calls a day, each", 20, 200, 5, "", "Every dial counts, answered or not. Each new business needs a demo."],
+    ["aiCalls", "AI Receptionist calls a day, each", 20, 300, 5, "", "They call their own list, no demos needed, so they can dial more. You said 150 to 200."],
     ["days", "Calling days", 1, 6, 1, "", "Mon to Fri is 5. Calling is allowed Mon to Sat."],
     ["pickup", "Owner picks up", 5, 60, 1, "%", "Share of dials that reach the owner. Plan figure was 30%."],
     ["tries", "Tries per business", 1, 4, 1, "", "A business that doesn't pick up is called again the next day, up to this many times."],
@@ -154,7 +156,7 @@
     var row = function (label, a, b, cls) { return "<tr" + (cls ? ' class="' + cls + '"' : "") + "><td>" + label + "</td><td>" + a + "</td><td>" + b + "</td></tr>"; };
     var c = D.costs;
     var top =
-      '<p class="lead">' + esc(D.week.label) + " · " + S.web + " website + " + S.ai + " AI Receptionist closer" + (seats === 1 ? "" : "s") + " · " + S.calls + " calls a day · " + S.days + " days</p>" +
+      '<p class="lead">' + esc(D.week.label) + " · " + S.web + " website closers at " + S.calls + " calls a day + " + S.ai + " AI Receptionist closers at " + S.aiCalls + " · " + S.days + " days</p>" +
       '<nav class="nav"><a href="#answer">Answer</a><a href="#build">Build tonight</a><a href="#money">Money</a><a href="#demos">Demos</a><a href="#recalls">Recalls</a><a href="#costs">Costs</a><a href="#status">Status</a><a href="#dials">Assumptions</a></nav>' +
 
       '<h2 id="answer">The short answer</h2><div class="grid">' +
@@ -277,7 +279,7 @@
 
   /* ---------------- data and events ---------------- */
   function init() {
-    S = Object.assign({}, D.defaults, { codes: "free", route: D.defaults.build_route || "apify" });
+    S = Object.assign({ aiCalls: 150 }, D.defaults, { codes: "free", route: D.defaults.build_route || "apify" });
     try { Object.assign(S, JSON.parse(load(DIAL_STORE) || "{}")); } catch (e) {}
   }
   function gate(a, b) { app.innerHTML = '<div class="gate"><b>' + esc(a) + "</b>" + esc(b) + "</div>"; upd.textContent = ""; }

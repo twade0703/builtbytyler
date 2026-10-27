@@ -226,7 +226,7 @@
     if (now) {
       h += "<b>" + esc(now.city) + " · " + esc(now.rep) + "</b><p>" + esc(now.stage_label) + " · " + esc(now.minutes) + " min in</p>" +
         (now.found ? '<p class="small" style="margin-top:6px">' + num(now.found) + " found · " + num(now.no_site) + " with no website</p>" : "") +
-        (now.to_build ? '<div class="bar1"><i style="width:' + ((now.built || 0) / now.to_build * 100).toFixed(1) + '%"></i></div><p class="small">' + num(now.built) + " of " + num(now.to_build) + " built · " + num(now.passed) + " passed so far</p>" : "");
+        (now.to_build ? '<div class="bar1"><i style="width:' + ((now.tried || 0) / now.to_build * 100).toFixed(1) + '%"></i></div><p class="small">' + num(now.tried) + " of " + num(now.to_build) + " worked through · " + num(now.built) + " sites built · " + num(now.passed) + " passed so far</p>" : "");
     } else {
       h += "<b>" + (b.stop_reason ? "Stopped" : "Nothing running") + "</b><p>" + esc(b.stop_reason || "") + "</p>";
     }
@@ -256,9 +256,9 @@
     setText("orbs", "Rep 1 +" + num(sk.added_rep1) + " · Rep 2 +" + num(sk.added_rep2) + " added to their sheets · " + num(t.built) + " sites built · " + num(t.found) + " businesses found" + (t.building_now ? " · includes the city building now" : ""));
     setText("lvcity", now ? now.city + " · " + now.rep : b.stop_reason ? "Stopped" : "Nothing running");
     setText("lvstage", now ? now.stage_label + " · " + now.minutes + " min in · city " + Math.min((t.cities_done || 0) + 1, t.cities_total || 0) + " of " + (t.cities_total || 0) : (b.stop_reason || ""));
-    var bar = document.getElementById("lvbar"), f = now && now.to_build ? (now.built || 0) / now.to_build : 0;
+    var bar = document.getElementById("lvbar"), f = now && now.to_build ? (now.tried || 0) / now.to_build : 0;
     if (bar) { bar.className = "bar1" + (on ? " on" : ""); bar.firstChild.style.width = (f * 100).toFixed(1) + "%"; }
-    setText("lvprog", now && now.to_build ? num(now.built) + " of " + num(now.to_build) + " sites built here" : on ? "Scraping and checking: building starts after the list is ready" : "");
+    setText("lvprog", now && now.to_build ? num(now.tried) + " of " + num(now.to_build) + " worked through here · " + num(now.built) + " sites built" : on ? "Scraping and checking: building starts after the list is ready" : "");
     setText("lvf", now ? num(now.found) : "–"); setText("lvn", now ? num(now.no_site) : "–");
     setText("lvb", now ? num(now.built) : "–"); setText("lvp", now ? num(now.passed) : "–");
     LIVE = { at: Date.now(), started: b.now_started ? new Date(b.now_started).getTime() : null, beat: b.heartbeat_s, updated: new Date(b.updated).getTime() };

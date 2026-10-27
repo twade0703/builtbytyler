@@ -6,74 +6,101 @@
   <title>Demo run &middot; Built by Tyler</title>
   <!-- Tyler's private live view of the demo factory run. Same private key as /hiring and /plan
        (after the # in his link); data from /api/hiring-board?doc=run, published every 5 minutes
-       by leads/night/run_board.py on his PC. Counts and dollars only. -->
+       by leads/night/run_board.py on his PC. Counts and dollars only. Glass, like RAGER (2026-10-26). -->
   <meta name="robots" content="noindex, nofollow">
   <meta name="referrer" content="no-referrer">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-  <meta name="theme-color" content="#0B0C10">
+  <meta name="theme-color" content="#05070B">
   <meta name="apple-mobile-web-app-title" content="Demo run">
   <style>
-    :root{--bg:#0B0C10;--card:#14161C;--card2:#1A1D25;--line:rgba(255,255,255,.08);--tx:#ECEEF3;--mu:#99A1B3;--dim:#646C7E;
-      --blue:#60A5FA;--track:rgba(96,165,250,.14)}
+    :root{--bg:#05070B;--tx:#EEF2F8;--mu:#93A0B5;--dim:#5D6A80;--blue:#60A5FA;
+      --g-hi:rgba(255,255,255,.16);--g-edge:rgba(255,255,255,.10);--g-fill:rgba(255,255,255,.06);--g-fill2:rgba(255,255,255,.018);--line:rgba(190,205,230,.09)}
     *{box-sizing:border-box}
     html{-webkit-text-size-adjust:100%}
-    body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.45 "Instrument Sans",system-ui,-apple-system,sans-serif;
-      padding:env(safe-area-inset-top) 0 calc(env(safe-area-inset-bottom) + 24px)}
+    body{margin:0;min-height:100vh;background:var(--bg);color:var(--tx);font:15px/1.45 "Instrument Sans",system-ui,-apple-system,sans-serif;
+      padding:env(safe-area-inset-top) 0 calc(env(safe-area-inset-bottom) + 28px);overflow-x:hidden}
+    .orbs{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+    .orbs i{position:absolute;border-radius:50%;filter:blur(90px)}
+    .orbs i:nth-child(1){width:520px;height:460px;left:-180px;top:-200px;background:#2563EB;opacity:.40}
+    .orbs i:nth-child(2){width:460px;height:420px;right:-200px;top:30%;background:#7C3AED;opacity:.26}
+    .orbs i:nth-child(3){width:560px;height:360px;left:20%;bottom:-260px;background:#0D9488;opacity:.26}
     button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
-    .wrap{max-width:720px;margin:0 auto;padding:18px 16px 0}
-    .top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
-    .brand b{display:block;font:600 22px/1.1 "Bricolage Grotesque",system-ui,sans-serif;letter-spacing:-.02em}
+    .wrap{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:18px 16px 0}
+    .glass{position:relative;border-radius:20px;border:1px solid var(--g-edge);background:linear-gradient(150deg,var(--g-fill),var(--g-fill2) 60%);
+      -webkit-backdrop-filter:blur(22px) saturate(160%);backdrop-filter:blur(22px) saturate(160%);
+      box-shadow:inset 0 1px 0 var(--g-hi),0 30px 60px -36px rgba(0,0,0,.85);padding:16px}
+    .glass::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:linear-gradient(180deg,rgba(255,255,255,.07),transparent 40%)}
+    .glass>*{position:relative}
+    .top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+    .brand b{display:block;font:600 24px/1.1 "Bricolage Grotesque",system-ui,sans-serif;letter-spacing:-.02em}
     .brand span{font:12px "JetBrains Mono",ui-monospace,monospace;color:var(--mu)}
-    .refresh{display:flex;align-items:center;gap:7px;padding:9px 13px;border-radius:999px;border:1px solid var(--line);background:var(--card);font-size:13px;font-weight:500}
+    .refresh{display:flex;align-items:center;gap:7px;padding:9px 14px;border-radius:999px;font-size:13px;font-weight:500}
     .refresh svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
     .refresh.spin svg{animation:spin .8s linear infinite}
     @keyframes spin{to{transform:rotate(360deg)}}
-    h2{margin:22px 0 10px;font:600 18px/1.2 "Bricolage Grotesque",system-ui,sans-serif;letter-spacing:-.01em}
-    h2 small{display:block;font:400 12.5px "Instrument Sans",sans-serif;color:var(--mu);margin-top:3px}
-    .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px}
-    .state{display:inline-block;padding:4px 10px;border-radius:999px;border:1px solid var(--line);font:500 12px "JetBrains Mono",ui-monospace,monospace;margin-bottom:8px}
-    .state.on{border-color:rgba(96,165,250,.6);color:var(--blue)}
-    .now b{display:block;font:600 24px/1.15 "Bricolage Grotesque",system-ui,sans-serif}
-    .now p{margin:4px 0 0;color:var(--mu);font-size:14px}
-    .grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-    .stat{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 13px}
-    .stat b{display:block;font:500 28px/1 "JetBrains Mono",ui-monospace,monospace;letter-spacing:-.04em}
-    .stat u{display:block;text-decoration:none;font-size:12px;color:var(--mu);margin-top:7px}
+    .sec{margin:22px 2px 10px;font:600 17px/1.2 "Bricolage Grotesque",system-ui,sans-serif}
+    .sec small{display:block;font:400 12.5px "Instrument Sans",sans-serif;color:var(--mu);margin-top:3px}
+    .pill{display:inline-flex;align-items:center;gap:7px;padding:4px 11px;border-radius:999px;border:1px solid var(--g-edge);background:rgba(255,255,255,.04);
+      font:500 11.5px "JetBrains Mono",ui-monospace,monospace;letter-spacing:.06em}
+    .pill i{width:7px;height:7px;border-radius:50%;background:var(--dim)}
+    .pill.on{border-color:rgba(96,165,250,.55);color:var(--blue)} .pill.on i{background:var(--blue);box-shadow:0 0 10px var(--blue)}
+    .now h3{margin:10px 0 2px;font:600 22px/1.15 "Bricolage Grotesque",system-ui,sans-serif}
+    .now p{margin:0;color:var(--mu);font-size:14px}
+    .prog{height:8px;border-radius:999px;background:rgba(96,165,250,.14);margin:12px 0 4px;overflow:hidden}
+    .prog i{display:block;height:100%;background:var(--blue);border-radius:999px}
+    .note{margin:6px 0 0;font-size:12.5px;color:var(--mu)}
+    .funnel{display:flex;flex-direction:column;gap:12px}
+    .fl{display:grid;grid-template-columns:118px 1fr 64px;align-items:center;gap:10px}
+    .fl span{font-size:13px;color:var(--mu)}
+    .fl .tr{height:26px;border-radius:9px;background:rgba(255,255,255,.04);overflow:hidden;position:relative}
+    .fl .tr i{position:absolute;inset:0 auto 0 0;border-radius:9px;background:linear-gradient(90deg,rgba(96,165,250,.55),rgba(96,165,250,.9))}
+    .fl .tr u{position:absolute;left:10px;top:50%;transform:translateY(-50%);text-decoration:none;font:500 12px "JetBrains Mono",ui-monospace,monospace;color:#fff}
+    .fl b{font:500 18px "JetBrains Mono",ui-monospace,monospace;text-align:right}
+    .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+    .stat b{display:block;font:500 28px/1 "JetBrains Mono",ui-monospace,monospace;letter-spacing:-.03em}
+    .stat u{display:block;text-decoration:none;font-size:12.5px;color:var(--mu);margin-top:8px}
+    .stat em{display:block;font-style:normal;font-size:11.5px;color:var(--dim);margin-top:3px}
     .meter{padding:12px 0;border-top:1px solid var(--line)}
     .meter:first-child{border-top:0;padding-top:0}
     .meter .h{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
     .meter .h b{font-size:15px;font-weight:600}
     .meter .h span{font:500 14px "JetBrains Mono",ui-monospace,monospace}
-    .bar{position:relative;height:12px;border-radius:999px;background:var(--track);margin:8px 0 5px;overflow:hidden}
+    .bar{position:relative;height:10px;border-radius:999px;background:rgba(96,165,250,.13);margin:9px 0 6px;overflow:hidden}
     .bar i{position:absolute;inset:0 auto 0 0;background:var(--blue);border-radius:999px}
-    .bar em{position:absolute;top:0;bottom:0;width:2px;background:var(--tx)}
+    .bar em{position:absolute;top:0;bottom:0;width:2px;margin-left:-1px;background:#fff}
     .meter p{margin:0;font-size:12.5px;color:var(--mu)}
-    table{width:100%;border-collapse:collapse;font-size:13.5px}
-    th,td{padding:8px 6px;text-align:right;border-top:1px solid var(--line);font-variant-numeric:tabular-nums}
+    .tw{overflow-x:auto;margin:0 -4px}
+    table{width:100%;border-collapse:collapse;font-size:13.5px;min-width:520px}
+    th,td{padding:9px 6px;text-align:right;border-top:1px solid var(--line);font-variant-numeric:tabular-nums}
     th:first-child,td:first-child{text-align:left}
-    thead th{border-top:0;font:600 12px "JetBrains Mono",ui-monospace,monospace;color:var(--mu)}
-    td.st{font:500 12px "JetBrains Mono",ui-monospace,monospace;color:var(--mu)}
-    tr.run td{color:var(--blue)}
-    .log{font:11.5px/1.5 "JetBrains Mono",ui-monospace,monospace;color:var(--mu);white-space:pre-wrap;word-break:break-word}
-    .note{margin:8px 0 0;font-size:12.5px;color:var(--mu)}
-    .gate{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px 18px;color:var(--mu);text-align:center;margin-top:12px}
+    thead th{border-top:0;font:500 11px "JetBrains Mono",ui-monospace,monospace;color:var(--mu);letter-spacing:.06em;text-transform:uppercase}
+    td.st{font:500 11.5px "JetBrains Mono",ui-monospace,monospace;color:var(--mu)}
+    tr.run td{color:var(--blue)} tr.q td{color:var(--dim)}
+    details{margin-top:14px}
+    summary{cursor:pointer;color:var(--mu);font-size:13px;list-style:none}
+    summary::-webkit-details-marker{display:none}
+    summary::before{content:"+ "} details[open] summary::before{content:"\2212 "}
+    .log{margin-top:10px;font:11.5px/1.55 "JetBrains Mono",ui-monospace,monospace;color:var(--mu);white-space:pre-wrap;word-break:break-word}
+    .gate{text-align:center;color:var(--mu);margin-top:12px;padding:24px 18px}
     .gate b{display:block;color:var(--tx);font-size:17px;margin-bottom:6px}
     .foot{margin:22px 0 0;font-size:12px;color:var(--dim);text-align:center}
+    @media (min-width:640px){.grid.g3{grid-template-columns:repeat(3,1fr)}}
   </style>
 </head>
 <body>
+  <div class="orbs" aria-hidden="true"><i></i><i></i><i></i></div>
   <div class="wrap">
     <header class="top">
       <div class="brand"><b>Demo run</b><span id="upd">Loading…</span></div>
-      <button class="refresh" id="refresh" type="button" aria-label="Refresh"><svg viewBox="0 0 16 16"><path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9M13.5 2.5v3h-3"/></svg>Refresh</button>
+      <button class="refresh glass" id="refresh" type="button" aria-label="Refresh"><svg viewBox="0 0 16 16"><path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9M13.5 2.5v3h-3"/></svg>Refresh</button>
     </header>
     <main id="app"></main>
     <p class="foot">Private to Tyler. Your PC sends new numbers every 5 minutes; this page checks every minute.</p>
   </div>
-  <script src="assets/js/run-board.js?v=1"></script>
+  <script src="assets/js/run-board.js?v=2"></script>
 </body>
 </html>

@@ -238,8 +238,9 @@
     lastPassed = t.passed || 0;
     var pill = document.getElementById("lvpill"); if (pill) pill.className = "livepill" + (on ? " on" : "");
     setText("lvstate", on ? "WORKING" : (b.state || "idle").toUpperCase());
-    setText("orbn", num(t.passed)); setText("orbl", "DEMOS PASSED THIS RUN");
-    setText("orbs", num(t.built) + " sites built · " + num(t.found) + " businesses found" + (t.building_now ? " · counting the city building now" : ""));
+    var sk = b.stock || {};
+    setText("orbn", num(t.passed)); setText("orbl", "DEMOS BUILT AND READY, WHOLE RUN");
+    setText("orbs", "Rep 1 +" + num(sk.added_rep1) + " · Rep 2 +" + num(sk.added_rep2) + " added to their sheets · " + num(t.built) + " sites built · " + num(t.found) + " businesses found" + (t.building_now ? " · includes the city building now" : ""));
     setText("lvcity", now ? now.city + " · " + now.rep : b.stop_reason ? "Stopped" : "Nothing running");
     setText("lvstage", now ? now.stage_label + " · " + now.minutes + " min in · city " + Math.min((t.cities_done || 0) + 1, t.cities_total || 0) + " of " + (t.cities_total || 0) : (b.stop_reason || ""));
     var bar = document.getElementById("lvbar"), f = now && now.to_build ? (now.built || 0) / now.to_build : 0;
@@ -264,9 +265,9 @@
     header(b); live(b);
     var hist = (b.history && b.history.length) ? b.history : [{ d: new Date().toISOString().slice(0, 10), built: 0, passed: 0 }];
     var d = donut(b.totals || {}, b.reasons || {});
-    app.innerHTML = '<div class="g">' + areaChart(hist) + d.html + "</div>" +
-      '<div class="g">' + spend(b.money || {}) + gauge(b.totals || {}) + reps(b.reps) + "</div>" +
-      '<div class="g">' + cities(b.cities || []) + nowPanel(b) + "</div>";
+    app.innerHTML = '<div class="g">' + cities(b.cities || []).replace('class="panel c8"', 'class="panel c12"') + "</div>" +
+      '<div class="g">' + areaChart(hist) + d.html + "</div>" +
+      '<div class="g">' + spend(b.money || {}) + gauge(b.totals || {}) + reps(b.reps) + "</div>";
     bindArea(hist); bindDonut(d); bindReps(b.reps);
   }
 
@@ -275,7 +276,6 @@
   function refresh() {
     var k = key();
     if (!k) { gate("Open this from your text", "This page only opens from the link Claude texted you."); upd.textContent = ""; return; }
-    if (location.hash) history.replaceState(null, "", location.pathname);
     if (loading) return;
     loading = true; btn.classList.add("spin");
     fetch("/api/hiring-board?doc=run", { headers: { Authorization: "Bearer " + k }, cache: "no-store" })

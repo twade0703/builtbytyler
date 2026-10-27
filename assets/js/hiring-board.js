@@ -144,7 +144,7 @@
     var hrs = Math.max(1, (Date.now() - p0) / 36e5);
     setText("lvf", num(recent.length)); setText("lvn", num(all.filter(function (p) { return good(p) && !p.rejected; }).length));
     setText("lvb", num(all.filter(function (p) { return p.pitch; }).length)); setText("lvp", (all.length / hrs * 24).toFixed(1));
-    setText("lvtick", "last Indeed check " + ago(board.updated || board.published) + " · next within 3 hours");
+    setText("lvtick", "list refreshed " + ago(board.published || board.updated) + " · Indeed is checked every 3 hours" + (board.updated ? " · newest change " + ago(board.updated) : ""));
   }
 
   /* ---------- header KPIs ---------- */
@@ -366,7 +366,7 @@
   }
   function stamp() {
     if (!board) return;
-    var at = board.updated || board.published;
+    var at = board.published || board.updated;
     upd.textContent = "updated " + (ago(at) || "never");
   }
   function gate(msg) { app.innerHTML = '<div class="panel gate"><b>' + esc(msg[0]) + "</b>" + esc(msg[1]) + "</div>"; upd.textContent = ""; }

@@ -229,82 +229,17 @@
   }
 
 
-  /* ---------- the binary sphere: the factory, alive (2026-10-26) ----------
-     Tyler: "a sphere with all binary ones and zeros that's floating and evolving and morphing and showing
-     that it's working and building an actual set of demos." ~900 digits on a Fibonacci sphere, turning and
-     rippling; digits flip as work happens. Running: fast, bright blue, rippling hard. Waiting: slow and dim.
-     Stopped: slower, grey. Each new passed demo sends a pulse ring out. Respects reduced motion. */
-  var Orb = (function () {
-    var cv = document.getElementById("orb");
-    if (!cv || !cv.getContext) return { set: function () {}, burst: function () {} };
-    var ctx = cv.getContext("2d"), N = 900, P = [], mode = "idle", w = 0, h = 0, rings = [], t0 = performance.now();
-    var still = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
-    for (var i = 0; i < N; i++) {
-      var y = 1 - (i / (N - 1)) * 2, r = Math.sqrt(1 - y * y), th = i * 2.399963229728653;
-      P.push({ x: Math.cos(th) * r, y: y, z: Math.sin(th) * r, ch: Math.random() < 0.5 ? "0" : "1", hot: 0, ph: Math.random() * 6.283 });
-    }
-    function fit() {
-      var d = Math.min(2, window.devicePixelRatio || 1); w = cv.clientWidth; h = cv.clientHeight;
-      cv.width = Math.max(1, w * d); cv.height = Math.max(1, h * d); ctx.setTransform(d, 0, 0, d, 0, 0);
-    }
-    addEventListener("resize", fit); fit();
-    if (window.ResizeObserver) new ResizeObserver(fit).observe(cv);    // re-measure once the page has laid out
-    var L = [];
-    function frame(now) {
-      if (cv.clientWidth !== w || cv.clientHeight !== h) fit();
-      var t = (now - t0) / 1000, run = mode === "run", wait = mode === "wait";
-      var spin = run ? 0.32 : wait ? 0.12 : 0.05, ripple = run ? 0.11 : wait ? 0.05 : 0.025, flip = run ? 0.025 : wait ? 0.006 : 0.0015;
-      var ay = t * spin, ax = 0.35 * Math.sin(t * 0.17), cy = Math.cos(ay), sy = Math.sin(ay), cx = Math.cos(ax), sx = Math.sin(ax);
-      var X = w / 2, Y = h / 2, R = Math.min(w, h) * 0.36;
-      ctx.clearRect(0, 0, w, h);
-      var g = ctx.createRadialGradient(X, Y, R * 0.05, X, Y, R * 1.45);
-      g.addColorStop(0, run ? "rgba(57,135,229,.30)" : "rgba(94,104,136,.14)"); g.addColorStop(1, "rgba(7,10,20,0)");
-      ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
-      L.length = 0;
-      for (var i = 0; i < N; i++) {
-        var p = P[i], m = 1 + ripple * Math.sin(t * 1.7 + p.ph + p.y * 4) + (run ? 0.05 * Math.sin(t * 0.9 + p.x * 5 + p.z * 3) : 0);
-        var x = p.x * m, y = p.y * m, z = p.z * m, x1 = x * cy - z * sy, z1 = x * sy + z * cy, y1 = y * cx - z1 * sx, z2 = y * sx + z1 * cx;
-        if (!still && Math.random() < flip) { p.ch = p.ch === "0" ? "1" : "0"; p.hot = 1; }
-        p.hot *= 0.93;
-        L.push({ sx: X + x1 * R, sy: Y + y1 * R, d: (z2 + 1.25) / 2.5, p: p });
-      }
-      L.sort(function (a, b) { return a.d - b.d; });
-      ctx.textAlign = "center"; ctx.textBaseline = "middle";
-      for (var j = 0; j < L.length; j++) {
-        var q = L[j], sz = 6 + q.d * 9, a = 0.08 + q.d * 0.9, hot = q.p.hot;
-        ctx.font = "600 " + sz.toFixed(1) + "px JetBrains Mono, monospace";
-        if (run || wait) {
-          var rr = Math.round(57 + (238 - 57) * hot), gg = Math.round(135 + (241 - 135) * hot), bb = Math.round(229 + (250 - 229) * hot);
-          ctx.fillStyle = "rgba(" + rr + "," + gg + "," + bb + "," + Math.min(1, a + hot * 0.4).toFixed(3) + ")";
-        } else {
-          ctx.fillStyle = "rgba(151,160,189," + (a * 0.7).toFixed(3) + ")";
-        }
-        ctx.fillText(q.p.ch, q.sx, q.sy);
-      }
-      for (var k = rings.length - 1; k >= 0; k--) {
-        var rg = rings[k], age = (now - rg) / 1400;
-        if (age > 1) { rings.splice(k, 1); continue; }
-        ctx.beginPath(); ctx.arc(X, Y, R * (0.9 + age * 0.75), 0, 6.2832);
-        ctx.strokeStyle = "rgba(57,135,229," + (0.75 * (1 - age)).toFixed(3) + ")"; ctx.lineWidth = 2.5 * (1 - age) + 0.5; ctx.stroke();
-      }
-      if (!still) requestAnimationFrame(frame);
-    }
-    requestAnimationFrame(frame);
-    return {
-      set: function (m) { if (m !== mode) { mode = m; if (still) requestAnimationFrame(frame); } },
-      burst: function (n) { var now = performance.now(); for (var i = 0; i < Math.min(3, n || 1); i++) rings.push(now + i * 260); for (var j = 0; j < 160; j++) P[(Math.random() * N) | 0].hot = 1; }
-    };
-  })();
   var lastPassed = null;
   function setText(id, v) { var el = document.getElementById(id); if (el) el.textContent = v; }
   function live(b) {
     var now = b.now, t = b.totals || {}, on = b.state === "running";
-    Orb.set(on ? "run" : b.state === "waiting for Apify" ? "wait" : "idle");
-    if (lastPassed != null && (t.passed || 0) > lastPassed) Orb.burst((t.passed || 0) - lastPassed);
+    var big = document.getElementById("orbn");
+    if (big && lastPassed != null && (t.passed || 0) > lastPassed) { big.style.color = "#8fbaf0"; setTimeout(function () { big.style.color = ""; }, 1500); }
     lastPassed = t.passed || 0;
     var pill = document.getElementById("lvpill"); if (pill) pill.className = "livepill" + (on ? " on" : "");
     setText("lvstate", on ? "WORKING" : (b.state || "idle").toUpperCase());
-    setText("orbn", num(t.passed)); setText("orbl", "DEMOS PASSED");
+    setText("orbn", num(t.passed)); setText("orbl", "DEMOS PASSED THIS RUN");
+    setText("orbs", num(t.built) + " sites built · " + num(t.found) + " businesses found" + (t.building_now ? " · counting the city building now" : ""));
     setText("lvcity", now ? now.city + " · " + now.rep : b.stop_reason ? "Stopped" : "Nothing running");
     setText("lvstage", now ? now.stage_label + " · " + now.minutes + " min in · city " + Math.min((t.cities_done || 0) + 1, t.cities_total || 0) + " of " + (t.cities_total || 0) : (b.stop_reason || ""));
     var bar = document.getElementById("lvbar"), f = now && now.to_build ? (now.built || 0) / now.to_build : 0;
@@ -356,6 +291,6 @@
   btn.addEventListener("click", refresh);
   document.addEventListener("visibilitychange", function () { if (!document.hidden) refresh(); });
   addEventListener("scroll", hideTip, { passive: true });
-  setInterval(function () { if (!document.hidden) refresh(); }, 60000);
+  setInterval(function () { if (!document.hidden) refresh(); }, 30000);
   refresh();
 })();

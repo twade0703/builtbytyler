@@ -6,7 +6,7 @@
   <title>Demo run &middot; Built by Tyler</title>
   <!-- Tyler's private live dashboard of the demo factory run (2026-10-26, dashboard redesign after his
        "Metropolis '26" reference). Same private key as /hiring and /plan (after the # in his link); data
-       from /api/hiring-board?doc=run, published every 5 minutes by leads/night/run_board.py. Counts and
+       from /api/hiring-board?doc=run, published every minute by leads/night/run_board.py. Counts and
        dollars only. Colours: dataviz default dark slots (blue, orange, aqua), validated on #0d1120 for
        colour-blind separation; every mark is also labelled, because Tyler is colourblind. -->
   <meta name="robots" content="noindex, nofollow">
@@ -118,14 +118,13 @@
 
     /* live panel: the binary sphere (2026-10-26, Tyler: "a sphere with all binary ones and zeros that's floating
        and evolving ... showing that it's working") */
-    .live{display:grid;grid-template-columns:minmax(220px,340px) 1fr;gap:20px;align-items:center;margin-top:14px;overflow:hidden}
+    .live{display:grid;grid-template-columns:minmax(200px,260px) 1fr;gap:22px;align-items:center;margin-top:14px;overflow:hidden}
+    .bign{padding:18px 20px;border-radius:12px;border:1px solid rgba(57,135,229,.35);background:linear-gradient(160deg,rgba(57,135,229,.16),rgba(57,135,229,.03))}
+    .bign b{display:block;font:600 64px/1 var(--mono);letter-spacing:-.03em}
+    .bign u{display:block;text-decoration:none;font:600 10.5px var(--mono);letter-spacing:.12em;color:#8fbaf0;margin-top:10px}
+    .bign span{display:block;font:500 11px var(--mono);color:var(--mu);margin-top:8px;line-height:1.5}
     @media (max-width:700px){.live{grid-template-columns:1fr}}
     .live > *,.lv{min-width:0}
-    .orbw{position:relative;aspect-ratio:1/1;width:100%;max-width:340px;margin:0 auto}
-    #orb{position:absolute;inset:0;width:100%;height:100%}
-    .orbw span{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none;padding:22px 26px;border-radius:50%;background:radial-gradient(circle,rgba(7,10,20,.92) 45%,rgba(7,10,20,0) 72%)}
-    .orbw span b{display:block;font:600 34px/1 var(--mono);text-shadow:0 0 18px rgba(57,135,229,.7)}
-    .orbw span u{display:block;text-decoration:none;font:600 9.5px var(--mono);letter-spacing:.14em;color:var(--mu);margin-top:4px}
     .lv h3{margin:8px 0 2px;font:700 24px/1.15 "Instrument Sans",sans-serif}
     .lv .stage{color:var(--mu);font-size:14px}
     .lv .tick{margin-top:12px;padding:9px 11px;border-radius:9px;border:1px solid var(--edge);background:rgba(0,0,0,.25);
@@ -153,7 +152,7 @@
       <button class="refresh" id="refresh" type="button" aria-label="Refresh"><svg viewBox="0 0 16 16"><path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9M13.5 2.5v3h-3"/></svg>Refresh</button>
     </header>
     <section class="panel live" id="live" aria-label="The demo factory, live">
-      <div class="orbw"><canvas id="orb" aria-hidden="true"></canvas><span><b id="orbn">–</b><u id="orbl">DEMOS PASSED</u></span></div>
+      <div class="bign"><b id="orbn">–</b><u id="orbl">DEMOS PASSED THIS RUN</u><span id="orbs"></span></div>
       <div class="lv"><span class="livepill" id="lvpill"><i></i><span id="lvstate">LOADING</span></span>
         <h3 id="lvcity">–</h3><div class="stage" id="lvstage"></div>
         <div class="bar1" id="lvbar"><i style="width:0%"></i></div><div class="small" id="lvprog"></div>
@@ -161,9 +160,9 @@
         <div class="tick" id="lvtick">waiting for the runner…</div></div>
     </section>
     <main id="app"></main>
-    <footer class="foot"><span>Private to Tyler · your PC sends numbers every 5 min · this page checks every minute</span><span>Data: lead folders, Apify meter, Google estimate, Claude meter, reps' app</span></footer>
+    <footer class="foot"><span>Private to Tyler · your PC sends numbers every minute · this page checks every 30 seconds</span><span>Data: lead folders, Apify meter, Google estimate, Claude meter, reps' app</span></footer>
   </div>
   <div class="tip" id="tip" role="status" aria-live="polite"></div>
-  <script src="assets/js/run-board.js?v=8"></script>
+  <script src="assets/js/run-board.js?v=9"></script>
 </body>
 </html>

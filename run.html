@@ -115,6 +115,33 @@
     .gate{text-align:center;color:var(--mu);padding:28px 18px;margin-top:14px}
     .gate b{display:block;color:var(--tx);font-size:17px;margin-bottom:6px}
     .foot{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-top:14px;font:500 10.5px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--dim)}
+
+    /* live panel: the binary sphere (2026-10-26, Tyler: "a sphere with all binary ones and zeros that's floating
+       and evolving ... showing that it's working") */
+    .live{display:grid;grid-template-columns:minmax(220px,340px) 1fr;gap:20px;align-items:center;margin-top:14px;overflow:hidden}
+    @media (max-width:700px){.live{grid-template-columns:1fr}}
+    .orbw{position:relative;aspect-ratio:1/1;width:100%;max-width:340px;margin:0 auto}
+    #orb{position:absolute;inset:0;width:100%;height:100%}
+    .orbw span{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none}
+    .orbw span b{display:block;font:600 34px/1 var(--mono);text-shadow:0 0 18px rgba(57,135,229,.7)}
+    .orbw span u{display:block;text-decoration:none;font:600 9.5px var(--mono);letter-spacing:.14em;color:var(--mu);margin-top:4px}
+    .lv h3{margin:8px 0 2px;font:700 24px/1.15 "Instrument Sans",sans-serif}
+    .lv .stage{color:var(--mu);font-size:14px}
+    .lv .tick{margin-top:12px;padding:9px 11px;border-radius:9px;border:1px solid var(--edge);background:rgba(0,0,0,.25);
+      font:11px/1.45 var(--mono);color:#9fb4d8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .lv .tick::before{content:"> ";color:var(--s1)}
+    .lvc{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:14px}
+    .lvc div{padding:10px 12px;border-radius:10px;border:1px solid var(--edge);background:rgba(255,255,255,.02)}
+    .lvc b{display:block;font:600 22px var(--mono)} .lvc u{text-decoration:none;font:500 10px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--mu)}
+    @media (max-width:480px){.lvc{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    .livepill{display:inline-flex;align-items:center;gap:7px;padding:4px 10px;border-radius:6px;font:600 10.5px var(--mono);letter-spacing:.08em;border:1px solid var(--edge2);color:var(--mu)}
+    .livepill i{width:8px;height:8px;border-radius:50%;background:var(--dim)}
+    .livepill.on{color:#8fbaf0;border-color:rgba(57,135,229,.5);background:rgba(57,135,229,.12)}
+    .livepill.on i{background:var(--s1);animation:pulse 1.4s ease-in-out infinite}
+    @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(57,135,229,.7)}50%{box-shadow:0 0 0 6px rgba(57,135,229,0)}}
+    .bar1.on i{background:linear-gradient(90deg,var(--s1),#7fb3f0,var(--s1));background-size:200% 100%;animation:flow 1.6s linear infinite}
+    @keyframes flow{to{background-position:-200% 0}}
+    @media (prefers-reduced-motion:reduce){.livepill.on i,.bar1.on i{animation:none}}
   </style>
 </head>
 <body>
@@ -124,10 +151,18 @@
       <div class="kpis" id="kpis"></div>
       <button class="refresh" id="refresh" type="button" aria-label="Refresh"><svg viewBox="0 0 16 16"><path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9M13.5 2.5v3h-3"/></svg>Refresh</button>
     </header>
+    <section class="panel live" id="live" aria-label="The demo factory, live">
+      <div class="orbw"><canvas id="orb" aria-hidden="true"></canvas><span><b id="orbn">–</b><u id="orbl">DEMOS PASSED</u></span></div>
+      <div class="lv"><span class="livepill" id="lvpill"><i></i><span id="lvstate">LOADING</span></span>
+        <h3 id="lvcity">–</h3><div class="stage" id="lvstage"></div>
+        <div class="bar1" id="lvbar"><i style="width:0%"></i></div><div class="small" id="lvprog"></div>
+        <div class="lvc"><div><b id="lvf">–</b><u>Found here</u></div><div><b id="lvn">–</b><u>No website</u></div><div><b id="lvb">–</b><u>Built</u></div><div><b id="lvp">–</b><u>Passed</u></div></div>
+        <div class="tick" id="lvtick">waiting for the runner…</div></div>
+    </section>
     <main id="app"></main>
     <footer class="foot"><span>Private to Tyler · your PC sends numbers every 5 min · this page checks every minute</span><span>Data: lead folders, Apify meter, Google estimate, Claude meter, reps' app</span></footer>
   </div>
   <div class="tip" id="tip" role="status" aria-live="polite"></div>
-  <script src="assets/js/run-board.js?v=5"></script>
+  <script src="assets/js/run-board.js?v=6"></script>
 </body>
 </html>

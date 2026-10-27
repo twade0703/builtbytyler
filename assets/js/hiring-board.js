@@ -33,25 +33,6 @@
   }
   function esc(s) {
 
-  /* A resume, laid out (2026-10-26): the same blocks RAGER draws (control/resumefmt.py): section headers,
-     each job as title / dates / company and place with its bullets, skills as tags. */
-  function resumeHTML(p) {
-    var out = [], ul = [];
-    function flush() { if (ul.length) { out.push("<ul>" + ul.map(function (t) { return "<li>" + esc(t) + "</li>"; }).join("") + "</ul>"); ul = []; } }
-    (p.resume_doc || []).forEach(function (b) {
-      if (b.li != null) { ul.push(b.li); return; }
-      flush();
-      if (b.h) out.push("<h4>" + esc(b.h) + "</h4>");
-      else if (b.hr) out.push('<div class="rs-hr"><span>' + esc(b.hr) + "</span></div>");
-      else if (b.job) {
-        var j = b.job, sub = [j.org, j.where].filter(Boolean).join(" · ");
-        out.push('<div class="rs-job"><div class="rs-jt"><b>' + esc(j.title) + "</b>" + (j.when ? "<em>" + esc(j.when) + "</em>" : "") + "</div>" + (sub ? '<div class="rs-jo">' + esc(sub) + "</div>" : "") + "</div>");
-      } else if (b.chips) out.push('<div class="rs-chips">' + b.chips.map(function (c) { return "<span>" + esc(c) + "</span>"; }).join("") + "</div>");
-      else if (b.p) out.push("<p>" + esc(b.p) + "</p>");
-    });
-    flush();
-    return '<article class="rs"><header><b>' + esc(p.name || "") + "</b>" + (p.headline ? "<span>" + esc(p.headline) + "</span>" : "") + (p.where ? "<em>" + esc(p.where) + "</em>" : "") + "</header>" + out.join("") + "</article>";
-  }
     return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
       return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
     });
@@ -92,6 +73,26 @@
     return '<svg viewBox="0 0 ' + W + " " + H + '" preserveAspectRatio="none" role="img" aria-label="Applicants over time">' + g +
       '<path d="' + area + '" fill="' + c + '" opacity=".12"/><path d="' + d + '" fill="none" stroke="' + c + '" stroke-width="2.2" stroke-linejoin="round"/>' +
       '<circle cx="' + x(t1) + '" cy="' + y(list.length) + '" r="3.5" fill="' + c + '"/></svg>';
+  }
+
+  /* A resume, laid out (2026-10-26): the same blocks RAGER draws (control/resumefmt.py): section headers,
+     each job as title / dates / company and place with its bullets, skills as tags. */
+  function resumeHTML(p) {
+    var out = [], ul = [];
+    function flush() { if (ul.length) { out.push("<ul>" + ul.map(function (t) { return "<li>" + esc(t) + "</li>"; }).join("") + "</ul>"); ul = []; } }
+    (p.resume_doc || []).forEach(function (b) {
+      if (b.li != null) { ul.push(b.li); return; }
+      flush();
+      if (b.h) out.push("<h4>" + esc(b.h) + "</h4>");
+      else if (b.hr) out.push('<div class="rs-hr"><span>' + esc(b.hr) + "</span></div>");
+      else if (b.job) {
+        var j = b.job, sub = [j.org, j.where].filter(Boolean).join(" · ");
+        out.push('<div class="rs-job"><div class="rs-jt"><b>' + esc(j.title) + "</b>" + (j.when ? "<em>" + esc(j.when) + "</em>" : "") + "</div>" + (sub ? '<div class="rs-jo">' + esc(sub) + "</div>" : "") + "</div>");
+      } else if (b.chips) out.push('<div class="rs-chips">' + b.chips.map(function (c) { return "<span>" + esc(c) + "</span>"; }).join("") + "</div>");
+      else if (b.p) out.push("<p>" + esc(b.p) + "</p>");
+    });
+    flush();
+    return '<article class="rs"><header><b>' + esc(p.name || "") + "</b>" + (p.headline ? "<span>" + esc(p.headline) + "</span>" : "") + (p.where ? "<em>" + esc(p.where) + "</em>" : "") + "</header>" + out.join("") + "</article>";
   }
 
   function card(p) {

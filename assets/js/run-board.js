@@ -77,7 +77,7 @@
       '<line id="ax-x" x1="0" x2="0" y1="' + T + '" y2="' + (H - B) + '" stroke="rgba(238,241,250,.35)" stroke-width="1" visibility="hidden"/>' +
       '<rect class="hit" id="ar-hit" x="' + L + '" y="' + T + '" width="' + (W - L - R) + '" height="' + (H - T - B) + '"/></svg>';
     var right = '<div class="key"><span><i style="background:' + C.s1 + '"></i>Passed, ready</span><span><i style="background:' + C.s3 + '"></i>Built (dashed)</span></div>';
-    return panel("c8", "Demos built and passed per day", "Last " + n + " days · " + num(tb) + " built · " + num(tp) + " passed · " + pct(tp, tb) + " pass", right, svg);
+    return panel("c8", "Demos built and passed per day", "Last " + n + " days · " + num(tb) + " built · " + num(tp) + " passed · " + pct(tp, tb) + " pass", right, '<div class="scx">' + svg + "</div>");
   }
   function bindArea(hist) {
     var hit = document.getElementById("ar-hit"), ln = document.getElementById("ax-x");
@@ -178,7 +178,7 @@
     });
     var right = '<div class="key"><span><i style="background:' + C.s1 + '"></i>Rep 1</span><span><i style="background:' + C.s3 + '"></i>Rep 2</span></div>';
     return panel("c4", "Rep 1 vs Rep 2, today", "Sheets: Rep 1 " + num(rs[0].sheet) + " · Rep 2 " + num(rs[1].sheet), right,
-      '<div id="repbars"><svg viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="Rep 1 and Rep 2 calls today">' + g + "</svg></div>");
+      '<div id="repbars" class="scx sm"><svg viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="Rep 1 and Rep 2 calls today">' + g + "</svg></div>");
   }
   function bindReps(rs) {
     var el = document.getElementById("repbars"); if (!el || !rs) return;

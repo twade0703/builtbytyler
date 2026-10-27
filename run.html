@@ -62,6 +62,9 @@
     .lblm{fill:var(--mu);font:500 10.5px var(--mono)}
     .dwrap{display:grid;grid-template-columns:minmax(150px,190px) 1fr;gap:16px;align-items:center}
     @media (max-width:440px){.dwrap{grid-template-columns:1fr}}
+    #donut{max-width:200px;width:100%;margin:0 auto}
+    .scx{overflow-x:auto;margin:0 -4px;padding:0 4px}
+    @media (max-width:640px){.scx svg{min-width:600px}.scx.sm svg{min-width:420px}}
     .leg{display:flex;flex-direction:column;gap:10px}
     .leg div{display:grid;grid-template-columns:12px 1fr auto auto;gap:8px;align-items:center;font-size:13px}
     .leg i{width:12px;height:12px;border-radius:3px}
@@ -125,6 +128,6 @@
     <footer class="foot"><span>Private to Tyler · your PC sends numbers every 5 min · this page checks every minute</span><span>Data: lead folders, Apify meter, Google estimate, Claude meter, reps' app</span></footer>
   </div>
   <div class="tip" id="tip" role="status" aria-live="polite"></div>
-  <script src="assets/js/run-board.js?v=4"></script>
+  <script src="assets/js/run-board.js?v=5"></script>
 </body>
 </html>

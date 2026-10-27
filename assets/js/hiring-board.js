@@ -92,7 +92,7 @@
       else if (b.p) out.push("<p>" + esc(b.p) + "</p>");
     });
     flush();
-    return '<article class="rs"><header><b>' + esc(p.name || "") + "</b>" + (p.headline ? "<span>" + esc(p.headline) + "</span>" : "") + (p.where ? "<em>" + esc(p.where) + "</em>" : "") + "</header>" + out.join("") + "</article>";
+    return '<article class="rs"><header><b>' + esc(p.name || "") + "</b>" + (p.headline && p.headline !== p.where ? "<span>" + esc(p.headline) + "</span>" : "") + (p.where ? "<em>" + esc(p.where) + "</em>" : "") + "</header>" + out.join("") + "</article>";
   }
 
   function card(p) {

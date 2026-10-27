@@ -131,13 +131,19 @@ export async function onRequestPost({ request, env }) {
   };
 
   const stamp = now.toISOString().replace(/[:.]/g, "-");
-  await env.APPLY.put("memo:" + ref, await memo.arrayBuffer(), {
-    metadata: { type: record.memo.type, name: record.memo.name },
-  });
-  await env.APPLY.put(`app:${stamp}:${ref}`, JSON.stringify(record), {
-    metadata: { ref, role: app.role, name: app.name.slice(0, 80), state: app.state, received: record.received },
-  });
-  await env.APPLY.put(rlKey, String(seen + 1), { expirationTtl: 60 * 60 * 26 });
+  // Cloudflare KV can refuse writes (the free plan's daily write limit, 2026-10-27). Say so plainly
+  // instead of crashing, so the applicant knows to come back rather than retrying into the same wall.
+  try {
+    await env.APPLY.put("memo:" + ref, await memo.arrayBuffer(), {
+      metadata: { type: record.memo.type, name: record.memo.name },
+    });
+    await env.APPLY.put(`app:${stamp}:${ref}`, JSON.stringify(record), {
+      metadata: { ref, role: app.role, name: app.name.slice(0, 80), state: app.state, received: record.received },
+    });
+  } catch (e) {
+    return json({ ok: false, error: "Our application inbox can't take new applications for a few hours. Please send it again after 5 PM Pacific today, or email twade@builtbytyler.com." }, 503);
+  }
+  try { await env.APPLY.put(rlKey, String(seen + 1), { expirationTtl: 60 * 60 * 26 }); } catch (e) { /* the limit counter is not worth losing an application over */ }
 
   return json({ ok: true, ref });
 }

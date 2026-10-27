@@ -55,7 +55,8 @@ export async function onRequestPost({ request, env }) {
   if (!doc) return json({ ok: false, error: "bad doc" }, 400);
   body.board.published = new Date().toISOString();
   await env.APPLY.put(doc, JSON.stringify(body.board));
-  if (body.view_hash) await env.APPLY.put(VIEW, body.view_hash);
+  // KV writes are the scarce thing (1,000 a day on the free plan, shared with /apply); reads are not.
+  if (body.view_hash && (await env.APPLY.get(VIEW)) !== body.view_hash) await env.APPLY.put(VIEW, body.view_hash);
   return json({ ok: true, doc: body.doc || "board", people: (body.board.people || []).length, published: body.board.published });
 }
 

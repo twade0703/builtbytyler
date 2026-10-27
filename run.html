@@ -120,6 +120,7 @@
        and evolving ... showing that it's working") */
     .live{display:grid;grid-template-columns:minmax(220px,340px) 1fr;gap:20px;align-items:center;margin-top:14px;overflow:hidden}
     @media (max-width:700px){.live{grid-template-columns:1fr}}
+    .live > *,.lv{min-width:0}
     .orbw{position:relative;aspect-ratio:1/1;width:100%;max-width:340px;margin:0 auto}
     #orb{position:absolute;inset:0;width:100%;height:100%}
     .orbw span{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none;padding:22px 26px;border-radius:50%;background:radial-gradient(circle,rgba(7,10,20,.92) 45%,rgba(7,10,20,0) 72%)}
@@ -163,6 +164,6 @@
     <footer class="foot"><span>Private to Tyler · your PC sends numbers every 5 min · this page checks every minute</span><span>Data: lead folders, Apify meter, Google estimate, Claude meter, reps' app</span></footer>
   </div>
   <div class="tip" id="tip" role="status" aria-live="polite"></div>
-  <script src="assets/js/run-board.js?v=7"></script>
+  <script src="assets/js/run-board.js?v=8"></script>
 </body>
 </html>

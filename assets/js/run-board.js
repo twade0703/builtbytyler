@@ -39,7 +39,7 @@
     var step = function (label, v, of) {
       var w = top ? Math.max(2, v / top * 100) : 0;
       return '<div class="fl"><span>' + esc(label) + '</span><div class="tr" role="img" aria-label="' + esc(label + ": " + num(v) + " of " + num(top)) + '"><i style="width:' + w.toFixed(1) + '%"></i><u>' +
-        (of ? esc(pct(v, top) + " of all found") : "every business found") + "</u></div><b>" + num(v) + "</b></div>";
+        (of ? esc(pct(v, top)) : "100%") + "</u></div><b>" + num(v) + "</b></div>";
     };
     return '<div class="glass funnel">' + step("Businesses found", top, false) + step("No website", t.no_site || 0, true) +
       step("Demo built", t.built || 0, true) + step("Passed, ready", t.passed || 0, true) +
@@ -69,7 +69,7 @@
     }
     h += '<p class="note">City ' + num(Math.min((t.cities_done || 0) + (now ? 1 : 0), t.cities_total || 0)) + " of " + num(t.cities_total) + " in this run</p></div>";
 
-    h += '<h2 class="sec">This run, out of everything scraped<small>All finished cities together</small></h2>' + funnel(t);
+    h += '<h2 class="sec">This run, out of everything scraped<small>All finished cities together. Each % is the share of every business found</small></h2>' + funnel(t);
 
     h += '<h2 class="sec">Your whole demo stock<small>Everything the reps can call, not only this run</small></h2><div class="grid g3">' +
       '<div class="glass stat"><b>' + num(s.callable_demos) + "</b><u>Callable demos</u><em>built, live, CA and NV</em></div>" +

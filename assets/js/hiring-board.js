@@ -143,7 +143,7 @@
 
   function stamp() {
     if (!board) return;
-    var at = board.updated || board.published, stale = Date.now() - t(at) > 4 * 36e5;
+    var at = board.published || board.updated, stale = Date.now() - t(at) > 4 * 36e5;
     upd.textContent = "Updated " + (ago(at) || "never") + (stale ? " · next check soon" : "");
     upd.className = stale ? "stale" : "";
   }

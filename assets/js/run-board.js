@@ -302,7 +302,7 @@
     var k = function (label, val, chip) { return '<div class="kpi"><u>' + esc(label) + "</u><b>" + val + "</b>" + (chip ? '<span class="chip">' + esc(chip) + "</span>" : "") + "</div>"; };
     var G = b.goal || null;
     kpis.innerHTML = k("Demos passed, this run", num(t.passed), "+" + num(today) + " today") +
-      (G ? k("Demo week goal", num(G.need), num(G.have) + " ready · ~" + num(G.coming) + " coming") : k("Callable demos", num(s.callable_demos), "CA + NV")) +
+      (G ? k("Demo week goal", num(G.need), num(G.have) + " built · ~" + num(G.coming) + " coming") : k("Callable demos", num(s.callable_demos), "CA + NV")) +
       k("Spent this run", usd(spent), "Apify + Google") + k("Claude weekly", (m.claude && m.claude.weekly != null ? m.claude.weekly + "%" : "–"), "stops " + ((m.claude && m.claude.stop_at) || 70) + "%");
   }
 

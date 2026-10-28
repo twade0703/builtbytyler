@@ -178,7 +178,13 @@
       (function () { var O = D.web.on_sheets || {}, Q = D.photo_requests || {};
         return '<div class="stat a"><b>' + N(O.nodemo || 0) + '</b><u>No demo yet, on the sheets to call (Website Rep 1 ' + N(O.nodemo_rep1 || 0) + ", Rep 2 " + N(O.nodemo_rep2 || 0) + ", Rep 3 " + N(O.nodemo_rep3 || 0) + ")</u></div>" +
           '<div class="stat g"><b>' + N(Q.total || 0) + '</b><u>Said yes to a preview · ' + N(Q.photos_in || 0) + " sent photos</u></div>"; })() + "</div>" +
-      '<p class="note">' + (S.codes === "free"
+      '<p class="note">' + (D.target && D.goal && D.goal.reps
+        /* 2026-10-27: "have" = built demos on each website rep's sheet; callable = in the free 5 or the 8 codes being bought */
+        ? "Built demos only. Your reps' sheets hold " + N(x.webHave) + ": " + D.goal.reps.map(function (r) { return r.label + " " + N(r.have); }).join(", ") +
+          ", against " + N(D.target.per_web_rep) + " each. " + N(D.goal.callable) + " of them are in area codes a closer can call once the " + N((D.goal.bought_codes || []).length) +
+          " codes you're buying are downloaded; the rest are in codes not bought yet." +
+          (D.web.on_sheets && D.web.on_sheets.nodemo ? " The " + N(D.web.on_sheets.nodemo) + " with no demo yet are on the sheets too: closers offer a free preview, the owner texts photos, and the demo is built that night." : "")
+        : S.codes === "free"
         ? "Built demos only. " + N(D.web.callable) + " are built in California and Nevada" + (D.web.on_sheets ? ", on your reps' sheets: Website Rep 1 " + N(D.web.on_sheets.rep1) + ", Rep 2 " + N(D.web.on_sheets.rep2) + ", Rep 3 " + N(D.web.on_sheets.rep3 || 0) + " (the goal is " + N((D.target || {}).per_web_rep || 0) + " each)" : "") +
           ", but only " + N(x.webHave) + " are inside the 5 free area codes, the only ones a closer can call once the Do Not Call list is in. So \"have\" is " + N(x.webHave) + "." +
           (D.web.on_sheets && D.web.on_sheets.nodemo ? " The " + N(D.web.on_sheets.nodemo) + " with no demo yet are on the sheets too: closers offer a free preview, the owner texts photos, and the demo is built that night." : "")

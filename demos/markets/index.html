@@ -6,244 +6,223 @@
 <title>Markets Demo</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-/* One instrument, one fixed frame.
-   The first three versions of this were a grid of rounded, bordered cards
-   under a camera that pushed in, racked focus and pulled back. Tyler: "you're
-   moving around the app too much, it's too hard to see what is going on", and
-   the boxes read as generated. So:
-   - the camera is gone. Nothing zooms, pans or blurs; things change in place.
-   - there are no cards. It is one surface divided by hairlines.
-   - nothing floats over the chart. The quant read-outs, the correlation map,
-     the calculation feed and the what-if control are docked in the rail; the
-     caption has its own place in the bottom bar.
-   - colour means something. Green and orange are market direction and nothing
-     else; cyan is the instrument itself (selection, progress, focus). */
+/* v5, 2026-10-28. Tyler: "could look a little bit less like AI". The v4 desk was
+   six panels of read-outs, neon on black, a scripted caption bar and a tab rail.
+   This is the opposite brief: one chart that is always populated, a watchlist,
+   key stats and alerts, and nothing else. One accent (the site cyan). Up and down
+   are always carried by a sign and an arrow (and hollow/filled candles), never by
+   colour alone.
+   The frame is a fixed 1312x832 picture scaled to whatever hosts it (software.html
+   iframes it at that ratio). A standalone portrait phone gets a stacked layout. */
 :root{
-  --bg:#05070A; --ink:#F1F5F8; --mu:#9CA6B2; --dim:#5F6873;
-  --hair:rgba(255,255,255,.10); --hair2:rgba(255,255,255,.055);
-  --ui:#5FE6FF; --ui-rgb:95,230,255;
-  --ok:#00C805; --bad:#FF5000; --ok-rgb:0,200,5; --bad-rgb:255,80,0;
-  --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
-  --sans:"Bricolage Grotesque",system-ui,-apple-system,sans-serif;
-  --e:cubic-bezier(.4,0,.2,1);
+  --bg:#04070C; --win:#060A10; --raise:#0A1018;
+  --ink:#E8EEF6; --mu:#8D99AB; --dim:#5D687A;
+  --hair:rgba(150,200,230,.11); --hair2:rgba(150,200,230,.065);
+  --ac:#5FE6FF; --ac-rgb:95,230,255;
+  --up:#56C292; --dn:#E8846E;
+  --sans:"Instrument Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
   color-scheme:dark;
 }
 *{box-sizing:border-box}
-html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased;overflow:hidden}
-button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
-/* A sideways swipe over the demo must not trigger the browser's back gesture.
-   SIDEWAYS ONLY: overscroll-behavior on both axes also stopped the wheel
-   passing through to the page, so the page could not be scrolled with the
-   pointer over the demo, which is most of the screen. */
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font:400 14px/1.3 var(--sans);-webkit-font-smoothing:antialiased;overflow:hidden;font-variant-numeric:tabular-nums}
 html,body{overscroll-behavior-x:none}
 html.embed,html.embed body{background:transparent}
-/* a colour-scheme that differs from the host page makes Chrome paint an opaque backdrop behind the iframe */
 html.embed{color-scheme:normal}
-.up{color:var(--ok)} .dn{color:var(--bad)} .fl{color:var(--mu)}
-h3{margin:0;font:500 11px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--dim)}
+button,input{font:inherit;color:inherit}
+button{background:none;border:0;padding:0;cursor:pointer;text-align:inherit}
+.up{color:var(--up)} .dn{color:var(--dn)} .fl{color:var(--mu)}
 
-/* the frame is a fixed 1280x800 picture, scaled to whatever it is dropped into, like a video */
+/* ---------- the fixed frame */
 .fit{position:fixed;inset:0;overflow:hidden}
-.stage{position:absolute;left:50%;top:50%;width:1280px;height:800px;transform-origin:center}
-.win{position:relative;width:100%;height:100%;border:1px solid var(--hair);border-radius:6px;overflow:hidden;
-  background:
-    radial-gradient(900px 420px at 34% 46%,rgba(var(--ui-rgb),.045),transparent 70%),
-    linear-gradient(180deg,#080B10,#040507);
-  box-shadow:0 40px 120px rgba(0,0,0,.9)}
-html.embed .win{box-shadow:0 10px 16px rgba(0,0,0,.5)}
-/* corner brackets: the frame is an instrument, not a window */
-.win::before,.win::after{content:"";position:absolute;width:18px;height:18px;border:1px solid rgba(var(--ui-rgb),.7);pointer-events:none;z-index:5}
-.win::before{left:-1px;top:-1px;border-right:0;border-bottom:0;border-top-left-radius:6px}
-.win::after{right:-1px;bottom:-1px;border-left:0;border-top:0;border-bottom-right-radius:6px}
+.stage{position:absolute;left:50%;top:50%;width:1312px;height:832px;transform-origin:center}
+.win{width:100%;height:100%;background:var(--win);border:1px solid var(--hair);border-radius:8px;overflow:hidden;
+  display:grid;grid-template-rows:56px minmax(0,1fr) 34px}
+html.embed .win{border:0;border-radius:0}
 
-.app{height:100%;display:grid;grid-template-rows:38px 58px minmax(0,1fr) 82px;position:relative}
+/* ---------- top bar */
+.top{display:flex;align-items:center;gap:22px;padding:0 20px 0 22px;border-bottom:1px solid var(--hair);min-width:0}
+.brand{display:flex;align-items:center;gap:10px;font-weight:600;font-size:15px;letter-spacing:-.01em;flex:none}
+.brand svg{width:20px;height:20px;display:block}
+.search{position:relative;flex:none;width:188px}
+.search label{display:flex;align-items:center;gap:8px;height:32px;padding:0 8px 0 10px;border:1px solid var(--hair);border-radius:6px;background:var(--raise);color:var(--dim);cursor:text}
+.search label:focus-within{border-color:rgba(var(--ac-rgb),.55)}
+.search svg{width:14px;height:14px;flex:none}
+.search input{flex:1;min-width:0;border:0;background:none;outline:0;font-size:13px;color:var(--ink);padding:0}
+.search input::placeholder{color:var(--dim)}
+.search kbd{font:500 11px/1 var(--sans);color:var(--dim);border:1px solid var(--hair);border-radius:4px;padding:3px 6px}
+.search ul{position:absolute;left:0;right:0;top:38px;margin:0;padding:4px;list-style:none;background:var(--raise);border:1px solid var(--hair);border-radius:8px;z-index:9;display:none;box-shadow:0 16px 40px rgba(0,0,0,.5)}
+.search ul.show{display:block}
+.search li{display:flex;justify-content:space-between;gap:10px;padding:8px 10px;border-radius:5px;font-size:13px;cursor:pointer}
+.search li span{color:var(--mu);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.search li.on,.search li:hover{background:rgba(var(--ac-rgb),.08)}
+.tape{flex:1;display:flex;gap:2px;min-width:0;overflow:hidden}
+.ix{display:grid;grid-template-columns:auto auto;column-gap:8px;row-gap:3px;align-items:baseline;padding:6px 10px;border-radius:6px;white-space:nowrap;font-size:13px}
+.ix span{grid-column:1/3;font-size:11.5px}
+.ix:hover{background:rgba(255,255,255,.035)}
+.ix.on{background:rgba(var(--ac-rgb),.07)}
+.ix span{color:var(--mu)}
+.ix b{font-weight:500}
+.ix em{font-style:normal;font-size:12.5px}
+.sess{flex:none;display:grid;grid-template-columns:auto auto;column-gap:7px;row-gap:3px;align-items:center;justify-items:end;font-size:11.5px;color:var(--mu);white-space:nowrap}
+.sess i{width:6px;height:6px;border-radius:50%;background:var(--ac)}
+.sess.closed i{background:var(--dim)}
+.sess b{grid-column:1/3;font-weight:500;font-size:13px;color:var(--ink)}
 
-/* ---------- status line */
-.hdr{display:flex;align-items:center;gap:28px;padding:0 22px;border-bottom:1px solid var(--hair2);font:400 11.5px/1 var(--mono);color:var(--mu);letter-spacing:.04em}
-.brand{display:flex;align-items:center;gap:10px;color:var(--ink);font-weight:600;letter-spacing:.22em}
-.brand i{width:7px;height:7px;background:var(--ui);box-shadow:0 0 10px rgba(var(--ui-rgb),.9)}
-.hdr .src{flex:1;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.hdr .cnt{display:flex;gap:18px}
-.hdr b{font-weight:600;color:var(--ink)}
-.hdr .up b{color:var(--ok)} .hdr .dn b{color:var(--bad)}
-.sess b{display:inline-block;min-width:66px;text-align:right}
-
-/* ---------- the tape: five markets on one line */
-.tape{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));border-bottom:1px solid var(--hair2)}
-.ix{position:relative;display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto;column-gap:12px;align-content:center;padding:0 22px;text-align:left;
-  transition:background .3s}
-.ix+.ix{border-left:1px solid var(--hair2)}
-.ix:hover{background:rgba(255,255,255,.03)}
-.ix small{grid-column:1/3;font:400 10.5px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin-bottom:7px}
-.ix b{font:500 17px/1 var(--mono);letter-spacing:-.01em;font-variant-numeric:tabular-nums}
-.ix em{font:500 12px/1 var(--mono);font-style:normal;align-self:end;padding-bottom:1px}
-.ix svg{position:absolute;right:20px;top:50%;width:46px;height:20px;margin-top:-10px;overflow:visible;opacity:.9}
-.ix::after{content:"";position:absolute;left:22px;right:22px;bottom:-1px;height:1px;background:var(--ui);transform:scaleX(0);transform-origin:left;transition:transform .6s var(--e)}
-.ix.on::after{transform:scaleX(1)}
-
-/* ---------- the chart and the rail */
-.cam{min-height:0;position:relative}
-.mid{display:grid;grid-template-columns:minmax(0,1fr) 322px;height:100%;min-height:0}
-.deck{position:relative;min-height:0}
-.card{position:absolute;inset:0}
-.card.back{display:none}
-.c-in{position:absolute;inset:0;display:flex;flex-direction:column;padding:20px 8px 0 24px}
-
-.c-hd{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;padding-right:16px}
-.c-sym{font:400 12.5px/1 var(--mono);letter-spacing:.08em;color:var(--mu);text-transform:uppercase}
-.c-sym b{color:var(--ink);font-size:15px;font-weight:600;letter-spacing:.06em;margin-right:10px}
-.c-px{font:500 60px/1 var(--mono);letter-spacing:-.045em;margin-top:12px;font-variant-numeric:tabular-nums}
-.c-chg{font:500 14px/1 var(--mono);margin-top:10px}
-.c-chg span{color:var(--dim);font-weight:400}
-.legend{display:flex;gap:18px;font:400 12.5px/1 var(--mono);color:var(--mu);margin-top:12px}
-.legend i{display:inline-block;width:14px;height:2px;vertical-align:middle;margin-right:7px}
-.tools{display:flex;flex-direction:column;align-items:flex-end;gap:14px;padding-top:2px}
-/* range and indicators are words with a mark under them, not pills */
-.seg{display:inline-flex;gap:4px}
-.seg button{position:relative;font:500 12px/1 var(--mono);letter-spacing:.08em;padding:6px 10px 9px;color:var(--dim);transition:color .25s}
+/* ---------- body */
+.body{display:grid;grid-template-columns:minmax(0,1fr) 340px;min-height:0}
+.main{display:grid;grid-template-rows:auto minmax(0,1fr) auto;min-height:0;padding:26px 30px 0 32px}
+.qhd{display:flex;justify-content:space-between;align-items:flex-end;gap:24px}
+.who{display:flex;align-items:baseline;gap:10px;font-size:15px}
+.who b{font-weight:600;letter-spacing:.01em}
+.who span{color:var(--mu)}
+.who small{font-size:11.5px;color:var(--dim);border:1px solid var(--hair);border-radius:4px;padding:2px 6px;align-self:center}
+.px{display:flex;align-items:baseline;gap:16px;margin-top:10px}
+.px b{font:500 46px/1 var(--sans);letter-spacing:-.025em}
+.chg{font-size:15px;font-weight:500}
+.chg span{color:var(--mu);font-weight:400;margin-left:6px}
+.rchg{font-size:15px;font-weight:500}
+.rchg:not(:empty){padding-left:16px;border-left:1px solid var(--hair)}
+.rchg span{color:var(--mu);font-weight:400;margin-left:6px}
+.ctl{display:flex;flex-direction:column;align-items:flex-end;gap:10px}
+.seg{display:inline-flex;padding:3px;border:1px solid var(--hair);border-radius:7px;background:var(--raise)}
+.seg button{font-size:12.5px;font-weight:500;color:var(--mu);padding:5px 11px;border-radius:5px;transition:color .2s,background .2s}
 .seg button:hover{color:var(--ink)}
-.seg button.on{color:var(--ink)}
-.seg button::after{content:"";position:absolute;left:10px;right:10px;bottom:0;height:2px;background:var(--ui);transform:scaleX(0);transition:transform .35s var(--e)}
-.seg button.on::after{transform:scaleX(1)}
-.chips{display:flex;gap:16px}
-.chips button{display:flex;align-items:center;gap:7px;font:400 11.5px/1 var(--mono);letter-spacing:.03em;color:var(--dim);padding:3px 0;transition:color .3s}
-.chips button i{width:9px;height:9px;border:1px solid var(--c);transition:background .3s,box-shadow .3s}
-.chips button:hover{color:var(--ink)}
-.chips button.on{color:var(--ink)}
-.chips button.on i{background:var(--c);box-shadow:0 0 8px var(--c)}
+.seg button.on{color:var(--ink);background:rgba(255,255,255,.075)}
+.seg button[disabled]{color:var(--dim);opacity:.5;cursor:default}
 
-.c-ch{position:relative;flex:1;min-height:0;margin:14px 0 0;cursor:crosshair}
-.c-ch.pan{cursor:grab}
-.c-ch canvas{position:absolute;inset:0;width:100%;height:100%}
-.tip{position:absolute;pointer-events:none;background:rgba(6,9,13,.94);border:1px solid var(--hair);border-left:2px solid var(--ui);padding:7px 10px;
-  font:400 12.5px/1.55 var(--mono);white-space:nowrap;opacity:0;transition:opacity .15s;z-index:3}
+.chart{position:relative;min-height:0;margin:16px -2px 0 0}
+.chart canvas{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:crosshair}
+.ckey{position:absolute;left:0;top:2px;font-size:11.5px;color:var(--dim);pointer-events:none;opacity:0;transition:opacity .3s}
+.ckey.show{opacity:1}
+.tip{position:absolute;top:8px;pointer-events:none;background:#0A1018;border:1px solid var(--hair);border-radius:6px;padding:8px 10px;font-size:12px;line-height:1.55;white-space:nowrap;opacity:0;transition:opacity .12s;z-index:3}
 .tip.show{opacity:1}
+.tip div{display:flex;justify-content:space-between;gap:14px}
 .tip span{color:var(--mu)}
+.tip .t{color:var(--ink);font-weight:500;margin-bottom:2px}
 
-/* the read-outs under the chart: one ruled line, not four boxes */
-.c-sig{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-top:1px solid var(--hair2);margin:10px 16px 0 -24px;padding-left:24px}
-.c-sig.six{grid-template-columns:repeat(6,minmax(0,1fr))}
-.sg{padding:12px 16px 13px 0}
-.sg+.sg{border-left:1px solid var(--hair2);padding-left:16px}
-.sg small{display:block;font:400 10.5px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
-.sg b{display:block;font:500 17px/1 var(--mono);margin:9px 0 9px;font-variant-numeric:tabular-nums}
-.sg b span{font-size:11.5px;font-weight:400;color:var(--mu);margin-left:6px}
-.meter{position:relative;height:2px;background:rgba(255,255,255,.09)}
-.meter i{position:absolute;left:0;top:0;bottom:0;width:0;transition:width 1.3s var(--e)}
-.meter.rsi{background:linear-gradient(90deg,rgba(var(--bad-rgb),.55) 0 30%,rgba(255,255,255,.09) 30% 70%,rgba(var(--ok-rgb),.55) 70%)}
-.meter u{position:absolute;top:-4px;width:2px;height:10px;background:#fff;left:0;transition:left 1.3s var(--e)}
-.card.glow .sg b{text-shadow:0 0 18px rgba(var(--ui-rgb),.55)}
+.stats{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));margin:0 0 0 -32px;padding:0 0 0 32px;border-top:1px solid var(--hair);margin-right:-30px}
+.st{padding:15px 18px 18px 0}
+.st+.st{padding-left:18px;border-left:1px solid var(--hair2)}
+.st dt{font-size:12px;color:var(--mu)}
+.st dd{margin:7px 0 0;font-size:15px;font-weight:500;white-space:nowrap}
+.rng{position:relative;height:3px;margin-top:9px;border-radius:2px;background:rgba(255,255,255,.09)}
+.rng i{position:absolute;top:-3px;width:2px;height:9px;margin-left:-1px;background:var(--ink);border-radius:1px}
 
-/* ---------- the rail: what is tracked, what the engine is computing */
-.rail{border-left:1px solid var(--hair2);display:grid;grid-template-rows:minmax(0,1fr) auto auto;min-height:0}
-.rail section{padding:16px 20px 0}
-.rail section+section{border-top:1px solid var(--hair2)}
-.rail h3{display:flex;justify-content:space-between;align-items:center;height:14px;margin-bottom:8px}
-.rail h3 span{color:var(--dim);letter-spacing:.1em}
-.list{display:flex;flex-direction:column;min-height:0;padding-bottom:6px!important}
-.rows{flex:1;display:flex;flex-direction:column;min-height:0}
-.row{flex:1;display:grid;grid-template-columns:minmax(0,1fr) 52px auto;align-items:center;gap:12px;text-align:left;position:relative;margin:0 -20px;padding:0 20px;
-  transition:background .4s var(--e)}
-.row>div:first-child{display:flex;align-items:baseline;gap:9px;min-width:0}
-.row svg{width:52px;height:20px;overflow:visible}
-.row+.row{border-top:1px solid var(--hair2)}
-.row:hover{background:rgba(255,255,255,.035)}
-.row.on{background:linear-gradient(90deg,rgba(var(--ui-rgb),.10),transparent 70%)}
-.row.on::before{content:"";position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--ui);box-shadow:0 0 10px rgba(var(--ui-rgb),.8)}
-.row b{display:block;font:500 13.5px/1 var(--mono);letter-spacing:.02em}
-.row small{font-size:11.5px;line-height:1.2;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.row .p{display:flex;align-items:baseline;justify-content:flex-end;gap:10px}
-.row .p b{font-variant-numeric:tabular-nums;min-width:50px;text-align:right}
-.pill{font:500 11.5px/1 var(--mono);min-width:50px;text-align:right;font-variant-numeric:tabular-nums}
+/* ---------- side: watchlist and alerts */
+.side{border-left:1px solid var(--hair);display:flex;flex-direction:column;min-height:0}
+.side h2{display:flex;justify-content:space-between;align-items:baseline;margin:0;padding:20px 20px 10px;font-size:13px;font-weight:600}
+.side h2 span{font-weight:400;color:var(--dim);font-size:12px}
+.rows{display:flex;flex-direction:column;padding:0 10px}
+.row{display:grid;grid-template-columns:minmax(0,1fr) 72px 92px;align-items:center;gap:12px;height:51px;padding:0 10px;border-radius:7px;position:relative}
+.row:hover{background:rgba(255,255,255,.03)}
+.row.on{background:rgba(var(--ac-rgb),.065)}
+.row.on::before{content:"";position:absolute;left:0;top:12px;bottom:12px;width:2px;border-radius:2px;background:var(--ac)}
+.row .n{min-width:0}
+.row .n b{display:block;font-size:13.5px;font-weight:600}
+.row .n span{display:block;font-size:12px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+.row svg{width:72px;height:26px;display:block;overflow:visible}
+.row .p{text-align:right}
+.row .p b{display:block;font-size:13.5px;font-weight:500}
+.row .p em{display:block;font-style:normal;font-size:12px;margin-top:2px}
+.alerts{border-top:1px solid var(--hair);margin-top:auto}
+.alerts h2{padding-top:18px}
+.al{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:12px;margin:0 10px;padding:9px 10px;border-radius:7px;height:50px}
+.al .c b{font-size:13px;font-weight:600;margin-right:6px}
+.al .c span{font-size:12.5px;color:var(--mu)}
+.al .s{text-align:right;font-size:12px;color:var(--mu);white-space:nowrap}
+.al .s b{display:block;font-weight:500;font-size:12.5px;color:var(--ink)}
+.al .s svg{width:11px;height:11px;vertical-align:-1px;margin-right:4px}
+.al.hit .s b{color:var(--ac)}
+.al.flash{animation:flash 2.4s ease-out}
+@keyframes flash{0%{background:rgba(var(--ac-rgb),.14)}100%{background:transparent}}
+.alerts .pad{height:12px}
 
-.qt{padding-bottom:12px!important;transition:background .8s var(--e)}
-.qt.hot{background:linear-gradient(180deg,rgba(var(--ui-rgb),.09),transparent)}
-.qt h3 em{font-style:normal;color:var(--ink);letter-spacing:.06em}
-.qt dl{margin:0}
-.qt dl div{display:flex;justify-content:space-between;align-items:baseline;height:20px;font:400 12px/1 var(--mono)}
-.qt dt{color:var(--mu)}
-.qt dd{margin:0;color:var(--ink);font-weight:500;font-variant-numeric:tabular-nums}
-.whatif{display:flex;align-items:center;gap:9px;margin-top:9px;padding-top:10px;border-top:1px solid var(--hair2);font:400 11px/1 var(--mono);color:var(--mu);white-space:nowrap}
-.whatif input{flex:1;min-width:0;height:14px;margin:0;accent-color:var(--ui);cursor:pointer}
-.whatif b{color:var(--ink);font-weight:500;min-width:30px;text-align:right}
-.qt.nomc .whatif{opacity:.28;pointer-events:none}
+/* ---------- foot */
+.foot{display:flex;align-items:center;gap:16px;padding:0 14px 0 22px;border-top:1px solid var(--hair);font-size:12px;color:var(--dim);white-space:nowrap;min-width:0}
+.foot .src{flex:1;overflow:hidden;text-overflow:ellipsis}
+.tour{display:flex;align-items:center;gap:7px;color:var(--mu);padding:4px 8px;border-radius:5px}
+.tour:hover{color:var(--ink);background:rgba(255,255,255,.04)}
+.tour svg{width:10px;height:10px}
 
-.eng{position:relative;height:136px;padding-bottom:0!important}
-.eng h3 span.b{display:none}
-.eng.feed h3 span.a{display:none}
-.eng.feed h3 span.b{display:inline;color:var(--ui)}
-.eng canvas{display:block;width:282px;height:86px;transition:opacity .45s var(--e)}
-.eng.feed canvas{opacity:0}
-/* the calculation behind whatever is drawing, one line per bar */
-.hud{position:absolute;left:20px;right:12px;top:40px;height:84px;overflow:hidden;pointer-events:none;font:400 10.5px/1 var(--mono);color:var(--ink);opacity:0;transition:opacity .45s var(--e)}
-.hud.show{opacity:1}
-.hud div{position:absolute;left:0;top:2px;white-space:nowrap;transition:transform .45s var(--e),opacity .45s var(--e)}
-.hud div span{color:var(--dim);margin-right:9px}
-.hud div b{font-weight:500;color:var(--k,#fff)}
-
-/* ---------- the bottom bar: what you are looking at, and where in the reel */
-.ctlbar{display:grid;grid-template-columns:432px minmax(0,1fr) auto;align-items:center;gap:30px;padding:0 22px 0 24px;border-top:1px solid var(--hair)}
-.cap h2{margin:0;font:400 27px/1.1 var(--sans);letter-spacing:-.03em;white-space:nowrap}
-.cap p{margin:7px 0 0;font:400 14px/1.2 var(--sans);color:var(--mu);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-height:17px}
-.w{display:inline-block;white-space:pre;animation:rise .7s var(--e) both}
-@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-.tl{position:relative;height:46px;cursor:pointer;touch-action:none}
-.tl-bar{position:absolute;left:0;right:0;bottom:10px;height:1px;background:rgba(255,255,255,.16)}
-.tl-bar i{position:absolute;left:0;top:-.5px;height:2px;width:0;background:var(--ui);box-shadow:0 0 10px rgba(var(--ui-rgb),.7)}
-.tl-bar i::after{content:"";position:absolute;right:-3px;top:-3px;width:8px;height:8px;background:var(--ui);transform:rotate(45deg)}
-.tl-marks button{position:absolute;top:4px;font:400 11px/1 var(--mono);letter-spacing:.06em;color:var(--dim);padding:2px 0;white-space:nowrap;transition:color .2s}
-.tl-marks button::after{content:"";position:absolute;left:0;top:27px;width:1px;height:9px;background:rgba(255,255,255,.28)}
-.tl-marks button:hover,.tl-marks button.on{color:var(--ink)}
-.play{display:flex;align-items:center;gap:9px;font:500 11.5px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--mu);padding:11px 16px;border:1px solid var(--hair);border-radius:2px;
-  transition:color .2s,border-color .2s}
-.play:hover{color:var(--ink);border-color:rgba(var(--ui-rgb),.8)}
-@media (prefers-reduced-motion:reduce){.w{animation:none}.meter i,.meter u{transition-duration:.01s}}
+/* ---------- standalone portrait phone: the same parts, stacked */
+html.flow,html.flow body{overflow-x:hidden;overflow-y:auto;height:auto}
+html.flow .fit{position:static;overflow:visible}
+html.flow .stage{position:static;width:auto;height:auto;transform:none!important}
+html.flow .win{border:0;border-radius:0;display:block}
+html.flow .top{flex-wrap:wrap;gap:12px;padding:14px 16px}
+html.flow .brand{flex:1}
+html.flow .search{order:3;width:100%}
+html.flow .tape{order:4;flex:0 0 100%;overflow-x:auto;scrollbar-width:none;margin:0 -16px;padding:0 12px;gap:0}
+html.flow .tape::-webkit-scrollbar{display:none}
+html.flow .body{display:block}
+html.flow .main{display:block;padding:20px 16px 0}
+html.flow .qhd{flex-direction:column;align-items:stretch;gap:16px}
+html.flow .px b{font-size:38px}
+html.flow .px{flex-wrap:wrap;row-gap:6px}
+html.flow .ctl{flex-direction:row;justify-content:space-between;align-items:center}
+html.flow .chart{height:280px;margin-right:0}
+html.flow .stats{grid-template-columns:1fr 1fr;margin:8px -16px 0;padding:0 16px}
+html.flow .st{padding:14px 0 14px 0!important;border-left:0!important;border-bottom:1px solid var(--hair2)}
+html.flow .st:nth-child(even){padding-left:16px!important;border-left:1px solid var(--hair2)!important}
+html.flow .st:nth-child(odd){padding-right:16px!important}
+html.flow .side{border-left:0;border-top:1px solid var(--hair);margin-top:4px}
+html.flow .rows,html.flow .al{margin-left:0;margin-right:0}
+html.flow .rows{padding:0 6px}
+html.flow .al{margin:0 6px}
+html.flow .foot{padding:14px 16px;height:auto;white-space:normal;align-items:flex-start;flex-direction:column;gap:8px}
+@media (prefers-reduced-motion:reduce){.al.flash{animation:none}}
 </style>
 </head>
 <body>
 <div class="fit"><div class="stage" id="stage">
-  <div class="win" id="win">
-    <div class="app" id="app">
-      <header class="hdr">
-        <div class="brand"><i></i>MARKETS</div>
-        <div class="src" id="src"></div>
-        <div class="sess">Session <b id="kT">9:30 AM</b></div>
-        <div class="cnt"><span><b id="kTr">13</b> tracked</span><span class="up"><b id="kUp">0</b> up</span><span class="dn"><b id="kDn">0</b> down</span></div>
-      </header>
-      <div class="tape" id="ixs"></div>
+  <div class="win">
+    <header class="top">
+      <div class="brand"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x=".5" y=".5" width="19" height="19" rx="5" fill="none" stroke="rgba(150,200,230,.35)"/><path d="M4.5 13.5l3.5-4 3 2.5 4-5.5" fill="none" stroke="#5FE6FF" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Markets</div>
+      <div class="search">
+        <label><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.6" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M10.5 10.5l3 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+          <input id="q" type="text" placeholder="Search symbols" autocomplete="off" spellcheck="false" aria-label="Search symbols"><kbd>/</kbd></label>
+        <ul id="qList" role="listbox"></ul>
+      </div>
+      <nav class="tape" id="tape" aria-label="Indices"></nav>
+      <div class="sess" id="sess"><i></i><span id="sessL">Replay</span><b id="sessT">1:30 PM ET</b></div>
+    </header>
 
-      <div class="cam" id="cam"><div class="mid">
-        <div class="deck" id="deck">
-          <div class="card back" id="cA"><div class="c-in"></div></div>
-          <div class="card front" id="cB"><div class="c-in"></div></div>
+    <div class="body">
+      <section class="main">
+        <div class="qhd">
+          <div>
+            <div class="who"><b id="sym">NVDA</b><span id="nm">NVIDIA</span><small id="kind">Stock</small></div>
+            <div class="px"><b id="px">0.00</b><div class="chg" id="chg"></div><div class="rchg" id="rchg"></div></div>
+          </div>
+          <div class="ctl">
+            <div class="seg" id="ranges" role="tablist" aria-label="Range"></div>
+            <div class="seg" id="types" role="tablist" aria-label="Chart type"></div>
+          </div>
         </div>
-        <aside class="rail">
-          <section class="list"><h3>Watchlist<span>today</span></h3><div class="rows" id="rows"></div></section>
-          <section class="qt" id="qt">
-            <h3>Quant <em id="qSym"></em><span>live</span></h3>
-            <dl id="qRows"></dl>
-            <label class="whatif" title="Scale the volatility the range is drawn from">What if σ <input type="range" id="wi" min="50" max="250" value="100"><b id="wb">×1.0</b></label>
-          </section>
-          <section class="eng" id="eng">
-            <h3><span class="a">Correlation · 1Y</span><span class="b">Computing</span></h3>
-            <div class="hud" id="hud"></div>
-            <canvas id="corr"></canvas>
-          </section>
-        </aside>
-      </div></div>
+        <div class="chart" id="chart">
+          <canvas id="cv"></canvas>
+          <div class="ckey" id="ckey">Hollow candle: closed up · Filled: closed down</div>
+          <div class="tip" id="tip"></div>
+        </div>
+        <dl class="stats" id="stats"></dl>
+      </section>
 
-      <footer class="ctlbar">
-        <div class="cap"><h2 id="capH"></h2><p id="capP"></p></div>
-        <div class="tl" id="tl"><div class="tl-marks" id="dots"></div><div class="tl-bar"><i id="tlFill"></i></div></div>
-        <button class="play" id="play"></button>
-      </footer>
+      <aside class="side">
+        <section><h2>Watchlist<span id="wlN"></span></h2><div class="rows" id="rows"></div></section>
+        <section class="alerts"><h2>Alerts<span id="alN"></span></h2><div id="alerts"></div><div class="pad"></div></section>
+      </aside>
     </div>
+
+    <footer class="foot">
+      <span class="src" id="src">Public market data · session replay</span>
+      <button class="tour" id="tour" type="button"></button>
+    </footer>
   </div>
 </div></div>
 
 <script src="data.js?v=996b2c0a"></script>
-<script src="app.js?v=50fdf216"></script>
+<script src="app.js?v=217041b5"></script>
 </body>
 </html>

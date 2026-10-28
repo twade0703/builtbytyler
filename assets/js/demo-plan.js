@@ -159,7 +159,7 @@
     var c = D.costs;
     var top =
       '<p class="lead">' + esc(D.week.label) + " · " + S.web + " website closers at " + S.calls + " calls a day + " + S.ai + " AI Receptionist closers at " + S.aiCalls + " · " + S.days + " days</p>" +
-      '<nav class="nav"><a href="#answer">Answer</a><a href="#build">Build</a><a href="#money">Money</a><a href="#demos">Demos</a><a href="#recalls">Recalls</a><a href="#costs">Costs</a><a href="#status">Status</a><a href="#dials">Assumptions</a></nav>' +
+      '<nav class="nav"><a href="#answer">Answer</a><a href="#build">Build</a><a href="#money">Money</a><a href="#demos">Demos</a><a href="#codes">Area codes</a><a href="#recalls">Recalls</a><a href="#costs">Costs</a><a href="#status">Status</a><a href="#dials">Assumptions</a></nav>' +
 
       '<h2 id="answer">The short answer</h2><div class="grid">' +
       '<div class="stat bl"><b>' + N(x.webNeed) + '</b><u>Website demos needed</u></div>' +
@@ -203,7 +203,7 @@
       "</tbody></table>" +
       (S.ai ? '<p class="note">AI Receptionist list: ' + N(x.aiHave) + " ready" + (S.codes === "free" ? " in the free area codes" : "") + ", " + N(x.aiNeed) + " needed. " + (x.aiHave >= x.aiNeed ? "Enough." : "Short by " + N(x.aiNeed - x.aiHave) + ".") + "</p>" : "") +
       (S.codes === "free" ? '<div class="warn">Only ' + N(D.web.in_codes) + " of the " + N(D.web.callable) + " ready California and Nevada demos are in the 5 free area codes. New demos must come from those area codes too (" + D.dnc.free.join(", ") + "), or you pay for more area codes.</div>" : "") +
-      "</div>" +
+      "</div>" + codesHtml(x) +
 
       '<h2 id="money">Money from the week<small>' + S.lo + "% of calls = " + perOwner(S.lo) + "% of owners reached. " + S.hi + "% = " + perOwner(S.hi) + "%.</small></h2>" +
       '<div class="card"><table><thead><tr><th></th><th class="lo">' + S.lo + '%</th><th class="hi">' + S.hi + "%</th></tr></thead><tbody>" +
@@ -311,6 +311,28 @@
         (aiShort ? ". Short " + N(aiShort) + ". Another 1,000 leads is a small Apify pull, no demos, and can run alongside the build." : ". Enough.") + "</p>" : "") +
       (S.web > 2 ? '<div class="warn">You have 2 website areas today: Rep 1 Southern California, Rep 2 Northern California and Nevada. A third website closer needs their own area so nobody calls the same business. For example: Rep 1 the 818 area, Rep 2 the 408 and 209 areas, Rep 3 the 619 and 702 areas.</div>' : "") +
       "</div>";
+  }
+  /* Extra Do Not Call area codes, ranked by demos already built there (2026-10-27, Tyler: "work it out").
+     Each one unlocks its ready demos the day the registry download is redone; no new builds. */
+  function codesHtml(x) {
+    var E = (D.dnc || {}).extra || [];
+    if (!E.length) return "";
+    var per = D.dnc.per_code, gap = Math.max(0, x.webNeed - D.web.in_codes), left = gap, pick = [];
+    E.forEach(function (e) { if (left > 0 && e.web > 0) { pick.push(e); left -= e.web; } });
+    var got = pick.reduce(function (s, e) { return s + e.web; }, 0), gotAi = pick.reduce(function (s, e) { return s + e.ai; }, 0);
+    var rows = E.map(function (e, i) {
+      return "<tr" + (pick.indexOf(e) >= 0 ? ' class="big"' : "") + "><td><b>" + esc(e.code) + "</b> " + esc(e.where) + (e.rep ? " · " + esc(e.rep) : "") +
+        "</td><td>" + N(e.web) + "</td><td>" + N(e.ai) + "</td></tr>";
+    }).join("");
+    return '<h2 id="codes">More area codes<small>Demos already built, waiting on a Do Not Call area code. $' + per + " each a year.</small></h2>" +
+      '<div class="card"><p class="note" style="margin-top:0">' +
+      (gap ? "<b>Short " + N(gap) + " website demos inside the free 5.</b> " + (pick.length === 1 ? "One code covers it: <b>" + esc(pick[0].code) + "</b> (" + esc(pick[0].where) + ") already has " + N(pick[0].web) + " finished demos"
+              : "The top " + pick.length + " codes cover it with " + N(got) + " finished demos") +
+            ", $" + N(pick.length * per) + " a year, no new builds. It also adds " + N(gotAi) + " AI Receptionist leads."
+           : "<b>Enough website demos inside the free 5.</b> These codes are spare, or room for a third website closer.") +
+      " Ranked by finished website demos in each code.</p>" +
+      '<table><thead><tr><th>Area code</th><th>Demos</th><th>AI leads</th></tr></thead><tbody>' + rows + "</tbody></table>" +
+      '<p class="note">Highlighted = what closes the gap. Rep 1 is Southern California, Rep 2 Northern California and Nevada, so pick one of each if both reps need more. Overlay codes (like 747 over 818) cover the same towns as their parent. Every new code means a fresh registry download and scrub before anyone dials it.</p></div>';
   }
   function cost(a, b, note) { return '<div class="costrow"><b>' + esc(a) + "</b><span>" + esc(b) + "</span><p>" + esc(note) + "</p></div>"; }
 

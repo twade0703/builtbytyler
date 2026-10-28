@@ -79,8 +79,10 @@
   function plan() {
     var p = S.pickup / 100, r = sim(S.calls, S.days, p, S.tries), rA = sim(S.aiCalls, S.days, p, S.tries);
     var buf = 1 + S.buffer / 100, free = S.codes === "free";
-    var webNeed = Math.ceil(r.fresh * S.web * buf), aiNeed = Math.ceil(rA.fresh * S.ai * buf);
-    var webHave = free ? D.web.in_codes : D.web.callable, aiHave = free ? D.ai.in_codes : D.ai.callable;
+    /* 2026-10-27 night, Tyler: 500 built demos per website rep. "Have" = built demos on their sheets. */
+    var T = D.target && D.target.per_web_rep, G = D.goal || {};
+    var webNeed = T ? T * S.web : Math.ceil(r.fresh * S.web * buf), aiNeed = Math.ceil(rA.fresh * S.ai * buf);
+    var webHave = T && G.have != null ? G.have : free ? D.web.in_codes : D.web.callable, aiHave = free ? D.ai.in_codes : D.ai.callable;
     var toBuild = Math.max(0, webNeed - webHave), per = D.build[S.route];
     var codes = {}; Object.keys(D.web.area_codes).concat(Object.keys(D.ai.area_codes)).forEach(function (c) { codes[c] = 1; });
     var nCodes = Object.keys(codes).length, paidCodes = free ? 0 : Math.max(0, nCodes - D.dnc.free.length);
@@ -174,10 +176,10 @@
         ? '<div class="stat v"><b>' + (x.toBuild ? (x.hours < 48 ? "~" + x.hours + " hrs" : "~" + Math.ceil(x.hours / 24) + " days") : "Done") + "</b><u>" + (x.toBuild ? "To build them at today's pace (" + x.pace + " an hour, measured)" : "Enough demos built") + "</u></div>"
         : '<div class="stat v"><b>' + x.days2 + ' <em>to</em> ' + x.days1 + ' days</b><u>To build them (2 or 1 Claude lanes)</u></div>') +
       (function () { var O = D.web.on_sheets || {}, Q = D.photo_requests || {};
-        return '<div class="stat a"><b>' + N(O.nodemo || 0) + '</b><u>No demo yet, on the sheets to call (Rep 1 ' + N(O.nodemo_rep1 || 0) + ", Rep 2 " + N(O.nodemo_rep2 || 0) + ")</u></div>" +
+        return '<div class="stat a"><b>' + N(O.nodemo || 0) + '</b><u>No demo yet, on the sheets to call (Website Rep 1 ' + N(O.nodemo_rep1 || 0) + ", Rep 2 " + N(O.nodemo_rep2 || 0) + ", Rep 3 " + N(O.nodemo_rep3 || 0) + ")</u></div>" +
           '<div class="stat g"><b>' + N(Q.total || 0) + '</b><u>Said yes to a preview · ' + N(Q.photos_in || 0) + " sent photos</u></div>"; })() + "</div>" +
       '<p class="note">' + (S.codes === "free"
-        ? "Built demos only. " + N(D.web.callable) + " are built in California and Nevada" + (D.web.on_sheets ? ", all on your reps' sheets (Rep 1 " + N(D.web.on_sheets.rep1) + ", Rep 2 " + N(D.web.on_sheets.rep2) + ")" : "") +
+        ? "Built demos only. " + N(D.web.callable) + " are built in California and Nevada" + (D.web.on_sheets ? ", on your reps' sheets: Website Rep 1 " + N(D.web.on_sheets.rep1) + ", Rep 2 " + N(D.web.on_sheets.rep2) + ", Rep 3 " + N(D.web.on_sheets.rep3 || 0) + " (the goal is " + N((D.target || {}).per_web_rep || 0) + " each)" : "") +
           ", but only " + N(x.webHave) + " are inside the 5 free area codes, the only ones a closer can call once the Do Not Call list is in. So \"have\" is " + N(x.webHave) + "." +
           (D.web.on_sheets && D.web.on_sheets.nodemo ? " The " + N(D.web.on_sheets.nodemo) + " with no demo yet are on the sheets too: closers offer a free preview, the owner texts photos, and the demo is built that night." : "")
         : "The demos on your reps' lists (Rep 1 and Rep 2) are the " + N(x.webHave) + " counted here, not extra.") + "</p>" +
@@ -286,7 +288,7 @@
       '<li><b>Leave the PC on.</b> A restart stops the build. If it restarts, tell Claude "restart the build".</li></ol>' +
       (S.ai ? '<p class="note">AI Receptionist: ' + N(x.aiHave) + " leads ready in the free area codes, " + N(x.aiNeed) + " needed for " + S.ai + " closers" +
         (aiShort ? ". Short " + N(aiShort) + ". Another 1,000 leads is a small Apify pull, no demos, and can run alongside the build." : ". Enough.") + "</p>" : "") +
-      (S.web > 2 ? '<div class="warn">You have 2 website areas today: Rep 1 Southern California, Rep 2 Northern California and Nevada. A third website closer needs their own area so nobody calls the same business. For example: Rep 1 the 818 area, Rep 2 the 408 and 209 areas, Rep 3 the 619 and 702 areas.</div>' : "") +
+      (S.web > 3 ? '<div class="warn">You have 3 website areas today: Website Rep 1 LA and Orange County, Rep 2 Northern California and Nevada, Rep 3 San Diego and the Inland Empire. A fourth website closer needs their own area so nobody calls the same business. For example: Rep 1 the 818 area, Rep 2 the 408 and 209 areas, Rep 3 the 619 and 702 areas.</div>' : "") +
       "</div>";
   }
   function startBuildHtml(x) {
@@ -316,7 +318,7 @@
       "<li><b>Leave the PC on.</b> A restart stops the build. The counts on this page update as demos pass.</li></ol>" +
       (S.ai ? '<p class="note">AI Receptionist: ' + N(x.aiHave) + " leads ready in the free area codes, " + N(x.aiNeed) + " needed for " + S.ai + " closers" +
         (aiShort ? ". Short " + N(aiShort) + ". Another 1,000 leads is a small Apify pull, no demos, and can run alongside the build." : ". Enough.") + "</p>" : "") +
-      (S.web > 2 ? '<div class="warn">You have 2 website areas today: Rep 1 Southern California, Rep 2 Northern California and Nevada. A third website closer needs their own area so nobody calls the same business. For example: Rep 1 the 818 area, Rep 2 the 408 and 209 areas, Rep 3 the 619 and 702 areas.</div>' : "") +
+      (S.web > 3 ? '<div class="warn">You have 3 website areas today: Website Rep 1 LA and Orange County, Rep 2 Northern California and Nevada, Rep 3 San Diego and the Inland Empire. A fourth website closer needs their own area so nobody calls the same business. For example: Rep 1 the 818 area, Rep 2 the 408 and 209 areas, Rep 3 the 619 and 702 areas.</div>' : "") +
       "</div>";
   }
   /* Extra Do Not Call area codes, ranked by demos already built there (2026-10-27, Tyler: "work it out").
@@ -336,7 +338,7 @@
       "Your reps' sheets already hold " + N(D.web.on_sheets ? D.web.on_sheets.other : waiting) + " built demos outside the free 5; each code below makes its share callable. " +
       "The towns are cities on hold that have never been built; each is an estimate of about " + N(5) + " demos, from what the free-code towns gave.</p>" +
       '<table><thead><tr><th>Area code</th><th>Built</th><th>Towns</th><th>Total, est.</th></tr></thead><tbody>' + rows + "</tbody></table>" +
-      '<p class="note">Highlighted = the best two. "Built" is real: demos on the sheets today. "Total" adds about 5 per town, an estimate. Rep 1 is Southern California, Rep 2 Northern California and Nevada. Every new code needs a fresh registry download and scrub before anyone dials it.</p></div>';
+      '<p class="note">Highlighted = the best two. "Built" is real: demos on the sheets today. "Total" adds about 5 per town, an estimate. Website Rep 1 is LA and Orange County, Rep 3 San Diego and the Inland Empire, Rep 2 Northern California and Nevada. Every new code needs a fresh registry download and scrub before anyone dials it.</p></div>';
   }
   function cost(a, b, note) { return '<div class="costrow"><b>' + esc(a) + "</b><span>" + esc(b) + "</span><p>" + esc(note) + "</p></div>"; }
 

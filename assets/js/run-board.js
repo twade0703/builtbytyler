@@ -221,7 +221,7 @@
       return '<tr class="' + (r.status === "pending" ? "q" : "") + '"><td>' + esc(r.city) + "</td><td>" + esc(r.rep) + "</td>" + cell(r.found) + cell(r.no_site) + cell(r.built) + cell(r.passed) +
         '<td class="num">' + (r.found && r.passed != null ? pct(r.passed, r.found) : "–") + "</td><td>" + pill(r.status === "pending" ? "queued" : r.status) + "</td></tr>";
     }).join("");
-    return panel("c8", "Every city in the run", "Found = every business the scrape returned · Yield = passed out of found · Rep 1 LA and San Diego for now · Rep 2 NorCal and Nevada", "",
+    return panel("c8", "Every city in the run", "Found = every business the scrape returned · Yield = passed out of found · Website Rep 1 LA + OC · Rep 2 NorCal and Nevada · Rep 3 San Diego and Inland Empire", "",
       '<div class="tw" style="max-height:420px;overflow:auto"><table><thead><tr><th>City</th><th>Rep</th><th>Found</th><th>No site</th><th>Built</th><th>Passed</th><th>Yield</th><th>Status</th></tr></thead><tbody>' +
       (rows || '<tr><td colspan="8">None queued.</td></tr>') + "</tbody></table></div>");
   }
@@ -240,7 +240,8 @@
       (b.stop_by ? " · no new city after " + esc(when(b.stop_by)) : "") + "</p></div>";
     h += '<div class="pipe"><span>FOUND ' + num(t.found) + "</span><i>→</i><span>NO SITE " + num(t.no_site) + "</span><i>→</i><span>BUILT " + num(t.built) + '</span><i>→</i><span class="last">PASSED ' + num(t.passed) + "</span></div>";
     h += '<div class="stock"><div><b>' + num(s.callable_demos) + "</b><u>Callable demos, CA and NV</u></div><div><b>" + num(s.added_this_run) + "</b><u>New demos on sheets this run</u></div>" +
-      "<div><b>" + num(s.rep1_sheet) + "</b><u>On Rep 1's sheet</u></div><div><b>" + num(s.rep2_sheet) + "</b><u>On Rep 2's sheet</u></div>" +
+      "<div><b>" + num(s.rep1_sheet) + "</b><u>On Website Rep 1's sheet</u></div><div><b>" + num(s.rep2_sheet) + "</b><u>On Website Rep 2's sheet</u></div>" +
+      (s.rep3_sheet != null ? "<div><b>" + num(s.rep3_sheet) + "</b><u>On Website Rep 3's sheet</u></div>" : "") +
       "<div><b>" + num(s.ai_targets) + "</b><u>AI Receptionist targets</u></div><div><b>" + num(t.cities_left) + "</b><u>Cities still queued</u></div></div>";
     if ((b.log || []).length) h += '<details><summary>What the runner said last</summary><div class="log">' + esc(b.log.join("\n")) + "</div></details>";
     var on = b.state === "running";
@@ -259,8 +260,8 @@
     setText("lvstate", on ? "WORKING" : (b.state || "idle").toUpperCase());
     var sk = b.stock || {};
     setText("orbn", num(t.passed)); setText("orbl", "DEMOS BUILT AND READY, WHOLE RUN");
-    setText("orbs", "Demos added to the sheets: Rep 1 +" + num(sk.added_rep1) + " · Rep 2 +" + num(sk.added_rep2) +
-      (sk.nodemo_rep1 != null ? " (plus " + num((sk.nodemo_rep1 || 0) + (sk.nodemo_rep2 || 0)) + " no-demo businesses for the preview offer)" : "") + " · " + num(t.built) + " sites built · " + num(t.found) + " businesses found" + (t.building_now ? " · includes the city building now" : ""));
+    setText("orbs", "Demos added to the sheets: Website Rep 1 +" + num(sk.added_rep1) + " · Rep 2 +" + num(sk.added_rep2) + (sk.added_rep3 != null ? " · Rep 3 +" + num(sk.added_rep3) : "") +
+      (sk.nodemo_rep1 != null ? " (plus " + num((sk.nodemo_rep1 || 0) + (sk.nodemo_rep2 || 0) + (sk.nodemo_rep3 || 0)) + " no-demo businesses for the preview offer)" : "") + " · " + num(t.built) + " sites built · " + num(t.found) + " businesses found" + (t.building_now ? " · includes the city building now" : ""));
     setText("lvcity", now ? now.city + " · " + now.rep : b.stop_reason ? "Stopped" : "Nothing running");
     setText("lvstage", now ? now.stage_label + " · " + now.minutes + " min in · city " + Math.min((t.cities_done || 0) + 1, t.cities_total || 0) + " of " + (t.cities_total || 0) : (b.stop_reason || ""));
     var bar = document.getElementById("lvbar"), f = now && now.to_build ? (now.tried || 0) / now.to_build : 0;
@@ -324,15 +325,19 @@
     var w = function (v) { return (v / need * 100).toFixed(2) + "%"; };
     /* colourblind: solid = real, striped = expected, plain track = still short; every segment carries its number */
     var seg = function (v, style, label) { return v > 0 ? '<i style="width:' + w(v) + ";" + style + '" title="' + esc(label) + '"><s>' + esc(num(v)) + "</s></i>" : ""; };
-    var bar = '<div class="gbar" role="img" aria-label="' + esc(num(have) + " ready, about " + num(coming) + " coming, " + num(short) + " short of " + num(need)) + '">' +
-      seg(have, "background:var(--s1)", "Ready now") + seg(coming, "background:repeating-linear-gradient(135deg,rgba(57,135,229,.85) 0 6px,rgba(57,135,229,.35) 6px 12px)", "About this many coming") + "</div>";
-    var leg = '<div class="gleg"><span><i style="background:var(--s1)"></i>Ready to call now <b>' + num(have) + "</b></span>" +
+    var bar = '<div class="gbar" role="img" aria-label="' + esc(num(have) + " built, about " + num(coming) + " coming, " + num(short) + " short of " + num(need)) + '">' +
+      seg(have, "background:var(--s1)", "Built now") + seg(coming, "background:repeating-linear-gradient(135deg,rgba(57,135,229,.85) 0 6px,rgba(57,135,229,.35) 6px 12px)", "About this many coming") + "</div>";
+    /* one row per website rep (2026-10-27: 500 built demos each) */
+    if (G.reps && G.reps.length) bar += G.reps.map(function (r) {
+      var f = Math.min(1, r.have / (G.per_rep || 500));
+      return '<div class="pr" style="margin-top:12px"><div class="h"><span style="font-family:inherit">' + esc(r.label) + ' <em style="font-style:normal;color:var(--dim)">' + esc(r.area) + "</em></span><span>" + num(r.have) + " of " + num(G.per_rep) + " · short " + num(r.short) + '</span></div><div class="t" role="img" aria-label="' + esc(r.label + " " + r.have + " of " + G.per_rep) + '"><i style="width:' + (f * 100).toFixed(1) + '%"></i></div><p>' + num(r.callable) + " callable once the " + num((G.bought_codes || []).length) + " area codes you're buying are in, the rest in codes not bought yet</p></div>";
+    }).join("");
+    var leg = '<div class="gleg"><span><i style="background:var(--s1)"></i>Built, on the reps\' sheets <b>' + num(have) + "</b></span>" +
       '<span><i style="background:repeating-linear-gradient(135deg,rgba(57,135,229,.85) 0 3px,rgba(57,135,229,.35) 3px 6px)"></i>Coming from the ' + num(G.cities_left) + " cities left, estimate <b>~" + num(coming) + "</b></span>" +
       '<span><i style="background:rgba(255,255,255,.08);border:1px solid var(--edge2)"></i>Still short <b>~' + num(short) + "</b></span></div>";
-    return '<div class="g">' + panel("c12", "Toward demo week · " + esc(G.week || ""), "Goal: " + num(need) + " website demos inside the 5 free area codes, for " + esc(G.seats || ""), "",
+    return '<div class="g">' + panel("c12", "Toward demo week · " + esc(G.week || ""), "Goal: " + num(need) + " built demos, " + num(G.per_rep || 0) + " for each website rep (Tyler, Oct 27)", "",
       bar + leg +
-      '<p class="small" style="margin-top:10px">The goal is what the website closers call in the week at 100 calls a day, each business tried up to 3 times with about 1 call in 6 settling one, plus 20% spare (the same numbers as /plan and RAGER). ' +
-      "Ready counts built demos live on the reps' sheets inside the free area codes, from every run; the " + num((b0 && b0.totals || {}).passed) + " passed above is this run only, including demos still going live. " +
+      '<p class="small" style="margin-top:10px">Built counts demos live on each rep\'s sheet from every run; the ' + num((b0 && b0.totals || {}).passed) + " passed above is this run only, including demos still going live. " +
       (G.per_city ? "Coming is the last 8 cities' rate, about " + G.per_city + " a city. " : "") +
       (short && G.nodemo ? "The gap is covered by the " + num(G.nodemo) + " businesses on the sheets with no demo yet: the closer offers a free preview and the owner texts photos." : "") + "</p>") + "</div>";
   }

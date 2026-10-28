@@ -18,7 +18,7 @@
   };
   var ROLE = {
     websites: { t: "Websites", n: "Rep 1", c: "var(--blue)" },
-    ai: { t: "AI Receptionist", n: "Reps 3 and 5", c: "var(--violet)" }
+    ai: { t: "AI Receptionist", n: "AI Reps 1 and 2", c: "var(--violet)" }
   };
   var board = null, open = null, tab = "websites", loading = false;
 

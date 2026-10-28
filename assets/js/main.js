@@ -48,11 +48,16 @@
       ? `<canvas class="plate__holo" data-holo="${p.holo}"></canvas>
          <span class="plate__hud">3D <em>·</em> Wireframe</span>`
       : RETICLE;
-    // a build with a reel plays it in the frame; a click opens it large
+    // a build with a reel plays it in the frame; a click opens it large.
+    // A build with only a still (`image`) shows it in the same black frame.
     const frame = p.reel
       ? `<button class="plate__media is-reel" type="button" data-reel aria-label="Watch the ${p.name} reel large">
           ${TICKS}${reelVideo(p)}
         </button>`
+      : p.image
+      ? `<a class="plate__media is-image" href="${href}" aria-label="${p.name}">
+          ${TICKS}<img src="${p.image}" alt="${p.imageAlt || p.name}" loading="lazy" decoding="async">
+        </a>`
       : `<a class="plate__media ${p.holo ? "is-holo" : "is-placeholder"}" href="${href}" aria-label="${p.name}">
           ${TICKS}${media}
         </a>`;
@@ -118,7 +123,10 @@
       .map((s) => `<dt>${s.label}</dt><dd>${s.value}</dd>`)
       .join("");
 
-    const buyBtn = `<a class="btn" href="contact.html">Ask about this build</a>`;
+    // `actions` replaces the default button (the kit's is the waitlist)
+    const buyBtn = p.actions
+      ? p.actions.map((a, i) => `<a class="btn${i ? " btn--ghost" : ""}" href="${a.href}">${a.label}</a>`).join("")
+      : `<a class="btn" href="contact.html">Ask about this build</a>`;
 
     const media = p.holo
       ? `<canvas class="plate__holo" data-holo="${p.holo}"></canvas>
@@ -130,6 +138,8 @@
       <div class="detail" data-reveal>
         ${p.reel
           ? `<button class="detail__media is-reel" type="button" data-reel aria-label="Watch the ${p.name} reel large">${reelVideo(p)}</button>`
+          : p.image
+          ? `<div class="detail__media is-image"><img src="${p.image}" alt="${p.imageAlt || p.name}" decoding="async"></div>`
           : `<div class="detail__media ${p.holo ? "is-holo" : "is-placeholder"}">${media}</div>`}
         <div class="detail__info">
           <p class="badge">${p.status || "In progress"}</p>
@@ -143,7 +153,7 @@
               ? `<div class="specs"><dl>${specs}</dl></div>`
               : ""
           }
-          <p class="detail__included">Kept with its <b>STL · STEP · program files</b> and build notes.</p>
+          <p class="detail__included">${p.included || "Kept with its <b>STL · STEP · program files</b> and build notes."}</p>
         </div>
       </div>`;
   }

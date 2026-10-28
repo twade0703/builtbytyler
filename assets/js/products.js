@@ -108,6 +108,36 @@ const PRODUCTS = [
       { label: "Status", value: "In testing" },
     ],
   },
+  {
+    // A plain card like the others (Tyler, 2026-10-27: "nothing special, don't
+    // advertise it at the top"). The 37 module pages fold open under the grid
+    // on shop.html (#kit-modules); the QR on each board links to its own page.
+    id: "sensor-kit",
+    name: "Sensor Kit",
+    tagline: "37 sensor modules on our own boards",
+    image: "assets/img/kit/kit-poster-1200.webp",
+    imageAlt: "The Sensor Kit: a black box with the {t} logo",
+    status: "Not for sale yet",
+    keys: ["37 modules", "ESP32 + breadboard", "Code for each one"],
+    featured: false,
+    available: false,
+    description:
+      "37 sensor modules, each redrawn as our own black BuiltByTyler board, in one box with an " +
+      "ESP32, a breadboard, 9 V power and jumper wires. The QR code on each board opens its own " +
+      "page: how to wire it, a 3D view and the code.",
+    specs: [
+      { label: "Modules", value: "37: light, sound, touch, motion, temperature, gas, IR, magnets and a 16-bit ADC" },
+      { label: "In the box", value: "ESP32 · breadboard · 9 V power · jumper wires" },
+      { label: "Code", value: "A sketch for every module" },
+      { label: "Price", value: "Planned $79, shipping included" },
+      { label: "Status", value: "Not for sale yet" },
+    ],
+    actions: [
+      { href: "mailto:twade@builtbytyler.com?subject=Sensor%20Kit%20waitlist&body=Add%20me%20to%20the%20Sensor%20Kit%20waitlist.", label: "Join the waitlist" },
+      { href: "shop.html#kit-modules", label: "See all 37 modules" },
+    ],
+    included: "Comes with <b>the code for every module</b> and a wiring page for each one.",
+  },
 ];
 
 /* -----------------------------------------------------------------

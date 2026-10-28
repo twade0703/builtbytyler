@@ -259,7 +259,8 @@
     setText("lvstate", on ? "WORKING" : (b.state || "idle").toUpperCase());
     var sk = b.stock || {};
     setText("orbn", num(t.passed)); setText("orbl", "DEMOS BUILT AND READY, WHOLE RUN");
-    setText("orbs", "Rep 1 +" + num(sk.added_rep1) + " · Rep 2 +" + num(sk.added_rep2) + " added to their sheets · " + num(t.built) + " sites built · " + num(t.found) + " businesses found" + (t.building_now ? " · includes the city building now" : ""));
+    setText("orbs", "Demos added to the sheets: Rep 1 +" + num(sk.added_rep1) + " · Rep 2 +" + num(sk.added_rep2) +
+      (sk.nodemo_rep1 != null ? " (plus " + num((sk.nodemo_rep1 || 0) + (sk.nodemo_rep2 || 0)) + " no-demo businesses for the preview offer)" : "") + " · " + num(t.built) + " sites built · " + num(t.found) + " businesses found" + (t.building_now ? " · includes the city building now" : ""));
     setText("lvcity", now ? now.city + " · " + now.rep : b.stop_reason ? "Stopped" : "Nothing running");
     setText("lvstage", now ? now.stage_label + " · " + now.minutes + " min in · city " + Math.min((t.cities_done || 0) + 1, t.cities_total || 0) + " of " + (t.cities_total || 0) : (b.stop_reason || ""));
     var bar = document.getElementById("lvbar"), f = now && now.to_build ? (now.tried || 0) / now.to_build : 0;

@@ -171,7 +171,7 @@
       '<div class="stat"><b>' + $(x.cost.total) + '</b><u>Cash to get ready</u></div>' +
       /* 2026-10-27: the free-code cities left set what can still be built, not the build's speed */
       (D.goal && x.toBuild
-        ? '<div class="stat v"><b>~' + N(D.goal.coming) + '</b><u>More coming from the ' + N(D.goal.cities_left) + " cities queued, estimate" + (D.goal.eta ? "; the 1,500 around " + esc(D.goal.eta) + " if it runs nonstop" : "") + "</u></div>"
+        ? '<div class="stat v"><b>~' + N(D.goal.coming) + '</b><u>More coming from the ' + N(D.goal.cities_left) + " runs queued, estimate" + (D.goal.eta ? "; the goal around " + esc(D.goal.eta) + " if it runs nonstop" : D.goal.short ? "; ends ~" + N(D.goal.short) + " short, more metros get added" : "") + "</u></div>"
         : x.hours != null
         ? '<div class="stat v"><b>' + (x.toBuild ? (x.hours < 48 ? "~" + x.hours + " hrs" : "~" + Math.ceil(x.hours / 24) + " days") : "Done") + "</b><u>" + (x.toBuild ? "To build them at today's pace (" + x.pace + " an hour, measured)" : "Enough demos built") + "</u></div>"
         : '<div class="stat v"><b>' + x.days2 + ' <em>to</em> ' + x.days1 + ' days</b><u>To build them (2 or 1 Claude lanes)</u></div>') +

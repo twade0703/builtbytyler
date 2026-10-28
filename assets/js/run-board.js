@@ -143,10 +143,10 @@
     return panel("c4 half", "Spending against the stop lines", "White tick = the run stops itself", "", head +
       pr("Apify (scraping)", pct(a.used || 0, a.account_limit || 199), (a.used || 0) / (a.account_limit || 199), (a.stop_at || 190) / (a.account_limit || 199),
         esc(usd(a.spent_run) + " this run · " + usd(a.used) + " of " + usd(a.account_limit) + " this month · stops " + usd(a.stop_at))) +
-      pr("Google (photos, reviews)", pct(g.usd || 0, g.cap || 50), (g.usd || 0) / (g.cap || 50), 1,
+      pr("Google (photos, reviews)", pct(g.usd || 0, g.cap || 100), (g.usd || 0) / (g.cap || 100), 1,
         esc(usd(g.usd) + " of $" + num(g.cap) + " cap · " + num(g.leads) + " listings × $" + g.details_usd + " + " + num(g.photos) + " photos × $" + g.photo_usd + " · counted from calls at list price")) +
-      pr("Claude (weekly limit)", c.weekly == null ? "–" : c.weekly + "%", (c.weekly || 0) / 100, (c.stop_at || 70) / 100,
-        esc("started " + num(c.start) + "% · stops " + (c.stop_at || 70) + "% · checked " + ago(c.at) + " · resets " + (c.resets || ""))));
+      pr("Claude (weekly limit)", c.weekly == null ? "–" : c.weekly + "%", (c.weekly || 0) / 100, (c.stop_at || 80) / 100,
+        esc("started " + num(c.start) + "% · stops " + (c.stop_at || 80) + "% · checked " + ago(c.at) + " · resets " + (c.resets || ""))));
   }
 
   /* ---------- 4. pass rate gauge ---------- */
@@ -161,7 +161,7 @@
       '<text x="' + cx + '" y="' + (cy + 12) + '" text-anchor="middle" class="lblm">' + num(t.passed) + " OF " + num(t.built) + " BUILT</text>" +
       '<text x="' + (cx - R) + '" y="' + (cy + 24) + '" text-anchor="middle" class="ax">0%</text><text x="' + (cx + R) + '" y="' + (cy + 24) + '" text-anchor="middle" class="ax">100%</text></svg>';
     return panel("c4 half", "Pass rate", "Built sites that passed every check", "",
-      '<div style="max-width:300px;margin:0 auto">' + svg + '</div><p class="small" style="text-align:center;margin:6px 0 0">Past runs: about 1 in 3. Van Nuys lost most to too few photos of their own.</p>');
+      '<div style="max-width:300px;margin:0 auto">' + svg + '</div><p class="small" style="text-align:center;margin:6px 0 0">Runs before Oct 26 passed about 1 in 3. Van Nuys lost most to too few photos of their own.</p>');
   }
 
   /* ---------- 5. pace: how fast the factory is going ---------- */
@@ -221,7 +221,7 @@
       return '<tr class="' + (r.status === "pending" ? "q" : "") + '"><td>' + esc(r.city) + "</td><td>" + esc(r.rep) + "</td>" + cell(r.found) + cell(r.no_site) + cell(r.built) + cell(r.passed) +
         '<td class="num">' + (r.found && r.passed != null ? pct(r.passed, r.found) : "–") + "</td><td>" + pill(r.status === "pending" ? "queued" : r.status) + "</td></tr>";
     }).join("");
-    return panel("c8", "Every city in the run", "Found = every business the scrape returned · Yield = passed out of found · Rep 1 SoCal · Rep 2 NorCal and Nevada", "",
+    return panel("c8", "Every city in the run", "Found = every business the scrape returned · Yield = passed out of found · Rep 1 LA and San Diego for now · Rep 2 NorCal and Nevada", "",
       '<div class="tw" style="max-height:420px;overflow:auto"><table><thead><tr><th>City</th><th>Rep</th><th>Found</th><th>No site</th><th>Built</th><th>Passed</th><th>Yield</th><th>Status</th></tr></thead><tbody>' +
       (rows || '<tr><td colspan="8">None queued.</td></tr>') + "</tbody></table></div>");
   }
@@ -331,7 +331,7 @@
       '<span><i style="background:rgba(255,255,255,.08);border:1px solid var(--edge2)"></i>Still short <b>~' + num(short) + "</b></span></div>";
     return '<div class="g">' + panel("c12", "Toward demo week · " + esc(G.week || ""), "Goal: " + num(need) + " website demos inside the 5 free area codes, for " + esc(G.seats || ""), "",
       bar + leg +
-      '<p class="small" style="margin-top:10px">The goal is what 3 website closers call in the week at 100 calls a day, with recalls and 20% spare (the same math as /plan). ' +
+      '<p class="small" style="margin-top:10px">The goal is what the website closers call in the week at 100 calls a day, each business tried up to 3 times with about 1 call in 6 settling one, plus 20% spare (the same numbers as /plan and RAGER). ' +
       "Ready counts built demos live on the reps' sheets inside the free area codes, from every run; the " + num((b0 && b0.totals || {}).passed) + " passed above is this run only, including demos still going live. " +
       (G.per_city ? "Coming is the last 8 cities' rate, about " + G.per_city + " a city. " : "") +
       (short && G.nodemo ? "The gap is covered by the " + num(G.nodemo) + " businesses on the sheets with no demo yet: the closer offers a free preview and the owner texts photos." : "") + "</p>") + "</div>";

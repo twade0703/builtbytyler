@@ -63,7 +63,7 @@
     var bonusEach = per >= P.bonus_at ? P.bonus : 0, bonusAi = perA >= P.bonus_at ? P.bonus : 0;
     var comm = w * P.web.comm + a * P.ai.comm, bonus = bonusEach * S.web + bonusAi * S.ai;
     var gross = sales * 500, stripe = sales * st(500);
-    var keepWeb = P.web.mo - P.web.resid - st(P.web.mo), keepAi = P.ai.mo - P.ai.resid - st(P.ai.mo);
+    var keepWeb = P.web.mo - P.web.resid - st(P.web.mo), keepAi = P.ai.mo - P.ai.resid - st(P.ai.mo) - (P.ai_run || 0);
     var keepWeb2 = P.web.mo - st(P.web.mo);
     var months = [], cum = gross - comm - bonus - stripe, churn = (P.churn || 0) / 100;
     for (var m = 1; m <= 12; m++) {
@@ -105,10 +105,10 @@
     ["calls", "Website calls a day, each", 20, 200, 5, "", "Every dial counts, answered or not. Each new business needs a demo."],
     ["aiCalls", "AI Receptionist calls a day, each", 20, 300, 5, "", "They call their own list, no demos needed, so they can dial more. You said 150 to 200."],
     ["days", "Calling days", 1, 6, 1, "", "Mon to Fri is 5. Calling is allowed Mon to Sat."],
-    ["pickup", "Owner picks up", 5, 60, 1, "%", "Share of dials that reach the owner. Plan figure was 30%."],
-    ["tries", "Tries per business", 1, 4, 1, "", "A business that doesn't pick up is called again the next day, up to this many times."],
-    ["lo", "Close rate, low case", 0.5, 8, 0.5, "%", "Sales per call dialed."],
-    ["hi", "Close rate, high case", 0.5, 12, 0.5, "%", "Sales per call dialed."],
+    ["pickup", "Calls that settle a business", 5, 60, 1, "%", "Measured on Rep 1's first 18 calls: about 1 in 6 reaches the owner and settles it; the rest get called again. Also the owner pick-up."],
+    ["tries", "Tries per business", 1, 3, 1, "", "A business that doesn't settle is called again the next day, up to this many times. The rep agreement caps it at 3."],
+    ["lo", "Close rate, planning case", 0.1, 8, 0.05, "%", "Sales per call dialed. 0.5% is 3% of owner conversations at a 17% owner pick-up: a guess until demo week measures it. Same number as RAGER."],
+    ["hi", "Close rate, good case", 0.1, 12, 0.05, "%", "Sales per call dialed. Twice the planning case."],
     ["buffer", "Spare demos", 0, 50, 5, "%", "Extra on top, so nobody runs dry if more owners say call back later."],
   ];
 
@@ -228,7 +228,7 @@
       row("You keep over 12 months", $(lo.year), $(hi.year)) +
       row("Week plus 12 months, total", $(lo.months[11].cum), $(hi.months[11].cum), "big") +
       "</tbody></table>" + moneyChart(lo, hi) +
-      '<p class="note">Website: $50 a month, the closer gets $10 for 12 months. AI Receptionist: $100 a month, the closer gets $20 for as long as it\'s paid. Stripe comes off every payment. The AI Receptionist\'s own running cost per customer isn\'t in here yet.</p></div>' +
+      '<p class="note">Website: $50 a month, the closer gets $10 for 12 months. AI Receptionist: $100 a month, the closer gets $20 for as long as it\'s paid. Stripe comes off every payment, and so does the AI Receptionist\'s running cost, about $' + (D.price.ai_run || 0).toFixed(2) + ' a customer a month. Every number here comes from the same assumptions file as RAGER' + (D.assumptions_updated ? ' (updated ' + esc(D.assumptions_updated) + ')' : '') + '.</p></div>' +
 
       '<h2 id="costs">Costs to get ready<small>What you pay before and during demo week.</small></h2><div class="card">' +
       cost("Demo builds", $(x.cost.builds), N(x.toBuild) + " demos at ~$" + D.build[S.route].toFixed(2) + (D.build.measured && S.route === "apify" ? ", this run's average so far. The small towns left cost more per demo than the big cities did." : ".")) +

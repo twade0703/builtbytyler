@@ -174,7 +174,7 @@
       tile(r.built_per_hour == null ? "–" : r.built_per_hour, "Sites built an hour", "about " + perday(r.built_per_hour) + " a day") +
       tile(r.found_per_hour == null ? "–" : num(r.found_per_hour), "Businesses found an hour", num(t.found) + " so far") +
       tile(t.built ? pct(t.passed, t.built) : "–", "Pass rate", num(t.passed) + " of " + num(t.built) + " built") + "</div>" +
-      '<p class="small" style="margin-top:10px">Building is the slow step: a big city spends about 2 hours finding businesses before its first site is built.</p>');
+      '<p class="small" style="margin-top:10px">Finding businesses was the slow step (about 60% of each city). Since 10 PM Oct 27 the next city is found while this one builds.</p>');
   }
 
   /* ---------- 5b. Rep 1 vs Rep 2 (no longer on this page) ---------- */
@@ -212,7 +212,8 @@
   /* ---------- 6. every city, status table ---------- */
   function cities(list) {
     var pill = function (st) {
-      return st === "done" ? '<span class="pill done">✓ DONE</span>' : st === "running" ? '<span class="pill run">● RUNNING</span>'
+      return st === "done" ? '<span class="pill done">✓ DONE</span>' : st === "running" ? '<span class="pill run">● BUILDING</span>'
+        : st === "finding" ? '<span class="pill run">◐ FINDING</span>' : st === "found" ? '<span class="pill q">✓ FOUND · BUILDS NEXT</span>'
         : st === "failed" ? '<span class="pill fail">✕ FAILED</span>' : '<span class="pill q">QUEUED</span>';
     };
     var cell = function (v) { return '<td class="num">' + (v == null ? "–" : num(v)) + "</td>"; };
@@ -297,8 +298,10 @@
     var t = b.totals || {}, s = b.stock || {}, m = b.money || {}, hist = b.history || [], today = hist.length ? hist[hist.length - 1].passed : 0;
     var spent = ((m.apify && m.apify.spent_run) || 0) + ((m.google && m.google.usd) || 0);
     var k = function (label, val, chip) { return '<div class="kpi"><u>' + esc(label) + "</u><b>" + val + "</b>" + (chip ? '<span class="chip">' + esc(chip) + "</span>" : "") + "</div>"; };
-    kpis.innerHTML = k("Demos passed, this run", num(t.passed), "+" + num(today) + " today") + k("Callable demos", num(s.callable_demos), "CA + NV") +
-      k("Spent this run", usd(spent), "Apify + Google") + k("Claude weekly", (m.claude && m.claude.weekly != null ? m.claude.weekly + "%" : "–"), "stops 70%");
+    var G = b.goal || null;
+    kpis.innerHTML = k("Demos passed, this run", num(t.passed), "+" + num(today) + " today") +
+      (G ? k("Demo week goal", num(G.need), num(G.have) + " ready · ~" + num(G.coming) + " coming") : k("Callable demos", num(s.callable_demos), "CA + NV")) +
+      k("Spent this run", usd(spent), "Apify + Google") + k("Claude weekly", (m.claude && m.claude.weekly != null ? m.claude.weekly + "%" : "–"), "stops " + ((m.claude && m.claude.stop_at) || 70) + "%");
   }
 
   function render(b) {
@@ -306,11 +309,33 @@
     header(b); live(b);
     var hist = (b.history && b.history.length) ? b.history : [{ d: new Date().toISOString().slice(0, 10), built: 0, passed: 0 }];
     var d = donut(b.totals || {}, b.reasons || {});
-    app.innerHTML = '<div class="g">' + cities(b.cities || []).replace('class="panel c8"', 'class="panel c12"') + "</div>" +
+    b0 = b;
+    app.innerHTML = goalPanel(b.goal) + '<div class="g">' + cities(b.cities || []).replace('class="panel c8"', 'class="panel c12"') + "</div>" +
       '<div class="g">' + areaChart(hist) + d.html + "</div>" +
       '<div class="g">' + rates(b) + spend(b.money || {}) + gauge(b.totals || {}) + "</div>";
     bindArea(hist); bindDonut(d);
   }
+
+  /* ---------- 0. Toward demo week ---------- */
+  function goalPanel(G) {
+    if (!G || !G.need) return "";
+    var need = G.need, have = Math.min(G.have || 0, need), coming = Math.min(G.coming || 0, need - have), short = Math.max(0, need - have - coming);
+    var w = function (v) { return (v / need * 100).toFixed(2) + "%"; };
+    /* colourblind: solid = real, striped = expected, plain track = still short; every segment carries its number */
+    var seg = function (v, style, label) { return v > 0 ? '<i style="width:' + w(v) + ";" + style + '" title="' + esc(label) + '"><s>' + esc(num(v)) + "</s></i>" : ""; };
+    var bar = '<div class="gbar" role="img" aria-label="' + esc(num(have) + " ready, about " + num(coming) + " coming, " + num(short) + " short of " + num(need)) + '">' +
+      seg(have, "background:var(--s1)", "Ready now") + seg(coming, "background:repeating-linear-gradient(135deg,rgba(57,135,229,.85) 0 6px,rgba(57,135,229,.35) 6px 12px)", "About this many coming") + "</div>";
+    var leg = '<div class="gleg"><span><i style="background:var(--s1)"></i>Ready to call now <b>' + num(have) + "</b></span>" +
+      '<span><i style="background:repeating-linear-gradient(135deg,rgba(57,135,229,.85) 0 3px,rgba(57,135,229,.35) 3px 6px)"></i>Coming from the ' + num(G.cities_left) + " cities left, estimate <b>~" + num(coming) + "</b></span>" +
+      '<span><i style="background:rgba(255,255,255,.08);border:1px solid var(--edge2)"></i>Still short <b>~' + num(short) + "</b></span></div>";
+    return '<div class="g">' + panel("c12", "Toward demo week · " + esc(G.week || ""), "Goal: " + num(need) + " website demos inside the 5 free area codes, for " + esc(G.seats || ""), "",
+      bar + leg +
+      '<p class="small" style="margin-top:10px">The goal is what 3 website closers call in the week at 100 calls a day, with recalls and 20% spare (the same math as /plan). ' +
+      "Ready counts built demos live on the reps' sheets inside the free area codes, from every run; the " + num((b0 && b0.totals || {}).passed) + " passed above is this run only, including demos still going live. " +
+      (G.per_city ? "Coming is the last 8 cities' rate, about " + G.per_city + " a city. " : "") +
+      (short && G.nodemo ? "The gap is covered by the " + num(G.nodemo) + " businesses on the sheets with no demo yet: the closer offers a free preview and the owner texts photos." : "") + "</p>") + "</div>";
+  }
+  var b0 = null;
 
   function gate(t, s) { app.innerHTML = '<div class="panel gate"><b>' + esc(t) + "</b>" + esc(s) + "</div>"; }
 

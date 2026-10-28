@@ -89,6 +89,13 @@
     .pill.done{color:#5fd35f;border-color:rgba(12,163,12,.45);background:rgba(12,163,12,.12)}
     .pill.run{color:#8fbaf0;border-color:rgba(57,135,229,.5);background:rgba(57,135,229,.14)}
     .pill.q{color:var(--mu);border-color:var(--edge2);background:rgba(255,255,255,.03)}
+    .gbar{display:flex;height:30px;border-radius:8px;overflow:hidden;background:rgba(255,255,255,.06);border:1px solid var(--edge2)}
+    .gbar i{display:flex;align-items:center;justify-content:center;min-width:34px;height:100%}
+    .gbar i+i{border-left:2px solid var(--panel)}
+    .gbar s{text-decoration:none;font:600 12px "JetBrains Mono",monospace;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.6)}
+    .gleg{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:10px;font-size:12.5px;color:var(--mu)}
+    .gleg i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-2px}
+    .gleg b{color:var(--tx);font-family:"JetBrains Mono",monospace;margin-left:4px}
     .pill.fail{color:#f08585;border-color:rgba(208,59,59,.5);background:rgba(208,59,59,.12)}
     .now b{display:block;font:700 20px/1.2 "Instrument Sans",sans-serif}
     .now p{margin:4px 0 0;color:var(--mu)}
@@ -187,6 +194,6 @@
     <footer class="foot"><span>Private to Tyler · your PC sends numbers every minute · this page checks every 30 seconds</span><span>Data: lead folders, Apify meter, Google estimate, Claude meter, reps' app</span></footer>
   </div>
   <div class="tip" id="tip" role="status" aria-live="polite"></div>
-  <script src="assets/js/run-board.js?v=13"></script>
+  <script src="assets/js/run-board.js?v=14"></script>
 </body>
 </html>

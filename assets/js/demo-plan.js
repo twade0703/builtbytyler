@@ -167,7 +167,10 @@
       '<div class="stat"><b>' + $k(lo.pocket) + ' <em>to</em> ' + $k(hi.pocket) + '</b><u>You pocket from the week (' + S.lo + "% to " + S.hi + "%)</u></div>" +
       '<div class="stat g"><b>+' + $k(lo.mo1) + ' <em>to</em> ' + $k(hi.mo1) + '</b><u>Added every month after</u></div>' +
       '<div class="stat"><b>' + $(x.cost.total) + '</b><u>Cash to get ready</u></div>' +
-      (x.hours != null
+      /* 2026-10-27: the free-code cities left set what can still be built, not the build's speed */
+      (D.goal && x.toBuild
+        ? '<div class="stat v"><b>~' + N(D.goal.coming) + '</b><u>More coming from the ' + N(D.goal.cities_left) + " cities left (short ~" + N(Math.max(0, x.toBuild - D.goal.coming)) + ")</u></div>"
+        : x.hours != null
         ? '<div class="stat v"><b>' + (x.toBuild ? (x.hours < 48 ? "~" + x.hours + " hrs" : "~" + Math.ceil(x.hours / 24) + " days") : "Done") + "</b><u>" + (x.toBuild ? "To build them at today's pace (" + x.pace + " an hour, measured)" : "Enough demos built") + "</u></div>"
         : '<div class="stat v"><b>' + x.days2 + ' <em>to</em> ' + x.days1 + ' days</b><u>To build them (2 or 1 Claude lanes)</u></div>') +
       (function () { var O = D.web.on_sheets || {}, Q = D.photo_requests || {};

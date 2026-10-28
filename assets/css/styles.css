@@ -1794,3 +1794,8 @@ body::before {
 .app__fine { margin: 0.7rem 0 0; color: var(--muted); font-size: 0.72rem; line-height: 1.45; opacity: 0.8; }
 @media (max-width: 1100px) { .apps-trio { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 720px) { .apps-trio { grid-template-columns: minmax(0, 1fr); } }
+
+/* About, 2026-10-28: Tyler's background, one quiet line of text under the skills. */
+.bg-facts { list-style: none; margin: 1.1rem 0 0; padding: 0; max-width: 64ch; color: var(--muted); font-size: 0.82rem; line-height: 1.7; }
+.bg-facts li { display: inline; white-space: nowrap; }
+.bg-facts li:not(:last-child)::after { content: "·"; margin: 0 0.55rem; color: var(--hairline-strong); }

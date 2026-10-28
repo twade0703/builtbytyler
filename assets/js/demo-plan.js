@@ -171,8 +171,9 @@
         ? '<div class="stat v"><b>' + (x.toBuild ? (x.hours < 48 ? "~" + x.hours + " hrs" : "~" + Math.ceil(x.hours / 24) + " days") : "Done") + "</b><u>" + (x.toBuild ? "To build them at today's pace (" + x.pace + " an hour, measured)" : "Enough demos built") + "</u></div></div>"
         : '<div class="stat v"><b>' + x.days2 + ' <em>to</em> ' + x.days1 + ' days</b><u>To build them (2 or 1 Claude lanes)</u></div></div>') +
       '<p class="note">' + (S.codes === "free"
-        ? "The demos on your reps' lists (Rep 1 and Rep 2) are already counted, not extra. " + N(D.web.callable) + " are built in California and Nevada, but only " + N(x.webHave) +
-          " are inside the 5 free area codes, the only ones a closer can call once the Do Not Call list is in. So \"have\" is " + N(x.webHave) + "."
+        ? "Built demos only. " + N(D.web.callable) + " are built in California and Nevada" + (D.web.on_sheets ? ", all on your reps' sheets (Rep 1 " + N(D.web.on_sheets.rep1) + ", Rep 2 " + N(D.web.on_sheets.rep2) + ")" : "") +
+          ", but only " + N(x.webHave) + " are inside the 5 free area codes, the only ones a closer can call once the Do Not Call list is in. So \"have\" is " + N(x.webHave) + "." +
+          (D.web.no_demo ? " Another " + N(D.web.no_demo) + " businesses are on the call list with no demo, because they have no usable photo of their own." : "")
         : "The demos on your reps' lists (Rep 1 and Rep 2) are the " + N(x.webHave) + " counted here, not extra.") + "</p>" +
       buildHtml(x);
     var dialsHtml =
@@ -317,22 +318,19 @@
   function codesHtml(x) {
     var E = (D.dnc || {}).extra || [];
     if (!E.length) return "";
-    var per = D.dnc.per_code, gap = Math.max(0, x.webNeed - D.web.in_codes), left = gap, pick = [];
-    E.forEach(function (e) { if (left > 0 && e.web > 0) { pick.push(e); left -= e.web; } });
-    var got = pick.reduce(function (s, e) { return s + e.web; }, 0), gotAi = pick.reduce(function (s, e) { return s + e.ai; }, 0);
-    var rows = E.map(function (e, i) {
-      return "<tr" + (pick.indexOf(e) >= 0 ? ' class="big"' : "") + "><td><b>" + esc(e.code) + "</b> " + esc(e.where) + (e.rep ? " · " + esc(e.rep) : "") +
-        "</td><td>" + N(e.web) + "</td><td>" + N(e.ai) + "</td></tr>";
+    var per = D.dnc.per_code, gap = Math.max(0, x.webNeed - D.web.in_codes);
+    var waiting = E.reduce(function (s, e) { return s + e.web; }, 0), two = E.slice(0, 2);
+    var rows = E.map(function (e) {
+      return "<tr" + (two.indexOf(e) >= 0 ? ' class="big"' : "") + "><td><b>" + esc(e.code) + "</b> " + esc(e.where) + " · " + esc(e.rep) +
+        (e.towns && e.towns.length ? '<br><span style="color:var(--mu);font-size:12px">To build: ' + esc(e.towns.join(", ")) + "</span>" : "") +
+        "</td><td>" + N(e.web) + "</td><td>" + (e.towns ? N(e.towns.length) : 0) + "</td><td>~" + N(e.est) + "</td></tr>";
     }).join("");
-    return '<h2 id="codes">More area codes<small>Demos already built, waiting on a Do Not Call area code. $' + per + " each a year.</small></h2>" +
-      '<div class="card"><p class="note" style="margin-top:0">' +
-      (gap ? "<b>Short " + N(gap) + " website demos inside the free 5.</b> " + (pick.length === 1 ? "One code covers it: <b>" + esc(pick[0].code) + "</b> (" + esc(pick[0].where) + ") already has " + N(pick[0].web) + " finished demos"
-              : "The top " + pick.length + " codes cover it with " + N(got) + " finished demos") +
-            ", $" + N(pick.length * per) + " a year, no new builds. It also adds " + N(gotAi) + " AI Receptionist leads."
-           : "<b>Enough website demos inside the free 5.</b> These codes are spare, or room for a third website closer.") +
-      " Ranked by finished website demos in each code.</p>" +
-      '<table><thead><tr><th>Area code</th><th>Demos</th><th>AI leads</th></tr></thead><tbody>' + rows + "</tbody></table>" +
-      '<p class="note">Highlighted = what closes the gap. Rep 1 is Southern California, Rep 2 Northern California and Nevada, so pick one of each if both reps need more. Overlay codes (like 747 over 818) cover the same towns as their parent. Every new code means a fresh registry download and scrub before anyone dials it.</p></div>';
+    return '<h2 id="codes">More area codes<small>$' + per + " each a year. Built demos already on the reps' sheets, plus towns never built.</small></h2>" +
+      '<div class="card"><p class="note" style="margin-top:0"><b>Short ' + N(gap) + " website demos inside the free 5.</b> No area code closes that alone. " +
+      "Your reps' sheets already hold " + N(D.web.on_sheets ? D.web.on_sheets.other : waiting) + " built demos outside the free 5; each code below makes its share callable. " +
+      "The towns are cities on hold that have never been built; each is an estimate of about " + N(5) + " demos, from what the free-code towns gave.</p>" +
+      '<table><thead><tr><th>Area code</th><th>Built</th><th>Towns</th><th>Total, est.</th></tr></thead><tbody>' + rows + "</tbody></table>" +
+      '<p class="note">Highlighted = the best two. "Built" is real: demos on the sheets today. "Total" adds about 5 per town, an estimate. Rep 1 is Southern California, Rep 2 Northern California and Nevada. Every new code needs a fresh registry download and scrub before anyone dials it.</p></div>';
   }
   function cost(a, b, note) { return '<div class="costrow"><b>' + esc(a) + "</b><span>" + esc(b) + "</span><p>" + esc(note) + "</p></div>"; }
 

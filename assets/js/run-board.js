@@ -348,7 +348,7 @@
         G.per_city ? "Coming is the last 8 cities' rate, about " + G.per_city + " a city. " : "") +
       (G.eta ? "At " + G.pace + " passed an hour (measured), the rest takes about " + num(G.hours_left) + " hours of running: around " + esc(G.eta) + " if it runs nonstop. " :
         G.hours_left ? "On these estimates the queue ends about " + num(G.short) + " short of the goal, after about " + num(G.hours_left) + " hours of running; more metros get added as it goes, and big metros have beaten the estimate before (Las Vegas 54, San Diego 56). " : "") +
-      (G.claude_stop ? "Claude isn't the limit now (stop at " + G.claude_stop + "%, plus your free reset); Apify's $190 a month can pause it until Nov 1. " : "") +
+      (G.claude_stop ? "Claude isn't the limit now (stop at " + G.claude_stop + "%, plus your free reset); Apify stops it at $" + num(((b0 && b0.money || {}).apify || {}).stop_at || 291) + " a month and then waits for Nov 1. " : "") +
       (short && G.nodemo ? "The gap is covered by the " + num(G.nodemo) + " businesses on the sheets with no demo yet: the closer offers a free preview and the owner texts photos." : "") + "</p>") + "</div>";
   }
   var b0 = null;

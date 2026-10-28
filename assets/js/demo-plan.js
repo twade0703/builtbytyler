@@ -168,12 +168,15 @@
       '<div class="stat g"><b>+' + $k(lo.mo1) + ' <em>to</em> ' + $k(hi.mo1) + '</b><u>Added every month after</u></div>' +
       '<div class="stat"><b>' + $(x.cost.total) + '</b><u>Cash to get ready</u></div>' +
       (x.hours != null
-        ? '<div class="stat v"><b>' + (x.toBuild ? (x.hours < 48 ? "~" + x.hours + " hrs" : "~" + Math.ceil(x.hours / 24) + " days") : "Done") + "</b><u>" + (x.toBuild ? "To build them at today's pace (" + x.pace + " an hour, measured)" : "Enough demos built") + "</u></div></div>"
-        : '<div class="stat v"><b>' + x.days2 + ' <em>to</em> ' + x.days1 + ' days</b><u>To build them (2 or 1 Claude lanes)</u></div></div>') +
+        ? '<div class="stat v"><b>' + (x.toBuild ? (x.hours < 48 ? "~" + x.hours + " hrs" : "~" + Math.ceil(x.hours / 24) + " days") : "Done") + "</b><u>" + (x.toBuild ? "To build them at today's pace (" + x.pace + " an hour, measured)" : "Enough demos built") + "</u></div>"
+        : '<div class="stat v"><b>' + x.days2 + ' <em>to</em> ' + x.days1 + ' days</b><u>To build them (2 or 1 Claude lanes)</u></div>') +
+      (function () { var O = D.web.on_sheets || {}, Q = D.photo_requests || {};
+        return '<div class="stat a"><b>' + N(O.nodemo || 0) + '</b><u>No demo yet, on the sheets to call (Rep 1 ' + N(O.nodemo_rep1 || 0) + ", Rep 2 " + N(O.nodemo_rep2 || 0) + ")</u></div>" +
+          '<div class="stat g"><b>' + N(Q.total || 0) + '</b><u>Said yes to a preview · ' + N(Q.photos_in || 0) + " sent photos</u></div>"; })() + "</div>" +
       '<p class="note">' + (S.codes === "free"
         ? "Built demos only. " + N(D.web.callable) + " are built in California and Nevada" + (D.web.on_sheets ? ", all on your reps' sheets (Rep 1 " + N(D.web.on_sheets.rep1) + ", Rep 2 " + N(D.web.on_sheets.rep2) + ")" : "") +
           ", but only " + N(x.webHave) + " are inside the 5 free area codes, the only ones a closer can call once the Do Not Call list is in. So \"have\" is " + N(x.webHave) + "." +
-          (D.web.no_demo ? " Another " + N(D.web.no_demo) + " businesses are on the call list with no demo, because they have no usable photo of their own." : "")
+          (D.web.on_sheets && D.web.on_sheets.nodemo ? " The " + N(D.web.on_sheets.nodemo) + " with no demo yet are on the sheets too: closers offer a free preview, the owner texts photos, and the demo is built that night." : "")
         : "The demos on your reps' lists (Rep 1 and Rep 2) are the " + N(x.webHave) + " counted here, not extra.") + "</p>" +
       buildHtml(x);
     var dialsHtml =

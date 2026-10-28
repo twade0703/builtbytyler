@@ -28,9 +28,12 @@
 # This file is kept because PATH redirects (an old URL moving, say) do work
 # here and belong in it.
 
-# The reverse engineering page became Games on 2026-10-18.
-/reverse-engineering /games 301
-/reverse-engineering.html /games 301
+# The reverse engineering page became Games on 2026-10-18; Games was taken down on 2026-10-27.
+/reverse-engineering / 302
+/reverse-engineering.html / 302
+/games / 302
+/games.html / 302
+/play/* / 302
 
 # Sensor Kit QR codes. The back of every board encodes BUILTBYTYLER.COM/S07 (QR alphanumeric
 # mode is upper case only), so both cases go to the module page.

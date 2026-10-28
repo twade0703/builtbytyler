@@ -173,7 +173,7 @@ function sparks(){for(const b of rows.children){const s=b.dataset.s,a=ALL[s].ic,
   let k=SPK[s];if(!k){let lo=Math.min(prev(s),...a),hi=Math.max(prev(s),...a);k=SPK[s]={lo,hi};
     const y=v=>(24-(v-lo)/(hi-lo)*22).toFixed(2);b.querySelector(".b").setAttribute("d",`M0 ${y(prev(s))}H72`);k.y=y}
   const pts=dayPts(s);b.querySelector(".l").setAttribute("d","M"+pts.map(p=>`${(p.x*72).toFixed(2)} ${k.y(p.y)}`).join("L"));
-  b.querySelector(".l").setAttribute("stroke",s===view.s?"#5FE6FF":"rgba(232,238,246,.6)")}}
+  b.querySelector(".l").setAttribute("stroke",s===view.s?"#5FE6FF":"rgba(241,245,248,.6)")}}
 
 /* ---------- the chart */
 const cv=$("cv"),cx=cv.getContext("2d"),box=$("chart");let CW=1,CH=1,K=1;
@@ -181,8 +181,8 @@ function sizeCv(){CW=Math.max(1,box.clientWidth);CH=Math.max(1,box.clientHeight)
   const w=Math.round(CW*K),h=Math.round(CH*K);if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h}}
 if("ResizeObserver"in window)new ResizeObserver(sizeCv).observe(box);
 function niceStep(r){const p=Math.pow(10,Math.floor(Math.log10(r))),f=r/p;return(f<1.5?1:f<3?2:f<7?5:10)*p}
-const C={ink:"#E8EEF6",mu:"#8D99AB",dim:"#5D687A",ac:"#5FE6FF",up:"#56C292",dn:"#E8846E",bg:"#060A10",grid:"rgba(150,200,230,.07)"};
-const FONT=w=>`${w} 11.5px "Instrument Sans", system-ui, sans-serif`;
+const C={ink:"#F1F5F8",mu:"#9CA6B2",dim:"#5F6873",ac:"#5FE6FF",up:"#00C805",dn:"#FF5000",bg:"#05070A",grid:"rgba(255,255,255,.07)"};
+const FONT=w=>`${w} 11px "JetBrains Mono", ui-monospace, monospace`;
 function label(x,y,t,col,align="left",bg=true){cx.font=FONT(500);cx.textAlign=align;cx.textBaseline="middle";
   if(bg){const w=cx.measureText(t).width,x0=align==="left"?x:align==="right"?x-w:x-w/2;cx.fillStyle=C.bg;cx.fillRect(x0-4,y-8,w+8,16)}
   cx.fillStyle=col;cx.fillText(t,x,y)}
@@ -205,7 +205,7 @@ function draw(now){
   const tagY=Y(p);
   for(let v=Math.ceil(L/st)*st;v<=H;v+=st){const y=Math.round(Y(v))+.5;if(y<y0-2||y>py1+2)continue;
     cx.fillStyle=C.grid;cx.fillRect(0,y,pw,1);if(Math.abs(y-tagY)>13){cx.fillStyle=C.dim;cx.fillText(fp(v),pw+12,y)}}
-  cx.fillStyle="rgba(150,200,230,.12)";cx.fillRect(0,Math.round(y1)+.5,pw,1);
+  cx.fillStyle="rgba(255,255,255,.12)";cx.fillRect(0,Math.round(y1)+.5,pw,1);
   /* time axis */
   cx.fillStyle=C.dim;cx.textAlign="center";const xl=[];
   if(day){const it=ALL[s].it,n=it.length;for(let i=1;i<n;i++)if(it[i]%3600===0)xl.push([i/(n-1)*pw,fhour(it[i])])}
@@ -228,14 +228,14 @@ function draw(now){
       else{cx.fillStyle=col;cx.fillRect(x-bw/2,top,bw,h)}});
     endX=X(N-1);endY=Y(p)}
   if(!day){const vm=Math.max(...bs.map(b=>b.v)),bw=Math.max(1,slot*.64);
-    bs.forEach((b,i)=>{const h=b.v/vm*vH;cx.fillStyle=b.live?"rgba(95,230,255,.35)":"rgba(150,200,230,.16)";cx.fillRect(X(i)-bw/2,y1-h,bw,h)})}
+    bs.forEach((b,i)=>{const h=b.v/vm*vH;cx.fillStyle=b.live?"rgba(95,230,255,.35)":"rgba(255,255,255,.16)";cx.fillRect(X(i)-bw/2,y1-h,bw,h)})}
   cx.restore();
   if(!day)label(0,py1+8,"Volume",C.dim,"left",false);
   /* reference lines, each labelled where it is drawn */
-  if(day){const y=Math.round(Y(prev(s)))+.5;cx.strokeStyle="rgba(232,238,246,.32)";cx.lineWidth=1;cx.setLineDash([3,4]);cx.beginPath();cx.moveTo(0,y);cx.lineTo(pw,y);cx.stroke();cx.setLineDash([]);
+  if(day){const y=Math.round(Y(prev(s)))+.5;cx.strokeStyle="rgba(241,245,248,.32)";cx.lineWidth=1;cx.setLineDash([3,4]);cx.beginPath();cx.moveTo(0,y);cx.lineTo(pw,y);cx.stroke();cx.setLineDash([]);
     label(4,y<y0+12?y+11:y-11,`Prev close ${fp(prev(s))}`,C.mu)}
   if(al&&r>=1){const y=Math.round(Y(al.lv))+.5;if(y>y0-4&&y<py1+4){const hit=al.tf!=null&&frac()>=al.tf;
-    cx.strokeStyle=hit?"rgba(95,230,255,.5)":"rgba(232,238,246,.28)";cx.setLineDash([1,3]);cx.beginPath();cx.moveTo(0,y);cx.lineTo(pw,y);cx.stroke();cx.setLineDash([]);
+    cx.strokeStyle=hit?"rgba(95,230,255,.5)":"rgba(241,245,248,.28)";cx.setLineDash([1,3]);cx.beginPath();cx.moveTo(0,y);cx.lineTo(pw,y);cx.stroke();cx.setLineDash([]);
     label(pw-6,y-11,`Alert: ${al.dir>0?"above":"below"} ${fp(al.lv)}${hit?" · triggered":""}`,hit?C.ac:C.mu,"right");
     if(hit&&day){const hx=X(al.tf);cx.strokeStyle=C.ac;cx.lineWidth=1.4;cx.beginPath();cx.arc(hx,Y(al.lv),4.5,0,7);cx.stroke()}}}
   /* last price: a dotted rule to the axis and a tag on it */
@@ -243,7 +243,7 @@ function draw(now){
     if(day||ty==="line"){if(!RM&&clock<RUN){const ph=((now%2400)/2400);cx.strokeStyle=`rgba(95,230,255,${.5*(1-ph)})`;cx.lineWidth=1;cx.beginPath();cx.arc(endX,endY,3.5+ph*10,0,7);cx.stroke()}
       cx.fillStyle=C.ac;cx.beginPath();cx.arc(endX,endY,3.5,0,7);cx.fill();cx.strokeStyle=C.bg;cx.lineWidth=1.5;cx.stroke()}}
   const ty_=clamp(tagY,y0+2,py1);cx.fillStyle=C.ac;cx.beginPath();cx.roundRect?cx.roundRect(pw+4,ty_-10,AX-6,20,4):cx.rect(pw+4,ty_-10,AX-6,20);cx.fill();
-  cx.font=FONT(600);cx.fillStyle="#04070C";cx.textAlign="center";cx.textBaseline="middle";cx.fillText(fp(p),pw+4+(AX-6)/2,ty_+.5);
+  cx.font=FONT(600);cx.fillStyle="#05070A";cx.textAlign="center";cx.textBaseline="middle";cx.fillText(fp(p),pw+4+(AX-6)/2,ty_+.5);
   /* hover */
   if(hover&&r>=1&&hover.x>=0&&hover.x<=pw){let i,x,v,key,html;
     if(day){i=0;let bd=1e9;pts.forEach((q,j)=>{const d=Math.abs(X(q.x)-hover.x);if(d<bd){bd=d;i=j}});const q=pts[i];x=X(q.x);v=q.y;key=s+"d"+i+(q.live?Math.round(clock/400):"");
@@ -251,7 +251,7 @@ function draw(now){
     else{i=clamp(Math.floor(hover.x/slot),0,N-1);const b=bs[i];x=X(i);v=b.c;key=s+view.r+i+(b.live?Math.round(clock/400):"");
       const c=i?(b.c/bs[i-1].c-1)*100:(b.c/b.o-1)*100;
       html=`<div class="t">${fday(b.t)}${b.live?" · today":""}</div><div><span>Open</span>${fp(b.o)}</div><div><span>High</span>${fp(b.h)}</div><div><span>Low</span>${fp(b.l)}</div><div><span>Close</span>${fp(b.c)}</div><div><span>Change</span><b class="${cls(c)}">${arrow(c)} ${fpct(c)}</b></div><div><span>Volume</span>${b.live?"in progress":fvol(b.v)}</div>`}
-    cx.strokeStyle="rgba(232,238,246,.25)";cx.lineWidth=1;cx.beginPath();cx.moveTo(Math.round(x)+.5,y0);cx.lineTo(Math.round(x)+.5,y1);cx.stroke();
+    cx.strokeStyle="rgba(241,245,248,.25)";cx.lineWidth=1;cx.beginPath();cx.moveTo(Math.round(x)+.5,y0);cx.lineTo(Math.round(x)+.5,y1);cx.stroke();
     cx.fillStyle=C.ink;cx.beginPath();cx.arc(x,Y(v),3,0,7);cx.fill();
     if(key!==tipKey){tipKey=key;tip.innerHTML=html}
     const tw=tip.offsetWidth||150;tip.style.left=(x+16+tw>pw?x-16-tw:x+16)+"px";tip.classList.add("show")}

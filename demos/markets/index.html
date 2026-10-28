@@ -6,7 +6,7 @@
 <title>Markets Demo</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
 /* v5, 2026-10-28. Tyler: "could look a little bit less like AI". The v4 desk was
    six panels of read-outs, neon on black, a scripted caption bar and a tab rail.
@@ -17,12 +17,12 @@
    The frame is a fixed 1312x832 picture scaled to whatever hosts it (software.html
    iframes it at that ratio). A standalone portrait phone gets a stacked layout. */
 :root{
-  --bg:#04070C; --win:#060A10; --raise:#0A1018;
-  --ink:#E8EEF6; --mu:#8D99AB; --dim:#5D687A;
-  --hair:rgba(150,200,230,.11); --hair2:rgba(150,200,230,.065);
+  --bg:#05070A; --win:#05070A; --raise:#0A0D11;
+  --ink:#F1F5F8; --mu:#9CA6B2; --dim:#5F6873;
+  --hair:rgba(255,255,255,.10); --hair2:rgba(255,255,255,.055);
   --ac:#5FE6FF; --ac-rgb:95,230,255;
-  --up:#56C292; --dn:#E8846E;
-  --sans:"Instrument Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --up:#00C805; --dn:#FF5000;   /* the original demo's colours (Tyler, 2026-10-28) */
+  --sans:"JetBrains Mono",ui-monospace,Menlo,monospace; --display:"Bricolage Grotesque",system-ui,sans-serif;
   color-scheme:dark;
 }
 *{box-sizing:border-box}
@@ -96,7 +96,7 @@ html.embed .win{border:0;border-radius:0}
 .chart canvas{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:crosshair}
 .ckey{position:absolute;left:0;top:2px;font-size:11.5px;color:var(--dim);pointer-events:none;opacity:0;transition:opacity .3s}
 .ckey.show{opacity:1}
-.tip{position:absolute;top:8px;pointer-events:none;background:#0A1018;border:1px solid var(--hair);border-radius:6px;padding:8px 10px;font-size:12px;line-height:1.55;white-space:nowrap;opacity:0;transition:opacity .12s;z-index:3}
+.tip{position:absolute;top:8px;pointer-events:none;background:#0A0D11;border:1px solid var(--hair);border-radius:6px;padding:8px 10px;font-size:12px;line-height:1.55;white-space:nowrap;opacity:0;transition:opacity .12s;z-index:3}
 .tip.show{opacity:1}
 .tip div{display:flex;justify-content:space-between;gap:14px}
 .tip span{color:var(--mu)}
@@ -179,7 +179,7 @@ html.flow .foot{padding:14px 16px;height:auto;white-space:normal;align-items:fle
 <div class="fit"><div class="stage" id="stage">
   <div class="win">
     <header class="top">
-      <div class="brand"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x=".5" y=".5" width="19" height="19" rx="5" fill="none" stroke="rgba(150,200,230,.35)"/><path d="M4.5 13.5l3.5-4 3 2.5 4-5.5" fill="none" stroke="#5FE6FF" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Markets</div>
+      <div class="brand"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x=".5" y=".5" width="19" height="19" rx="5" fill="none" stroke="rgba(255,255,255,.35)"/><path d="M4.5 13.5l3.5-4 3 2.5 4-5.5" fill="none" stroke="#5FE6FF" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Markets</div>
       <div class="search">
         <label><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.6" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M10.5 10.5l3 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
           <input id="q" type="text" placeholder="Search symbols" autocomplete="off" spellcheck="false" aria-label="Search symbols"><kbd>/</kbd></label>
@@ -223,6 +223,6 @@ html.flow .foot{padding:14px 16px;height:auto;white-space:normal;align-items:fle
 </div></div>
 
 <script src="data.js?v=996b2c0a"></script>
-<script src="app.js?v=217041b5"></script>
+<script src="app.js?v=c0l0r5b4"></script>
 </body>
 </html>

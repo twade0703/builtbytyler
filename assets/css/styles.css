@@ -1783,3 +1783,14 @@ body::before {
 /* About, 2026-10-27: the stack is a row of plain chips, no years. */
 .chips { list-style: none; display: flex; flex-wrap: wrap; gap: 0.45rem; margin: 1.6rem 0 0; padding: 0; max-width: 60ch; }
 .chips li { font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); padding: 0.4rem 0.65rem; border: 1px solid var(--hairline); }
+
+/* Software, 2026-10-27: the markets tracker, the AI receptionist and CombineCAD
+   are three equal cards in one row; CombineCAD's reel takes the demo frame. */
+.apps-trio { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.apps-trio .app__head { grid-template-columns: auto minmax(0, 1fr); }
+.apps-trio .app__tag { grid-column: 1 / -1; grid-row: 1; justify-self: start; padding: 0 0 0.6rem; }
+.apps-trio .app__icon { width: 52px; height: 52px; border-radius: 12px; }
+.apps-trio .cad-reel.demo__media { aspect-ratio: 1312 / 832; }
+.app__fine { margin: 0.7rem 0 0; color: var(--muted); font-size: 0.72rem; line-height: 1.45; opacity: 0.8; }
+@media (max-width: 1100px) { .apps-trio { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 720px) { .apps-trio { grid-template-columns: minmax(0, 1fr); } }

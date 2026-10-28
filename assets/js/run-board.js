@@ -259,7 +259,8 @@
     var pill = document.getElementById("lvpill"); if (pill) pill.className = "livepill" + (on ? " on" : "");
     setText("lvstate", on ? "WORKING" : (b.state || "idle").toUpperCase());
     var sk = b.stock || {};
-    setText("orbn", num(t.passed)); setText("orbl", "DEMOS BUILT AND READY, WHOLE RUN");
+    var G0 = b.goal || {}, tot = sk.built_total != null ? sk.built_total : G0.have;
+    setText("orbn", num(tot)); setText("orbl", "BUILT DEMOS ON THE REPS' SHEETS, OF " + num(G0.need || 1500) + " · THIS RUN +" + num(t.passed));
     setText("orbs", "Demos added to the sheets: Website Rep 1 +" + num(sk.added_rep1) + " · Rep 2 +" + num(sk.added_rep2) + (sk.added_rep3 != null ? " · Rep 3 +" + num(sk.added_rep3) : "") +
       (sk.nodemo_rep1 != null ? " (plus " + num((sk.nodemo_rep1 || 0) + (sk.nodemo_rep2 || 0) + (sk.nodemo_rep3 || 0)) + " no-demo businesses for the preview offer)" : "") + " · " + num(t.built) + " sites built · " + num(t.found) + " businesses found" + (t.building_now ? " · includes the city building now" : ""));
     setText("lvcity", now ? now.city + " · " + now.rep : b.stop_reason ? "Stopped" : "Nothing running");
@@ -301,13 +302,15 @@
     var spent = ((m.apify && m.apify.spent_run) || 0) + ((m.google && m.google.usd) || 0);
     var k = function (label, val, chip) { return '<div class="kpi"><u>' + esc(label) + "</u><b>" + val + "</b>" + (chip ? '<span class="chip">' + esc(chip) + "</span>" : "") + "</div>"; };
     var G = b.goal || null;
-    kpis.innerHTML = k("Demos passed, this run", num(t.passed), "+" + num(today) + " today") +
-      (G ? k("Demo week goal", num(G.need), num(G.have) + " built · ~" + num(G.coming) + " coming") : k("Callable demos", num(s.callable_demos), "CA + NV")) +
+    var built = s.built_total != null ? s.built_total : G && G.have;
+    kpis.innerHTML = k("Built demos, of " + num(G ? G.need : 1500), num(built), "+" + num(t.passed) + " this run · +" + num(today) + " today") +
+      k("Each website rep", (s.built_rep1 != null ? num(s.built_rep1) + " · " + num(s.built_rep2) + " · " + num(s.built_rep3) : "–"), "of " + num(G ? G.per_rep : 500) + " each, Reps 1 · 2 · 3") +
       k("Spent this run", usd(spent), "Apify + Google") + k("Claude weekly", (m.claude && m.claude.weekly != null ? m.claude.weekly + "%" : "–"), "stops " + ((m.claude && m.claude.stop_at) || 70) + "%");
   }
 
   function render(b) {
     upd.textContent = "updated " + ago(b.updated);
+    b0 = b;
     header(b); live(b);
     var hist = (b.history && b.history.length) ? b.history : [{ d: new Date().toISOString().slice(0, 10), built: 0, passed: 0 }];
     var d = donut(b.totals || {}, b.reasons || {});
@@ -321,6 +324,9 @@
   /* ---------- 0. Toward demo week ---------- */
   function goalPanel(G) {
     if (!G || !G.need) return "";
+    var SK = (b0 && b0.stock) || {};
+    if (SK.built_total != null && G.reps) { G = Object.assign({}, G, {have: SK.built_total, reps: G.reps.map(function (r, i) {
+      var v = SK["built_rep" + (i + 1)]; return v == null ? r : Object.assign({}, r, {have: v, short: Math.max(0, (G.per_rep || 500) - v)}); })}); }
     var need = G.need, have = Math.min(G.have || 0, need), coming = Math.min(G.coming || 0, need - have), short = Math.max(0, need - have - coming);
     var w = function (v) { return (v / need * 100).toFixed(2) + "%"; };
     /* colourblind: solid = real, striped = expected, plain track = still short; every segment carries its number */

@@ -164,8 +164,8 @@
       '<nav class="nav"><a href="#answer">Answer</a><a href="#build">Build</a><a href="#money">Money</a><a href="#demos">Demos</a><a href="#codes">Area codes</a><a href="#recalls">Recalls</a><a href="#costs">Costs</a><a href="#status">Status</a><a href="#dials">Assumptions</a></nav>' +
 
       '<h2 id="answer">The short answer</h2><div class="grid">' +
-      '<div class="stat bl"><b>' + N(x.webNeed) + '</b><u>Website demos needed</u></div>' +
-      '<div class="stat a"><b>' + N(x.toBuild) + '</b><u>Still to build (have ' + N(x.webHave) + ")</u></div>" +
+      '<div class="stat bl"><b>' + N(x.webHave) + ' <em>of</em> ' + N(x.webNeed) + '</b><u>Built demos toward the goal' + (D.goal && D.goal.reps ? " (" + D.goal.reps.map(function (r) { return r.label.replace("Website ", "") + " " + N(r.have); }).join(", ") + ")" : "") + '</u></div>' +
+      '<div class="stat a"><b>' + N(x.toBuild) + '</b><u>Still to build' + (D.target ? " (" + N(D.target.per_web_rep) + " per website rep)" : "") + "</u></div>" +
       '<div class="stat"><b>' + $k(lo.pocket) + ' <em>to</em> ' + $k(hi.pocket) + '</b><u>You pocket from the week (' + S.lo + "% to " + S.hi + "%)</u></div>" +
       '<div class="stat g"><b>+' + $k(lo.mo1) + ' <em>to</em> ' + $k(hi.mo1) + '</b><u>Added every month after</u></div>' +
       '<div class="stat"><b>' + $(x.cost.total) + '</b><u>Cash to get ready</u></div>' +

@@ -85,8 +85,8 @@
     var webHave = T && G.have != null ? G.have : free ? D.web.in_codes : D.web.callable, aiHave = free ? D.ai.in_codes : D.ai.callable;
     var toBuild = Math.max(0, webNeed - webHave), per = D.build[S.route];
     var codes = {}; Object.keys(D.web.area_codes).concat(Object.keys(D.ai.area_codes)).forEach(function (c) { codes[c] = 1; });
-    var nCodes = Object.keys(codes).length, paidCodes = free ? 0 : Math.max(0, nCodes - D.dnc.free.length);
-    var seats = S.web + S.ai, extraLines = Math.max(0, seats - 3), calls = (S.calls * S.web + S.aiCalls * S.ai) * S.days;
+    var bought = D.dnc.bought || [], nCodes = Object.keys(codes).length, paidCodes = free ? bought.length : Math.max(bought.length, nCodes - D.dnc.free.length);
+    var seats = S.web + S.ai, owned = D.lines_owned || 3, extraLines = Math.max(0, seats - owned), calls = (S.calls * S.web + S.aiCalls * S.ai) * S.days;
     var cost = {
       builds: toBuild * per, dnc: paidCodes * D.dnc.per_code, lines: extraLines * 1.15, minutes: calls * 2 * 0.014,
     };
@@ -96,7 +96,7 @@
     /* 2026-10-27: measured pace of the last 8 cities on the running build, one lane. */
     var R = B.run || {}, pace = (R.recent || {}).per_hour, hours = pace ? Math.ceil(toBuild / pace) : null;
     return { r: r, p: p, webNeed: webNeed, aiNeed: aiNeed, webHave: webHave, aiHave: aiHave, toBuild: toBuild, builds: Math.ceil(toBuild / D.build.pass),
-      worst: S.calls * S.days * S.web, nCodes: nCodes, paidCodes: paidCodes, extraLines: extraLines, calls: calls, cost: cost,
+      worst: S.calls * S.days * S.web, nCodes: nCodes, paidCodes: paidCodes, extraLines: extraLines, owned: owned, bought: bought, calls: calls, cost: cost,
       lo: money(S.lo), hi: money(S.hi), days1: days1, days2: days2, hours: hours, pace: pace };
   }
 
@@ -164,11 +164,11 @@
       '<nav class="nav"><a href="#answer">Answer</a><a href="#build">Build</a><a href="#money">Money</a><a href="#demos">Demos</a><a href="#codes">Area codes</a><a href="#recalls">Recalls</a><a href="#costs">Costs</a><a href="#status">Status</a><a href="#dials">Assumptions</a></nav>' +
 
       '<h2 id="answer">The short answer</h2><div class="grid">' +
-      '<div class="stat bl"><b>' + N(x.webHave) + ' <em>of</em> ' + N(x.webNeed) + '</b><u>Built demos toward the goal' + (D.goal && D.goal.reps ? " (" + D.goal.reps.map(function (r) { return r.label.replace("Website ", "") + " " + N(r.have); }).join(", ") + ")" : "") + '</u></div>' +
+      '<div class="stat bl"><b>' + N(x.webHave) + ' <em>of</em> ' + N(x.webNeed) + '</b><u>Built demos toward the goal' + (D.goal && D.goal.reps ? " (" + D.goal.reps.map(function (r) { return r.label.replace("Website ", "") + " " + N(r.have); }).join(", ") + ")" : "") + (D.goal && D.goal.callable != null ? ". " + N(D.goal.callable) + " are in area codes you can call" : "") + '</u></div>' +
       '<div class="stat a"><b>' + N(x.toBuild) + '</b><u>Still to build' + (D.target ? " (" + N(D.target.per_web_rep) + " per website rep)" : "") + "</u></div>" +
-      '<div class="stat"><b>' + $k(lo.pocket) + ' <em>to</em> ' + $k(hi.pocket) + '</b><u>You pocket from the week (' + S.lo + "% to " + S.hi + "%)</u></div>" +
+      '<div class="stat"><b>' + $k(lo.pocket) + ' <em>to</em> ' + $k(hi.pocket) + '</b><u>You pocket from the week, before your bills (' + S.lo + "% to " + S.hi + "% close, a guess until someone buys)</u></div>" +
       '<div class="stat g"><b>+' + $k(lo.mo1) + ' <em>to</em> ' + $k(hi.mo1) + '</b><u>Added every month after</u></div>' +
-      '<div class="stat"><b>' + $(x.cost.total) + '</b><u>Cash to get ready</u></div>' +
+      '<div class="stat"><b>' + $(x.cost.total) + '</b><u>Cash still to spend getting ready (builds, ' + x.paidCodes + ' area codes, minutes)</u></div>' +
       /* 2026-10-27: the free-code cities left set what can still be built, not the build's speed */
       (D.goal && x.toBuild
         ? '<div class="stat v"><b>~' + N(D.goal.coming) + '</b><u>More coming from the ' + N(D.goal.cities_left) + " runs queued, estimate" + (D.goal.eta ? "; the goal around " + esc(D.goal.eta) + " if it runs nonstop" : D.goal.short ? "; ends ~" + N(D.goal.short) + " short, more metros get added" : "") + "</u></div>"
@@ -192,7 +192,7 @@
       buildHtml(x);
     var dialsHtml =
       '<details class="adv"><summary><h2 id="dials">Assumptions<small>Tap to change closers, calls, pickup or close rates. The page redoes the math.</small></h2></summary><div class="card">' + DIALS.map(dial).join("") +
-      seg("codes", [["free", "Free 5 area codes"], ["all", "All of CA and NV"]], "Where they can call",
+      seg("codes", [["free", "Free 5 + the ones you're buying"], ["all", "All of CA and NV"]], "Where they can call",
         "The Do Not Call download is the 5 free area codes (" + D.dnc.free.join(", ") + "). All of California and Nevada is " + x.nCodes + " area codes, $" + D.dnc.per_code + " each a year after the first 5.") +
       seg("route", [["apify", "This run, ~$" + D.build.apify.toFixed(2)], ["google", "Google only, ~$" + D.build.google.toFixed(2)]], "Demo build cost, per demo",
         (D.build.measured ? "Measured on this run: Apify plus Google, divided by demos that passed. " : "Measured on past runs. ") +
@@ -240,8 +240,8 @@
 
       '<h2 id="costs">Costs to get ready<small>What you pay before and during demo week.</small></h2><div class="card">' +
       cost("Demo builds", $(x.cost.builds), N(x.toBuild) + " demos at ~$" + D.build[S.route].toFixed(2) + (D.build.measured && S.route === "apify" ? ", this run's average so far. The small towns left cost more per demo than the big cities did." : ".")) +
-      cost("Extra Do Not Call area codes", $(x.cost.dnc), S.codes === "free" ? "None: you stay inside the 5 free area codes." : x.paidCodes + " area codes past the free 5, at $" + D.dnc.per_code + " each for a year.") +
-      cost("Extra phone lines", $(x.cost.lines) + "/mo", x.extraLines ? x.extraLines + " more line" + (x.extraLines > 1 ? "s" : "") + " for " + seats + " closers (you own 3)." : "You own 3 lines; enough for " + seats + " closer" + (seats === 1 ? "" : "s") + ".") +
+      cost("Extra Do Not Call area codes", $(x.cost.dnc), S.codes === "free" ? (x.bought.length ? "The " + x.bought.length + " you're buying (" + x.bought.join(", ") + "), $" + D.dnc.per_code + " each for a year. The other 5 are free." : "None: you stay inside the 5 free area codes.") : x.paidCodes + " area codes past the free 5, at $" + D.dnc.per_code + " each for a year.") +
+      cost("Extra phone lines", $(x.cost.lines) + "/mo", x.extraLines ? x.extraLines + " more line" + (x.extraLines > 1 ? "s" : "") + " for " + seats + " closers (you own " + x.owned + ")." : "You own " + x.owned + " lines; enough for " + seats + " closer" + (seats === 1 ? "" : "s") + ".") +
       cost("Call minutes", $(x.cost.minutes), N(x.calls) + " calls at about 2 minutes, $0.014 a minute.") +
       '<div class="costrow"><b>Total to get ready</b><span>' + $(x.cost.total) + "</span></div></div>" +
       '<div class="card"><div class="lbl" style="font:10px JetBrains Mono,monospace;letter-spacing:.14em;color:var(--mu);margin-bottom:6px">ALREADY PAYING OR BY QUOTE</div>' +

@@ -28,9 +28,9 @@
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
-  <script src="assets/js/boot.js?v=93"></script>
-  <link rel="stylesheet" href="assets/css/styles.css?v=93">
-  <link rel="stylesheet" href="assets/css/motion.css?v=93">
+  <script src="assets/js/boot.js?v=94"></script>
+  <link rel="stylesheet" href="assets/css/styles.css?v=94">
+  <link rel="stylesheet" href="assets/css/motion.css?v=94">
 
 <!-- Structured data. Every fact here is one this site already states in prose:
        the entity, the city and the email come off contact.html. Nothing is
@@ -128,87 +128,14 @@
         </figure>
         <div class="about-open__text" data-enter>
           <p class="kicker">About</p>
-          <h1 class="display" data-split>I'm Tyler. I build <em>hardware and software</em>.</h1>
-          <p class="opener__lead">Built by Tyler is my engineering studio in Monterey, California.
-            I design and build hardware like robotic arms and FPV drones, and I build websites
-            and software for businesses.</p>
-          <div class="opener__cta">
-            <a class="btn" href="software.html">Work with us</a>
-            <a class="btn btn--ghost" href="shop.html">See the hardware</a>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ===============================================================
-         01 · THE STORY — prose set against a sticky ledger of the plain
-         facts. The first paragraph is set at display weight so the page
-         opens with a voice rather than a bio.
-         =============================================================== -->
-    <section class="section" id="story" data-sec="story">
-      <div class="container prose-grid" data-reveal>
-        <span class="prose-grid__n">01</span>
-        <p class="prose-grid__lab">The short version</p>
-        <div class="prose">
-          <p>I have been taking things apart and putting them back together for as long as I
-            can remember.</p>
-          <p>I started on the mechanical side. I design a part, run the analysis, build it,
-            then test it and change it until it holds up. The software came later, because a
-            drone or a robot needs code to do anything. Now I do both.</p>
-          <p>I work out of Monterey, California. I design and build what we make, and a small sales
-            team makes our calls to businesses.</p>
-        </div>
-        <aside class="prose-aside">
-          <dl>
-            <dt>Based</dt><dd>Monterey, California</dd>
-            <dt>Entity</dt><dd>BuiltByTyler LLC</dd>
-            <dt>Disciplines</dt><dd>Mechanical &amp; software</dd>
-            <dt>Serving</dt><dd>The whole US</dd>
-          </dl>
-        </aside>
-      </div>
-    </section>
-
-    <!-- ===============================================================
-         02 · STACK: the inverted band. The tools, with years where Tyler
-         gave a number (2026-10-02: SOLIDWORKS 9, Inventor 9, 3D printing 9).
-         No intro copy, at his instruction. Nothing else on the site repeats
-         these numbers, so this is the one place to edit them.
-         =============================================================== -->
-    <section class="band" id="bench" data-sec="bench">
-      <div class="container band__grid band__grid--plain" data-reveal>
-        <p class="band__lab">02 Stack</p>
-        <span class="band__n">02</span>
-        <h2 class="band__h">My stack.</h2>
-        <div class="bench">
-          <div>
-            <h3>Design &amp; analysis</h3>
-            <ul>
-              <li>SOLIDWORKS <span>9 yrs</span></li>
-              <li>CATIA <span>Surfacing</span></li>
-              <li>Inventor <span>9 yrs</span></li>
-              <li>FEA &amp; CFD <span>Sim</span></li>
-            </ul>
-          </div>
-          <div>
-            <h3>Make</h3>
-            <ul>
-              <li>3D printing <span>9 yrs</span></li>
-              <li>Machining <span>Manual</span></li>
-              <li>Carbon &amp; composites <span>Airframes</span></li>
-              <li>Soldering &amp; wiring <span>Bench</span></li>
-            </ul>
-          </div>
-          <div>
-            <h3>Software</h3>
-            <ul>
-              <li>Python <span>4 yrs</span></li>
-              <li>TypeScript &amp; React <span>Web</span></li>
-              <li>C++ <span>Embedded</span></li>
-              <li>Postgres <span>Data</span></li>
-              <li>Stripe &amp; Cloudflare <span>Ship</span></li>
-            </ul>
-          </div>
+          <h1 class="display" data-split>I'm Tyler. I build <em>stuff</em>.</h1>
+          <p class="opener__lead">Hardware, software, and a lot of AI lately. Monterey, California.</p>
+          <ul class="chips" aria-label="Things I use">
+            <li>SOLIDWORKS</li><li>CATIA</li><li>Inventor</li><li>KiCad</li><li>3D printing</li>
+            <li>Python</li><li>JavaScript</li><li>TypeScript</li><li>C++</li><li>Rust</li><li>Lua</li>
+            <li>Godot</li><li>SQL</li><li>Claude Code</li><li>AI agents</li>
+          </ul>
+          <p class="opener__cta"><a class="link-arrow" href="contact.html">Say hi</a></p>
         </div>
       </div>
     </section>
@@ -245,24 +172,6 @@
     </section>
          =============================================================== -->
 
-    <!-- ===============================================================
-         03 · CLOSE
-         =============================================================== -->
-    <section class="section" id="next" data-sec="next">
-      <div class="container">
-        <div class="close" data-reveal>
-          <span class="close__n">03</span>
-          <h2>Tell us what you need built.</h2>
-          <div class="close__side">
-            <p>Send an email and a real person answers it.</p>
-            <div class="close__actions">
-              <a class="btn" href="software.html">Software &amp; web</a>
-              <a class="btn btn--ghost" href="contact.html">Get in touch</a>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
   </main>
 
 
@@ -296,10 +205,10 @@
        hologram.js is NOT loaded on this page: it has no build plates, and it
        is 120 KB of script to parse for nothing. It loads on Hardware and on
        the build detail page, where main.js creates the canvases it draws. -->
-  <script defer src="assets/js/products.js?v=93"></script>
-  <script defer src="assets/js/components.js?v=93"></script>
-  <script defer src="assets/js/main.js?v=93"></script>
+  <script defer src="assets/js/products.js?v=94"></script>
+  <script defer src="assets/js/components.js?v=94"></script>
+  <script defer src="assets/js/main.js?v=94"></script>
   <!-- The star field: plain WebGL, one small module, no library behind it. -->
-  <script type="module" src="assets/js/starfield.js?v=93"></script>
+  <script type="module" src="assets/js/starfield.js?v=94"></script>
 </body>
 </html>

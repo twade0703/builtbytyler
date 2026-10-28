@@ -28,9 +28,9 @@
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
-  <script src="assets/js/boot.js?v=93"></script>
-  <link rel="stylesheet" href="assets/css/styles.css?v=93">
-  <link rel="stylesheet" href="assets/css/motion.css?v=93">
+  <script src="assets/js/boot.js?v=94"></script>
+  <link rel="stylesheet" href="assets/css/styles.css?v=94">
+  <link rel="stylesheet" href="assets/css/motion.css?v=94">
 
 <!-- Structured data. Every fact here is one this site already states in prose:
        the entity, the city and the email come off contact.html. Nothing is
@@ -108,106 +108,22 @@
 
   <main>
     <!-- ===============================================================
-         CONTACT — a switchboard, not another about page. Two routes in,
-         picked by what the visitor actually wants, then the direct
-         channels underneath.
+         CONTACT, 2026-10-27: Tyler wants it minimal and a bit mysterious.
+         One line, one address. The pricing tiers on software.html still
+         link here with ?plan=, and main.js still labels the email (it looks
+         for #plan-notice and #route-software).
          =============================================================== -->
-    <section class="section contact-page">
-      <div class="container">
-
-        <div class="contact-top" data-enter>
-          <h1 class="display" data-split>Contact</h1>
-          <h2 class="contact-top__sub">Tell us what you want built.</h2>
-          <p class="contact-top__lead">Send us an email with what you need. A real person at BuiltByTyler
-            reads every email and answers it.</p>
-        </div>
-
-        <!-- Filled in by main.js when arriving with contact.html?plan=launch|product. -->
-        <p class="notice" id="plan-notice" hidden></p>
-
-        <!-- Two routes: hardware or software. -->
-        <div class="route-grid">
-          <a class="route" id="route-software" href="mailto:twade@builtbytyler.com?subject=Software%20enquiry%20%E2%80%94%20BuiltByTyler" data-reveal data-reveal-i="1">
-            <span class="route__no">01</span>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <rect x="3" y="4" width="18" height="16" rx="1.5"/><path d="M3 9h18M7 6.5h.01M9.5 6.5h.01"/>
-            </svg>
-            <h2>A website or software</h2>
-            <p>A site, a web app or automation for your business.</p>
-            <span class="route__meta" id="route-software-meta">Written scope and price first</span>
-            <span class="route__go" id="route-software-go">Start a software enquiry &rarr;</span>
-          </a>
-
-          <a class="route" href="mailto:twade@builtbytyler.com?subject=Build%20enquiry%20%E2%80%94%20BuiltByTyler" data-reveal data-reveal-i="2">
-            <span class="route__no">02</span>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M12 3 20 7.5v9L12 21 4 16.5v-9z"/><path d="M12 12v9M12 12l8-4.5M12 12 4 7.5"/>
-            </svg>
-            <h2>Something built</h2>
-            <p>A robotic arm, an FPV quad, or a one-off engineering build
-              scoped to whatever you are actually trying to do.</p>
-            <span class="route__meta">Quoted per project &middot; scoped in writing first</span>
-            <span class="route__go">Start a build enquiry &rarr;</span>
-          </a>
-        </div>
-
-        <!-- Direct channels + what to expect, side by side. -->
-        <div class="contact-split">
-          <div data-reveal="left">
-            <p class="eyebrow">Direct</p>
-            <ul class="contact-list">
-              <li>
-                <a href="mailto:twade@builtbytyler.com">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/>
-                  </svg>
-                  <span><span class="c-label">Email</span><span class="c-value">twade@builtbytyler.com</span></span>
-                </a>
-              </li>
-              <li>
-                <a href="tel:+18312302743">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M5 3h3.5l1.8 4.5-2.2 1.6a12 12 0 0 0 5.8 5.8l1.6-2.2L20 14.5V18a2 2 0 0 1-2.2 2A16.5 16.5 0 0 1 3 5.2 2 2 0 0 1 5 3z"/>
-                  </svg>
-                  <span><span class="c-label">Phone</span><span class="c-value">(831) 230-2743</span></span>
-                </a>
-              </li>
-              <li>
-                <a href="https://www.linkedin.com/in/tyler-wade1/" target="_blank" rel="noopener">
-                  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                    <path d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zM3 9h4v12H3zM9 9h3.8v1.7h.05c.53-1 1.83-2.05 3.77-2.05 4.03 0 4.78 2.65 4.78 6.1V21h-4v-5.4c0-1.29-.02-2.95-1.8-2.95-1.8 0-2.07 1.4-2.07 2.85V21H9z"/>
-                  </svg>
-                  <span><span class="c-label">LinkedIn</span><span class="c-value">tyler-wade1</span></span>
-                </a>
-              </li>
-              <li>
-                <a href="https://instagram.com/twade0703" target="_blank" rel="noopener">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/>
-                  </svg>
-                  <span><span class="c-label">Instagram</span><span class="c-value">twade0703</span></span>
-                </a>
-              </li>
-            </ul>
-          </div>
-
-          <div data-reveal="right">
-            <p class="eyebrow">What happens next</p>
-            <ol class="next-steps">
-              <li><b>You email</b><span>Whatever detail you have. A sentence is enough to start.</span></li>
-              <li><b>We reply</b><span>With a straight answer on whether we're the right fit for it.</span></li>
-              <li><b>Twenty minutes on a call</b><span>What the business or the build needs.</span></li>
-              <li><b>A written scope and price</b><span>Fixed, and in front of you before anything starts.</span></li>
-              <li><b>A date up front</b><span>You get the timeline in writing before you pay.</span></li>
-            </ol>
-            <p class="eyebrow" style="margin-top:2rem">Where we work</p>
-            <p class="contact-area">Based in <b>Monterey, California</b>. We work with businesses anywhere in
-              the United States. Websites and software are built remotely, so where you are
-              does not matter.</p>
-            <p class="contact-loc">BuiltByTyler LLC &middot; Monterey, California</p>
-          </div>
-        </div>
-
+    <section class="hush">
+      <div class="container hush__in" data-enter>
+        <p class="hush__k">BuiltByTyler</p>
+        <h1 class="hush__h">Leave a signal.</h1>
+        <p class="notice hush__plan" id="plan-notice" hidden></p>
+        <a class="hush__mail" id="route-software" href="mailto:twade@builtbytyler.com">twade@builtbytyler.com</a>
+        <p class="hush__else">
+          <a href="https://instagram.com/twade0703" target="_blank" rel="noopener">Instagram</a>
+          <i>/</i>
+          <a href="https://www.linkedin.com/in/tyler-wade1/" target="_blank" rel="noopener">LinkedIn</a>
+        </p>
       </div>
     </section>
   </main>
@@ -238,10 +154,10 @@
     </div>
   </footer>
 
-  <script src="assets/js/products.js?v=93"></script>
-  <script src="assets/js/components.js?v=93"></script>
-  <script src="assets/js/main.js?v=93"></script>
+  <script src="assets/js/products.js?v=94"></script>
+  <script src="assets/js/components.js?v=94"></script>
+  <script src="assets/js/main.js?v=94"></script>
   <!-- The star field: plain WebGL, one small module, no library behind it. -->
-  <script type="module" src="assets/js/starfield.js?v=93"></script>
+  <script type="module" src="assets/js/starfield.js?v=94"></script>
 </body>
 </html>

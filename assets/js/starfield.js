@@ -36,6 +36,12 @@
    144), and the camera's easing is measured in time, not frames, so it
    moves the same on every display.
 
+   2026-10-27, Tyler: "the Rolls-Royce shit, low-key, a shooting star
+   every once in a while". So it is now a starlight headliner: white
+   pinpoints, some of them twinkling slowly, barely any drift, and every
+   12 to 30 seconds one faint shooting star crosses the top of the
+   screen (a 2D canvas laid over the field, see meteors() below).
+
    Mounts itself into a fixed <canvas id="bg-canvas">. Degrades
    gracefully: no WebGL → the static site is untouched;
    prefers-reduced-motion → one still frame, no animation loop.
@@ -47,7 +53,7 @@ const CONFIG = {
   // Camera flythrough
   fov: 58,
   startZ: 360,   // where the camera begins (top of page)
-  travel: 1180,  // world units the camera dollies over a full scroll
+  travel: 260,   // world units the camera dollies over a full scroll
   near: 1,
   far: 5200,
 
@@ -60,14 +66,14 @@ const CONFIG = {
      real star field behaves; the two nearer layers keep it, so the
      scroll dolly still has something to parallax against. */
   layers: [
-    { count: 4200, spread: 1700, depth: 3800, size: 1.6, opacity: 0.85, atten: false, a: 0xbfe9ff, b: 0xffffff },
-    { count: 1300, spread: 850,  depth: 2600, size: 2.4, opacity: 0.45, atten: true,  a: 0x2aa8d8, b: 0x9fe6ff },
-    { count: 260,  spread: 340,  depth: 1100, size: 3.6, opacity: 0.22, atten: true,  a: 0x4fcfe6, b: 0xcffaff },
+    { count: 4200, spread: 1700, depth: 3800, size: 1.6, opacity: 0.85, atten: false, a: 0xfff3dc, b: 0xffffff },
+    { count: 1100, spread: 850,  depth: 2600, size: 2.2, opacity: 0.5,  atten: true,  a: 0xe8eeff, b: 0xffffff },
+    { count: 180,  spread: 340,  depth: 1100, size: 3.0, opacity: 0.3,  atten: true,  a: 0xfff6e8, b: 0xffffff },
   ],
 
   // Pointer parallax
-  parallaxX: 46,
-  parallaxY: 28,
+  parallaxX: 16,
+  parallaxY: 10,
   ease: 0.055,     // per frame at EASE_HZ; applied by elapsed time
 };
 const EASE_HZ = 144;      // the rate the easing was tuned at
@@ -101,10 +107,11 @@ function lookAt(ex, ey, ez, tx, ty, tz) {
 const VERT = `
 attribute vec3 aPos;
 attribute vec3 aCol;
+attribute float aTw;
 uniform mat4 uView, uProj;
-uniform float uRot, uSize, uScale;
+uniform float uRot, uSize, uScale, uTime;
 varying vec3 vCol;
-varying float vDepth, vSize;
+varying float vDepth, vSize, vTw;
 void main() {
   float c = cos(uRot), s = sin(uRot);
   vec4 mv = uView * vec4(aPos.x * c - aPos.y * s, aPos.x * s + aPos.y * c, aPos.z, 1.0);
@@ -113,6 +120,10 @@ void main() {
   vSize = uSize * (uScale > 0.0 ? uScale / max(vDepth, 0.001) : 1.0);
   gl_PointSize = vSize + 1.0;   // one pixel of margin, for the edge coverage below
   vCol = aCol;
+  // twinkle: each star has its own phase; about a third of them breathe
+  // noticeably, the rest hold steady, like fibre-optic points in a headliner
+  float amp = fract(aTw * 7.13) > 0.66 ? 0.55 : 0.12;
+  vTw = 1.0 - amp * (0.5 + 0.5 * sin(uTime * (0.5 + fract(aTw * 3.7)) + aTw));
 }`;
 
 const FRAG = `
@@ -124,7 +135,7 @@ precision mediump float;
 uniform float uOpacity, uFog;
 uniform vec3 uFogCol;
 varying vec3 vCol;
-varying float vDepth, vSize;
+varying float vDepth, vSize, vTw;
 void main() {
   // how much of this pixel the point's square covers: the antialiasing the
   // old renderer got from multisampling, done exactly. Without it a small
@@ -140,7 +151,7 @@ void main() {
   a = mix(a, 0.2265, soft);
   float f = uFog * vDepth;
   vec3 c = mix(vCol * mix(1.0, 0.904, soft), uFogCol, 1.0 - exp(-f * f));
-  gl_FragColor = vec4(c, a * uOpacity * cov.x * cov.y);
+  gl_FragColor = vec4(c, a * uOpacity * cov.x * cov.y * vTw);
 }`;
 
 function init() {
@@ -178,20 +189,21 @@ function init() {
     if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) return false;
     gl.useProgram(prog);
     loc = {};
-    ["aPos", "aCol"].forEach((n) => { loc[n] = gl.getAttribLocation(prog, n); });
-    ["uView", "uProj", "uRot", "uSize", "uScale", "uOpacity", "uFog", "uFogCol"].forEach((n) => { loc[n] = gl.getUniformLocation(prog, n); });
+    ["aPos", "aCol", "aTw"].forEach((n) => { loc[n] = gl.getAttribLocation(prog, n); });
+    ["uView", "uProj", "uRot", "uSize", "uScale", "uOpacity", "uFog", "uFogCol", "uTime"].forEach((n) => { loc[n] = gl.getUniformLocation(prog, n); });
 
     const zReach = CONFIG.startZ + 200;
     layers = CONFIG.layers.map((spec, i) => {
       const n = IS_MOBILE ? Math.round(spec.count * 0.4) : spec.count;
-      const data = new Float32Array(n * 6);
+      const data = new Float32Array(n * 7);
       const ca = hex(spec.a).map(toLinear), cb = hex(spec.b).map(toLinear);
       for (let k = 0; k < n; k++) {
-        data[k * 6] = (Math.random() - 0.5) * spec.spread * 2;
-        data[k * 6 + 1] = (Math.random() - 0.5) * spec.spread * 2;
-        data[k * 6 + 2] = zReach - Math.random() * spec.depth;
+        data[k * 7] = (Math.random() - 0.5) * spec.spread * 2;
+        data[k * 7 + 1] = (Math.random() - 0.5) * spec.spread * 2;
+        data[k * 7 + 2] = zReach - Math.random() * spec.depth;
         const t = Math.random();
-        for (let j = 0; j < 3; j++) data[k * 6 + 3 + j] = toSRGB(ca[j] + (cb[j] - ca[j]) * t);
+        for (let j = 0; j < 3; j++) data[k * 7 + 3 + j] = toSRGB(ca[j] + (cb[j] - ca[j]) * t);
+        data[k * 7 + 6] = Math.random() * Math.PI * 2;
       }
       const buf = gl.createBuffer();
       gl.bindBuffer(gl.ARRAY_BUFFER, buf);
@@ -263,13 +275,16 @@ function init() {
     gl.clear(gl.COLOR_BUFFER_BIT);
     gl.uniformMatrix4fv(loc.uView, false, view);
     gl.uniformMatrix4fv(loc.uProj, false, proj);
+    gl.uniform1f(loc.uTime, t);
     for (const l of layers) {
       l.rot += l.drift * dt;   // gentle counter-drift on each layer for added parallax
       gl.bindBuffer(gl.ARRAY_BUFFER, l.buf);
       gl.enableVertexAttribArray(loc.aPos);
-      gl.vertexAttribPointer(loc.aPos, 3, gl.FLOAT, false, 24, 0);
+      gl.vertexAttribPointer(loc.aPos, 3, gl.FLOAT, false, 28, 0);
       gl.enableVertexAttribArray(loc.aCol);
-      gl.vertexAttribPointer(loc.aCol, 3, gl.FLOAT, false, 24, 12);
+      gl.vertexAttribPointer(loc.aCol, 3, gl.FLOAT, false, 28, 12);
+      gl.enableVertexAttribArray(loc.aTw);
+      gl.vertexAttribPointer(loc.aTw, 1, gl.FLOAT, false, 28, 24);
       gl.uniform1f(loc.uRot, l.rot);
       gl.uniform1f(loc.uSize, l.spec.size * DPR);
       gl.uniform1f(loc.uScale, l.spec.atten === false ? 0 : H * 0.5);
@@ -302,6 +317,57 @@ function init() {
     frame(dt, elapsed);
   }
   requestAnimationFrame(loop);
+  meteors();
+}
+
+/* ---- the occasional shooting star ----------------------------------------
+   Its own small 2D canvas over the field (still behind the page). One streak
+   every 12-30 s, across the upper part of the screen, down and to one side,
+   fading in and out over about a second. Nothing runs between streaks. */
+function meteors() {
+  const c = document.createElement("canvas");
+  c.id = "meteor-canvas";
+  c.setAttribute("aria-hidden", "true");
+  c.style.cssText = "position:fixed;inset:0;width:100%;height:100%;z-index:-1;pointer-events:none;display:block";
+  document.body.prepend(c);
+  const ctx = c.getContext("2d");
+  if (!ctx) return;
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+  function streak() {
+    if (document.hidden) return later();
+    const W = window.innerWidth, H = window.innerHeight;
+    c.width = Math.floor(W * dpr); c.height = Math.floor(H * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const dir = Math.random() < 0.5 ? 1 : -1;
+    const x0 = W * (0.15 + Math.random() * 0.7), y0 = H * (0.04 + Math.random() * 0.3);
+    const ang = (0.32 + Math.random() * 0.25);              // radians below horizontal
+    const dist = Math.min(W, 900) * (0.35 + Math.random() * 0.25);
+    const dx = Math.cos(ang) * dir, dy = Math.sin(ang);
+    const tail = 90 + Math.random() * 70, dur = 900 + Math.random() * 500;
+    let start = 0;
+    function draw(now) {
+      if (!start) start = now;
+      const p = (now - start) / dur;
+      ctx.clearRect(0, 0, W, H);
+      if (p >= 1) return later();
+      const e = 1 - Math.pow(1 - p, 2);                      // eases out, like it burns up
+      const hx = x0 + dx * dist * e, hy = y0 + dy * dist * e;
+      const len = tail * Math.sin(Math.PI * Math.min(p * 1.15, 1));
+      const alpha = 0.75 * Math.sin(Math.PI * p);
+      const g = ctx.createLinearGradient(hx, hy, hx - dx * len, hy - dy * len);
+      g.addColorStop(0, `rgba(255,255,255,${alpha})`);
+      g.addColorStop(1, "rgba(255,255,255,0)");
+      ctx.strokeStyle = g; ctx.lineWidth = 1.2; ctx.lineCap = "round";
+      ctx.beginPath(); ctx.moveTo(hx, hy); ctx.lineTo(hx - dx * len, hy - dy * len); ctx.stroke();
+      ctx.fillStyle = `rgba(255,255,255,${alpha})`;
+      ctx.beginPath(); ctx.arc(hx, hy, 1.1, 0, Math.PI * 2); ctx.fill();
+      requestAnimationFrame(draw);
+    }
+    requestAnimationFrame(draw);
+  }
+  function later() { setTimeout(streak, 12000 + Math.random() * 18000); }
+  setTimeout(streak, 4000 + Math.random() * 6000);
 }
 
 if (document.readyState === "loading") {

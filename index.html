@@ -28,9 +28,9 @@
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
-  <script src="assets/js/boot.js?v=93"></script>
-  <link rel="stylesheet" href="assets/css/styles.css?v=93">
-  <link rel="stylesheet" href="assets/css/motion.css?v=93">
+  <script src="assets/js/boot.js?v=94"></script>
+  <link rel="stylesheet" href="assets/css/styles.css?v=94">
+  <link rel="stylesheet" href="assets/css/motion.css?v=94">
 
 <!-- Structured data. Every fact here is one this site already states in prose:
        the entity, the city and the email come off contact.html. Nothing is
@@ -134,8 +134,6 @@
         <div class="hero__main">
           <p class="kicker">BuiltByTyler <b>—</b> Monterey, California</p>
           <h1 class="display" data-split>Websites, software, and hardware. <em>Built by Tyler.</em></h1>
-          <p class="hero__sub">Websites and software for businesses, and robots, drones, rockets
-            and other custom builds you can buy. Designed and built by Tyler Wade in Monterey, California.</p>
           <div class="hero__cta">
             <a class="btn" href="software.html">Software &amp; web</a>
             <a class="btn btn--ghost" href="shop.html">Hardware</a>
@@ -207,14 +205,9 @@
     <section class="section" id="studio" data-sec="studio">
       <div class="container">
         <div class="fork" data-live>
-          <header class="fork__head" data-reveal>
-            <div>
-              <span class="fork__n">01</span>
-              <h2>The studio.</h2>
-            </div>
-            <p>What is one without the other? On a machine, software is the flight
-              controller, the motor controller and the sensors. In a business, it is the
-              website, the custom CRM, the tracker and the dashboard. I build both.</p>
+          <header class="fork__head fork__head--center" data-reveal>
+            <h2>What is one without the <em>other</em>?</h2>
+            <p>Software runs the machine. Hardware gives it a body. I build both.</p>
           </header>
 
           <!-- The trace. preserveAspectRatio="none" lets it span the grid at
@@ -247,10 +240,8 @@
               </svg>
               <span class="fork__lab">01.A &mdash; Software</span>
               <h3>Software</h3>
-              <p>Websites, web apps and automation for your business. Published pricing,
-                and you own everything at the end.</p>
-              <p class="fork__tags">Websites<i>/</i>Web apps<i>/</i>SaaS<i>/</i>Automation</p>
-              <span class="link-arrow">See software &amp; web</span>
+              <p>Websites, apps and automation for businesses.</p>
+              <span class="link-arrow">Software</span>
             </a>
 
             <a class="fork__card" href="shop.html" data-reveal data-reveal-i="2">
@@ -270,69 +261,11 @@
               </svg>
               <span class="fork__lab">01.B &mdash; Hardware</span>
               <h3>Hardware</h3>
-              <p>Robotic arms and FPV drones, designed and built by hand, with the CAD,
-                firmware and build notes kept.</p>
-              <p class="fork__tags">CAD<i>/</i>Fabrication<i>/</i>Firmware<i>/</i>Flight&nbsp;test</p>
-              <span class="link-arrow">See the hardware</span>
+              <p>Robotic arms, FPV drones, and whatever is next.</p>
+              <span class="link-arrow">Hardware</span>
             </a>
           </div>
         </div>
-      </div>
-    </section>
-
-    <!-- ===============================================================
-         03 · METHOD — the inverted band. One per page, and this is it.
-         =============================================================== -->
-    <section class="band band--figure" id="method" data-sec="method">
-      <div class="container band__grid" data-reveal>
-        <p class="band__lab">03 <b>—</b> Who builds it</p>
-        <!-- The photograph is the point of this section: the studio is Tyler's, and a page that says so without ever showing
-             him is asking to be taken on trust. Swap the file, not the markup,
-             to change it. -->
-        <figure class="band__fig">
-          <!-- Eager on purpose, and on a versioned URL. The bare URL sat under
-               a month-long image cache and at least one browser held a bad
-               response for it, so the section showed alt text; a new URL
-               sidesteps any poisoned cache, and a 21 KB photo that carries the
-               pitch gains nothing from lazy-loading. Bump ?v= if the file changes. -->
-          <img src="assets/img/headshot.jpg?v=2" alt="Tyler Wade, founder of Built by Tyler"
-               width="400" height="500" decoding="async">
-          <figcaption><b>Tyler Wade</b>Monterey, California</figcaption>
-        </figure>
-        <h2 class="band__h">Every product starts as a sketch and ends as something <em>real</em>.</h2>
-        <div class="band__text">
-          <p>I'm Tyler Wade, and this is Built by Tyler, a small studio in Monterey, California.
-            I design and build the hardware and the software. The process, the iterations, the
-            dead ends and everything they teach are the whole point. On the website side, a small
-            sales team makes our calls to local businesses.</p>
-          <p>I work through the hard parts so you don't have to — turning builds most people
-            think are too difficult into something you can learn to make yourself, and
-            software most agencies would quote four months for into something live this
-            week.</p>
-          <p style="margin-top:1.75rem"><a class="link-arrow" href="about.html">More about me</a></p>
-        </div>
-        <ol class="band__row">
-          <li>
-            <span class="n">01</span>
-            <b>Call</b>
-            <span>We call you. You decide on that call, or when we call back.</span>
-          </li>
-          <li>
-            <span class="n">02</span>
-            <b>Live</b>
-            <span>Once you pay, your site goes live.</span>
-          </li>
-          <li>
-            <span class="n">03</span>
-            <b>Changes</b>
-            <span>Tyler calls you to ask if you want any changes.</span>
-          </li>
-          <li>
-            <span class="n">04</span>
-            <b>Hosting</b>
-            <span>Your first month is included, then $50 a month.</span>
-          </li>
-        </ol>
       </div>
     </section>
 
@@ -373,10 +306,10 @@
        hologram.js is NOT loaded on this page: it has no build plates, and it
        is 120 KB of script to parse for nothing. It loads on Hardware and on
        the build detail page, where main.js creates the canvases it draws. -->
-  <script defer src="assets/js/products.js?v=93"></script>
-  <script defer src="assets/js/components.js?v=93"></script>
-  <script defer src="assets/js/main.js?v=93"></script>
+  <script defer src="assets/js/products.js?v=94"></script>
+  <script defer src="assets/js/components.js?v=94"></script>
+  <script defer src="assets/js/main.js?v=94"></script>
   <!-- The star field: plain WebGL, one small module, no library behind it. -->
-  <script type="module" src="assets/js/starfield.js?v=93"></script>
+  <script type="module" src="assets/js/starfield.js?v=94"></script>
 </body>
 </html>

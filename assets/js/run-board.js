@@ -338,7 +338,9 @@
     return '<div class="g">' + panel("c12", "Toward demo week · " + esc(G.week || ""), "Goal: " + num(need) + " built demos, " + num(G.per_rep || 0) + " for each website rep (Tyler, Oct 27)", "",
       bar + leg +
       '<p class="small" style="margin-top:10px">Built counts demos live on each rep\'s sheet from every run; the ' + num((b0 && b0.totals || {}).passed) + " passed above is this run only, including demos still going live. " +
-      (G.per_city ? "Coming is the last 8 cities' rate, about " + G.per_city + " a city. " : "") +
+      (G.big_cities != null ? "Coming is an estimate: about " + G.big_city_demos + " for each of the " + num(G.big_cities) + " big cities queued and " + G.small_city_demos + " for each of the " + num(G.small_cities) + " small towns. " :
+        G.per_city ? "Coming is the last 8 cities' rate, about " + G.per_city + " a city. " : "") +
+      (G.eta ? "At " + G.pace + " passed an hour (measured), the rest takes about " + num(G.hours_left) + " hours of running: around " + esc(G.eta) + " if it runs nonstop. Claude isn't the limit now (stop at " + G.claude_stop + "%, plus your free reset); Apify's $190 a month can pause it until Nov 1. " : "") +
       (short && G.nodemo ? "The gap is covered by the " + num(G.nodemo) + " businesses on the sheets with no demo yet: the closer offers a free preview and the owner texts photos." : "") + "</p>") + "</div>";
   }
   var b0 = null;

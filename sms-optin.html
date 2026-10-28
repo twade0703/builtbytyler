@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Text opt-in, step by step &middot; BuiltByTyler</title>
+  <meta name="description" content="How someone opts in to texts from BuiltByTyler's business line, (831) 230-2743, with screenshots of each step.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500&family=Instrument+Sans:wght@400;500&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" sizes="48x48" href="/assets/img/icon-48.png">
+  <link rel="icon" type="image/png" sizes="96x96" href="/assets/img/icon-96.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="/assets/img/icon-192.png">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <meta name="theme-color" content="#121216">
+  <link rel="canonical" href="https://builtbytyler.com/sms-optin">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Built by Tyler">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:url" content="https://builtbytyler.com/sms-optin">
+  <meta property="og:title" content="Text opt-in, step by step · BuiltByTyler">
+  <meta property="og:description" content="How someone opts in to texts from BuiltByTyler's business line, (831) 230-2743, with screenshots of each step.">
+  <meta name="twitter:title" content="Text opt-in, step by step · BuiltByTyler">
+  <meta name="twitter:description" content="How someone opts in to texts from BuiltByTyler's business line, (831) 230-2743, with screenshots of each step.">
+  <meta property="og:image" content="https://builtbytyler.com/assets/img/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <script src="assets/js/boot.js?v=101"></script>
+  <link rel="stylesheet" href="assets/css/styles.css?v=101">
+  <link rel="stylesheet" href="assets/css/motion.css?v=101">
+  <style>
+    /* A line to sign on (used only if the signature block is ever rendered). */
+    .sig-line { display:inline-block; min-width:15rem; max-width:100%;
+                border-bottom:1px solid currentColor; opacity:.5;
+                vertical-align:baseline; }
+    /* Compact reading: the agreement is here to be checkable, not to fill the
+       screen. Small type, tight rhythm, section heads as small labels.
+       Inline styles are allowed by the CSP in _headers. */
+    main > .section { padding-block: clamp(2.5rem, 5vw, 4rem); }
+    .policy { max-width: 62ch; font-size: .9rem; line-height: 1.55; }
+    .policy h1 { font-size: clamp(1.6rem, 3vw, 2.1rem); margin-bottom: .35rem; }
+    .policy h2 { font-family: var(--font-mono); font-size: var(--fs-micro); font-weight: 500;
+                 letter-spacing: .14em; text-transform: uppercase; color: var(--ink);
+                 margin: 1.5rem 0 .5rem; padding-top: .8rem; }
+    .policy p { margin: 0 0 .55rem; }
+    .policy ul { margin: 0 0 .55rem; }
+    .policy li { margin-bottom: .3rem; }
+    .policy hr { margin: 1.5rem 0 .5rem; }
+    .policy b { font-weight: 500; }  /* the font ships 400/500; a faux 700 smears at this size */
+    .policy figure { margin: .6rem 0 1rem; }
+    .policy figure img { width: 100%; height: auto; border-radius: 10px; border: 1px solid rgba(255,255,255,.12); display: block; }
+    .policy figcaption { font-size: .78rem; opacity: .7; margin-top: .35rem; }
+    .policy blockquote { margin: .4rem 0 .8rem; padding: .7rem .9rem; border-left: 2px solid currentColor; background: rgba(255,255,255,.04); }
+    .policy .sample { font-family: var(--font-mono); font-size: .8rem; white-space: pre-wrap; }
+      .optin { border: 1px solid rgba(255,255,255,.16); border-radius: 12px; padding: 1.1rem 1.2rem; margin: 1rem 0 1.4rem; background: rgba(255,255,255,.03); }
+    .optin__num { display: inline-block; font-family: var(--font-display, inherit); font-size: clamp(1.4rem, 3.4vw, 1.9rem); margin: .1rem 0 .6rem; text-decoration: none; }
+    .optin__fine { font-size: .8rem; line-height: 1.5; opacity: .82; margin: 0; }
+  </style>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+        "item": "https://builtbytyler.com/"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Text opt-in",
+        "item": "https://builtbytyler.com/sms-optin"
+      }
+    ]
+  }
+  </script>
+</head>
+<body>
+  <!-- The nav is in the HTML, with this page already marked, so it is there
+       on the first paint; components.js re-renders the same thing. -->
+  <header id="site-nav" class="site-nav">
+    <div class="container site-nav__inner">
+      <a href="index.html" class="brand">Built<b>ByTyler</b></a>
+      <nav aria-label="Primary"><ul class="nav-links" id="nav-links"><li><a href="index.html">Home</a></li><li><a href="software.html">Software</a></li><li><a href="shop.html">Hardware</a></li><li><a href="about.html">About</a></li><li><a href="contact.html">Contact</a></li></ul></nav>
+      <div class="nav-actions"><button class="nav-toggle" id="nav-toggle" aria-label="Toggle menu" aria-expanded="false"><span></span><span></span><span></span></button></div>
+    </div>
+  </header>
+
+  <main>
+    <section class="section">
+      <div class="container policy">
+        <h1>Text opt-in, step by step</h1>
+        <p><b>BuiltByTyler LLC &middot; business line (831) 230-2743</b></p>
+        <p><i>Screenshots taken 28 October 2026 from the live site. One opt-in method: the person texts us first.</i></p>
+
+        <h2>1. Contact page links to the text page</h2>
+        <figure><img src="assets/img/sms/contact-text-link.png" alt="builtbytyler.com/contact with a Text link" width="1280" height="800" loading="lazy">
+          <figcaption>builtbytyler.com/contact. "Text" opens builtbytyler.com/text.</figcaption></figure>
+
+        <h2>2. The call to action and disclosure they see before texting</h2>
+        <figure><img src="assets/img/sms/text-optin-cta.png" alt="Opt-in box: Text us at (831) 230-2743 with the full disclosure" width="1048" height="484" loading="lazy">
+          <figcaption>builtbytyler.com/text. Links: <a href="sms-terms.html">texting terms</a> and <a href="privacy.html#text-line">privacy policy</a>.</figcaption></figure>
+        <figure><img src="assets/img/sms/text-optin-mobile.png" alt="The same page on a phone" width="390" loading="lazy" style="max-width:260px">
+          <figcaption>The same page on a phone.</figcaption></figure>
+
+        <h2>3. They text us first</h2>
+        <p>Any first text to (831) 230-2743, for example HI, HELLO, START or their question, is the opt-in. We store the number,
+          date, time and message as the consent record. Calling the number does not opt anyone in.</p>
+
+        <h2>4. One confirmation reply</h2>
+        <blockquote class="sample">BuiltByTyler: thanks for your text. We'll reply here about what you asked. Msg frequency varies. Msg &amp; data rates may apply. Reply HELP for help, STOP to opt out.</blockquote>
+
+        <h2>5. HELP and STOP</h2>
+        <p class="sample">HELP: BuiltByTyler, Monterey CA. Call (831) 230-2743 or email twade@builtbytyler.com. Reply STOP to opt out.</p>
+        <p class="sample">STOP: BuiltByTyler: you're unsubscribed and won't get more texts from this number. Reply START to resubscribe.</p>
+
+        <h2>Full page</h2>
+        <figure><img src="assets/img/sms/text-optin-desktop.png" alt="The whole builtbytyler.com/text page" width="1280" loading="lazy">
+          <figcaption>The whole builtbytyler.com/text page on a desktop.</figcaption></figure>
+        <hr>
+        <p><i>BuiltByTyler LLC &middot; Monterey, California &middot; <a href="mailto:twade@builtbytyler.com">twade@builtbytyler.com</a></i></p>
+      </div>
+    </section>
+  </main>
+
+  <footer id="site-footer" data-year="2026">
+    <!-- Static fallback only. components.js overwrites this block on load, so
+         no visitor ever sees it. It exists because the nav and the footer are
+         BOTH rendered into empty hosts by JS, which left a non-executing
+         crawler with no internal links and no company name anywhere in the
+         served HTML. Keep the links here in step with NAV_ITEMS. -->
+    <div class="container site-footer__inner">
+      <address>
+        <strong>Built by Tyler</strong> &mdash; BuiltByTyler LLC<br>
+        Monterey, California<br>
+        <a href="tel:+18312302743">(831) 230-2743</a> &middot;
+        <a href="mailto:twade@builtbytyler.com">twade@builtbytyler.com</a>
+      </address>
+      <nav aria-label="Footer">
+        <a href="index.html">Home</a>
+        <a href="software.html">Websites &amp; software</a>
+        <a href="shop.html">Hardware</a>
+        <a href="about.html">About Tyler Wade</a>
+        <a href="contact.html">Contact</a>
+        <a href="policies.html">Lead times, shipping &amp; refunds</a>
+        <a href="terms.html">Website terms</a>
+        <a href="privacy.html">Privacy</a>
+      </nav>
+    </div>
+  </footer>
+
+  <script src="assets/js/products.js?v=101"></script>
+  <script src="assets/js/components.js?v=101"></script>
+  <script src="assets/js/main.js?v=101"></script>
+</body>
+</html>

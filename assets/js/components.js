@@ -131,7 +131,6 @@ function renderFooter() {
         <a href="terms.html">Website terms</a>
         <a href="policies.html">Lead times, shipping &amp; refunds</a>
         <a href="privacy.html">Privacy</a>
-        <a href="https://www.linkedin.com/in/tyler-wade1/" target="_blank" rel="noopener">LinkedIn</a>
         <a href="https://instagram.com/twade0703" target="_blank" rel="noopener">Instagram</a>
       </div>
     </div>`;

@@ -117,6 +117,22 @@
       '<div class="side"><span class="tier">' + esc(T[0]) + '</span><span class="ago">' + esc(ago(p.applied)) + "</span></div></button>" + more + "</div>";
   }
 
+  /* The hiring schedule from the scale plan (2026-10-28, Tyler: "two at a time, over and over"), published from
+     control/scale.py with the board: the same months and closer counts as /plan and RAGER's Money tab. */
+  function planCard() {
+    var P = board.plan;
+    if (!P || !P.rows || !P.rows.length) return "";
+    var R = P.rows, first = R[0], next = R[1], far = R[Math.min(R.length - 1, 7)];
+    var worth = function (k) { return everyone(k).filter(function (p) { return good(p) && !p.rejected; }).length; };
+    var chips = R.slice(0, 8).map(function (r, i) {
+      return '<span class="pmo"><u>' + esc(r.label) + "</u><b>" + (i ? "+" + r.hire_web + " / +" + r.hire_ai : r.web + " / " + r.ai) + "</b><em>" + r.web + " + " + r.ai + " dialing</em></span>";
+    }).join("");
+    return '<section class="plan"><div class="lbl">Hiring plan</div><p class="prule">' + esc(P.rule) + "</p>" +
+      '<div class="pmos">' + chips + "</div>" +
+      '<p class="pnote">Website / AI Receptionist. ' + (next ? "Next: " + next.hire_web + " website and " + next.hire_ai + " AI closer" + (next.hire_ai > 1 ? "s" : "") + " signed and trained to dial from " + esc(next.label) + ". " : "") +
+      "By " + esc(far.label) + ": " + far.web + " website + " + far.ai + " AI dialing. Worth a call now: " + worth("websites") + " website, " + worth("ai") + " AI. <a href=\"/plan#scale\">Money on this plan</a></p></section>";
+  }
+
   function render() {
     if (!board) return;
     var all = everyone(), rej = all.filter(function (p) { return p.rejected; }).length, day = Date.now() - 864e5, hrs = Math.max(1, (Date.now() - t(board.posted)) / 36e5);
@@ -133,7 +149,7 @@
     app.innerHTML =
       '<section class="hero"><div class="stat big"><b>' + all.length + '</b><u>Applicants, both jobs' + (rej ? " · " + rej + " rejected" : "") + '</u></div>' +
       '<div class="stat"><b>' + all.filter(function (p) { return t(p.applied) > day; }).length + '</b><u>Last 24 hours</u></div>' +
-      '<div class="stat"><b>' + (all.length / hrs * 24).toFixed(1) + '</b><u>A day, average</u></div></section>' +
+      '<div class="stat"><b>' + (all.length / hrs * 24).toFixed(1) + '</b><u>A day, average</u></div></section>' + planCard() +
       '<nav class="tabs" role="tablist" aria-label="Which job">' + tabs + "</nav>" +
       '<div class="chips">' + tiers + "</div>" +
       '<section class="chart"><h3>' + ROLE[tab].t + " applicants <span>since the post went up</span></h3>" + chart(tab) + "</section>" +

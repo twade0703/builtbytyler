@@ -153,6 +153,52 @@
       '<div class="key"><span><i style="background:var(--amber)"></i>' + S.lo + '% close</span><span><i style="background:var(--green)"></i>' + S.hi + "% close</span><span>" + D.price.churn + "% of customers cancel each month</span></div>";
   }
 
+  /* The scale plan (2026-10-28, Tyler: "we're not going to stop at six ... replot everything"): the month-by-month
+     model from control/scale.py, the same math as RAGER's Money chart. Banked money with the low and good close
+     rates as a band; milestones labelled on the line (colourblind: labels on the marks, one hue). */
+  function $m(v) { var a = Math.abs(v); return a >= 1e6 ? "$" + (v / 1e6).toFixed(a >= 1e7 ? 0 : 2).replace(/\.?0+$/, "") + "M" : $k(v); }
+  function scaleChart(Sc) {
+    var R = Sc.rows, n = R.length, W = 340, H = 190, L = 44, B = 18, T = 10;
+    var max = Math.max(1, R[n - 1].banked * 1.12);     // the plan line sets the scale; the good-case band is clipped
+    var x = function (i) { return L + (W - L - 10) * (i / (n - 1)); }, y = function (v) { return T + (H - T - B) * (1 - Math.max(0, Math.min(v, max)) / max); }, g = "";
+    [0, 0.25, 0.5, 0.75, 1].forEach(function (f) { var v = max * f;
+      g += '<line x1="' + L + '" x2="' + (W - 10) + '" y1="' + y(v) + '" y2="' + y(v) + '" stroke="rgba(255,255,255,.07)"/><text class="ax" x="' + (L - 5) + '" y="' + (y(v) + 3) + '" text-anchor="end">' + $m(v) + "</text>"; });
+    R.forEach(function (r, i) { if (i % 6 === 1) g += '<text class="ax" x="' + x(i) + '" y="' + (H - 4) + '" text-anchor="middle">' + esc(r.label) + "</text>"; });
+    var band = "M" + x(0) + "," + y(Sc.high[0]);
+    for (var i = 1; i < n; i++) band += "L" + x(i).toFixed(1) + "," + y(Sc.high[i]).toFixed(1);
+    for (i = n - 1; i >= 0; i--) band += "L" + x(i).toFixed(1) + "," + y(Sc.low[i]).toFixed(1);
+    g += '<path d="' + band + 'Z" fill="rgba(96,165,250,.12)"/>';
+    var d = ""; R.forEach(function (r, i) { d += (i ? "L" : "M") + x(i).toFixed(1) + "," + y(r.banked).toFixed(1); });
+    g += '<path d="' + d + '" fill="none" stroke="var(--blue)" stroke-width="2.6" stroke-linejoin="round"/>';
+    (Sc.milestones || []).filter(function (m) { return m.at >= 5e5; }).forEach(function (m) {
+      var k = -1; R.forEach(function (r, j) { if (k < 0 && r.banked >= m.at) k = j; });
+      if (k < 0) return;
+      var px = x(k), py = y(R[k].banked), right = px > W - 110;
+      g += '<circle cx="' + px + '" cy="' + py + '" r="4" fill="var(--bg)" stroke="var(--blue)" stroke-width="2"/>' +
+        '<text x="' + (right ? px - 7 : px + 7) + '" y="' + (py + 4) + '" text-anchor="' + (right ? "end" : "start") + '" style="fill:var(--tx);font:600 10.5px JetBrains Mono,monospace">' + $m(m.at) + " " + esc(m.plan) + "</text>";
+    });
+    return '<svg class="ch" style="height:190px" viewBox="0 0 ' + W + " " + H + '" preserveAspectRatio="none" role="img" aria-label="Money banked each month on the scale plan">' + g + "</svg>" +
+      '<div class="key"><span><i style="background:var(--blue)"></i>Banked, ' + Sc.close_pct + '% of calls close</span><span><i style="background:rgba(96,165,250,.3)"></i>' + Sc.close_low_pct + "% to " + Sc.close_high_pct + "% close</span></div>";
+  }
+  function scaleHtml() {
+    var Sc = D.scale;
+    if (!Sc || !Sc.rows) return "";
+    var M = {}; (Sc.milestones || []).forEach(function (m) { M[m.at] = m; });
+    var tile = function (at, cls) { var m = M[at]; if (!m) return "";
+      return '<div class="stat ' + cls + '"><b>' + esc(m.plan || "later") + "</b><u>" + $m(at) + " banked" + (m.was && m.was !== m.plan ? " · was " + esc(m.was) + " when hiring stopped at 6 + 6" : m.was ? "" : " · never on the old 6 + 6 plan") + "</u></div>"; };
+    var rows = Sc.rows.filter(function (r) { return r.web + r.ai > 0; }).slice(0, 12), now = rows[0] || {};
+    var tr = function (r) { return "<tr><td>" + esc(r.label) + "</td><td>" + r.web + "+" + r.ai + "</td><td>" + (r.hire_web + r.hire_ai ? "+" + r.hire_web + "/+" + r.hire_ai : "") + "</td><td>" + N(r.sales) + "</td><td>" + $k(r.mrr) + "</td><td>" + $m(r.banked) + "</td></tr>"; };
+    return '<h2 id="scale">The scale plan<small>' + esc(Sc.rule) + "</small></h2>" +
+      '<div class="grid">' + tile(5e5, "bl") + tile(1e6, "g") + tile(2e6, "v") +
+      '<div class="stat a"><b>' + esc(Sc.mrr_100k || "later") + "</b><u>$100k a month coming in from monthly fees alone</u></div></div>" +
+      '<div class="card" style="margin-top:8px">' + scaleChart(Sc) +
+      '<table class="sct" style="margin-top:10px"><thead><tr><th>Month</th><th>Closers</th><th>Hire</th><th>Sales</th><th>Fees/mo</th><th>Banked</th></tr></thead><tbody>' +
+      rows.map(tr).join("") + "</tbody></table>" +
+      '<p class="note">Closers and Hire are website + AI Receptionist. To stay on plan in ' + esc(now.label || "") + ": " + N(now.sales || 0) + " sales and " + N((now.web || 0) + (now.ai || 0)) + " closers dialing. " +
+      "Banked is after commission, Stripe, call minutes, the extra Claude accounts the demo build needs, and your " + $(Sc.bills) + " of monthly bills. " +
+      "The close rate is a guess until demo week sells; the band is half and double it. Same numbers as RAGER's Money tab.</p></div>";
+  }
+
   function render(dialsOnly) {
     if (!D) return;
     var x = plan(), r = x.r, lo = x.lo, hi = x.hi, seats = S.web + S.ai;
@@ -161,7 +207,7 @@
     var c = D.costs;
     var top =
       '<p class="lead">' + esc(D.week.label) + " · " + S.web + " website closers at " + S.calls + " calls a day + " + S.ai + " AI Receptionist closers at " + S.aiCalls + " · " + S.days + " days</p>" +
-      '<nav class="nav"><a href="#answer">Answer</a><a href="#build">Build</a><a href="#money">Money</a><a href="#demos">Demos</a><a href="#codes">Area codes</a><a href="#recalls">Recalls</a><a href="#costs">Costs</a><a href="#status">Status</a><a href="#dials">Assumptions</a></nav>' +
+      '<nav class="nav"><a href="#answer">Answer</a><a href="#scale">Scale</a><a href="#build">Build</a><a href="#money">Money</a><a href="#demos">Demos</a><a href="#codes">Area codes</a><a href="#recalls">Recalls</a><a href="#costs">Costs</a><a href="#status">Status</a><a href="#dials">Assumptions</a></nav>' +
 
       '<h2 id="answer">The short answer</h2><div class="grid">' +
       '<div class="stat bl"><b>' + N(x.webHave) + ' <em>of</em> ' + N(x.webNeed) + '</b><u>Built demos toward the goal' + (D.goal && D.goal.reps ? " (" + D.goal.reps.map(function (r) { return r.label.replace("Website ", "") + " " + N(r.have); }).join(", ") + ")" : "") + (D.goal && D.goal.callable != null ? ". " + N(D.goal.callable) + " are in area codes you can call" : "") + '</u></div>' +
@@ -189,7 +235,7 @@
           ", but only " + N(x.webHave) + " are inside the 5 free area codes, the only ones a closer can call once the Do Not Call list is in. So \"have\" is " + N(x.webHave) + "." +
           (D.web.on_sheets && D.web.on_sheets.nodemo ? " The " + N(D.web.on_sheets.nodemo) + " with no demo yet are on the sheets too: closers offer a free preview, the owner texts photos, and the demo is built that night." : "")
         : "The demos on your reps' lists (Rep 1 and Rep 2) are the " + N(x.webHave) + " counted here, not extra.") + "</p>" +
-      buildHtml(x);
+      scaleHtml() + buildHtml(x);
     var dialsHtml =
       '<details class="adv"><summary><h2 id="dials">Assumptions<small>Tap to change closers, calls, pickup or close rates. The page redoes the math.</small></h2></summary><div class="card">' + DIALS.map(dial).join("") +
       seg("codes", [["free", "Free 5 + the ones you're buying"], ["all", "All of CA and NV"]], "Where they can call",

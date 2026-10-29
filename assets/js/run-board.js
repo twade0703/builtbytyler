@@ -315,7 +315,7 @@
     var hist = (b.history && b.history.length) ? b.history : [{ d: new Date().toISOString().slice(0, 10), built: 0, passed: 0 }];
     var d = donut(b.totals || {}, b.reasons || {});
     b0 = b;
-    app.innerHTML = goalPanel(b.goal) + '<div class="g">' + cities(b.cities || []).replace('class="panel c8"', 'class="panel c12"') + "</div>" +
+    app.innerHTML = goalPanel(b.goal) + scalePanel(b.goal && b.goal.scale) + '<div class="g">' + cities(b.cities || []).replace('class="panel c8"', 'class="panel c12"') + "</div>" +
       '<div class="g">' + areaChart(hist) + d.html + "</div>" +
       '<div class="g">' + rates(b) + spend(b.money || {}) + gauge(b.totals || {}) + "</div>";
     bindArea(hist); bindDonut(d);
@@ -352,6 +352,21 @@
       (short && G.nodemo ? "The gap is covered by the " + num(G.nodemo) + " businesses on the sheets with no demo yet: the closer offers a free preview and the owner texts photos." : "") + "</p>") + "</div>";
   }
   var b0 = null;
+
+  /* ---------- 0b. After demo week: what the scale plan asks of the build (2026-10-28) ----------
+     Tyler: "we're not going to stop at six". Every website closer added needs about 235 new demos a week, and
+     one Claude account builds about 500 (measured). From control/scale.py via goal.json, same as /plan. */
+  function scalePanel(S) {
+    if (!S || !S.rows || !S.rows.length) return "";
+    var R = S.rows.slice(0, 8), max = Math.max.apply(null, R.map(function (r) { return r.demos_wk; })) || 1;
+    var rows = R.map(function (r) {
+      return '<div class="pr" style="margin-top:10px"><div class="h"><span style="font-family:inherit">' + esc(r.label) + ' <em style="font-style:normal;color:var(--dim)">' + num(r.web) + " web</em></span><span>" +
+        num(r.demos_wk) + "/wk · " + num(r.claude_accts) + " Claude" + '</span></div><div class="t" role="img" aria-label="' + esc(r.label + " " + r.demos_wk + " demos a week") + '"><i style="width:' + (r.demos_wk / max * 100).toFixed(1) + '%"></i></div></div>';
+    }).join("");
+    return '<div class="g">' + panel("c12", "After demo week · demos the plan needs", S.rule, "",
+      rows + '<p class="small" style="margin-top:10px">Per month: website closers dialing, new demos a week they need, Claude accounts to build them. Each website closer needs about ' + num(S.per_closer_wk) + " new demos a week; one Claude account builds about " + num(S.per_account_wk) +
+      " (measured), so every 2 website closers added is one more account (the plan counts $200 a month each). AI Receptionist closers need no demos.</p>") + "</div>";
+  }
 
   function gate(t, s) { app.innerHTML = '<div class="panel gate"><b>' + esc(t) + "</b>" + esc(s) + "</div>"; }
 

@@ -58,7 +58,8 @@
   function chart(role) {
     var list = people(role), all = people();
     var t0 = t(board.posted) || Math.min.apply(null, all.map(function (p) { return t(p.applied); }).filter(Boolean));
-    var t1 = Date.now(), W = 340, H = 120, L = 22, R = 6, T = 8, B = 18;
+    // drawn at the width it's shown at (2026-10-29, Tyler: full screen "the numbers ... and the dates are stretched")
+    var t1 = Date.now(), W = Math.max(300, Math.round((app.clientWidth || 340) - 30)), H = 130, L = 26, R = 8, T = 8, B = 18;
     var max = Math.max(4, list.length);
     function x(v) { return L + (W - L - R) * Math.max(0, Math.min(1, (v - t0) / Math.max(1, t1 - t0))); }
     function y(v) { return T + (H - T - B) * (1 - v / max); }
@@ -68,9 +69,10 @@
     d += "H" + x(t1).toFixed(1);
     var area = d + "V" + y(0).toFixed(1) + "Z", c = ROLE[role].c, step = max > 20 ? 10 : max > 8 ? 5 : 2, g = "";
     for (var v = 0; v <= max; v += step) g += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + y(v) + '" y2="' + y(v) + '" stroke="rgba(255,255,255,.07)"/><text class="ax" x="' + (L - 5) + '" y="' + (y(v) + 3) + '" text-anchor="end">' + v + "</text>";
-    for (var day = new Date(new Date(t0).toDateString()).getTime() + 864e5; day < t1; day += 864e5)
-      g += '<text class="ax" x="' + (x(day) + 3) + '" y="' + (H - 5) + '">' + new Date(day).toLocaleDateString("en-US", { month: "short", day: "numeric" }) + "</text>";
-    return '<svg viewBox="0 0 ' + W + " " + H + '" preserveAspectRatio="none" role="img" aria-label="Applicants over time">' + g +
+    var every = Math.max(1, Math.ceil(((t1 - t0) / 864e5) / Math.max(1, Math.floor((W - L - R) / 52))));
+    for (var day = new Date(new Date(t0).toDateString()).getTime() + 864e5, di = 0; day < t1; day += 864e5, di++)
+      if (di % every === 0) g += '<text class="ax" x="' + (x(day) + 3) + '" y="' + (H - 5) + '">' + new Date(day).toLocaleDateString("en-US", { month: "short", day: "numeric" }) + "</text>";
+    return '<svg viewBox="0 0 ' + W + " " + H + '" width="' + W + '" height="' + H + '" role="img" aria-label="Applicants over time">' + g +
       '<path d="' + area + '" fill="' + c + '" opacity=".12"/><path d="' + d + '" fill="none" stroke="' + c + '" stroke-width="2.2" stroke-linejoin="round"/>' +
       '<circle cx="' + x(t1) + '" cy="' + y(list.length) + '" r="3.5" fill="' + c + '"/></svg>';
   }
@@ -219,32 +221,25 @@
     return '<div class="mb ' + (me ? "me" : "them") + (m.pending ? " pend" : "") + '"><div class="mbt">' + esc(m.text) + '</div><div class="mbm">' +
       (me ? "You" : esc(mfirst(c))) + " · " + esc(mwhen(m.at)) + (me && m.seen === true ? " · ✓ Read" : me && m.seen === false ? " · not opened yet" : "") + (m.pending ? " · marked sent in RAGER" : "") + "</div></div>";
   }
+  /* One chat (2026-10-29, Tyler: "it should just be like a messaging ... I really hate that you've already filled
+     out a message for me"). The chat, an empty box, one button that copies it and opens Indeed, and his notes. */
   function mcard(c) {
-    var S = c.low ? ["No reply needed", "·", "var(--slate)"] : MST[c.stage] || MST["new"], on = mopen === c.key, last = c.last, D = M();
-    var prev = last ? (last.from === "them" ? "" : "You: ") + last.text.replace(/\s+/g, " ") : (c.summary || "");
+    var on = mopen === c.key, last = c.last;
+    var prev = last ? (last.from === "them" ? "" : "You: ") + last.text.replace(/\s+/g, " ") : "No messages yet";
     var more = "";
     if (on) {
-      var id = mtpl[c.key] || mdefault(c), text = medit[c.key] != null ? medit[c.key] : id === "draft" ? c.draft : mfill(c, id);
-      var chips = (c.draft ? '<button type="button" class="mtp' + (id === "draft" ? " on" : "") + '" data-mt="draft">Written for ' + esc(mfirst(c)) + "</button>" : "") +
-        (D.templates || []).map(function (x) { return '<button type="button" class="mtp' + (id === x.id ? " on" : "") + '" data-mt="' + esc(x.id) + '">' + esc(x.label) + "</button>"; }).join("");
-      more = '<div class="more">' + (c.summary ? '<div class="msum">' + esc(c.summary) + "</div>" : "") +
-        (c.call_at ? '<div class="mcall">☎ Call ' + esc(mcall(c.call_at)) + "</div>" : "") +
-        '<div class="mthread">' + ((c.thread || []).map(function (m) { return mbubble(m, c); }).join("") || '<div class="mauto">No messages yet. A first message is ready below.</div>') + "</div>" +
-        '<div class="lbl">Reply</div><div class="mtps">' + chips + "</div>" +
-        '<textarea class="mta" data-mta="' + esc(c.key) + '" rows="9">' + esc(text) + "</textarea>" +
-        (c.profile_url ? '<a class="mgo" data-mc="' + esc(c.key) + '" href="' + esc(c.profile_url) + '" target="_blank" rel="noopener noreferrer">Copy, then open ' + esc(mfirst(c)) + "'s Indeed page</a>"
+      var text = medit[c.key] != null ? medit[c.key] : "";
+      more = '<div class="more"><div class="mthread">' + ((c.thread || []).map(function (m) { return mbubble(m, c); }).join("") || '<div class="mauto">No messages yet</div>') + "</div>" +
+        '<textarea class="mta" data-mta="' + esc(c.key) + '" rows="3" placeholder="Write a message…">' + esc(text) + "</textarea>" +
+        (c.profile_url ? '<a class="mgo" data-mc="' + esc(c.key) + '" href="' + esc(c.profile_url) + '" target="_blank" rel="noopener noreferrer">Send on Indeed</a>'
                        : '<button type="button" class="mgo" data-mc="' + esc(c.key) + '">Copy</button>') +
-        '<div class="mhint" id="mh-' + esc(c.key) + '">On Indeed: Message, paste, Send. The chat shows up here within the hour.</div>' +
-        (c.notes ? '<div class="note"><div class="lbl">Your notes</div>' + esc(c.notes) + "</div>" : "") +
-        ((c.stage === "booked" || c.stage === "talked") && D.guide ? '<details class="res"><summary>The 10-minute call: what to ask</summary><ol class="mguide">' +
-          D.guide.map(function (g) { return "<li><b>" + esc(g[0]) + "</b> " + esc(g[1]) + "</li>"; }).join("") + '</ol><p class="mavoid">' + esc(D.avoid || "") + "</p></details>" : "") +
-        "</div>";
+        '<div class="mhint" id="mh-' + esc(c.key) + '"></div>' +
+        (c.notes ? '<div class="note"><div class="lbl">Notes</div>' + esc(c.notes) + "</div>" : "") + "</div>";
     }
-    return '<div class="app' + (on ? " on" : "") + (mturn(c) ? " mturn" : "") + '" style="--t:' + S[2] + '"><button type="button" data-mo="' + esc(c.key) + '" aria-expanded="' + on + '">' +
+    return '<div class="app' + (on ? " on" : "") + (mturn(c) ? " mturn" : "") + '" style="--t:' + (mturn(c) ? "var(--amber)" : "var(--line)") + '"><button type="button" data-mo="' + esc(c.key) + '" aria-expanded="' + on + '">' +
       '<i class="dot"></i><div class="who"><b>' + esc(c.name) + "</b><span>" + (c.role === "ai" ? "AI" : "Websites") + (c.where ? " · " + esc(c.where) : "") + "</span>" +
-      '<p class="mprev">' + esc(prev.slice(0, 140)) + "</p>" +
-      (c.stage === "messaged" && c.status ? '<div class="badges"><span class="bdg">' + (c.status === "Read" ? "✓ They read it" : "Not opened yet") + "</span></div>" : "") + "</div>" +
-      '<div class="side"><span class="tier">' + S[1] + " " + esc(S[0]) + '</span><span class="ago">' + esc(c.stage === "booked" && c.call_at ? "☎ " + mwhen(c.call_at) : mwhen(c.last_at)) + "</span></div></button>" + more + "</div>";
+      '<p class="mprev">' + esc(prev.slice(0, 110)) + "</p></div>" +
+      '<div class="side"><span class="ago">' + esc(mwhen(c.last_at)) + "</span></div></button>" + more + "</div>";
   }
   function msgView() {
     var D = M();
@@ -252,16 +247,14 @@
     var P = D.people || [];
     var n = function (k) { return k === "turn" ? P.filter(mturn).length : k === "all" ? P.filter(function (c) { return !c.low; }).length : P.filter(function (c) { return c.stage === k; }).length; };
     var L = mlist(), low = mfilt === "turn" ? P.filter(function (c) { return c.low; }) : [];
-    var calls = P.filter(function (c) { return c.stage === "booked" && c.call_at && t(c.call_at) > Date.now() - 36e5; }).sort(function (a, b) { return t(a.call_at) - t(b.call_at); });
     return '<div class="chips">' + MF.map(function (f) { return '<button type="button" class="chip' + (mfilt === f[0] ? " on" : "") + '" data-mf="' + f[0] + '">' + f[1] + " <b>" + n(f[0]) + "</b></button>"; }).join("") + "</div>" +
-      (calls.length ? '<section class="plan"><div class="lbl">Next calls</div>' + calls.slice(0, 5).map(function (c) { return '<p class="prule">☎ ' + esc(mcall(c.call_at)) + " · " + esc(c.name) + "</p>"; }).join("") + "</section>" : "") +
       '<section class="list">' + (L.map(mcard).join("") || '<div class="empty">' + (mfilt === "turn" ? "Nobody is waiting on you. ✓" : "Nobody here.") + "</div>") +
-      (low.length ? '<h3 class="rej">Thank-you notes from weaker applicants <span>no reply needed</span></h3>' + low.map(mcard).join("") : "") + "</section>" +
-      '<p class="pnote">Chats read from Indeed ' + esc(ago(D.synced) || "not yet") + ". Set stages, call times and notes in RAGER → CRM → Messages.</p>";
+      (low.length ? '<h3 class="rej">Thank-you notes <span>no reply needed</span></h3>' + low.map(mcard).join("") : "") + "</section>" +
+      '<p class="pnote">Chats read from Indeed ' + esc(ago(D.synced) || "not yet") + ".</p>";
   }
   function mcopy(key) {
     var ta = app.querySelector('[data-mta="' + key + '"]'), h = document.getElementById("mh-" + key), text = ta ? ta.value : "";
-    function done(ok) { if (h) { h.textContent = ok ? "✓ Copied. On Indeed: Message, paste, Send." : "Couldn't copy: press and hold the text, Select All, Copy."; h.className = "mhint" + (ok ? " ok" : ""); } }
+    function done(ok) { if (h) { h.textContent = !text ? "" : ok ? "✓ Copied. Paste it in the Indeed chat and send." : "Couldn't copy: press and hold the text, Select All, Copy."; h.className = "mhint" + (ok ? " ok" : ""); } }
     try {
       if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(text).then(function () { done(true); }, function () { fallback(); }); return; }
     } catch (e) {}
@@ -318,6 +311,14 @@
     if (c) { var id = c.getAttribute("data-id"); open = open === id ? null : id; render(); }
   });
   app.addEventListener("input", function (e) { var k = e.target.getAttribute && e.target.getAttribute("data-mta"); if (k) medit[k] = e.target.value; });
+  var lastW = app.clientWidth, rz = null;
+  window.addEventListener("resize", function () {
+    clearTimeout(rz);
+    rz = setTimeout(function () {
+      var a = document.activeElement;
+      if (board && Math.abs(app.clientWidth - lastW) > 20 && !(a && a.tagName === "TEXTAREA" && app.contains(a))) { lastW = app.clientWidth; render(); }
+    }, 150);
+  });
   btn.addEventListener("click", fetchBoard);
   document.addEventListener("visibilitychange", function () { if (document.visibilityState === "visible") fetchBoard(); });
   setInterval(function () { if (document.visibilityState === "visible") fetchBoard(); }, 120000);

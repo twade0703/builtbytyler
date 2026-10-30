@@ -196,12 +196,12 @@
       rows.map(tr).join("") + "</tbody></table>" +
       '<p class="note">Closers and Hire are website + AI Receptionist. To stay on plan in ' + esc(now.label || "") + ": " + N(now.sales || 0) + " sales and " + N((now.web || 0) + (now.ai || 0)) + " closers dialing. " +
       "Banked is after commission, Stripe, call minutes, the extra Claude accounts the demo build needs, and your " + $(Sc.bills) + " of monthly bills. " +
-      "The close rate is a guess until demo week sells; the band is half and double it. Same numbers as RAGER's Money tab.</p></div>";
+      "The close rate is a guess until demo week sells; the band runs from half the planning case to four times it (0.25% to 2% of calls). Same numbers as RAGER's Money tab.</p></div>";
   }
 
   function render(dialsOnly) {
     if (!D) return;
-    var x = plan(), r = x.r, lo = x.lo, hi = x.hi, seats = S.web + S.ai;
+    var x = plan(), r = x.r, lo = x.lo, hi = x.hi, seats = S.web + S.ai, rA = sim(S.aiCalls, S.days, x.p, S.tries);
     var perOwner = function (c) { return (c / S.pickup * 100).toFixed(1).replace(/\.0$/, ""); };
     var row = function (label, a, b, cls) { return "<tr" + (cls ? ' class="' + cls + '"' : "") + "><td>" + label + "</td><td>" + a + "</td><td>" + b + "</td></tr>"; };
     var c = D.costs;
@@ -244,13 +244,13 @@
         (D.build.measured ? "Measured on this run: Apify plus Google, divided by demos that passed. " : "Measured on past runs. ") +
         "About " + Math.round(D.build.pass * 100) + " in 100 qualified businesses pass every check, and the cost is per demo that passes.") + "</div></details>";
     var rest =
-      '<h2 id="recalls">Calls and recalls<small>One closer\'s week. A business that doesn\'t pick up gets called again the next day, up to ' + S.tries + " tries.</small></h2>" +
-      '<div class="card"><table><thead><tr><th></th><th>Each closer</th><th>All ' + seats + "</th></tr></thead><tbody>" +
-      row("Calls", N(S.calls * S.days), N(S.calls * S.days * seats)) +
-      row("New businesses called", N(r.fresh), N(r.fresh * seats)) +
-      row("Recall calls", N(r.recall), N(r.recall * seats)) +
-      row("Owners reached", N(r.reached), N(r.reached * seats)) +
-      row("Callbacks left for week 2", N(r.left), N(r.left * seats)) +
+      '<h2 id="recalls">Calls and recalls<small>One website closer\'s week; the last column adds the AI Receptionist closers, who dial more. A business that doesn\'t pick up gets called again the next day, up to ' + S.tries + " tries.</small></h2>" +
+      '<div class="card"><table><thead><tr><th></th><th>Each website closer</th><th>All ' + seats + "</th></tr></thead><tbody>" +
+      row("Calls", N(S.calls * S.days), N(S.calls * S.days * S.web + S.aiCalls * S.days * S.ai)) +
+      row("New businesses called", N(r.fresh), N(r.fresh * S.web + rA.fresh * S.ai)) +
+      row("Recall calls", N(r.recall), N(r.recall * S.web + rA.recall * S.ai)) +
+      row("Owners reached", N(r.reached), N(r.reached * S.web + rA.reached * S.ai)) +
+      row("Callbacks left for week 2", N(r.left), N(r.left * S.web + rA.left * S.ai)) +
       "</tbody></table>" + dayChart(r) +
       '<p class="note">Without recalls a closer would need ' + N(S.calls * S.days) + " new businesses a week. Recalls bring it to " + N(r.fresh) + ".</p></div>" +
 

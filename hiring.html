@@ -121,6 +121,26 @@
     .rej{margin:14px 2px 2px;font-size:13px;font-weight:600;color:var(--mu)}
     .rej span{font-weight:400;color:var(--dim)}
     .foot{margin:20px 0 0;font-size:12px;color:var(--dim);text-align:center}
+    /* Messages tab (2026-10-29): the same inbox as RAGER's CRM > Messages */
+    .tab{min-width:0} .tab.msgs{grid-column:1 / -1}
+    button.chip{cursor:pointer} .chip.on{background:color-mix(in srgb,var(--blue) 18%,transparent);border-color:rgba(96,165,250,.5)}
+    .app.mturn{border-color:rgba(251,191,36,.45)}
+    .mprev{color:var(--mu)!important;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+    .msum{font-size:13px;color:var(--mu)} .mcall{font-weight:600;color:var(--blue)}
+    .mthread{display:flex;flex-direction:column;gap:9px;max-height:55vh;overflow:auto;padding:10px;border-radius:12px;background:var(--card2);border:1px solid var(--line)}
+    .mb{max-width:85%;display:flex;flex-direction:column;gap:3px} .mb.them{align-self:flex-start} .mb.me{align-self:flex-end;align-items:flex-end}
+    .mbt{white-space:pre-wrap;word-break:break-word;font-size:14px;line-height:1.45;padding:9px 11px;border-radius:12px}
+    .mb.them .mbt{background:rgba(255,255,255,.08);border:1px solid var(--line);border-bottom-left-radius:4px}
+    .mb.me .mbt{background:rgba(96,165,250,.16);border:1px solid rgba(96,165,250,.38);border-bottom-right-radius:4px}
+    .mb.pend .mbt{border-style:dashed} .mbm{font-size:11px;color:var(--dim)}
+    .mauto{align-self:center;font-size:11px;color:var(--dim);padding:3px 10px;border-radius:999px;border:1px dashed var(--line)}
+    .mtps{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:0 -14px 0 -35px;padding:0 14px 2px 35px} .mtps::-webkit-scrollbar{display:none}
+    .mtp{flex:none;padding:7px 11px;border-radius:999px;border:1px solid var(--line);background:var(--card2);font-size:13px;color:var(--mu)}
+    .mtp.on{background:var(--blue);border-color:var(--blue);color:#05070B;font-weight:600}
+    .mta{width:100%;background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:11px 12px;color:var(--tx);font:16px/1.45 "Instrument Sans",system-ui,sans-serif;resize:vertical}
+    .mgo{display:block;text-align:center;padding:13px 14px;border-radius:12px;background:var(--blue);color:#05070B;text-decoration:none;font-weight:600;font-size:15px}
+    .mhint{font-size:12.5px;color:var(--dim);margin-top:-4px} .mhint.ok{color:var(--green)}
+    .mguide{margin:8px 0;padding-left:18px;font-size:13px} .mguide li{margin:5px 0} .mavoid{font-size:12px;color:var(--amber);margin:0}
     @media (max-width:380px){ .hero{grid-template-columns:1fr 1fr} .stat.big{grid-column:1 / -1} }
   </style>
 </head>
@@ -133,6 +153,6 @@
     <main id="app"></main>
     <p class="foot">Private to Tyler. Don't forward this link: anyone with it can see this page.</p>
   </div>
-  <script src="assets/js/hiring-board.js?v=108"></script>
+  <script src="assets/js/hiring-board.js?v=109"></script>
 </body>
 </html>

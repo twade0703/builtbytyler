@@ -24,7 +24,7 @@
 
   function store(k, v) { try { if (v == null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) {} }
   function load(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
-  tab = load(TAB_STORE) === "ai" ? "ai" : "websites";
+  tab = load(TAB_STORE) === "ai" ? "ai" : load(TAB_STORE) === "messages" ? "messages" : "websites";
 
   function key() {
     var m = /[#&]k=([A-Za-z0-9_-]{24,})/.exec(location.hash || "");
@@ -149,12 +149,124 @@
     app.innerHTML =
       '<section class="hero"><div class="stat big"><b>' + all.length + '</b><u>Applicants, both jobs' + (rej ? " · " + rej + " rejected" : "") + '</u></div>' +
       '<div class="stat"><b>' + all.filter(function (p) { return t(p.applied) > day; }).length + '</b><u>Last 24 hours</u></div>' +
-      '<div class="stat"><b>' + (all.length / hrs * 24).toFixed(1) + '</b><u>A day, average</u></div></section>' + planCard() +
-      '<nav class="tabs" role="tablist" aria-label="Which job">' + tabs + "</nav>" +
+      '<div class="stat"><b>' + (all.length / hrs * 24).toFixed(1) + '</b><u>A day, average</u></div></section>' + (tab === "messages" ? "" : planCard()) +
+      '<nav class="tabs" role="tablist" aria-label="Which job">' + msgTab() + tabs + "</nav>" +
+      (tab === "messages" ? msgView() :
       '<div class="chips">' + tiers + "</div>" +
       '<section class="chart"><h3>' + ROLE[tab].t + " applicants <span>since the post went up</span></h3>" + chart(tab) + "</section>" +
       '<section class="list">' + (list.map(card).join("") || '<div class="empty">Nobody yet.</div>') +
-      (rejected(tab).length ? '<h3 class="rej">Rejected on Indeed <span>counted in the totals above</span></h3>' + rejected(tab).map(card).join("") : "") + "</section>";
+      (rejected(tab).length ? '<h3 class="rej">Rejected on Indeed <span>counted in the totals above</span></h3>' + rejected(tab).map(card).join("") : "") + "</section>");
+  }
+
+  /* Messages (2026-10-29). Tyler: "build a messaging feature ... the Indeed tracker is pretty shit. It's pretty
+     hard to use, especially on my phone." The same inbox as RAGER's Messages tab (control/hiremsg.py), published
+     with the board: who wrote and is waiting on him, who to message next (with a first message written for each),
+     calls booked. Sending stays on Indeed: copy the message, open their Indeed page, paste, Send. Stages and notes
+     are set in RAGER; the chats are read from Indeed every hour. */
+  var MST = {
+    "new": ["To message", "✎", "var(--violet)"], messaged: ["Waiting on them", "…", "var(--mu)"], replied: ["Your turn", "●", "var(--amber)"],
+    booked: ["Call booked", "☎", "var(--blue)"], talked: ["Talked", "✓", "var(--blue)"], picked: ["Picked", "★", "var(--green)"], passed: ["Passed", "✕", "var(--slate)"]
+  };
+  var MF = [["turn", "Your turn"], ["new", "To message"], ["messaged", "Waiting"], ["booked", "Calls"], ["all", "Everyone"]];
+  var mfilt = load("bbt-hire-mf") || "turn", mopen = null, mtpl = {}, medit = {};
+  function M() { return (board && board.messages) || null; }
+  function mturn(c) { return c.turn === "you" && !c.low && c.stage !== "passed"; }
+  function mfirst(c) { return (c.name || "").split(/\s+/)[0]; }
+  function mwhen(s) {
+    var v = t(s); if (!v) return "";
+    var d = new Date(v), now = new Date(), hm = d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+    if (d.toDateString() === now.toDateString()) return hm;
+    if (new Date(now - 864e5).toDateString() === d.toDateString()) return "Yesterday " + hm;
+    return d.toLocaleDateString("en-US", { month: "short", day: "numeric" }) + " " + hm;
+  }
+  function mcall(s) {
+    if (!s) return ""; var d = new Date(s); if (isNaN(d)) return s;
+    return d.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" }) + " at " + d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }) + " Pacific";
+  }
+  function mfill(c, id) {
+    var D = M(), T = (D.templates || []).filter(function (x) { return x.id === id; })[0];
+    if (!T) return "";
+    var W = (D.waves || []).filter(function (w) { return w.n === (c.wave || 1); })[0] || { start: "2026-11-09" };
+    var book = (D.settings || {}).booking;
+    var ask = book ? "Pick any time that suits you here: " + book : "Send me two or three times that suit you and I'll make one work.";
+    var wave = new Date(W.start + "T12:00").toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
+    var s = T.text.replace(/\{first\}/g, mfirst(c)).replace(/\{wave\}/g, wave).replace(/\{ask\}/g, ask)
+      .replace(/\{time\}/g, c.call_at ? mcall(c.call_at) : "[the time]").replace(/\{booking\}/g, book || "").replace(/ \{hook\}/g, "");
+    if (id === "book" && c.role === "ai") s = s.replace("Thanks for applying for the commission-only closer role.", "Thanks for applying to sell our AI software.");
+    return s;
+  }
+  function mdefault(c) {
+    if (c.draft) return "draft";
+    return c.stage === "new" ? "book" : c.stage === "booked" ? "remind" : c.stage === "talked" ? (c.fit === "no" ? "pass" : "next")
+      : c.stage === "replied" ? (c.personal ? "lock" : "thanks") : c.stage === "messaged" ? "nudge" : c.stage === "passed" ? "pass" : "book";
+  }
+  function mlist() {
+    var P = M().people || [];
+    var L = mfilt === "turn" ? P.filter(mturn) : mfilt === "all" ? P.filter(function (c) { return !c.low; }) : P.filter(function (c) { return c.stage === mfilt; });
+    if (mfilt === "booked") return L.slice().sort(function (a, b) { return t(a.call_at) - t(b.call_at); });
+    if (mfilt === "new") return L;
+    return L.slice().sort(function (a, b) { return t(b.last_at) - t(a.last_at); });
+  }
+  function msgTab() {
+    var D = M(); if (!D) return "";
+    var P = D.people || [], w = P.filter(mturn).length, q = P.filter(function (c) { return c.stage === "new"; }).length;
+    return '<button type="button" role="tab" class="tab msgs' + (tab === "messages" ? " on" : "") + '" style="--c:var(--amber)" data-tab="messages" aria-selected="' + (tab === "messages") + '">' +
+      '<div class="row"><b>Messages</b><em>' + w + "</em></div><u>" + (w ? "waiting on you" : "nobody waiting") + (q ? " · " + q + " to message" : "") + "</u></button>";
+  }
+  function mbubble(m, c) {
+    if (m.auto) return '<div class="mauto">Automated message · ' + esc(mwhen(m.at)) + "</div>";
+    var me = m.from === "tyler";
+    return '<div class="mb ' + (me ? "me" : "them") + (m.pending ? " pend" : "") + '"><div class="mbt">' + esc(m.text) + '</div><div class="mbm">' +
+      (me ? "You" : esc(mfirst(c))) + " · " + esc(mwhen(m.at)) + (me && m.seen === true ? " · ✓ Read" : me && m.seen === false ? " · not opened yet" : "") + (m.pending ? " · marked sent in RAGER" : "") + "</div></div>";
+  }
+  function mcard(c) {
+    var S = c.low ? ["No reply needed", "·", "var(--slate)"] : MST[c.stage] || MST["new"], on = mopen === c.key, last = c.last, D = M();
+    var prev = last ? (last.from === "them" ? "" : "You: ") + last.text.replace(/\s+/g, " ") : (c.summary || "");
+    var more = "";
+    if (on) {
+      var id = mtpl[c.key] || mdefault(c), text = medit[c.key] != null ? medit[c.key] : id === "draft" ? c.draft : mfill(c, id);
+      var chips = (c.draft ? '<button type="button" class="mtp' + (id === "draft" ? " on" : "") + '" data-mt="draft">Written for ' + esc(mfirst(c)) + "</button>" : "") +
+        (D.templates || []).map(function (x) { return '<button type="button" class="mtp' + (id === x.id ? " on" : "") + '" data-mt="' + esc(x.id) + '">' + esc(x.label) + "</button>"; }).join("");
+      more = '<div class="more">' + (c.summary ? '<div class="msum">' + esc(c.summary) + "</div>" : "") +
+        (c.call_at ? '<div class="mcall">☎ Call ' + esc(mcall(c.call_at)) + "</div>" : "") +
+        '<div class="mthread">' + ((c.thread || []).map(function (m) { return mbubble(m, c); }).join("") || '<div class="mauto">No messages yet. A first message is ready below.</div>') + "</div>" +
+        '<div class="lbl">Reply</div><div class="mtps">' + chips + "</div>" +
+        '<textarea class="mta" data-mta="' + esc(c.key) + '" rows="9">' + esc(text) + "</textarea>" +
+        (c.profile_url ? '<a class="mgo" data-mc="' + esc(c.key) + '" href="' + esc(c.profile_url) + '" target="_blank" rel="noopener noreferrer">Copy, then open ' + esc(mfirst(c)) + "'s Indeed page</a>"
+                       : '<button type="button" class="mgo" data-mc="' + esc(c.key) + '">Copy</button>') +
+        '<div class="mhint" id="mh-' + esc(c.key) + '">On Indeed: Message, paste, Send. The chat shows up here within the hour.</div>' +
+        (c.notes ? '<div class="note"><div class="lbl">Your notes</div>' + esc(c.notes) + "</div>" : "") +
+        ((c.stage === "booked" || c.stage === "talked") && D.guide ? '<details class="res"><summary>The 10-minute call: what to ask</summary><ol class="mguide">' +
+          D.guide.map(function (g) { return "<li><b>" + esc(g[0]) + "</b> " + esc(g[1]) + "</li>"; }).join("") + '</ol><p class="mavoid">' + esc(D.avoid || "") + "</p></details>" : "") +
+        "</div>";
+    }
+    return '<div class="app' + (on ? " on" : "") + (mturn(c) ? " mturn" : "") + '" style="--t:' + S[2] + '"><button type="button" data-mo="' + esc(c.key) + '" aria-expanded="' + on + '">' +
+      '<i class="dot"></i><div class="who"><b>' + esc(c.name) + "</b><span>" + (c.role === "ai" ? "AI" : "Websites") + (c.where ? " · " + esc(c.where) : "") + "</span>" +
+      '<p class="mprev">' + esc(prev.slice(0, 140)) + "</p>" +
+      (c.stage === "messaged" && c.status ? '<div class="badges"><span class="bdg">' + (c.status === "Read" ? "✓ They read it" : "Not opened yet") + "</span></div>" : "") + "</div>" +
+      '<div class="side"><span class="tier">' + S[1] + " " + esc(S[0]) + '</span><span class="ago">' + esc(c.stage === "booked" && c.call_at ? "☎ " + mwhen(c.call_at) : mwhen(c.last_at)) + "</span></div></button>" + more + "</div>";
+  }
+  function msgView() {
+    var D = M();
+    if (!D) return '<div class="empty">Messages show up after the next check from Tyler\'s PC.</div>';
+    var P = D.people || [];
+    var n = function (k) { return k === "turn" ? P.filter(mturn).length : k === "all" ? P.filter(function (c) { return !c.low; }).length : P.filter(function (c) { return c.stage === k; }).length; };
+    var L = mlist(), low = mfilt === "turn" ? P.filter(function (c) { return c.low; }) : [];
+    var calls = P.filter(function (c) { return c.stage === "booked" && c.call_at && t(c.call_at) > Date.now() - 36e5; }).sort(function (a, b) { return t(a.call_at) - t(b.call_at); });
+    return '<div class="chips">' + MF.map(function (f) { return '<button type="button" class="chip' + (mfilt === f[0] ? " on" : "") + '" data-mf="' + f[0] + '">' + f[1] + " <b>" + n(f[0]) + "</b></button>"; }).join("") + "</div>" +
+      (calls.length ? '<section class="plan"><div class="lbl">Next calls</div>' + calls.slice(0, 5).map(function (c) { return '<p class="prule">☎ ' + esc(mcall(c.call_at)) + " · " + esc(c.name) + "</p>"; }).join("") + "</section>" : "") +
+      '<section class="list">' + (L.map(mcard).join("") || '<div class="empty">' + (mfilt === "turn" ? "Nobody is waiting on you. ✓" : "Nobody here.") + "</div>") +
+      (low.length ? '<h3 class="rej">Thank-you notes from weaker applicants <span>no reply needed</span></h3>' + low.map(mcard).join("") : "") + "</section>" +
+      '<p class="pnote">Chats read from Indeed ' + esc(ago(D.synced) || "not yet") + ". Set stages, call times and notes in RAGER → CRM → Messages.</p>";
+  }
+  function mcopy(key) {
+    var ta = app.querySelector('[data-mta="' + key + '"]'), h = document.getElementById("mh-" + key), text = ta ? ta.value : "";
+    function done(ok) { if (h) { h.textContent = ok ? "✓ Copied. On Indeed: Message, paste, Send." : "Couldn't copy: press and hold the text, Select All, Copy."; h.className = "mhint" + (ok ? " ok" : ""); } }
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(text).then(function () { done(true); }, function () { fallback(); }); return; }
+    } catch (e) {}
+    fallback();
+    function fallback() { try { ta.focus(); ta.select(); ta.setSelectionRange(0, text.length); done(document.execCommand("copy")); } catch (e) { done(false); } }
   }
 
   function stamp() {
@@ -179,7 +291,11 @@
       .then(function (res) {
         if (res[0] === 401) { store(KEY_STORE, null); return gate(["That link has expired.", "Ask Claude for a new one."]); }
         if (!res[1].ok) return gate(["Nothing published yet.", "The first check fills this page."]);
-        board = res[1].board; render(); stamp();
+        board = res[1].board;
+        // a refresh never wipes a reply he is editing
+        var a = document.activeElement;
+        if (!(a && a.tagName === "TEXTAREA" && app.contains(a))) render();
+        stamp();
       })
       .catch(function () { if (!board) gate(["Couldn't load.", "Check your connection, then tap Refresh."]); })
       .then(function () { loading = false; btn.classList.remove("spin"); });
@@ -188,10 +304,20 @@
   app.addEventListener("click", function (e) {
     var tb = e.target.closest("[data-tab]");
     if (tb) { tab = tb.getAttribute("data-tab"); open = null; store(TAB_STORE, tab); render(); return; }
-    if (e.target.closest("a,details")) return;
+    var mc = e.target.closest("[data-mc]");
+    if (mc) { mcopy(mc.getAttribute("data-mc")); return; }          // a link: Safari then opens Indeed
+    var mf = e.target.closest("[data-mf]");
+    if (mf) { mfilt = mf.getAttribute("data-mf"); mopen = null; store("bbt-hire-mf", mfilt); render(); return; }
+    var mt = e.target.closest("[data-mt]");
+    if (mt && mopen) { mtpl[mopen] = mt.getAttribute("data-mt"); delete medit[mopen]; render(); return; }
+    var mo = e.target.closest("[data-mo]");
+    if (mo) { var k = mo.getAttribute("data-mo"); mopen = mopen === k ? null : k; render();
+      var el = app.querySelector(".app.on"); if (el) { el.scrollIntoView({ block: "start" }); var th = el.querySelector(".mthread"); if (th) th.scrollTop = th.scrollHeight; } return; }
+    if (e.target.closest("a,details,textarea")) return;
     var c = e.target.closest("[data-id]");
     if (c) { var id = c.getAttribute("data-id"); open = open === id ? null : id; render(); }
   });
+  app.addEventListener("input", function (e) { var k = e.target.getAttribute && e.target.getAttribute("data-mta"); if (k) medit[k] = e.target.value; });
   btn.addEventListener("click", fetchBoard);
   document.addEventListener("visibilitychange", function () { if (document.visibilityState === "visible") fetchBoard(); });
   setInterval(function () { if (document.visibilityState === "visible") fetchBoard(); }, 120000);

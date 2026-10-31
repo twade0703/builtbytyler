@@ -97,6 +97,39 @@
     return '<article class="rs"><header><b>' + esc(p.name || "") + "</b>" + (p.headline && p.headline !== p.where ? "<span>" + esc(p.headline) + "</span>" : "") + (p.where ? "<em>" + esc(p.where) + "</em>" : "") + "</header>" + out.join("") + "</article>";
   }
 
+  /* Where each person stands (2026-10-30, Tyler: "update this live link with statuses on who's waiting on who, if
+     I've messaged them, if we have something booked, by a little indicator"). Read from the Messages data
+     (control/hiremsg.py: the Indeed chats plus the stage and call time set in RAGER). Icon + word, never colour alone. */
+  function nkey(n) { return String(n || "").toLowerCase().replace(/[^a-z]/g, ""); }
+  var mmapCache = null, mmapFor = null;
+  function mby(p) {
+    var D = M(); if (!D) return null;
+    if (mmapFor !== D) { mmapCache = {}; (D.people || []).forEach(function (c) { mmapCache[c.key || nkey(c.name)] = c; }); mmapFor = D; }
+    return mmapCache[nkey(p.name)] || null;
+  }
+  function shortCall(s) {
+    var d = new Date(s); if (isNaN(d)) return s;
+    return d.toLocaleDateString("en-US", { weekday: "short" }) + " " + d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }).replace(":00", "");
+  }
+  // [key, icon, words, colour]
+  function where(c) {
+    if (!c) return ["none", "○", "Not messaged", "var(--dim)"];
+    if (c.stage === "picked") return ["picked", "★", "Locked in", "var(--green)"];
+    if (c.stage === "passed") return ["passed", "✕", "Passed", "var(--slate)"];
+    if (c.call_at && t(c.call_at) > Date.now() - 2 * 36e5) return ["booked", "☎", "Call " + shortCall(c.call_at), "var(--blue)"];
+    if (c.stage === "talked") return ["talked", "✓", "Talked", "var(--blue)"];
+    if (mturn(c)) return ["you", "●", "Your turn", "var(--amber)"];
+    if (c.personal || c.stage === "messaged") return ["them", "…", "Waiting on them" + (c.status === "Read" ? " · read it" : c.status === "Sent" ? " · not opened" : ""), "var(--mu)"];
+    return ["none", "○", "Not messaged", "var(--dim)"];
+  }
+  function pill(c) { var w = where(c); return '<span class="stl s-' + w[0] + '" style="--s:' + w[3] + '"><i aria-hidden="true">' + w[1] + "</i>" + esc(w[2]) + "</span>"; }
+  function statusRow(list) {
+    if (!M()) return "";
+    var order = [["you", "●", "Your turn"], ["booked", "☎", "Call booked"], ["talked", "✓", "Talked"], ["picked", "★", "Locked in"], ["them", "…", "Waiting on them"], ["none", "○", "Not messaged"]];
+    var n = {}; list.forEach(function (p) { var k = where(mby(p))[0]; n[k] = (n[k] || 0) + 1; });
+    return '<div class="chips sts">' + order.map(function (o) { return n[o[0]] ? '<span class="chip s-' + o[0] + '"><i aria-hidden="true">' + o[1] + "</i>" + o[2] + " <b>" + n[o[0]] + "</b></span>" : ""; }).join("") + "</div>";
+  }
+
   function card(p) {
     var T = tierOf(p), on = open === p.id, b = "";
     if (p.pitch) b += '<span class="bdg p">Voice pitch</span>';
@@ -115,6 +148,7 @@
     var line = p.headline && !/^[A-Z][a-z]+.*, [A-Z]{2}$/.test(p.headline) ? p.headline : p.summary;
     return '<div class="app' + (on ? " on" : "") + '" style="--t:' + T[1] + '"><button type="button" data-id="' + esc(p.id) + '" aria-expanded="' + on + '">' +
       '<i class="dot"></i><div class="who"><b>' + esc(p.name) + "</b><span>" + esc(p.where || "") + "</span>" +
+      (M() && !p.rejected ? pill(mby(p)) : "") +
       (line ? "<p>" + esc(line) + "</p>" : "") + (b ? '<div class="badges">' + b + "</div>" : "") + "</div>" +
       '<div class="side"><span class="tier">' + esc(T[0]) + '</span><span class="ago">' + esc(ago(p.applied)) + "</span></div></button>" + more + "</div>";
   }
@@ -154,7 +188,7 @@
       '<div class="stat"><b>' + (all.length / hrs * 24).toFixed(1) + '</b><u>A day, average</u></div></section>' + (tab === "messages" ? "" : planCard()) +
       '<nav class="tabs" role="tablist" aria-label="Which job">' + msgTab() + tabs + "</nav>" +
       (tab === "messages" ? msgView() :
-      '<div class="chips">' + tiers + "</div>" +
+      '<div class="chips">' + tiers + "</div>" + statusRow(list) +
       '<section class="chart"><h3>' + ROLE[tab].t + " applicants <span>since the post went up</span></h3>" + chart(tab) + "</section>" +
       '<section class="list">' + (list.map(card).join("") || '<div class="empty">Nobody yet.</div>') +
       (rejected(tab).length ? '<h3 class="rej">Rejected on Indeed <span>counted in the totals above</span></h3>' + rejected(tab).map(card).join("") : "") + "</section>");
@@ -238,7 +272,7 @@
     }
     return '<div class="app' + (on ? " on" : "") + (mturn(c) ? " mturn" : "") + '" style="--t:' + (mturn(c) ? "var(--amber)" : "var(--line)") + '"><button type="button" data-mo="' + esc(c.key) + '" aria-expanded="' + on + '">' +
       '<i class="dot"></i><div class="who"><b>' + esc(c.name) + "</b><span>" + (c.role === "ai" ? "AI" : "Websites") + (c.where ? " · " + esc(c.where) : "") + "</span>" +
-      '<p class="mprev">' + esc(prev.slice(0, 110)) + "</p></div>" +
+      pill(c) + '<p class="mprev">' + esc(prev.slice(0, 110)) + "</p></div>" +
       '<div class="side"><span class="ago">' + esc(mwhen(c.last_at)) + "</span></div></button>" + more + "</div>";
   }
   function msgView() {

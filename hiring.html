@@ -141,6 +141,17 @@
     .mgo{display:block;text-align:center;padding:13px 14px;border-radius:12px;background:var(--blue);color:#05070B;text-decoration:none;font-weight:600;font-size:15px}
     .mhint{font-size:12.5px;color:var(--dim);margin-top:-4px} .mhint.ok{color:var(--green)}
     .mguide{margin:8px 0;padding-left:18px;font-size:13px} .mguide li{margin:5px 0} .mavoid{font-size:12px;color:var(--amber);margin:0}
+    /* Where each person stands (2026-10-30): icon + words, colour only as a second cue */
+    .who .stl{--s:var(--mu);display:flex;width:fit-content;max-width:100%;align-items:center;gap:6px;margin-top:6px;padding:3px 10px 3px 8px;border-radius:999px;font-size:12px;font-weight:600;
+      color:var(--s);background:color-mix(in srgb,var(--s) 13%,transparent);border:1px solid color-mix(in srgb,var(--s) 40%,transparent)}
+    .who .stl i{font-style:normal;font-size:11px;line-height:1}
+    .who .stl.s-none{font-weight:500;background:transparent;border-style:dashed}
+    .who .stl.s-them{color:var(--tx);opacity:.85}
+    .chips.sts{margin-top:-4px}
+    .chips.sts .chip{font-size:12.5px;padding:6px 10px}
+    .chips.sts .chip i{width:auto;height:auto;background:none;border-radius:0;font-style:normal;font-size:11px}
+    .chip.s-you{color:var(--amber);border-color:rgba(251,191,36,.45)} .chip.s-booked,.chip.s-talked{color:var(--blue);border-color:rgba(96,165,250,.45)}
+    .chip.s-picked{color:var(--green);border-color:rgba(74,222,128,.45)} .chip.s-none{color:var(--dim);border-style:dashed}
     @media (max-width:380px){ .hero{grid-template-columns:1fr 1fr} .stat.big{grid-column:1 / -1} }
   </style>
 </head>
@@ -153,6 +164,6 @@
     <main id="app"></main>
     <p class="foot">Private to Tyler. Don't forward this link: anyone with it can see this page.</p>
   </div>
-  <script src="assets/js/hiring-board.js?v=110"></script>
+  <script src="assets/js/hiring-board.js?v=111"></script>
 </body>
 </html>

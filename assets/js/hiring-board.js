@@ -203,8 +203,13 @@
     "new": ["To message", "✎", "var(--violet)"], messaged: ["Waiting on them", "…", "var(--mu)"], replied: ["Your turn", "●", "var(--amber)"],
     booked: ["Call booked", "☎", "var(--blue)"], talked: ["Talked", "✓", "var(--blue)"], picked: ["Picked", "★", "var(--green)"], passed: ["Passed", "✕", "var(--slate)"]
   };
-  var MF = [["turn", "Your turn"], ["new", "To message"], ["messaged", "Waiting"], ["booked", "Calls"], ["all", "Everyone"]];
-  var mfilt = load("bbt-hire-mf") || "turn", mopen = null, mtpl = {}, medit = {};
+  /* You owe (2026-11-05, Tyler: "there needs to be like a section for people who I haven't messaged. Like obviously
+     Glenn and I had our second call and I'm gonna bring him on, but I never messaged him"). Worked out in hiremsg.py
+     from the chat and the call time; it clears itself once his next message shows up on Indeed. */
+  var OWEI = { call: "☎", turn: "●", never: "✎", nudge: "…" };
+  function owed(c) { return !!(c.owe && c.owe.group); }
+  var MF = [["owe", "You owe"], ["turn", "Your turn"], ["new", "To message"], ["messaged", "Waiting"], ["booked", "Calls"], ["all", "Everyone"]];
+  var mfilt = load("bbt-hire-mf2") || "owe", mopen = null, mtpl = {}, medit = {};
   function M() { return (board && board.messages) || null; }
   function mturn(c) { return c.turn === "you" && !c.low && c.stage !== "passed"; }
   function mfirst(c) { return (c.name || "").split(/\s+/)[0]; }
@@ -238,6 +243,10 @@
   }
   function mlist() {
     var P = M().people || [];
+    if (mfilt === "owe") {
+      var G = (M().owe_groups || []).map(function (g) { return g.k; });
+      return P.filter(owed).sort(function (a, b) { return (G.indexOf(a.owe.group) - G.indexOf(b.owe.group)) || (t(a.owe.since) - t(b.owe.since)); });
+    }
     var L = mfilt === "turn" ? P.filter(mturn) : mfilt === "all" ? P.filter(function (c) { return !c.low; }) : P.filter(function (c) { return c.stage === mfilt; });
     if (mfilt === "booked") return L.slice().sort(function (a, b) { return t(a.call_at) - t(b.call_at); });
     if (mfilt === "new") return L;
@@ -245,9 +254,9 @@
   }
   function msgTab() {
     var D = M(); if (!D) return "";
-    var P = D.people || [], w = P.filter(mturn).length, q = P.filter(function (c) { return c.stage === "new"; }).length;
+    var P = D.people || [], w = P.filter(function (c) { return owed(c) && c.owe.group !== "nudge"; }).length, q = P.filter(function (c) { return owed(c) && c.owe.group === "nudge"; }).length;
     return '<button type="button" role="tab" class="tab msgs' + (tab === "messages" ? " on" : "") + '" style="--c:var(--amber)" data-tab="messages" aria-selected="' + (tab === "messages") + '">' +
-      '<div class="row"><b>Messages</b><em>' + w + "</em></div><u>" + (w ? "waiting on you" : "nobody waiting") + (q ? " · " + q + " to message" : "") + "</u></button>";
+      '<div class="row"><b>Messages</b><em>' + w + "</em></div><u>" + (w ? "you owe a message" : "you owe nobody") + (q ? " · " + q + " not answering" : "") + "</u></button>";
   }
   function mbubble(m, c) {
     if (m.auto) return '<div class="mauto">Automated message · ' + esc(mwhen(m.at)) + "</div>";
@@ -260,10 +269,12 @@
   function mcard(c) {
     var on = mopen === c.key, last = c.last;
     var prev = last ? (last.from === "them" ? "" : "You: ") + last.text.replace(/\s+/g, " ") : "No messages yet";
+    if (mfilt === "owe" && owed(c)) prev = (OWEI[c.owe.group] || "•") + " " + c.owe.why;
     var more = "";
     if (on) {
       var text = medit[c.key] != null ? medit[c.key] : "";
-      more = '<div class="more"><div class="mthread">' + ((c.thread || []).map(function (m) { return mbubble(m, c); }).join("") || '<div class="mauto">No messages yet</div>') + "</div>" +
+      more = '<div class="more">' + (owed(c) ? '<div class="mowe"><b>' + esc((OWEI[c.owe.group] || "•") + " You owe " + mfirst(c) + " a message") + "</b><span>" + esc(c.owe.why) + "</span>" +
+        '<button type="button" data-mt="' + esc(c.owe.tpl) + '">Use a suggested message</button></div>' : "") + '<div class="mthread">' + ((c.thread || []).map(function (m) { return mbubble(m, c); }).join("") || '<div class="mauto">No messages yet</div>') + "</div>" +
         '<textarea class="mta" data-mta="' + esc(c.key) + '" rows="3" placeholder="Write a message…">' + esc(text) + "</textarea>" +
         (c.profile_url ? '<a class="mgo" data-mc="' + esc(c.key) + '" href="' + esc(c.profile_url) + '" target="_blank" rel="noopener noreferrer">Send on Indeed</a>'
                        : '<button type="button" class="mgo" data-mc="' + esc(c.key) + '">Copy</button>') +
@@ -275,16 +286,22 @@
       pill(c) + '<p class="mprev">' + esc(prev.slice(0, 110)) + "</p></div>" +
       '<div class="side"><span class="ago">' + esc(mwhen(c.last_at)) + "</span></div></button>" + more + "</div>";
   }
+  function oweList(L) {
+    return (M().owe_groups || []).map(function (g) {
+      var G = L.filter(function (c) { return c.owe.group === g.k; });
+      return G.length ? '<h3 class="rej mgh">' + esc(g.label) + " · " + G.length + " <span>" + esc(g.tip) + "</span></h3>" + G.map(mcard).join("") : "";
+    }).join("");
+  }
   function msgView() {
     var D = M();
     if (!D) return '<div class="empty">Messages show up after the next check from Tyler\'s PC.</div>';
     var P = D.people || [];
-    var n = function (k) { return k === "turn" ? P.filter(mturn).length : k === "all" ? P.filter(function (c) { return !c.low; }).length : P.filter(function (c) { return c.stage === k; }).length; };
+    var n = function (k) { return k === "owe" ? P.filter(owed).length : k === "turn" ? P.filter(mturn).length : k === "all" ? P.filter(function (c) { return !c.low; }).length : P.filter(function (c) { return c.stage === k; }).length; };
     var L = mlist(), low = mfilt === "turn" ? P.filter(function (c) { return c.low; }) : [];
     return '<div class="chips">' + MF.map(function (f) { return '<button type="button" class="chip' + (mfilt === f[0] ? " on" : "") + '" data-mf="' + f[0] + '">' + f[1] + " <b>" + n(f[0]) + "</b></button>"; }).join("") + "</div>" +
-      '<section class="list">' + (L.map(mcard).join("") || '<div class="empty">' + (mfilt === "turn" ? "Nobody is waiting on you. ✓" : "Nobody here.") + "</div>") +
+      '<section class="list">' + (mfilt === "owe" ? oweList(L) : L.map(mcard).join("")) + (L.length ? "" : '<div class="empty">' + (mfilt === "turn" || mfilt === "owe" ? "You don't owe anyone a message. ✓" : "Nobody here.") + "</div>") +
       (low.length ? '<h3 class="rej">Thank-you notes <span>no reply needed</span></h3>' + low.map(mcard).join("") : "") + "</section>" +
-      '<p class="pnote">Chats read from Indeed ' + esc(ago(D.synced) || "not yet") + ".</p>";
+      '<p class="pnote">Chats read from Indeed every 3 hours · last ' + esc(ago(D.synced) || "not yet") + ".</p>";
   }
   function mcopy(key) {
     var ta = app.querySelector('[data-mta="' + key + '"]'), h = document.getElementById("mh-" + key), text = ta ? ta.value : "";
@@ -334,9 +351,10 @@
     var mc = e.target.closest("[data-mc]");
     if (mc) { mcopy(mc.getAttribute("data-mc")); return; }          // a link: Safari then opens Indeed
     var mf = e.target.closest("[data-mf]");
-    if (mf) { mfilt = mf.getAttribute("data-mf"); mopen = null; store("bbt-hire-mf", mfilt); render(); return; }
+    if (mf) { mfilt = mf.getAttribute("data-mf"); mopen = null; store("bbt-hire-mf2", mfilt); render(); return; }
     var mt = e.target.closest("[data-mt]");
-    if (mt && mopen) { mtpl[mopen] = mt.getAttribute("data-mt"); delete medit[mopen]; render(); return; }
+    if (mt && mopen) { var mc0 = (M().people || []).filter(function (x) { return x.key === mopen; })[0];
+      if (mc0) medit[mopen] = mfill(mc0, mt.getAttribute("data-mt")); render(); return; }
     var mo = e.target.closest("[data-mo]");
     if (mo) { var k = mo.getAttribute("data-mo"); mopen = mopen === k ? null : k; render();
       var el = app.querySelector(".app.on"); if (el) { el.scrollIntoView({ block: "start" }); var th = el.querySelector(".mthread"); if (th) th.scrollTop = th.scrollHeight; } return; }

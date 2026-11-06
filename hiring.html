@@ -125,6 +125,11 @@
     .tab{min-width:0} .tab.msgs{grid-column:1 / -1}
     button.chip{cursor:pointer} .chip.on{background:color-mix(in srgb,var(--blue) 18%,transparent);border-color:rgba(96,165,250,.5)}
     .app.mturn{border-color:rgba(251,191,36,.45)}
+    /* You owe (2026-11-05) */
+    .mgh{color:var(--amber)!important;text-transform:uppercase;letter-spacing:.05em;font-size:12px!important}
+    .mowe{display:grid;gap:5px;margin:4px 0 10px;padding:10px 12px;border-radius:11px;border:1px solid rgba(251,191,36,.45);background:rgba(251,191,36,.07)}
+    .mowe b{color:var(--amber);font-size:13.5px} .mowe span{font-size:13px}
+    .mowe button{justify-self:start;margin-top:3px;font:600 13px/1 inherit;padding:8px 11px;border-radius:9px;border:1px solid var(--line);background:rgba(255,255,255,.05);color:inherit}
     .mprev{color:var(--mu)!important;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
     .msum{font-size:13px;color:var(--mu)} .mcall{font-weight:600;color:var(--blue)}
     .mthread{display:flex;flex-direction:column;gap:9px;max-height:55vh;overflow:auto;padding:10px;border-radius:12px;background:var(--card2);border:1px solid var(--line)}
@@ -164,6 +169,6 @@
     <main id="app"></main>
     <p class="foot">Private to Tyler. Don't forward this link: anyone with it can see this page.</p>
   </div>
-  <script src="assets/js/hiring-board.js?v=111"></script>
+  <script src="assets/js/hiring-board.js?v=112"></script>
 </body>
 </html>

@@ -43,8 +43,10 @@
 
   /* ---------- reps: now, expected, target, cap ---------- */
   function reps(b) {
-    var P = {};
-    ((b.projection || {}).reps || []).forEach(function (r) { P[r.seat] = r.demos; });
+    var P = {}, PL = {}, PH = {}, pj0 = b.projection || {};
+    ((pj0.mid || pj0).reps || []).forEach(function (r) { P[r.seat] = r.demos; });
+    ((pj0.lo || {}).reps || []).forEach(function (r) { PL[r.seat] = r.demos; });
+    ((pj0.hi || {}).reps || []).forEach(function (r) { PH[r.seat] = r.demos; });
     var rows = (b.reps || []).map(function (r) {
       var exp = P[r.seat] != null ? P[r.seat] : r.demos, top = Math.max(r.target, exp, r.demos, r.cap || 0) * 1.08;
       var w = function (n) { return (Math.min(n, top) / top * 100).toFixed(1) + "%"; };
@@ -56,14 +58,14 @@
         '<i class="now" style="width:' + w(r.demos) + '"></i>' +
         '<em style="left:' + w(r.target) + '"></em><span style="left:' + w(r.target) + '">' + num(r.target) + "</span></div>" +
         '<div class="rl"><span><i class="k" style="background:' + C.s1 + '"></i>Now <b>' + num(r.demos) + "</b></span>" +
-        (exp > r.demos ? '<span><i class="k" style="background:repeating-linear-gradient(135deg,rgba(57,135,229,.6) 0 3px,rgba(57,135,229,.2) 3px 6px);border:1px dashed #8fbaf0"></i>When today\'s builds finish <b>~' + num(exp) + "</b> (estimate)</span>" : "") +
+        (exp > r.demos ? '<span><i class="k" style="background:repeating-linear-gradient(135deg,rgba(57,135,229,.6) 0 3px,rgba(57,135,229,.2) 3px 6px);border:1px dashed #8fbaf0"></i>When today\'s builds finish <b>~' + num(exp) + "</b>" + (PL[r.seat] != null && PH[r.seat] != null && PL[r.seat] !== PH[r.seat] ? " (likely " + num(PL[r.seat]) + "–" + num(PH[r.seat]) + ")" : "") + " estimate</span>" : "") +
         "<span>" + (left ? num(left) + " to go" : "✓ at " + num(r.target)) + "</span>" +
         (r.held_back ? "<span>" + num(r.held_back) + " more waiting on area codes you haven't bought</span>" : "") + "</div>" +
         (r.cap ? '<span class="capnote">MAX ' + num(r.cap) + " · extra goes to Rep 1</span>" : "") + "</div>";
     }).join("");
     var pj = b.projection || {};
     return panel("c8", "Each website rep", "Demos on their sheet · white tick = " + num((b.reps[0] || {}).target || 500) + " goal",
-      rows + '<p class="small" style="margin-top:10px">' + (pj.new ? "About " + num(pj.new) + " more demos are expected from the builds running now (passed so far, plus the rest at today's pass rate). They go on the sheets when each build finishes, to whichever rep has fewer, Rep 2 stopping at 500. Estimate." : "No build running.") + "</p>");
+      rows + '<p class="small" style="margin-top:10px">' + (pj.new ? "About " + num(pj.new) + " more demos expected (likely " + num((pj.lo || {}).new) + "–" + num((pj.hi || {}).new) + "). Worked out from each build's own pass rate so far, " + Math.round((pj.reach || 0.93) * 100) + "% of passed demos reaching a sheet (measured over the last 168), and " + (pj.keep_rate != null ? Math.round(pj.keep_rate * 100) + "% kept by the looks check (measured)" : "about 90% kept by the looks check (a guess until it has judged 10)") + ". " + num(pj.already_on_sheets || 0) + " from these builds are already on the sheets and counted above. New ones go to whichever rep has fewer, Rep 2 stopping at 500." : "No build running.") + "</p>");
   }
 
   /* ---------- history: demos on the sheets over time ---------- */
@@ -80,7 +82,7 @@
     var X = function (t) { return L + (t - t0) / Math.max(1, t1 - t0) * (W - L - Rt); }, Y = function (v) { return T + (1 - v / max) * (Ht - T - Bm); };
     var g = "";
     for (var i = 0; i <= 4; i++) { var v = max * i / 4; g += '<line class="gl" x1="' + L + '" x2="' + (W - Rt) + '" y1="' + Y(v) + '" y2="' + Y(v) + '"/><text class="ax" x="' + (L - 8) + '" y="' + (Y(v) + 3) + '" text-anchor="end">' + num(v) + "</text>"; }
-    g += '<line x1="' + L + '" x2="' + (W - Rt) + '" y1="' + Y(R[0] ? R[0].target : 500) + '" y2="' + Y(R[0] ? R[0].target : 500) + '" stroke="#EEF1FA" stroke-width="1" stroke-dasharray="2 4" opacity=".5"/>';
+    g += '<line x1="' + L + '" x2="' + (W - Rt) + '" y1="' + Y(R[0] ? R[0].target : 500) + '" y2="' + Y(R[0] ? R[0].target : 500) + '" style="stroke:var(--tx)" stroke-width="1" stroke-dasharray="2 4" opacity=".5"/>';
     g += '<text class="ax" x="' + L + '" y="' + (Ht - 8) + '">' + esc(new Date(t0).toLocaleString([], { weekday: "short", hour: "numeric", minute: "2-digit" })) + "</text>";
     g += '<text class="ax" x="' + (W - Rt) + '" y="' + (Ht - 8) + '" text-anchor="end">' + esc(new Date(t1).toLocaleString([], { weekday: "short", hour: "numeric", minute: "2-digit" })) + "</text>";
     R.forEach(function (r, k) {
@@ -116,9 +118,25 @@
         '</td><td class="num">' + (u.pass_rate == null ? "–" : Math.round(u.pass_rate * 100) + "%") + '</td><td class="num">' + (u.stage === "done" ? "–" : num(u.per_hour) + "/h") +
         '</td><td class="num">' + (u.stage === "building" && u.eta ? "~" + clock(u.eta) : u.stage === "done" ? "finished" : "–") + "</td></tr>";
     }).join("");
-    return panel("c12", "Builds", "Every build from the last 36 hours · passed demos go on the sheets when a build finishes",
+    return panel("c12", "Builds", "Every build from the last 36 hours · a passed demo goes on a sheet once the looks check keeps it",
       '<div class="tw"><table><thead><tr><th>Build</th><th>Status</th><th>Businesses</th><th>Passed</th><th>Didn\'t pass</th><th>Building</th><th>Left</th><th>Pass rate</th><th>Pace</th><th>Done by</th></tr></thead><tbody>' + rows + "</tbody></table></div>" +
       '<p class="small" style="margin-top:10px">"Didn\'t pass" = the honesty check (no invented claims, reviews word for word) or too few usable photos after 3 tries. Done-by times are estimates at the pace so far.</p>');
+  }
+
+  /* ---------- looks check ---------- */
+  function looksPanel(b) {
+    var L = b.looks; if (!L || !L.required) return "";
+    var tot = (L.kept || 0) + (L.cut || 0) + (L.waiting || 0);
+    var bar = tot ? '<div class="gbar" role="img" aria-label="' + esc(L.kept + " kept, " + L.cut + " cut, " + L.waiting + " waiting") + '">' +
+      (L.kept ? '<i style="flex:' + L.kept + ';background:' + C.s1 + '"><s>' + num(L.kept) + "</s></i>" : "") +
+      (L.cut ? '<i style="flex:' + L.cut + ';background:' + C.s2 + '"><s>' + num(L.cut) + "</s></i>" : "") +
+      (L.waiting ? '<i style="flex:' + L.waiting + ';background:' + C.other + '"><s>' + num(L.waiting) + "</s></i>" : "") + "</div>" : "";
+    var leg = '<div class="gleg"><span><i style="background:' + C.s1 + '"></i>✓ Kept<b>' + num(L.kept) + '</b></span><span><i style="background:' + C.s2 + '"></i>✕ Cut<b>' + num(L.cut) +
+      '</b></span><span><i style="background:' + C.other + '"></i>Waiting<b>' + num(L.waiting) + "</b></span></div>";
+    var cuts = (L.cuts || []).map(function (c) { return "<tr><td><b>" + esc(c.name) + '</b></td><td style="white-space:normal;text-align:left;color:var(--mu)">' + esc(c.why) + "</td></tr>"; }).join("");
+    return panel("c12", "Looks check", "Every rebuilt demo is looked at before it can go on a sheet · bad-looking ones are cut",
+      bar + leg + (cuts ? '<div class="tw" style="margin-top:12px"><table style="min-width:0"><thead><tr><th>Cut</th><th style="text-align:left">Why</th></tr></thead><tbody>' + cuts + "</tbody></table></div>" : '<p class="small" style="margin-top:10px">Nothing cut yet.</p>') +
+      '<p class="small" style="margin-top:10px">Cut if the top photo is blurry, stretched, too dark or not their work, the layout is broken, or the phone view is broken. Plain pages are kept. Claude looks at three screenshots of each page (top, middle, phone).</p>');
   }
 
   /* ---------- live panel ---------- */
@@ -159,10 +177,10 @@
     var pj = b.projection || {}, U = (b.runs || []).filter(function (u) { return u.stage !== "done"; });
     var kp = function (u, v, chip) { return '<div class="kpi"><u>' + esc(u) + "</u><b>" + v + "</b>" + (chip ? '<span class="chip">' + esc(chip) + "</span>" : "") + "</div>"; };
     kpis.innerHTML = kp("On the sheets", num(b.total), "of " + num(b.target)) +
-      kp("Passed in builds now", num(U.reduce(function (a, u) { return a + u.passed; }, 0)), "goes on at the end") +
-      kp("Expected today", "~" + num((b.total || 0) + (pj.new || 0)), "estimate");
+      kp("Looks check", num((b.looks || {}).kept || 0) + " ✓ · " + num((b.looks || {}).cut || 0) + " ✕", num((b.looks || {}).waiting || 0) + " waiting") +
+      kp("When builds finish", "~" + num((b.total || 0) + (pj.new || 0)), "likely " + num((b.total || 0) + ((pj.lo || {}).new || 0)) + "–" + num((b.total || 0) + ((pj.hi || {}).new || 0)));
     live(b);
-    app.innerHTML = '<div class="g">' + reps(b) + chart(b) + "</div>" + '<div class="g">' + builds(b) + "</div>";
+    app.innerHTML = '<div class="g">' + reps(b) + chart(b) + "</div>" + '<div class="g">' + looksPanel(b) + "</div>" + '<div class="g">' + builds(b) + "</div>";
     tick();
   }
 

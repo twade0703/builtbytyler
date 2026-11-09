@@ -41,6 +41,18 @@
   }
   function hideTip() { tip.classList.remove("on"); }
 
+  /* ---------- the demos publish: last one that landed, the one uploading now ---------- */
+  function deployRow(b) {
+    var d = b.deploy || {}, u = d.upload, st, pill;
+    if (u && u.done) { pill = "&#10003; LANDED"; st = "Publish finished, pages going live now"; }
+    else if (u && u.error && !u.seen) { pill = "&#10005; FAILED"; st = "Last publish failed after " + num(u.batches) + " upload batches; retrying"; }
+    else if (u && u.seen) { pill = "&#9679; UPLOADING"; st = num(u.batches) + " upload batches sent, " + num(u.failed) + " failed, started " + clock(u.started) + (u.files ? ", " + num(u.files - (u.had || 0)) + " new files to send" : ""); }
+    else { pill = "IDLE"; st = "No publish running"; }
+    return '<div class="small" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:0 0 12px;padding:8px 10px;border:1px solid var(--edge2,rgba(160,180,255,.16));border-radius:10px">' +
+      '<b style="font-family:JetBrains Mono,monospace;letter-spacing:.06em">' + pill + "</b><span>" + esc(st) + "</span>" +
+      "<span>Last publish that landed: " + (d.last_at ? clock(d.last_at) + " " + new Date(d.last_at).toLocaleDateString([], { month: "short", day: "numeric" }) + " (" + num(d.last_sites) + " sites)" : "&#8211;") + "</span></div>";
+  }
+
   /* ---------- reps: now, expected, target, cap ---------- */
   function reps(b) {
     var P = {}, PL = {}, PH = {}, pj0 = b.projection || {};
@@ -57,15 +69,16 @@
         (exp > r.demos ? '<i class="exp" style="width:' + w(exp) + '"></i>' : "") +
         '<i class="now" style="width:' + w(r.demos) + '"></i>' +
         '<em style="left:' + w(r.target) + '"></em><span style="left:' + w(r.target) + '">' + num(r.target) + "</span></div>" +
-        '<div class="rl"><span><i class="k" style="background:' + C.s1 + '"></i>Now <b>' + num(r.demos) + "</b></span>" +
-        (exp > r.demos ? '<span><i class="k" style="background:repeating-linear-gradient(135deg,rgba(57,135,229,.6) 0 3px,rgba(57,135,229,.2) 3px 6px);border:1px dashed #8fbaf0"></i>When today\'s builds finish <b>~' + num(exp) + "</b>" + (PL[r.seat] != null && PH[r.seat] != null && PL[r.seat] !== PH[r.seat] ? " (likely " + num(PL[r.seat]) + "–" + num(PH[r.seat]) + ")" : "") + " estimate</span>" : "") +
+        '<div class="rl"><span><i class="k" style="background:' + C.s1 + '"></i>In their app now (page opens) <b>' + num(r.demos) + "</b></span>" +
+        (r.publishing ? "<span>&#10227; " + num(r.publishing) + " more on the sheet, hidden until their page goes live</span>" : "") +
+        (exp > r.demos ? '<span><i class="k" style="background:repeating-linear-gradient(135deg,rgba(57,135,229,.6) 0 3px,rgba(57,135,229,.2) 3px 6px);border:1px dashed #8fbaf0"></i>When today\'s builds finish and go live <b>~' + num(exp) + "</b>" + (PL[r.seat] != null && PH[r.seat] != null && PL[r.seat] !== PH[r.seat] ? " (likely " + num(PL[r.seat]) + "–" + num(PH[r.seat]) + ")" : "") + " estimate</span>" : "") +
         "<span>" + (left ? num(left) + " to go" : "✓ at " + num(r.target)) + "</span>" +
-        (r.held_back ? "<span>" + num(r.held_back) + " more waiting on area codes you haven't bought</span>" : "") + "</div>" +
+        (r.held_back ? "<span>" + num(r.held_back) + " held back (area code not on the registry list)</span>" : "") + "</div>" +
         (r.cap ? '<span class="capnote">MAX ' + num(r.cap) + " · extra goes to Rep 1</span>" : "") + "</div>";
     }).join("");
     var pj = b.projection || {};
-    return panel("c8", "Each website rep", "Demos on their sheet · white tick = " + num((b.reps[0] || {}).target || 500) + " goal",
-      rows + '<p class="small" style="margin-top:10px">' + (pj.new ? "About " + num(pj.new) + " more demos expected (likely " + num((pj.lo || {}).new) + "–" + num((pj.hi || {}).new) + "). Worked out from each build's own pass rate so far, " + Math.round((pj.reach || 0.93) * 100) + "% of passed demos reaching a sheet (measured over the last 168), and " + (pj.keep_rate != null ? Math.round(pj.keep_rate * 100) + "% kept by the looks check (measured)" : "about 90% kept by the looks check (a guess until it has judged 10)") + ". " + num(pj.already_on_sheets || 0) + " from these builds are already on the sheets and counted above. New ones go to whichever rep has fewer, Rep 2 stopping at 500." : "No build running.") + "</p>");
+    return panel("c8", "Each website rep", "Demos that open in each rep's app · white tick = " + num((b.reps[0] || {}).target || 500) + " goal",
+      deployRow(b) + rows + '<p class="small" style="margin-top:10px">' + (pj.new ? "About " + num(pj.new) + " more demos expected (likely " + num((pj.lo || {}).new) + "–" + num((pj.hi || {}).new) + "). Worked out from each build's own pass rate so far, " + Math.round((pj.reach || 0.93) * 100) + "% of passed demos reaching a sheet (measured over the last 168), and " + (pj.keep_rate != null ? Math.round(pj.keep_rate * 100) + "% kept by the looks check (measured)" : "about 90% kept by the looks check (a guess until it has judged 10)") + ". " + num(pj.already_on_sheets || 0) + " from these builds are already on the sheets and counted above. New ones go to whichever rep has fewer, Rep 2 stopping at 500." : "No build running.") + "</p>");
   }
 
   /* ---------- history: demos on the sheets over time ---------- */

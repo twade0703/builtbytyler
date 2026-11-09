@@ -103,7 +103,7 @@
   /* ---------------- drawing ---------------- */
   var DIALS = [
     ["web", "Website closers", 0, 6, 1, "", "Each needs a demo for every new business they call."],
-    ["ai", "AI Receptionist closers", 0, 3, 1, "", "They call from the AI Receptionist list, no demos needed."],
+    ["ai", "AI Receptionist closers", 0, 3, 1, "", "They call from the AI Receptionist list, no demos needed. The plan is 2, maybe 3: slide to 3 to see the third."],
     ["calls", "Website calls a day, each", 20, 200, 5, "", "Every dial counts, answered or not. Each new business needs a demo."],
     ["aiCalls", "AI Receptionist calls a day, each", 20, 300, 5, "", "They call their own list, no demos needed, so they can dial more. You said 150 to 200."],
     ["days", "Calling days", 1, 6, 1, "", "Mon to Fri is 5. Calling is allowed Mon to Sat."],
@@ -199,6 +199,14 @@
       "The close rate is a guess until demo week sells; the band runs from half the planning case to four times it (0.25% to 2% of calls). Same numbers as RAGER's Money tab.</p></div>";
   }
 
+  /* the closers picked for demo week (assumptions.json team.closers, Nov 9) */
+  function closersStat() {
+    var K = D.closers || {}, w = K.web || [], a = K.ai || [], m = K.ai_maybe || [];
+    if (!w.length && !a.length) return "";
+    return '<div class="stat bl"><b>' + w.length + " + " + a.length + "</b><u>Closers picked · Website: " + esc(w.join(", ") || "none yet") +
+      " · AI Receptionist: " + esc(a.join(", ") || "none yet") + (m.length ? " · maybe a 3rd AI: " + esc(m.join(", ")) : "") + ". Nobody signs before Alina clears the agreement</u></div>";
+  }
+
   function render(dialsOnly) {
     if (!D) return;
     var x = plan(), r = x.r, lo = x.lo, hi = x.hi, seats = S.web + S.ai, rA = sim(S.aiCalls, S.days, x.p, S.tries);
@@ -206,7 +214,7 @@
     var row = function (label, a, b, cls) { return "<tr" + (cls ? ' class="' + cls + '"' : "") + "><td>" + label + "</td><td>" + a + "</td><td>" + b + "</td></tr>"; };
     var c = D.costs;
     var top =
-      '<p class="lead">' + esc(D.week.label) + " · " + S.web + " website closers at " + S.calls + " calls a day + " + S.ai + " AI Receptionist closers at " + S.aiCalls + " · " + S.days + " days</p>" +
+      '<p class="lead">' + esc(D.week.label) + " · " + S.web + " website closers at " + S.calls + " calls a day + " + S.ai + " AI Receptionist closers at " + S.aiCalls + (D.defaults.ai_maybe > S.ai ? " (maybe " + D.defaults.ai_maybe + ")" : "") + " · " + S.days + " days</p>" +
       '<nav class="nav"><a href="#answer">Answer</a><a href="#scale">Scale</a><a href="#build">Build</a><a href="#money">Money</a><a href="#demos">Demos</a><a href="#codes">Area codes</a><a href="#recalls">Recalls</a><a href="#costs">Costs</a><a href="#status">Status</a><a href="#dials">Assumptions</a></nav>' +
 
       '<h2 id="answer">The short answer</h2><div class="grid">' +
@@ -293,7 +301,7 @@
       '<div class="card"><div class="lbl" style="font:10px JetBrains Mono,monospace;letter-spacing:.14em;color:var(--mu);margin-bottom:6px">ALREADY PAYING OR BY QUOTE</div>' +
       c.map(function (k) { return cost(k[0], k[1] == null ? "by quote" : typeof k[1] === "string" ? k[1] + " " + k[2] : (k[1] < 1 ? "$" + k[1] : $(k[1])) + " " + k[2], k[3]); }).join("") + "</div>" +
 
-      '<h2 id="status">Where things stand</h2><div class="grid">' +
+      '<h2 id="status">Where things stand</h2><div class="grid">' + closersStat() +
       '<div class="stat"><b>' + D.applicants.websites.total + '</b><u>Website applicants · ' + D.applicants.websites.good + " worth a call</u></div>" +
       '<div class="stat"><b>' + D.applicants.ai.total + '</b><u>AI Receptionist applicants · ' + D.applicants.ai.good + " worth a call</u></div></div>" +
       '<div class="card" style="margin-top:8px"><ul class="open">' + D.open.map(function (o) { return "<li>" + esc(o) + "</li>"; }).join("") + "</ul>" +

@@ -101,6 +101,25 @@
     .card .warn{margin-top:10px}
     .gate{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px 18px;color:var(--mu);text-align:center;margin-top:12px}
     .gate b{display:block;color:var(--tx);font-size:17px;margin-bottom:6px}
+    .lbl{font:10px "JetBrains Mono",ui-monospace,monospace;letter-spacing:.14em;color:var(--mu);margin-bottom:6px;text-transform:uppercase}
+    table em{font-style:normal;color:var(--mu);font-size:11.5px;font-weight:400}
+    thead th em{font:400 10px "Instrument Sans",sans-serif;color:var(--dim);letter-spacing:0}
+    tr.grp td{padding:12px 6px 4px;font:600 10px "JetBrains Mono",ui-monospace,monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);border-top:0}
+    tr.g td,tr.big.g td{color:var(--green)}
+    .scx{overflow-x:auto;margin:0 -4px}
+    table.mo{font-size:12px;min-width:320px}
+    table.mo th,table.mo td{padding:7px 3px;white-space:nowrap}
+    table.mo td:first-child{white-space:normal;min-width:92px}
+    table.mo tr.big td{font-size:13px}
+    table.mo thead th{font-size:11.5px}
+    .split{padding:9px 0;border-top:1px solid var(--line)}
+    .split div{display:flex;justify-content:space-between;gap:10px;font-size:14px}
+    .split b{font-weight:500}
+    .split span{font:500 13.5px "JetBrains Mono",ui-monospace,monospace;white-space:nowrap}
+    .split i{display:block;height:8px;border-radius:4px;background:rgba(255,255,255,.07);margin:6px 0 4px;overflow:hidden}
+    .split s{display:block;height:100%;background:var(--blue);border-radius:4px}
+    .split.g s{background:var(--green)} .split.g span{color:var(--green)}
+    .split p{margin:0;font-size:12px;color:var(--mu)}
     .foot{margin:22px 0 0;font-size:12px;color:var(--dim);text-align:center}
   </style>
   <script src="assets/js/theme.js?v=2"></script>
@@ -114,6 +133,6 @@
     <main id="app"></main>
     <p class="foot">Private to Tyler. Counts update from your PC every 10 minutes while it's on. Changing an assumption only changes this phone's view.</p>
   </div>
-  <script src="assets/js/demo-plan.js?v=110"></script>
+  <script src="assets/js/demo-plan.js?v=111"></script>
 </body>
 </html>

@@ -207,6 +207,168 @@
       " · AI Receptionist: " + esc(a.join(", ") || "none yet") + (m.length ? " · maybe a 3rd AI: " + esc(m.join(", ")) : "") + ". Nobody signs before Alina clears the agreement</u></div>";
   }
 
+  /* 2026-11-09, Tyler: "demo week gets us anywhere from 3.5 to 13.9k ... What close rate is that? And is that
+     2 web and 3 AI?" The week's range explained: same team, only the close rate moves; a 3rd AI closer shown apart. */
+  function whyHtml(lo, hi) {
+    var P = D.price, row = function (label, a, b, cls) { return "<tr" + (cls ? ' class="' + cls + '"' : "") + "><td>" + label + "</td><td>" + a + "</td><td>" + b + "</td></tr>"; };
+    var owner = function (c) { return (c / S.pickup * 100).toFixed(1).replace(/\.0$/, "") + "%"; };
+    var oneIn = function (c) { return (S.pickup / c).toFixed(1).replace(/\.0$/, ""); };
+    var each = function (n, k) { return N(n) + (k > 1 ? " <em>(" + (n / k).toFixed(1).replace(/\.0$/, "") + " each)</em>" : ""); };
+    var third = "";
+    if (S.ai < 3) { var s0 = S.ai; S.ai = s0 + 1; var lo3 = money(S.lo), hi3 = money(S.hi); S.ai = s0;
+      var who = ((D.closers || {}).ai_maybe || [])[0];
+      third = row("With a 3rd AI closer" + (who ? " (" + esc(who) + ")" : ""), $k(lo3.pocket), $k(hi3.pocket)); }
+    return '<h2 id="why">Why ' + $k(lo.pocket) + " to " + $k(hi.pocket) + "<small>Both numbers use the same team: " + S.web + " website + " + S.ai +
+      " AI Receptionist closers. The only thing that changes is the close rate.</small></h2>" +
+      '<div class="card"><table class="why"><thead><tr><th></th><th class="lo">Planning case</th><th class="hi">Good case</th></tr></thead><tbody>' +
+      row("Close rate: calls dialed that buy", S.lo + "%", S.hi + "%", "big") +
+      row("Same thing per owner who picks up", owner(S.lo) + " <em>(1 in " + oneIn(S.lo) + ")</em>", owner(S.hi) + " <em>(1 in " + oneIn(S.hi) + ")</em>") +
+      row("Calls in the week", N((S.calls * S.web + S.aiCalls * S.ai) * S.days), N((S.calls * S.web + S.aiCalls * S.ai) * S.days)) +
+      row("Website sales", each(lo.web, S.web), each(hi.web, S.web)) +
+      row("AI Receptionist sales", each(lo.ai, S.ai), each(hi.ai, S.ai)) +
+      row("Build fees in ($" + P.web.up + " each)", $(lo.gross), $(hi.gross)) +
+      row("Closers' commission + bonuses", "-" + $(lo.comm + lo.bonus), "-" + $(hi.comm + hi.bonus)) +
+      row("Stripe", "-" + $(lo.stripe), "-" + $(hi.stripe)) +
+      row("You pocket from the week", $k(lo.pocket), $k(hi.pocket), "big") + third +
+      "</tbody></table>" +
+      '<p class="note">An AI closer sells twice what a website closer does because they dial twice as much (' + S.aiCalls + " a day vs " + S.calls +
+      "; no demo needed), at the same close rate. The bonus is $" + P.bonus + " to a closer who makes " + P.bonus_at + " sales in a month, so the week only counts it for a closer who makes " + P.bonus_at + " inside that week. " +
+      S.hi + "% is the top of your range: about 1 owner in " + oneIn(S.hi) + " who picks up says yes on the call. Nothing is measured yet (Rep 1's first 18 calls: no sale), so demo week is what tells you which column is real.</p></div>";
+  }
+
+  /* Months 1 to 6 if demo week starts next Monday (Tyler, Nov 9: "2 months, 3 months, 6 months, scaling MRR, as
+     well as initial build fees plus revenue and profit splits"). Same prices and costs as money() above and
+     RAGER's control/scale.py: a month is 4.33 weeks at the demo-week pace, nobody added; the monthly fee starts the
+     month after the sale; churn a month from assumptions; the closer gets the monthly share for the first 12
+     payments; the bonus when a closer makes 10 sales in a month; your bills are RAGER's Expenses total, plus call
+     minutes and new demo builds past the Apify + Google already in those bills (scale.py APIFY_IN_BILLS = 299). */
+  function months6(c) {
+    var P = D.price, wk = 4.33, keep = 1 - (P.churn || 0) / 100;
+    var st = function (a) { return a * P.stripe_pct / 100 + P.stripe_fixed; };
+    var perW = S.calls * S.days * wk * c / 100, perA = S.aiCalls * S.days * wk * c / 100, sW = perW * S.web, sA = perA * S.ai;
+    var demos = S.web * sim(S.calls, S.days, S.pickup / 100, S.tries).fresh * wk;
+    var bills = (D.scale || {}).bills || 0, minutes = (S.calls * S.web + S.aiCalls * S.ai) * S.days * wk * 2 * 0.014;
+    var builds = Math.max(0, demos * D.build[S.route] - 299);
+    var bonus = (perW >= P.bonus_at ? P.bonus * S.web : 0) + (perA >= P.bonus_at ? P.bonus * S.ai : 0);
+    var rows = [], cum = 0, T = { inn: 0, build: 0, fees: 0, comm: 0, share: 0, stripe: 0, airun: 0, mine: 0, keep: 0 };
+    for (var i = 0; i < 6; i++) {
+      var payW = 0, payA = 0, resW = 0, resA = 0;
+      for (var j = 0; j < i; j++) {
+        var n = i - j, live = Math.pow(keep, n - 1);
+        payW += sW * live; payA += sA * live;
+        if (n <= P.web.resid_n) resW += sW * live;
+        if (!P.ai.resid_n || n <= P.ai.resid_n) resA += sA * live;
+      }
+      var o = { payW: payW, payA: payA, build: sW * P.web.up + sA * P.ai.up, fees: payW * P.web.mo + payA * P.ai.mo,
+        comm: sW * P.web.comm + sA * P.ai.comm, share: resW * P.web.resid + resA * P.ai.resid + bonus,
+        stripe: sW * st(P.web.up) + sA * st(P.ai.up) + payW * st(P.web.mo) + payA * st(P.ai.mo),
+        airun: payA * (P.ai_run || 0), mine: bills + minutes + builds };
+      o.inn = o.build + o.fees;
+      o.keep = o.inn - o.comm - o.share - o.stripe - o.airun - o.mine;
+      cum += o.keep; o.cum = cum;
+      /* MRR = what bills every month from here on: this month's payers who stay + this month's new customers */
+      o.custW = payW * keep + sW; o.custA = payA * keep + sA;
+      o.mrr = o.custW * P.web.mo + o.custA * P.ai.mo;
+      for (var k in T) T[k] += o[k];
+      rows.push(o);
+    }
+    return { rows: rows, T: T, perW: perW, perA: perA, sW: sW, sA: sA, bills: bills, minutes: minutes, builds: builds, demos: demos, bonus: bonus };
+  }
+  function nextMonday() {
+    var d = new Date(); d.setHours(12, 0, 0, 0); d.setDate(d.getDate() + ((8 - d.getDay()) % 7 || 7));
+    return d;
+  }
+  function mdate(d, addDays) { var x = new Date(d.getTime() + addDays * 864e5); return x.toLocaleDateString("en-US", { month: "short", day: "numeric" }); }
+  function monthsChart(R) {
+    var W = 400, H = 220, L = 46, B = 38, T = 20, n = R.length, bw = (W - L - 8) / n;
+    var max = Math.max(1, Math.max.apply(null, R.map(function (o) { return o.inn; })) * 1.08);
+    var y = function (v) { return T + (H - T - B) * (1 - v / max); }, g = "";
+    [0, 0.5].forEach(function (f) { var v = max / 1.08 * f;
+      g += '<line x1="' + L + '" x2="' + (W - 8) + '" y1="' + y(v).toFixed(1) + '" y2="' + y(v).toFixed(1) + '" stroke="rgba(255,255,255,.07)"/><text class="ax" x="' + (L - 6) + '" y="' + (y(v) + 3).toFixed(1) + '" text-anchor="end">' + $k(v) + "</text>"; });
+    R.forEach(function (o, i) {
+      var x = L + i * bw + 6, w = bw - 12, yF = y(o.fees), yT = y(o.inn);
+      g += '<rect x="' + x.toFixed(1) + '" y="' + yF.toFixed(1) + '" width="' + w.toFixed(1) + '" height="' + (y(0) - yF).toFixed(1) + '" rx="3" fill="var(--blue)"/>';
+      g += '<rect x="' + x.toFixed(1) + '" y="' + yT.toFixed(1) + '" width="' + w.toFixed(1) + '" height="' + (yF - yT).toFixed(1) + '" rx="3" fill="rgba(96,165,250,.28)" stroke="rgba(96,165,250,.7)" stroke-dasharray="3 2"/>';
+      g += '<text x="' + (x + w / 2).toFixed(1) + '" y="' + (yT - 5).toFixed(1) + '" text-anchor="middle" style="fill:var(--tx);font:600 12px JetBrains Mono,monospace">' + $k(o.inn) + "</text>";
+      if (y(0) - yF > 18) g += '<text x="' + (x + w / 2).toFixed(1) + '" y="' + (y(0) - 6).toFixed(1) + '" text-anchor="middle" style="fill:#0B0C10;font:600 11px JetBrains Mono,monospace">' + $k(o.fees) + "</text>";
+      g += '<text class="ax" x="' + (x + w / 2).toFixed(1) + '" y="' + (H - 22) + '" text-anchor="middle" style="font-size:11px">Mo ' + (i + 1) + "</text>";
+      g += '<text x="' + (x + w / 2).toFixed(1) + '" y="' + (H - 5) + '" text-anchor="middle" style="fill:var(--green);font:600 11.5px JetBrains Mono,monospace">' + $k(o.keep) + "</text>";
+    });
+    return '<svg class="ch" style="height:auto;max-width:560px;margin:8px auto 0" viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="Money coming in each month, build fees and monthly fees, and what you keep">' + g + "</svg>" +
+      '<div class="key"><span><i style="background:var(--blue)"></i>Monthly fees (number inside)</span><span><i style="background:rgba(96,165,250,.28);outline:1px dashed rgba(96,165,250,.7)"></i>Build fees, $500 a sale (dashed)</span><span><b style="color:var(--tx)">Top</b> = all money in</span><span><b style="color:var(--green)">Bottom</b> = you keep that month</span></div>';
+  }
+  function monthsHtml() {
+    var c = S.mcase === "lo" ? S.lo : S.hi, M = months6(c), R = M.rows, P = D.price, pick = [0, 1, 2, 5];
+    var start = nextMonday(), ends = pick.map(function (i) { return mdate(start, Math.round((i + 1) * 4.33 * 7) - 1); });
+    var head = "<thead><tr><th></th>" + pick.map(function (i, k) { return "<th>Mo " + (i + 1) + "<br><em>to " + ends[k] + "</em></th>"; }).join("") + "</tr></thead>";
+    var line = function (label, f, cls) { return "<tr" + (cls ? ' class="' + cls + '"' : "") + "><td>" + label + "</td>" + pick.map(function (i) { return "<td>" + f(R[i]) + "</td>"; }).join("") + "</tr>"; };
+    var grp = function (t) { return '<tr class="grp"><td colspan="5">' + t + "</td></tr>"; };
+    var neg = function (v) { return v ? "-" + $m(v) : "$0"; };
+    var tile = function (i, cls) { var o = R[i];
+      return '<div class="stat ' + cls + '"><b>' + $m(o.mrr) + "<em>/mo</em></b><u>MRR after " + (i + 1) + " months (to " + mdate(start, Math.round((i + 1) * 4.33 * 7) - 1) + "): " +
+        N(o.custW) + " website + " + N(o.custA) + " AI customers paying monthly. You've kept " + $m(o.cum) + " by then</u></div>"; };
+    var T = M.T, pct = function (v) { return T.inn ? Math.round(v / T.inn * 100) : 0; };
+    var split = function (label, v, note, cls) {
+      return '<div class="split' + (cls ? " " + cls : "") + '"><div><b>' + label + "</b><span>" + $m(v) + " · " + pct(v) + '%</span></div><i><s style="width:' + Math.max(0, pct(v)) + '%"></s></i><p>' + note + "</p></div>"; };
+    return '<h2 id="months">If demo week starts next week: months 1 to 6<small>Starting Mon ' + mdate(start, 0) + ". The same " + S.web + " website + " + S.ai +
+      " AI Receptionist closers keep the demo-week pace every week after; nobody added. A month here is 4.33 weeks from that Monday.</small></h2>" +
+      '<div class="card" style="padding:10px 14px"><div class="seg" style="margin-top:0">' +
+      '<button type="button" data-seg="mcase" data-v="lo" class="' + (S.mcase === "lo" ? "on" : "") + '">Planning case, ' + S.lo + "% close</button>" +
+      '<button type="button" data-seg="mcase" data-v="hi" class="' + (S.mcase !== "lo" ? "on" : "") + '">Good case, ' + S.hi + "% close</button></div>" +
+      '<p class="note">' + N(M.sW) + " website + " + N(M.sA) + " AI Receptionist sales a month at " + c + "% (" + M.perW.toFixed(1).replace(/\.0$/, "") + " per website closer, " + M.perA.toFixed(1).replace(/\.0$/, "") + " per AI closer).</p></div>" +
+      '<div class="grid" style="margin-top:8px">' + tile(1, "bl") + tile(2, "v") + tile(5, "g") +
+      '<div class="stat a"><b>' + $m(T.build) + "</b><u>Build fees over 6 months ($" + P.web.up + " day one, " + N((M.sW + M.sA) * 6) + " sales) vs " + $m(T.fees) + " of monthly fees. Months 1 to 6, all money in: " + $m(T.inn) + "</u></div></div>" +
+      '<div class="card" style="margin-top:8px"><div class="lbl">Money in each month, and what you keep</div>' + monthsChart(R) +
+      '<p class="note">Build fees stay flat because the team stays the same size. Monthly fees stack up: every customer keeps paying until they cancel (' + P.churn + "% a month), so MRR is what keeps growing. Month 1 has no monthly fees yet: the first $" + P.web.mo + " or $" + P.ai.mo + " bills a month after the sale.</p></div>" +
+      '<div class="card"><div class="lbl">Month by month</div><div class="scx"><table class="mo">' + head + "<tbody>" +
+      grp("Customers") +
+      line("New sales that month", function (o) { return N(M.sW + M.sA); }) +
+      line("Paying monthly that month", function (o) { return N(o.payW + o.payA); }) +
+      grp("Money in") +
+      line("Build fees ($" + P.web.up + " each)", function (o) { return $m(o.build); }) +
+      line("Monthly fees", function (o) { return $m(o.fees); }) +
+      line("Total in", function (o) { return $m(o.inn); }, "big") +
+      grp("Where it goes") +
+      line("Closers: day-one commission", function (o) { return neg(o.comm); }) +
+      line("Closers: monthly share + bonus", function (o) { return neg(o.share); }) +
+      line("Stripe", function (o) { return neg(o.stripe); }) +
+      line("AI Receptionist running cost", function (o) { return neg(o.airun); }) +
+      line("Your bills, minutes, demo builds", function (o) { return neg(o.mine); }) +
+      line("You keep that month", function (o) { return $m(o.keep); }, "big g") +
+      line("You keep, total so far", function (o) { return $m(o.cum); }, "big") +
+      line("MRR at month end", function (o) { return $m(o.mrr); }) +
+      "</tbody></table></div>" +
+      '<p class="note">Your costs each month: ' + $(M.bills) + " of bills (RAGER's Expenses tab), " + $(M.minutes) + " of call minutes, " + $(M.builds) +
+      " for about " + N(M.demos) + " new website demos past what Apify and Google already cost in those bills. One-time setup costs (area codes, the demos still to build, lawyers) are in Costs below, not here.</p></div>" +
+      '<div class="card"><div class="lbl">Where every dollar goes, months 1 to 6 (' + $m(T.inn) + " in)</div>" +
+      split("Closers", T.comm + T.share, "Day-one commission $" + P.web.comm + " a website sale, $" + P.ai.comm + " an AI sale; then $" + P.web.resid + " or $" + P.ai.resid + " a month for the first " + P.web.resid_n + " payments; $" + P.bonus + " bonus for " + P.bonus_at + " sales in a month.") +
+      split("Stripe", T.stripe, P.stripe_pct + "% + 30 cents on every payment.") +
+      split("AI Receptionist running cost", T.airun, "About $" + (P.ai_run || 0).toFixed(2) + " a customer a month (calls, voice, phone number).") +
+      split("Your bills and costs", T.mine, "Bills, call minutes, demo builds.") +
+      split("You keep", T.keep, "Before taxes.", "g") + "</div>" +
+      perSaleHtml() +
+      '<div class="warn">' + (c >= 1 ? "This is the good case. " + N(M.sW + M.sA) + " new customers a month means about " + N((M.sW + M.sA) / 21.7) + " sites or receptionists to set up every working day, and " + N(M.demos / 4.33) + " new website demos a week (one Claude account builds about " + N((D.scale || {}).demos_per_account_wk || 500) + "). " : "") +
+      "No close rate is measured yet, so treat every number here as a what-if until demo week sells. Same prices and costs as RAGER's Money tab.</div>";
+  }
+  /* One sale, split: who gets what of the $500 and of each monthly payment (prices from assumptions.json). */
+  function perSaleHtml() {
+    var P = D.price, st = function (a) { return a * P.stripe_pct / 100 + P.stripe_fixed; }, run = P.ai_run || 0;
+    var r = function (label, a, b, cls) { return "<tr" + (cls ? ' class="' + cls + '"' : "") + "><td>" + label + "</td><td>" + a + "</td><td>" + b + "</td></tr>"; };
+    var c2 = function (v) { return "$" + v.toFixed(2); };
+    return '<div class="card"><div class="lbl">Every sale, split</div><table><thead><tr><th></th><th>Website</th><th>AI Receptionist</th></tr></thead><tbody>' +
+      r("Day one, the customer pays", c2(P.web.up), c2(P.ai.up), "big") +
+      r("Closer", "-" + c2(P.web.comm), "-" + c2(P.ai.comm)) +
+      r("Stripe", "-" + c2(st(P.web.up)), "-" + c2(st(P.ai.up))) +
+      r("You keep", c2(P.web.up - P.web.comm - st(P.web.up)), c2(P.ai.up - P.ai.comm - st(P.ai.up)), "big g") +
+      r("Every month after, the customer pays", c2(P.web.mo), c2(P.ai.mo), "big") +
+      r("Closer (first " + P.web.resid_n + " payments)", "-" + c2(P.web.resid), "-" + c2(P.ai.resid)) +
+      r("Stripe", "-" + c2(st(P.web.mo)), "-" + c2(st(P.ai.mo))) +
+      r("Running cost", "$0.00", "-" + c2(run)) +
+      r("You keep each month", c2(P.web.mo - P.web.resid - st(P.web.mo)), c2(P.ai.mo - P.ai.resid - st(P.ai.mo) - run), "big g") +
+      r("After payment " + P.web.resid_n + ", you keep", c2(P.web.mo - st(P.web.mo)), c2(P.ai.mo - st(P.ai.mo) - run)) +
+      "</tbody></table><p class=\"note\">Plus the $" + P.bonus + " bonus to a closer in any month they make " + P.bonus_at + " sales (both products count). Hosting and your time aren't in these numbers.</p></div>";
+  }
+
   function render(dialsOnly) {
     if (!D) return;
     var x = plan(), r = x.r, lo = x.lo, hi = x.hi, seats = S.web + S.ai, rA = sim(S.aiCalls, S.days, x.p, S.tries);
@@ -215,7 +377,7 @@
     var c = D.costs;
     var top =
       '<p class="lead">' + esc(D.week.label) + " · " + S.web + " website closers at " + S.calls + " calls a day + " + S.ai + " AI Receptionist closers at " + S.aiCalls + (D.defaults.ai_maybe > S.ai ? " (maybe " + D.defaults.ai_maybe + ")" : "") + " · " + S.days + " days</p>" +
-      '<nav class="nav"><a href="#answer">Answer</a><a href="#scale">Scale</a><a href="#build">Build</a><a href="#money">Money</a><a href="#demos">Demos</a><a href="#codes">Area codes</a><a href="#recalls">Recalls</a><a href="#costs">Costs</a><a href="#status">Status</a><a href="#dials">Assumptions</a></nav>' +
+      '<nav class="nav"><a href="#answer">Answer</a><a href="#why">Why</a><a href="#months">Months 1-6</a><a href="#scale">Scale</a><a href="#build">Build</a><a href="#money">Money</a><a href="#demos">Demos</a><a href="#codes">Area codes</a><a href="#recalls">Recalls</a><a href="#costs">Costs</a><a href="#status">Status</a><a href="#dials">Assumptions</a></nav>' +
 
       '<h2 id="answer">The short answer</h2><div class="grid">' +
       '<div class="stat bl"><b>' + N(x.webHave) + ' <em>of</em> ' + N(x.webNeed) + '</b><u>Built demos toward the goal' + (D.goal && D.goal.reps ? " (" + D.goal.reps.map(function (r) { return r.label.replace("Website ", "") + " " + N(r.have); }).join(", ") + ")" : "") + (D.goal && D.goal.callable != null ? ". " + N(D.goal.callable) + " are in area codes you can call" : "") + '</u></div>' +
@@ -243,7 +405,7 @@
           ", but only " + N(x.webHave) + " are inside the 5 free area codes, the only ones a closer can call once the Do Not Call list is in. So \"have\" is " + N(x.webHave) + "." +
           (D.web.on_sheets && D.web.on_sheets.nodemo ? " The " + N(D.web.on_sheets.nodemo) + " with no demo yet are on the sheets too: closers offer a free preview, the owner texts photos, and the demo is built that night." : "")
         : "The demos on your reps' lists (Rep 1 and Rep 2) are the " + N(x.webHave) + " counted here, not extra.") + "</p>" +
-      scaleHtml() + buildHtml(x);
+      whyHtml(lo, hi) + monthsHtml() + scaleHtml() + buildHtml(x);
     var dialsHtml =
       '<details class="adv"><summary><h2 id="dials">Assumptions<small>Tap to change closers, calls, pickup or close rates. The page redoes the math.</small></h2></summary><div class="card">' + DIALS.map(dial).join("") +
       seg("codes", [["free", "Free 5 + the ones you're buying"], ["all", "All of CA and NV"]], "Where they can call",
@@ -290,7 +452,7 @@
       row("You keep over 12 months", $(lo.year), $(hi.year)) +
       row("Week plus 12 months, total", $(lo.months[11].cum), $(hi.months[11].cum), "big") +
       "</tbody></table>" + moneyChart(lo, hi) +
-      '<p class="note">Website: $50 a month, the closer gets $10 for 12 months. AI Receptionist: $100 a month, the closer gets $20 for as long as it\'s paid. Stripe comes off every payment, and so does the AI Receptionist\'s running cost, about $' + (D.price.ai_run || 0).toFixed(2) + ' a customer a month. Every number here comes from the same assumptions file as RAGER' + (D.assumptions_updated ? ' (updated ' + esc(D.assumptions_updated) + ')' : '') + '.</p></div>' +
+      '<p class="note">Website: $50 a month, the closer gets $10 for 12 months. AI Receptionist: $100 a month, the closer gets $20 for the first 12 payments. Stripe comes off every payment, and so does the AI Receptionist\'s running cost, about $' + (D.price.ai_run || 0).toFixed(2) + ' a customer a month. Every number here comes from the same assumptions file as RAGER' + (D.assumptions_updated ? ' (updated ' + esc(D.assumptions_updated) + ')' : '') + '.</p></div>' +
 
       '<h2 id="costs">Costs to get ready<small>What you pay before and during demo week.</small></h2><div class="card">' +
       cost("Demo builds", $(x.cost.builds), N(x.toBuild) + " demos at ~$" + D.build[S.route].toFixed(2) + (D.build.measured && S.route === "apify" ? ", this run's average so far. The small towns left cost more per demo than the big cities did." : ".")) +
@@ -404,7 +566,7 @@
 
   /* ---------------- data and events ---------------- */
   function init() {
-    S = Object.assign({ aiCalls: 150 }, D.defaults, { codes: "free", route: D.defaults.build_route || "apify" });
+    S = Object.assign({ aiCalls: 150, mcase: "hi" }, D.defaults, { codes: "free", route: D.defaults.build_route || "apify" });
     try { Object.assign(S, JSON.parse(load(DIAL_STORE) || "{}")); } catch (e) {}
   }
   function gate(a, b) { app.innerHTML = '<div class="gate"><b>' + esc(a) + "</b>" + esc(b) + "</div>"; upd.textContent = ""; }

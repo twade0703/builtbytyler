@@ -78,7 +78,7 @@
     }).join("");
     var pj = b.projection || {};
     return panel("c8", "Each website rep", "Demos that open in each rep's app · white tick = " + num((b.reps[0] || {}).target || 500) + " goal",
-      deployRow(b) + rows + '<p class="small" style="margin-top:10px">' + (pj.new ? "About " + num(pj.new) + " more demos expected (likely " + num((pj.lo || {}).new) + "–" + num((pj.hi || {}).new) + "). Worked out from each build's own pass rate so far, " + Math.round((pj.reach || 0.93) * 100) + "% of passed demos reaching a sheet (measured over the last 168), and " + (pj.keep_rate != null ? Math.round(pj.keep_rate * 100) + "% kept by the looks check (measured)" : "about 90% kept by the looks check (a guess until it has judged 10)") + ". " + num(pj.already_on_sheets || 0) + " from these builds are already on the sheets and counted above. New ones go to whichever rep has fewer, Rep 2 stopping at 500." : "No build running.") + "</p>");
+      deployRow(b) + rows + '<p class="small" style="margin-top:10px">' + (pj.new ? "About " + num(pj.new) + " more demos expected (likely " + num((pj.lo || {}).new) + "–" + num((pj.hi || {}).new) + "). Worked out from each build's own pass rate so far, " + Math.round((pj.reach || 0.93) * 100) + "% of passed demos reaching a sheet (measured over the last 168), and " + (pj.keep_rate != null ? Math.round(pj.keep_rate * 100) + "% kept by the looks check (measured)" : "about 90% kept by the looks check (a guess until it has judged 10)") + ". " + num(pj.already_on_sheets || 0) + " from these builds are already on the sheets and counted above. New ones go to whichever rep has fewer" + ((b.reps || []).some(function (r) { return r.cap; }) ? ", a capped rep stopping at its cap." : ".") : "No build running.") + "</p>");
   }
 
   /* ---------- history: demos on the sheets over time ---------- */
@@ -152,6 +152,38 @@
       '<p class="small" style="margin-top:10px">Cut if the top photo is blurry, stretched, too dark or not their work, the layout is broken, or the phone view is broken. Plain pages are kept. Claude looks at three screenshots of each page (top, middle, phone).</p>');
   }
 
+  /* ---------- held back: area codes with no registry download (2026-11-09) ---------- */
+  function unlockPanel(b) {
+    var U = b.unlock; if (!U || !U.total) return "";
+    var R = b.reps || [], P = U.planned || {}, A = U.all || {};
+    var tag = {
+      planned: '<span class="pill run">&#9733; ON YOUR LIST</span>',
+      buy: '<span class="pill q">+ NOT PLANNED</span>',
+      owned: '<span class="pill fail">&#9888; BOUGHT, NEEDS RECHECK</span>',
+      none: '<span class="pill q">&#8212; TOLL-FREE / NO CODE</span>'
+    };
+    var row = function (x) {
+      return "<tr" + (x.kind === "none" ? ' class="q"' : "") + "><td><b>" + esc(x.code) + "</b></td>" +
+        R.map(function (r) { return '<td class="num">' + num((x.reps || {})[r.seat] || 0) + "</td>"; }).join("") +
+        '<td class="num"><b>' + num(x.total) + "</b></td><td>" + (tag[x.kind] || "") + "</td></tr>";
+    };
+    var rows = U.rows || [], top = rows.slice(0, 12), rest = rows.slice(12);
+    var head = "<thead><tr><th>Area code</th>" + R.map(function (r) { return "<th>" + esc(r.label) + "</th>"; }).join("") + "<th>Demos</th><th>Status</th></tr></thead>";
+    var kp = function (u, v, chip) { return '<div class="kpi"><u>' + esc(u) + "</u><b>" + v + "</b>" + (chip ? '<span class="chip">' + esc(chip) + "</span>" : "") + "</div>"; };
+    var none = rows.filter(function (x) { return x.kind === "none"; }).reduce(function (a, x) { return a + x.total; }, 0);
+    return panel("c12", "Held back: area codes to buy", "Demos built and on the sheets that the reps' apps hide until their area code is downloaded from the Do Not Call Registry · $" + num(U.price) + " a year per code",
+      '<div class="kpis" style="margin-bottom:14px">' +
+        kp("Held back now", num(U.total), "both reps") +
+        kp("Buy the " + num((P.codes || []).length) + " on your list", "+" + num(P.demos), "$" + num(P.cost) + " a year") +
+        kp("Buy every code", "+" + num(A.demos), num(A.codes) + " codes · $" + num(A.cost) + " a year") + "</div>" +
+      '<div class="tw"><table>' + head + "<tbody>" + top.map(row).join("") + "</tbody></table></div>" +
+      (rest.length ? '<details style="margin-top:8px"><summary class="small" style="cursor:pointer">' + num(rest.length) + " smaller codes</summary>" +
+        '<div class="tw"><table>' + head + "<tbody>" + rest.map(row).join("") + "</tbody></table></div></details>" : "") +
+      '<p class="small" style="margin-top:10px">&#9733; On your list = ' + esc((P.codes || []).join(" ")) + " (planned Nov 7, not bought yet). " +
+        "Already yours: " + esc((U.owned || []).join(" ")) + ". " + (none ? num(none) + " can't be unlocked by buying a code (toll-free or no number). " : "") +
+        "After a download, the recheck moves each number into the rep's app unless it's on the registry.</p>");
+  }
+
   /* ---------- live panel ---------- */
   function live(b) {
     var U = (b.runs || []).filter(function (u) { return u.stage !== "done"; });
@@ -193,7 +225,7 @@
       kp("Looks check", num((b.looks || {}).kept || 0) + " ✓ · " + num((b.looks || {}).cut || 0) + " ✕", num((b.looks || {}).waiting || 0) + " waiting") +
       kp("When builds finish", "~" + num((b.total || 0) + (pj.new || 0)), "likely " + num((b.total || 0) + ((pj.lo || {}).new || 0)) + "–" + num((b.total || 0) + ((pj.hi || {}).new || 0)));
     live(b);
-    app.innerHTML = '<div class="g">' + reps(b) + chart(b) + "</div>" + '<div class="g">' + looksPanel(b) + "</div>" + '<div class="g">' + builds(b) + "</div>";
+    app.innerHTML = '<div class="g">' + reps(b) + chart(b) + "</div>" + '<div class="g">' + unlockPanel(b) + "</div>" + '<div class="g">' + looksPanel(b) + "</div>" + '<div class="g">' + builds(b) + "</div>";
     tick();
   }
 

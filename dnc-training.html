@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Do-not-call training &middot; Built by Tyler</title>
-  <meta name="description" content="Do-not-call training for BuiltByTyler sales reps: ten short slides, a quiz, and your signature.">
+  <title>Do-not-call quiz &middot; Built by Tyler</title>
+  <meta name="description" content="Do-not-call quiz for BuiltByTyler sales reps.">
   <!-- Sent to signed reps by Tyler; not part of the site's navigation and kept out of search. -->
   <meta name="robots" content="noindex">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -63,11 +63,15 @@
     .qz.no { border-color: rgba(255,143,143,.6); }
     .qz.no .qz__fb { color: #ff9d9d; }
     .quiz-row { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; margin-top: 1.25rem; }
-    .quiz-msg { font-size: var(--fs-small); color: var(--ink); line-height: 1.5; }
+    .quiz-msg { font-size: var(--fs-small); color: #ff9d9d; line-height: 1.5; margin: .9rem 0 0; min-height: 1.2em; }
     .quiz-msg.pass { color: var(--accent); }
 
     .sign { border: 1px solid var(--hairline); background: var(--glass); padding: clamp(1.2rem, 3vw, 1.8rem); }
     .sign p { color: var(--ink); line-height: 1.6; margin: 0 0 1rem; }
+    .namebox { padding: 1.1rem 1.2rem; border: 1px solid var(--hairline); background: var(--glass); margin-bottom: 1.5rem; }
+    .namebox input[type=text] { width: 100%; max-width: 440px; font: inherit; font-size: 1.05rem; color: var(--ink);
+      background: var(--surface-alt); border: 1px solid var(--hairline); border-radius: var(--radius); padding: .7rem .8rem; }
+    .namebox input[type=text]:focus { outline: none; border-color: var(--accent); }
     .field { display: flex; flex-direction: column; gap: .4rem; margin-bottom: 1.1rem; }
     .field span { font-size: var(--fs-small); color: var(--ink); }
     .sign input[type=text] { width: 100%; max-width: 440px; font: inherit; font-size: 1.05rem; color: var(--ink);
@@ -100,64 +104,36 @@
       <div class="container dnc">
 
         <div class="dnc-top" data-enter>
-          <p class="eyebrow">Sales reps &middot; required before your first batch</p>
-          <h1 class="display" data-split>Do-not-call training</h1>
-          <p class="dnc-top__lead">Ten short slides on our Do-Not-Call Policy, a ten-question quiz, then you sign with your
-            name. About ten minutes. You can change any answer and check again until you pass.</p>
-          <div class="steps"><span>01 Slides</span><span>02 Quiz</span><span>03 Sign</span></div>
+          <p class="eyebrow">Sales reps &middot; do-not-call training</p>
+          <h1 class="display" data-split>Do-not-call quiz</h1>
+          <p class="dnc-top__lead">Ten questions on our Do-Not-Call Policy, from the training slides Tyler sent you.
+            You need all ten right. If any are wrong, they're marked and you can change them and submit again.</p>
         </div>
 
-        <div>
-          <span class="eyebrow-n">01</span>
-          <h2 class="sec-title">The policy, in ten slides</h2>
-          <div class="deck">
-            <div class="slide" id="slide" aria-live="polite"></div>
-            <div class="deck__bar"><i id="slide-bar"></i></div>
-            <div class="deck__nav">
-              <button type="button" class="btn-ghost" id="slide-back">&larr; Back</button>
-              <span class="deck__count" id="slide-count"></span>
-              <button type="button" class="btn-ghost go" id="slide-next">Next &rarr;</button>
-            </div>
-          </div>
-        </div>
+        <form id="quiz" novalidate>
+          <label class="field namebox"><span>Your full name</span>
+            <input type="text" id="name" autocomplete="name" maxlength="120" required></label>
+          <label class="hp" aria-hidden="true">Leave this empty <input type="text" id="hp" tabindex="-1" autocomplete="off"></label>
 
-        <div class="block" id="quiz-wrap" hidden>
-          <span class="eyebrow-n">02</span>
-          <h2 class="sec-title">Quiz: all ten right to pass</h2>
-          <form id="quiz" novalidate></form>
+          <div id="questions"></div>
+
           <div class="quiz-row">
-            <button type="button" class="btn btn--primary" id="quiz-check">Check my answers</button>
-            <span class="quiz-msg" id="quiz-msg" aria-live="polite"></span>
+            <button type="submit" class="btn btn--primary" id="quiz-btn">Submit quiz</button>
+            <span class="deck__count" id="answered"></span>
           </div>
+          <p class="quiz-msg" id="quiz-msg" aria-live="polite"></p>
+        </form>
+
+        <div class="done" id="done" hidden>
+          <h2>&#10003; Passed: 10 of 10</h2>
+          <p><span id="done-name"></span>, <span id="done-when"></span>.</p>
+          <p>Your record number is <span class="ref" id="done-ref"></span>. Tyler gets your result automatically.
+            If you haven't yet, sign the Do-Not-Call Policy he sent you and email it back.</p>
         </div>
 
-        <div class="block" id="sign-wrap" hidden>
-          <span class="eyebrow-n">03</span>
-          <h2 class="sec-title">Sign the acknowledgment</h2>
-          <form class="sign" id="sign" novalidate>
-            <p>I have read the BuiltByTyler Do-Not-Call Policy, gone through the training slides and passed the quiz,
-              and I will follow the policy on every call, voicemail and text.</p>
-            <label class="field"><span>Your full legal name (this is your signature)</span>
-              <input type="text" id="sign-name" autocomplete="name" maxlength="120" required></label>
-            <label class="agree"><input type="checkbox" id="sign-agree" required>
-              <span>I agree that typing my name here is my signature, the same as signing on paper.</span></label>
-            <label class="hp" aria-hidden="true">Leave this empty <input type="text" id="sign-hp" tabindex="-1" autocomplete="off"></label>
-            <div class="quiz-row">
-              <button type="submit" class="btn btn--primary" id="sign-btn">Sign and submit</button>
-              <span class="form-msg" id="sign-msg" aria-live="polite"></span>
-            </div>
-          </form>
-          <div class="done" id="done" hidden>
-            <h2>&#10003; Done. You passed and signed.</h2>
-            <p><span id="done-name"></span>, signed <span id="done-when"></span>.</p>
-            <p>Your record number is <span class="ref" id="done-ref"></span>. Tyler gets your result automatically, so there's
-              nothing else to send.</p>
-          </div>
-        </div>
-
-        <p class="fine">BuiltByTyler LLC &middot; Monterey, California. We keep your name, quiz result and the date and time you
-          signed as your training record, for at least ten years, as the policy says. Nothing else is stored.
-          Questions: <a href="mailto:twade@builtbytyler.com?subject=Do-not-call%20training">twade@builtbytyler.com</a>.</p>
+        <p class="fine">BuiltByTyler LLC &middot; Monterey, California. We keep your name, your result and the date and time
+          you passed as your training record, for at least ten years, as the policy says. Nothing else is stored.
+          Questions: <a href="mailto:twade@builtbytyler.com?subject=Do-not-call%20quiz">twade@builtbytyler.com</a>.</p>
       </div>
     </section>
   </main>
@@ -179,6 +155,6 @@
 
   <script src="assets/js/components.js?v=102"></script>
   <script src="assets/js/main.js?v=102"></script>
-  <script src="assets/js/dnc-training.js?v=1"></script>
+  <script src="assets/js/dnc-training.js?v=2"></script>
 </body>
 </html>

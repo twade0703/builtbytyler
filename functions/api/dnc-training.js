@@ -1,6 +1,7 @@
-/* /api/dnc-training: the signed do-not-call training results (dnc-training.html).
+/* /api/dnc-training: do-not-call quiz passes (dnc-training.html). The rep signs the policy doc itself
+ * separately (Tyler, 2026-11-08); this only records who passed the quiz.
  *
- *   POST  one signed result: { name, agree, answers[], version, t0 }
+ *   POST  one pass: { name, answers[], version, t0 }
  *   GET   every result, for Tyler's PC (04 Legal/reps/hiring/applicants.py dnc).
  *         Needs "Authorization: Bearer <APPLY_ADMIN_KEY>", like /api/applicants.
  *
@@ -48,7 +49,7 @@ async function authorised(request, env) {
 }
 
 export async function onRequestPost({ request, env }) {
-  if (!env.APPLY) return json({ ok: false, error: "Signing is down for a moment. Please try again later." }, 503);
+  if (!env.APPLY) return json({ ok: false, error: "The quiz can't save results for a moment. Please try again later." }, 503);
 
   const origin = request.headers.get("origin");
   const host = new URL(request.url).host;
@@ -63,18 +64,17 @@ export async function onRequestPost({ request, env }) {
   if ((body.website || "").toString().trim()) return json({ ok: true, ref: makeRef(), signed: new Date().toISOString() });
 
   const name = (body.name || "").toString().replace(/\s+/g, " ").trim().slice(0, 120);
-  if (name.length < 3 || !name.includes(" ")) return json({ ok: false, error: "Type your full legal name, first and last." }, 400);
-  if (body.agree !== "yes") return json({ ok: false, error: "Tick the box to confirm." }, 400);
+  if (name.length < 3 || !name.includes(" ")) return json({ ok: false, error: "Type your full name, first and last." }, 400);
   if (body.version !== VERSION) return json({ ok: false, error: "This page is out of date. Reload it and take the quiz again." }, 409);
   const answers = Array.isArray(body.answers) ? body.answers.map(Number) : [];
   const right = KEY.filter((k, i) => answers[i] === k).length;
-  if (right !== KEY.length) return json({ ok: false, error: "The quiz needs all " + KEY.length + " right before you can sign." }, 400);
+  if (right !== KEY.length) return json({ ok: false, error: "You need all " + KEY.length + " right to pass." }, 400);
 
   const day = new Date().toISOString().slice(0, 10);
   const ip = request.headers.get("cf-connecting-ip") || "unknown";
   const rlKey = "rl:dnc:" + (await sha256(day + "|" + ip + "|" + (env.APPLY_SALT || "bbt-apply"))).slice(0, 24);
   const seen = Number((await env.APPLY.get(rlKey)) || 0);
-  if (seen >= PER_IP_PER_DAY) return json({ ok: false, error: "Too many signatures from here today. Email twade@builtbytyler.com." }, 429);
+  if (seen >= PER_IP_PER_DAY) return json({ ok: false, error: "Too many submissions from here today. Email twade@builtbytyler.com." }, 429);
 
   const now = new Date();
   const t0 = Number(body.t0 || 0);
@@ -92,9 +92,9 @@ export async function onRequestPost({ request, env }) {
       metadata: { ref, name: name.slice(0, 80), signed: record.signed, version: VERSION },
     });
   } catch (e) {
-    return json({ ok: false, error: "We couldn't save your signature just now. Please try again in a few hours, or email twade@builtbytyler.com." }, 503);
+    return json({ ok: false, error: "We couldn't save your result just now. Please try again in a few hours, or email twade@builtbytyler.com." }, 503);
   }
-  try { await env.APPLY.put(rlKey, String(seen + 1), { expirationTtl: 60 * 60 * 26 }); } catch (e) { /* not worth losing a signature over */ }
+  try { await env.APPLY.put(rlKey, String(seen + 1), { expirationTtl: 60 * 60 * 26 }); } catch (e) { /* not worth losing a pass over */ }
   return json({ ok: true, ref, signed: record.signed });
 }
 

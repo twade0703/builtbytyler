@@ -189,7 +189,7 @@
     B = b;
     var pj = b.projection || {}, U = (b.runs || []).filter(function (u) { return u.stage !== "done"; });
     var kp = function (u, v, chip) { return '<div class="kpi"><u>' + esc(u) + "</u><b>" + v + "</b>" + (chip ? '<span class="chip">' + esc(chip) + "</span>" : "") + "</div>"; };
-    kpis.innerHTML = kp("On the sheets", num(b.total), "of " + num(b.target)) +
+    kpis.innerHTML = kp("In reps' apps", num(b.total), "of " + num(b.target)) +
       kp("Looks check", num((b.looks || {}).kept || 0) + " ✓ · " + num((b.looks || {}).cut || 0) + " ✕", num((b.looks || {}).waiting || 0) + " waiting") +
       kp("When builds finish", "~" + num((b.total || 0) + (pj.new || 0)), "likely " + num((b.total || 0) + ((pj.lo || {}).new || 0)) + "–" + num((b.total || 0) + ((pj.hi || {}).new || 0)));
     live(b);

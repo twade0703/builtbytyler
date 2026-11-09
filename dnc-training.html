@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Do-not-call training &middot; Built by Tyler</title>
+  <meta name="description" content="Do-not-call training for BuiltByTyler sales reps: ten short slides, a quiz, and your signature.">
+  <!-- Sent to signed reps by Tyler; not part of the site's navigation and kept out of search. -->
+  <meta name="robots" content="noindex">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500&family=Instrument+Sans:wght@400;500&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" sizes="48x48" href="/assets/img/icon-48.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="/assets/img/icon-192.png">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <meta name="theme-color" content="#121216">
+  <link rel="canonical" href="https://builtbytyler.com/dnc-training">
+  <script src="assets/js/boot.js?v=102"></script>
+  <link rel="stylesheet" href="assets/css/styles.css?v=102">
+  <link rel="stylesheet" href="assets/css/motion.css?v=102">
+  <style>
+    /* Page-local, same tokens, square corners and hairlines as /apply. */
+    .dnc { max-width: 820px; }
+    .dnc-top { margin-bottom: clamp(1.75rem, 4vw, 2.75rem); }
+    .dnc-top .display { margin-bottom: .9rem; }
+    .dnc-top__lead { color: var(--muted); max-width: 640px; font-size: 1.08rem; line-height: 1.6; }
+    .steps { display: flex; gap: .5rem; flex-wrap: wrap; margin-top: 1.1rem; font-family: var(--font-mono);
+      font-size: var(--fs-micro); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+    .steps span { padding: .35rem .6rem; border: 1px solid var(--hairline); }
+    .eyebrow-n { font-family: var(--font-mono); font-size: var(--fs-micro); letter-spacing: .12em; text-transform: uppercase;
+      color: var(--accent); display: block; margin-bottom: .35rem; }
+    .sec-title { font-family: var(--font-display); font-weight: 400; font-size: var(--fs-h3); color: var(--ink); margin: 0 0 1rem; }
+
+    .deck { border: 1px solid var(--hairline); background: var(--glass); backdrop-filter: var(--blur);
+      -webkit-backdrop-filter: var(--blur); }
+    .slide { min-height: 300px; padding: clamp(1.4rem, 4vw, 2.4rem); }
+    .slide__no { font-family: var(--font-mono); font-size: var(--fs-micro); color: var(--accent); letter-spacing: .12em; }
+    .slide h2 { font-family: var(--font-display); font-weight: 400; font-size: var(--fs-h2); margin: .4rem 0 1rem; line-height: 1.1; }
+    .slide p { color: var(--ink); font-size: 1.05rem; line-height: 1.65; margin: 0 0 .9rem; max-width: 640px; }
+    .slide p + p { color: var(--muted); }
+    .deck__bar { height: 2px; background: var(--hairline); }
+    .deck__bar i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .25s var(--ease); }
+    .deck__nav { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: .9rem clamp(1.4rem, 4vw, 2.4rem); }
+    .deck__count { font-family: var(--font-mono); font-size: var(--fs-small); color: var(--muted); }
+    .btn-ghost { font: inherit; font-size: var(--fs-small); color: var(--ink); background: transparent;
+      border: 1px solid var(--hairline-strong); padding: .6rem 1rem; cursor: pointer; }
+    .btn-ghost:hover:not(:disabled) { border-color: var(--accent); }
+    .btn-ghost:disabled { opacity: .35; cursor: default; }
+    .deck__nav .btn-ghost.go { border-color: var(--accent); }
+
+    .block { margin-top: clamp(2.25rem, 5vw, 3.25rem); }
+    .qz { border: 1px solid var(--hairline); background: var(--surface-alt); margin: 0 0 1rem; padding: 1.1rem 1.2rem; min-width: 0; }
+    .qz legend { float: left; width: 100%; padding: 0; margin-bottom: .8rem; font-size: 1rem; line-height: 1.5; color: var(--ink); }
+    .qz legend + * { clear: both; }
+    .qz__no { font-family: var(--font-mono); font-size: var(--fs-micro); color: var(--accent); margin-right: .6rem; }
+    .qz__opt { display: flex; gap: .7rem; align-items: flex-start; padding: .5rem .2rem; cursor: pointer;
+      font-size: var(--fs-small); line-height: 1.55; color: var(--ink); }
+    .qz__opt input { margin-top: .22rem; accent-color: var(--accent); width: 16px; height: 16px; flex: none; }
+    .qz__fb { margin: .5rem 0 0; font-size: var(--fs-small); line-height: 1.5; min-height: 0; }
+    .qz.ok { border-color: var(--accent); }
+    .qz.ok .qz__fb { color: var(--accent); }
+    .qz.no { border-color: rgba(255,143,143,.6); }
+    .qz.no .qz__fb { color: #ff9d9d; }
+    .quiz-row { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; margin-top: 1.25rem; }
+    .quiz-msg { font-size: var(--fs-small); color: var(--ink); line-height: 1.5; }
+    .quiz-msg.pass { color: var(--accent); }
+
+    .sign { border: 1px solid var(--hairline); background: var(--glass); padding: clamp(1.2rem, 3vw, 1.8rem); }
+    .sign p { color: var(--ink); line-height: 1.6; margin: 0 0 1rem; }
+    .field { display: flex; flex-direction: column; gap: .4rem; margin-bottom: 1.1rem; }
+    .field span { font-size: var(--fs-small); color: var(--ink); }
+    .sign input[type=text] { width: 100%; max-width: 440px; font: inherit; font-size: 1.05rem; color: var(--ink);
+      background: var(--surface-alt); border: 1px solid var(--hairline); border-radius: var(--radius); padding: .7rem .8rem; }
+    .sign input[type=text]:focus { outline: none; border-color: var(--accent); }
+    .agree { display: flex; gap: .7rem; align-items: flex-start; font-size: var(--fs-small); line-height: 1.55; color: var(--ink);
+      margin-bottom: 1.1rem; cursor: pointer; }
+    .agree input { margin-top: .25rem; accent-color: var(--accent); width: 16px; height: 16px; flex: none; }
+    .form-msg { font-size: var(--fs-small); color: #ff9d9d; line-height: 1.5; }
+    .hp { position: absolute !important; left: -9999px !important; width: 1px; height: 1px; overflow: hidden; }
+    .done { padding: clamp(1.5rem, 4vw, 2.5rem); border: 1px solid var(--accent); background: var(--accent-soft); }
+    .done h2 { font-family: var(--font-display); font-weight: 400; font-size: var(--fs-h2); margin: 0 0 .6rem; }
+    .done p { color: var(--ink); line-height: 1.6; margin: 0 0 .6rem; }
+    .done .ref { font-family: var(--font-mono); color: var(--accent); }
+    .fine { color: var(--muted); font-size: var(--fs-small); line-height: 1.6; margin-top: 1.5rem; }
+    .fine a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+  </style>
+</head>
+<body>
+  <header id="site-nav" class="site-nav">
+    <div class="container site-nav__inner">
+      <a href="index.html" class="brand">Built<b>ByTyler</b></a>
+      <nav aria-label="Primary"><ul class="nav-links" id="nav-links"><li><a href="index.html">Home</a></li><li><a href="software.html">Software</a></li><li><a href="shop.html">Hardware</a></li><li><a href="about.html">About</a></li><li><a href="contact.html">Contact</a></li></ul></nav>
+      <div class="nav-actions"><button class="nav-toggle" id="nav-toggle" aria-label="Toggle menu" aria-expanded="false"><span></span><span></span><span></span></button></div>
+    </div>
+  </header>
+
+  <main>
+    <section class="section">
+      <div class="container dnc">
+
+        <div class="dnc-top" data-enter>
+          <p class="eyebrow">Sales reps &middot; required before your first batch</p>
+          <h1 class="display" data-split>Do-not-call training</h1>
+          <p class="dnc-top__lead">Ten short slides on our Do-Not-Call Policy, a ten-question quiz, then you sign with your
+            name. About ten minutes. You can change any answer and check again until you pass.</p>
+          <div class="steps"><span>01 Slides</span><span>02 Quiz</span><span>03 Sign</span></div>
+        </div>
+
+        <div>
+          <span class="eyebrow-n">01</span>
+          <h2 class="sec-title">The policy, in ten slides</h2>
+          <div class="deck">
+            <div class="slide" id="slide" aria-live="polite"></div>
+            <div class="deck__bar"><i id="slide-bar"></i></div>
+            <div class="deck__nav">
+              <button type="button" class="btn-ghost" id="slide-back">&larr; Back</button>
+              <span class="deck__count" id="slide-count"></span>
+              <button type="button" class="btn-ghost go" id="slide-next">Next &rarr;</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="block" id="quiz-wrap" hidden>
+          <span class="eyebrow-n">02</span>
+          <h2 class="sec-title">Quiz: all ten right to pass</h2>
+          <form id="quiz" novalidate></form>
+          <div class="quiz-row">
+            <button type="button" class="btn btn--primary" id="quiz-check">Check my answers</button>
+            <span class="quiz-msg" id="quiz-msg" aria-live="polite"></span>
+          </div>
+        </div>
+
+        <div class="block" id="sign-wrap" hidden>
+          <span class="eyebrow-n">03</span>
+          <h2 class="sec-title">Sign the acknowledgment</h2>
+          <form class="sign" id="sign" novalidate>
+            <p>I have read the BuiltByTyler Do-Not-Call Policy, gone through the training slides and passed the quiz,
+              and I will follow the policy on every call, voicemail and text.</p>
+            <label class="field"><span>Your full legal name (this is your signature)</span>
+              <input type="text" id="sign-name" autocomplete="name" maxlength="120" required></label>
+            <label class="agree"><input type="checkbox" id="sign-agree" required>
+              <span>I agree that typing my name here is my signature, the same as signing on paper.</span></label>
+            <label class="hp" aria-hidden="true">Leave this empty <input type="text" id="sign-hp" tabindex="-1" autocomplete="off"></label>
+            <div class="quiz-row">
+              <button type="submit" class="btn btn--primary" id="sign-btn">Sign and submit</button>
+              <span class="form-msg" id="sign-msg" aria-live="polite"></span>
+            </div>
+          </form>
+          <div class="done" id="done" hidden>
+            <h2>&#10003; Done. You passed and signed.</h2>
+            <p><span id="done-name"></span>, signed <span id="done-when"></span>.</p>
+            <p>Your record number is <span class="ref" id="done-ref"></span>. Tyler gets your result automatically, so there's
+              nothing else to send.</p>
+          </div>
+        </div>
+
+        <p class="fine">BuiltByTyler LLC &middot; Monterey, California. We keep your name, quiz result and the date and time you
+          signed as your training record, for at least ten years, as the policy says. Nothing else is stored.
+          Questions: <a href="mailto:twade@builtbytyler.com?subject=Do-not-call%20training">twade@builtbytyler.com</a>.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer id="site-footer" data-year="2026">
+    <div class="container site-footer__inner">
+      <address>
+        <strong>Built by Tyler</strong> &mdash; BuiltByTyler LLC<br>
+        Monterey, California<br>
+        <a href="mailto:twade@builtbytyler.com">twade@builtbytyler.com</a>
+      </address>
+      <nav aria-label="Footer">
+        <a href="index.html">Home</a>
+        <a href="terms.html">Website terms</a>
+        <a href="privacy.html">Privacy</a>
+      </nav>
+    </div>
+  </footer>
+
+  <script src="assets/js/components.js?v=102"></script>
+  <script src="assets/js/main.js?v=102"></script>
+  <script src="assets/js/dnc-training.js?v=1"></script>
+</body>
+</html>

@@ -139,10 +139,19 @@
     var steps = [["1 · Find", "Every demo on Website Rep 1's and Rep 2's sheets still on the old v3 page (583 of 1,172)."],
                  ["2 · Rewrite", "An Opus agent writes the new page's words from the business's own Google listing and reviews, and picks a photo per service."],
                  ["3 · Build", "The new design is generated: their own landing photo full width, services, work, reviews word for word."],
-                 ["4 · Review", "An independent reviewer checks every claim against the raw evidence. Findings go back to be fixed, up to 3 rounds."],
-                 ["5 · Publish", "Passed pages go live every 25 upgrades at the same link. A page that never passes keeps its old version."]];
+                 ["4 · Review", "An independent reviewer checks every claim against the raw evidence. Findings go back to be fixed, up to 5 rounds."],
+                 ["5 · Publish", "Passed pages go live every 25 upgrades at the same link. A page that never passes keeps its old version, tidied: long reviews fold, small photos show at their real size."]];
     return '<div class="flow">' + steps.map(function (s) { return "<div><b>" + esc(s[0]) + "</b><p>" + esc(s[1]) + "</p></div>"; }).join("") + "</div>" +
       '<p class="small" style="margin-top:12px">Same businesses, same links, same sheets: the reps see the new page the next time they open the demo. Runs on your PC; if it stops, the System check above turns orange.</p>';
+  }
+
+  function changes(b) {
+    var C = b.changes; if (!C) return "";
+    var L = function (x) { return (x || []).map(function (e) { return '<a href="' + esc(e.url) + '" target="_blank" rel="noopener">' + esc(e.name) + " &#8599;</a>"; }).join(""); };
+    return '<div class="chg">' + (C.items || []).map(function (c) {
+      return '<div class="ci"><span class="pill ' + (c.ok ? "done" : "q") + '">' + (c.ok ? "&#10003; DONE" : "&#9679; OPEN") + "</span><div><b>" + esc(c.t) + "</b><p>" + esc(c.d) + "</p></div><small>" + esc(c.at) + "</small></div>";
+    }).join("") + "</div>" +
+      '<div class="exs"><div><u>On the new design (open one)</u>' + L(C.new_examples) + "</div><div><u>Tidied, still old design</u>" + L(C.tidied_examples) + "</div></div>";
   }
 
   function kpi(l, v, chip) { return '<div class="kpi"><u>' + esc(l) + "</u><b>" + v + "</b>" + (chip ? '<span class="chip">' + chip + "</span>" : "") + "</div>"; }
@@ -168,7 +177,8 @@
     var F = b.feed || [];
     $("feed").innerHTML = F.map(function (l) { var n = !seen[l]; seen[l] = 1; return '<div class="' + (n ? "new" : "") + '">' + esc(l) + "</div>"; }).join("");
     $("chk").innerHTML = "<b>System check</b>" + (b.checks || []).map(function (c) { return '<span class="' + (c.ok ? "ok" : "bad") + '">' + (c.ok ? "&#10003; " : "&#9888; ") + esc(c.t) + "</span>"; }).join("");
-    app.innerHTML = '<div class="g">' + panel("c8", "Upgrades per hour", "measured, last 24 hours", hours(b)) + panel("c4", "Where the old demos are", "all " + num(b.total) + " old demos", donut(b)) + "</div>" +
+    app.innerHTML = (b.changes ? '<div class="g">' + panel("c12", "What changed", "newest first · open the links to see the pages", changes(b)) + "</div>" : "") +
+      '<div class="g">' + panel("c8", "Upgrades per hour", "measured, last 24 hours", hours(b)) + panel("c4", "Where the old demos are", "all " + num(b.total) + " old demos", donut(b)) + "</div>" +
       '<div class="g">' + panel("c4 half", "Each rep's sheet", "old demos on each sheet", reps(b)) + panel("c4 half", "Both sheets, whole", "out of all 1,172 demos", whole(b)) + panel("c4", "Why some kept the old page", "kept old: " + num(b.failed), reasons(b)) + "</div>" +
       '<div class="g">' + panel("c8", "Latest results", "newest first", recent(b)) + panel("c4", "Building now", "and publishing", nowList(b)) + "</div>" +
       '<div class="g">' + panel("c12", "How the upgrade works", "the system you're watching", overview()) + "</div>";

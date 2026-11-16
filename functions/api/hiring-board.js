@@ -18,7 +18,7 @@
  * number, email or street address (hiring_store.py strips them before upload).
  */
 
-const DOCS = { board: "board:latest", plan: "plan:latest", run: "run:latest", count: "count:latest" };   // /hiring, /plan, /run and /democount
+const DOCS = { board: "board:latest", plan: "plan:latest", run: "run:latest", count: "count:latest", desk: "desk:latest" };   // /hiring, /plan, /run and /democount
 const VIEW = "board:viewhash";
 const json = (obj, status = 200) =>
   new Response(JSON.stringify(obj), {
@@ -50,7 +50,7 @@ export async function onRequestPost({ request, env }) {
   } catch (e) {
     return json({ ok: false, error: "bad json" }, 400);
   }
-  if (!body || typeof body.board !== "object" || (!["plan", "run", "count"].includes(body.doc) && !Array.isArray(body.board.people))) return json({ ok: false, error: "no board" }, 400);
+  if (!body || typeof body.board !== "object" || (!["plan", "run", "count", "desk"].includes(body.doc) && !Array.isArray(body.board.people))) return json({ ok: false, error: "no board" }, 400);
   if (body.view_hash && !/^[0-9a-f]{64}$/.test(body.view_hash)) return json({ ok: false, error: "bad view_hash" }, 400);
   const doc = DOCS[body.doc || "board"];
   if (!doc) return json({ ok: false, error: "bad doc" }, 400);

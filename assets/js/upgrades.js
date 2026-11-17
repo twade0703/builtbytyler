@@ -151,16 +151,26 @@
     return '<div class="chg">' + (C.items || []).map(function (c) {
       return '<div class="ci"><span class="pill ' + (c.ok ? "done" : "q") + '">' + (c.ok ? "&#10003; DONE" : "&#9679; OPEN") + "</span><div><b>" + esc(c.t) + "</b><p>" + esc(c.d) + "</p></div><small>" + esc(c.at) + "</small></div>";
     }).join("") + "</div>" +
-      '<div class="exs"><div><u>On the new design (open one)</u>' + L(C.new_examples) + "</div><div><u>Tidied, still old design</u>" + L(C.tidied_examples) + "</div></div>";
+      (C.themes && C.themes.length ? '<div class="exs"><div><u>Pages per theme</u>' + C.themes.map(function (t) { return '<span class="tchip">' + esc(t.theme) + " <b>" + num(t.n) + "</b></span>"; }).join("") + "</div></div>" : "") +
+      '<div class="exs"><div><u>' + (b.labels ? "Open one of each theme" : "On the new design (open one)") + "</u>" + L(C.new_examples) + "</div>" + ((C.tidied_examples || []).length ? "<div><u>Tidied, still old design</u>" + L(C.tidied_examples) + "</div>" : "") + "</div>";
   }
 
   function kpi(l, v, chip) { return '<div class="kpi"><u>' + esc(l) + "</u><b>" + v + "</b>" + (chip ? '<span class="chip">' + chip + "</span>" : "") + "</div>"; }
 
+  function labels(b) {
+    var L = b.labels; if (!L) return;
+    var t = document.querySelector(".ttl b"); if (t) t.textContent = L.title;
+    var u = document.querySelector("#bn + u"); if (u) u.textContent = L.big;
+    var c = document.querySelector("#cp + u"); if (c) c.textContent = L.pass;
+    var f = document.querySelector("#cf + u"); if (f) f.textContent = L.fail;
+    document.title = L.title + " · Built by Tyler";
+  }
+
   function render(b) {
-    B = b;
+    B = b; labels(b);
     var done = b.passed + b.failed, fin = !!b.finished;
     upd.textContent = "updated " + ago(b.updated);
-    kpis.innerHTML = kpi("Upgraded", num(b.passed), "of " + num(b.total)) + kpi("Kept old page", num(b.failed)) +
+    kpis.innerHTML = kpi("Upgraded", num(b.passed), "of " + num(b.total)) + kpi(b.labels ? b.labels.fail : "Kept old page", num(b.failed)) +
       kpi("Pace", done >= 5 ? (b.per_hour || 0) + "/h" : "–", done >= 5 ? num(b.passed_per_hour) + " upgraded/h" : "measuring") +
       kpi("Finish (estimate)", fin ? "done" : done >= 5 && b.eta ? when(b.eta) : "measuring…");   // one result is too few to time
     $("bn").textContent = num(b.passed);
@@ -179,7 +189,7 @@
     $("chk").innerHTML = "<b>System check</b>" + (b.checks || []).map(function (c) { return '<span class="' + (c.ok ? "ok" : "bad") + '">' + (c.ok ? "&#10003; " : "&#9888; ") + esc(c.t) + "</span>"; }).join("");
     app.innerHTML = (b.changes ? '<div class="g">' + panel("c12", "What changed", "newest first · open the links to see the pages", changes(b)) + "</div>" : "") +
       '<div class="g">' + panel("c8", "Upgrades per hour", "measured, last 24 hours", hours(b)) + panel("c4", "Where the old demos are", "all " + num(b.total) + " old demos", donut(b)) + "</div>" +
-      '<div class="g">' + panel("c4 half", "Each rep's sheet", "old demos on each sheet", reps(b)) + panel("c4 half", "Both sheets, whole", "out of all 1,172 demos", whole(b)) + panel("c4", "Why some kept the old page", "kept old: " + num(b.failed), reasons(b)) + "</div>" +
+      '<div class="g">' + panel("c4 half", "Each rep's sheet", "old demos on each sheet", reps(b)) + panel("c4 half", "Both sheets, whole", "out of all 1,172 demos", whole(b)) + panel("c4", b.labels ? b.labels.kept_title : "Why some kept the old page", "kept old: " + num(b.failed), reasons(b)) + "</div>" +
       '<div class="g">' + panel("c8", "Latest results", "newest first", recent(b)) + panel("c4", "Building now", "and publishing", nowList(b)) + "</div>" +
       '<div class="g">' + panel("c12", "How the upgrade works", "the system you're watching", overview()) + "</div>";
     bindHours(b);

@@ -207,6 +207,7 @@
       .then(function () { loading = false; btn.classList.remove("spin"); });
   }
   btn.addEventListener("click", fetchIt);
+  key();   // read and save the key from the link BEFORE the address is cleaned (2026-11-16: it was cleaned first, so a fresh phone never got the key)
   if (location.hash) history.replaceState(null, "", location.pathname);
   fetchIt();
   setInterval(fetchIt, 30000);

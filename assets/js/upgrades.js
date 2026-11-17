@@ -16,7 +16,9 @@
   function store(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
   function load(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
   function key() {
-    var m = /[#&]k=([A-Za-z0-9_-]{24,})/.exec(location.hash || "");
+    // 2026-11-17: the key rides in the query (?k=) and is never stripped, so a bookmark, a copied address or a page
+    // opened outside the Messages viewer still carries it. The old #k= links still work.
+    var m = /[?&#]k=([A-Za-z0-9_-]{24,})/.exec((location.search || "") + (location.hash || ""));
     if (m) { store(KEY_STORE, m[1]); return m[1]; }
     return load(KEY_STORE);
   }
@@ -218,7 +220,7 @@
   }
   btn.addEventListener("click", fetchIt);
   key();   // read and save the key from the link BEFORE the address is cleaned (2026-11-16: it was cleaned first, so a fresh phone never got the key)
-  if (location.hash) history.replaceState(null, "", location.pathname);
+  var kk = key(); if (kk && !/[?&]k=/.test(location.search)) history.replaceState(null, "", location.pathname + "?k=" + kk);
   fetchIt();
   setInterval(fetchIt, 30000);
 })();

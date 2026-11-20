@@ -11,6 +11,8 @@
  *   ?doc=upgrade / body.doc "upgrade": the old-demo upgrade behind /upgrades (leads/night/upgrade_board.py, 2026-11-15),
  *   ?doc=crmaudit / body.doc "crmaudit": the 2026-11-20 audit of the reps' CRM behind /crm-audit (REA/audits/crm-2026-11-20),
  *                            counts and dollars only.
+ *   ?doc=redline / body.doc "redline": Claude's read of the attorney's 2026-11-20 redline of the Rep Agreement behind
+ *                            /rep-redline (04 Legal/reps/attorney-redline-2026-11-20). Attorney-client material.
  *                            same keys, its own KV entry.
  *
  * The view key lives only in the link Tyler was texted (after the #, so it is
@@ -20,7 +22,7 @@
  * number, email or street address (hiring_store.py strips them before upload).
  */
 
-const DOCS = { board: "board:latest", plan: "plan:latest", run: "run:latest", count: "count:latest", desk: "desk:latest", upgrade: "upgrade:latest", crmaudit: "crmaudit:latest" };   // /hiring, /plan, /run, /democount, /upgrades
+const DOCS = { board: "board:latest", plan: "plan:latest", run: "run:latest", count: "count:latest", desk: "desk:latest", upgrade: "upgrade:latest", crmaudit: "crmaudit:latest", redline: "redline:latest" };   // /hiring, /plan, /run, /democount, /upgrades
 const VIEW = "board:viewhash";
 const json = (obj, status = 200) =>
   new Response(JSON.stringify(obj), {
@@ -52,7 +54,7 @@ export async function onRequestPost({ request, env }) {
   } catch (e) {
     return json({ ok: false, error: "bad json" }, 400);
   }
-  if (!body || typeof body.board !== "object" || (!["plan", "run", "count", "desk", "upgrade", "crmaudit"].includes(body.doc) && !Array.isArray(body.board.people))) return json({ ok: false, error: "no board" }, 400);
+  if (!body || typeof body.board !== "object" || (!["plan", "run", "count", "desk", "upgrade", "crmaudit", "redline"].includes(body.doc) && !Array.isArray(body.board.people))) return json({ ok: false, error: "no board" }, 400);
   if (body.view_hash && !/^[0-9a-f]{64}$/.test(body.view_hash)) return json({ ok: false, error: "bad view_hash" }, 400);
   const doc = DOCS[body.doc || "board"];
   if (!doc) return json({ ok: false, error: "bad doc" }, 400);

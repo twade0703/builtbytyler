@@ -81,6 +81,18 @@
   Cache-Control: no-store
   Referrer-Policy: no-referrer
   X-Robots-Tag: noindex, nofollow
+/rep-redline
+  ! Cache-Control
+  ! Referrer-Policy
+  Cache-Control: no-store
+  Referrer-Policy: no-referrer
+  X-Robots-Tag: noindex, nofollow
+/rep-redline.html
+  ! Cache-Control
+  ! Referrer-Policy
+  Cache-Control: no-store
+  Referrer-Policy: no-referrer
+  X-Robots-Tag: noindex, nofollow
 /crm-audit
   ! Cache-Control
   ! Referrer-Policy

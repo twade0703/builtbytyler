@@ -66,7 +66,7 @@
       ".thm>button{display:inline-flex;align-items:center;gap:6px;padding:8px 11px;border-radius:9px;border:1px solid var(--edge2,var(--line));background:var(--panel,var(--card));color:var(--mu);font:500 12px 'JetBrains Mono',ui-monospace,monospace;cursor:pointer}" +
       ".thm>button:hover{color:var(--tx)}" +
       ".thm>button svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.6}" +
-      ".thm ul{position:absolute;right:0;top:calc(100% + 6px);z-index:41;min-width:220px;margin:0;padding:6px;list-style:none;border-radius:12px;border:1px solid var(--edge2,var(--line));background:var(--panel,var(--card));box-shadow:0 18px 40px rgba(0,0,0,.6)}" +
+      ".thm ul{position:absolute;right:0;top:calc(100% + 6px);z-index:41;min-width:220px;box-sizing:border-box;margin:0;padding:6px;list-style:none;border-radius:12px;border:1px solid var(--edge2,var(--line));background:var(--panel,var(--card));box-shadow:0 18px 40px rgba(0,0,0,.6)}" +
       ".thm ul[hidden]{display:none}" +
       ".thm li button{display:grid;grid-template-columns:22px 1fr auto;gap:10px;align-items:center;width:100%;padding:8px 9px;border-radius:8px;border:0;background:none;color:var(--tx);text-align:left;cursor:pointer;font:500 13px 'Instrument Sans',system-ui,sans-serif}" +
       ".thm li button:hover,.thm li button:focus-visible{background:rgba(255,255,255,.06);outline:none}" +
@@ -84,7 +84,23 @@
       }).join("");
     }
     draw();
-    btn.addEventListener("click", function (e) { e.stopPropagation(); var open = list.hidden; list.hidden = !open; btn.setAttribute("aria-expanded", String(open)); });
+    /* 2026-11-20 (Tyler: "every time I click it, the text that pops up is off the screen"): the list hung from the
+       button's right edge, so on a phone, where the header wraps and the button sits at the left, it opened off the
+       left side. It is now placed against the window: under the button, pulled back inside both edges, and it
+       scrolls inside itself when the screen is short. */
+    function place() {
+      var r = btn.getBoundingClientRect(), vw = document.documentElement.clientWidth, vh = window.innerHeight, pad = 8;
+      list.style.position = "fixed"; list.style.right = "auto"; list.style.maxWidth = (vw - pad * 2) + "px";
+      var w = Math.min(list.offsetWidth, vw - pad * 2), h = list.offsetHeight;
+      var left = Math.max(pad, Math.min(r.right - w, vw - w - pad));
+      var top = r.bottom + 6;
+      if (top + h > vh - pad) top = Math.max(pad, r.top - 6 - h);
+      list.style.left = left + "px"; list.style.top = top + "px";
+      list.style.maxHeight = (vh - pad * 2) + "px"; list.style.overflowY = "auto";
+    }
+    btn.addEventListener("click", function (e) { e.stopPropagation(); var open = list.hidden; list.hidden = !open; btn.setAttribute("aria-expanded", String(open)); if (open) place(); });
+    window.addEventListener("resize", function () { if (!list.hidden) place(); });
+    window.addEventListener("scroll", function () { if (!list.hidden) place(); }, { passive: true });
     list.addEventListener("click", function (e) {
       var b = e.target.closest("[data-t]"); if (!b) return;
       cur = find(b.getAttribute("data-t")); put(KEY, cur.id); apply(cur); draw(); list.hidden = true; btn.setAttribute("aria-expanded", "false");
